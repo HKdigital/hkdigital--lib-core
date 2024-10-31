@@ -46,8 +46,8 @@
 			"svelte": "./dist/constants/index.js"
 		},
 		"./css/test.css": {
-			"types": "./dist/css/test.css",
-			"svelte": "./dist/css/test.css"
+			"import": "./dist/css/test.css",
+			"require": "./dist/css/test.css"
 		},
 		"./constants/regexp": {
 			"types": "./dist/constants/regexp/index.d.ts",

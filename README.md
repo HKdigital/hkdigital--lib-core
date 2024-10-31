@@ -6,10 +6,26 @@ This is a library for [SvelteKit](https://svelte.dev/) projects, that contains c
 
 ## Using the library
 
+### Install
+
 The library can be installed as a normal NPM library.
 
 ```bash
 pnpm add @hkdigital/lib-sveltekit
+```
+
+### Update
+
+```bash
+ncu "@hkdigital/*" -u && pnpm install
+```
+
+### Import
+
+All exports are in subfolders. For example to import a constant from `constants/regexp/index.js`
+
+```svelte
+import { CHAR } from '@hkdigital/lib-sveltekit-test/constants/regexp';
 ```
 
 ## Building the showcase app
