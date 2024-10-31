@@ -1,35 +1,18 @@
-# create-svelte
+# HKdigital's lib Sveltekit
 
-Everything you need to build a Svelte library, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/main/packages/create-svelte).
+**EARLY DEVELOPMENT RELEASE**
 
-Read more about creating a library [in the docs](https://svelte.dev/docs/kit/packaging).
+This is a library for [SvelteKit](https://svelte.dev/) projects, that contains common code and components that we use to create our projects. 
 
-## Creating a project
+## Using the library
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npx sv create
-
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+The library can be installed as a normal NPM library.
 
 ```bash
-npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
+pnpm add @hkdigital/lib-sveltekit
 ```
 
-Everything inside `src/lib` is part of your library, everything inside `src/routes` can be used as a showcase or preview app.
-
-## Building
+## Building the showcase app
 
 To build your library:
 
@@ -47,12 +30,21 @@ You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
 
+## Developing
+
+To develop this library, clone the repository and install the dependencies, then start the development server of the test runners. Checkout the [package.json](./package.json) file for more details.
+
+Everything inside `src/lib` is part of the library, everything inside `src/routes` is the showcase app of this library.
+
 ## Publishing
 
-Go into the `package.json` and give your package the desired name through the `"name"` option. Also consider adding a `"license"` field and point it to a `LICENSE` file which you can create from a template (one popular option is the [MIT license](https://opensource.org/license/mit/)).
+The name of this library is `@hkdigital/lib-sveltekit` and it is published on [NPM](https://npmjs.com). You need NPM credentials to publish in the scope `@hkdigital`. 
 
-To publish your library to [npm](https://www.npmjs.com):
+### Contribute
+If your wish to contribute to this library, please contact us [HKdigital](https://hkdigital.nl/contact). Alternatively, the license permits you to fork the library and publish under an alternative name. Change the package name in [package.json](./package.json) to do so.
 
 ```bash
-npm publish
+npm login
+npm version patch
+npm publish --access public
 ```
