@@ -45,6 +45,10 @@
 			"types": "./dist/constants/index.d.ts",
 			"svelte": "./dist/constants/index.js"
 		},
+    "./css/*.css": {
+			"types": "./dist/css/*.css",
+			"svelte": "./dist/css/*.css"
+		},
 		"./constants/regexp": {
 			"types": "./dist/constants/regexp/index.d.ts",
 			"svelte": "./dist/constants/regexp/index.js"
