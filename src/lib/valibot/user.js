@@ -6,7 +6,6 @@ import {
 	RE_FULLNAME,
 	RE_NAME,
 	RE_USERNAME,
-	RE_EMAIL,
 	RE_SURNAME,
 	RE_PHONENUMBER
 } from '$lib/constants/regexp/index.js';
@@ -21,4 +20,4 @@ export const Username = v.pipe(v.string(), v.trim(), v.regex(RE_USERNAME));
 
 export const Surname = v.pipe(v.string(), v.trim(), v.regex(RE_SURNAME));
 
-export const phoneNumber = v.pipe(v.string(), v.trim(), v.regex(RE_PHONENUMBER));
+export const PhoneNumber = v.pipe(v.string(), v.trim(), v.regex(RE_PHONENUMBER));
