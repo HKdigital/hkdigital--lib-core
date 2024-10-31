@@ -19,6 +19,7 @@
 	},
 	"files": [
 		"dist",
+    "dist/css/test.css",
 		"!dist/**/*.test.*",
 		"!dist/**/*.spec.*"
 	],
