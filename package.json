@@ -1,6 +1,6 @@
 {
 	"name": "@hkdigital/lib-sveltekit-test",
-	"version": "0.0.6",
+	"version": "0.0.7",
 	"author": "Jens Kleinhout, HKdigital (https://hkdigital.nl)",
 	"license": "ISC",
 	"scripts": {
