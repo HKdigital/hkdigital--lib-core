@@ -19,7 +19,6 @@
 	},
 	"files": [
 		"dist",
-		"dist/css/test.css",
 		"!dist/**/*.test.*",
 		"!dist/**/*.spec.*"
 	],
@@ -46,9 +45,9 @@
 			"types": "./dist/constants/index.d.ts",
 			"svelte": "./dist/constants/index.js"
 		},
-		"./css/test.css": {
-			"import": "./dist/css/test.css",
-			"require": "./dist/css/test.css"
+		"./css/*.css": {
+			"import": "./dist/css/*.css",
+			"require": "./dist/css/*.css"
 		},
 		"./constants/regexp": {
 			"types": "./dist/constants/regexp/index.d.ts",
