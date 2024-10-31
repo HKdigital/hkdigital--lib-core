@@ -20,12 +20,25 @@ pnpm add @hkdigital/lib-sveltekit
 ncu "@hkdigital/*" -u && pnpm install
 ```
 
-### Import
+### Import JS & Svelte
 
-All exports are in subfolders. For example to import a constant from `constants/regexp/index.js`
+All exports are in subfolders.
+
+For example to import a constant from `constants/regexp/index.js`
 
 ```svelte
 import { CHAR } from '@hkdigital/lib-sveltekit-test/constants/regexp';
+```
+
+### import CSS
+
+Vite should include postcss-import, but the only solution to get it working for now is to use a relative path to the node_modules folder.
+
+For example:
+
+```css
+/* src/app.css */
+@import '../node_modules/@hkdigital/lib-sveltekit-test/dist/css/utilities.postcss';
 ```
 
 ## Building the showcase app
