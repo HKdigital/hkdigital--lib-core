@@ -1,6 +1,6 @@
 {
 	"name": "@hkdigital/lib-sveltekit-test",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"author": "Jens Kleinhout, HKdigital (https://hkdigital.nl)",
 	"license": "ISC",
 	"scripts": {
@@ -32,6 +32,10 @@
 		".": {
 			"types": "./dist/index.d.ts",
 			"svelte": "./dist/index.js"
+		},
+    "./classes": {
+			"types": "./dist/classes/index.d.ts",
+			"svelte": "./dist/classes/index.js"
 		}
 	},
 	"peerDependencies": {
