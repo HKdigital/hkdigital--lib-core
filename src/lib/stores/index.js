@@ -1,1 +1,1 @@
-export * from './theme.js';
+export * as theme from './theme.js';
