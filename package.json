@@ -1,6 +1,6 @@
 {
 	"name": "@hkdigital/lib-sveltekit-test",
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"author": "Jens Kleinhout, HKdigital (https://hkdigital.nl)",
 	"license": "ISC",
 	"scripts": {
@@ -41,7 +41,7 @@
 			"types": "./dist/constants/index.d.ts",
 			"svelte": "./dist/constants/index.js"
 		},
-    "./constants/regexp": {
+		"./constants/regexp": {
 			"types": "./dist/constants/regexp/index.d.ts",
 			"svelte": "./dist/constants/regexp/index.js"
 		},
