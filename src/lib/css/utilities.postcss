@@ -1,0 +1,44 @@
+/**
+ * Common utility CSS classes
+ * 
+ * Using tailwind layers
+ * @see https://tailwindcss.com/docs/functions-and-directives 
+ */
+
+@layer utilities {
+  .g-no-select {
+    user-select: none;
+    -webkit-user-select: none; /* ios safari */
+  }
+
+  input[type=text].g-no-select, textarea.g-no-select
+  {
+    user-select: text !important;
+    cursor: text;
+  }
+
+  .g-no-double-tab-zoom {
+    /* tailwind touch-manipulation */
+    touch-action: manipulation;
+  }
+
+  .g-no-pinch-zoom
+  {
+    touch-action: pan-x pan-y; /* no pinch zoom, but allow scroll  */
+  }  
+
+  .g-no-highlights {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+}
+
+/* .g-grid-layers {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+
+  & > * {
+    grid-area: 1/1/2/2;
+  }
+} */
