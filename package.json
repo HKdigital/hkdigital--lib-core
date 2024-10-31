@@ -1,6 +1,6 @@
 {
 	"name": "@hkdigital/lib-sveltekit-test",
-	"version": "0.0.24",
+	"version": "0.0.25",
 	"author": "Jens Kleinhout, HKdigital (https://hkdigital.nl)",
 	"license": "ISC",
 	"scripts": {
@@ -73,15 +73,15 @@
 			"types": "./dist/util/singleton/index.d.ts",
 			"svelte": "./dist/util/singleton/index.js"
 		},
-    "./util/svelte": {
+		"./util/svelte": {
 			"types": "./dist/util/svelte/index.d.ts",
 			"svelte": "./dist/util/svelte/index.js"
 		},
-    "./util/svelte/observe": {
+		"./util/svelte/observe": {
 			"types": "./dist/util/svelte/observe/index.d.ts",
 			"svelte": "./dist/util/svelte/observe/index.js"
 		},
-    "./util/svelte/state-context": {
+		"./util/svelte/state-context": {
 			"types": "./dist/util/svelte/state-context/index.d.ts",
 			"svelte": "./dist/util/svelte/state-context/index.js"
 		},
