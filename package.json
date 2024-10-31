@@ -73,6 +73,18 @@
 			"types": "./dist/util/singleton/index.d.ts",
 			"svelte": "./dist/util/singleton/index.js"
 		},
+    "./util/svelte": {
+			"types": "./dist/util/svelte/index.d.ts",
+			"svelte": "./dist/util/svelte/index.js"
+		},
+    "./util/svelte/observe": {
+			"types": "./dist/util/svelte/observe/index.d.ts",
+			"svelte": "./dist/util/svelte/observe/index.js"
+		},
+    "./util/svelte/state-context": {
+			"types": "./dist/util/svelte/state-context/index.d.ts",
+			"svelte": "./dist/util/svelte/state-context/index.js"
+		},
 		"./valibot": {
 			"types": "./dist/valibot/index.d.ts",
 			"svelte": "./dist/valibot/index.js"
