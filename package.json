@@ -40,6 +40,10 @@
 		"./constants": {
 			"types": "./dist/constants/index.d.ts",
 			"svelte": "./dist/constants/index.js"
+		},
+		"./constants/regexp": {
+			"types": "./dist/constants/regexp/index.d.ts",
+			"svelte": "./dist/constants/regexp/index.js"
 		}
 	},
 	"peerDependencies": {
