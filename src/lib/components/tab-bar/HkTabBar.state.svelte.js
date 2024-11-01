@@ -4,12 +4,7 @@ import { nav } from '$lib/states/navigation.svelte.js';
 import { goto } from '$app/navigation';
 
 /**
- * @typedef {object} Tab
- * @property {import('$lib/components/icon/types.js').IconSource} icon
- * @property {string} [label]
- *
- * @property {string} [route]
- * @property {string} [routePrefix]
+ * @typedef {import('./typedef.js').Tab} Tab
  */
 
 /* ------------------------------------------------------- Define state class */

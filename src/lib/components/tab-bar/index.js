@@ -13,3 +13,5 @@ export {
 } from './layout/HkAppLayout.state.svelte.js';
 
 export { default as HkTabBarSelector } from './tab-bar/HkTabBarSelector.svelte';
+
+export * from './typedef.js';
