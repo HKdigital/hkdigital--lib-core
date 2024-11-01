@@ -10,9 +10,9 @@
 
 	import { onMount } from 'svelte';
 
-	import HkGridArea from '$lib/components/area/HkGridArea.svelte';
+	import { HkGridArea } from '../area';
 
-	import HkIcon from '$lib/components/icon/HkIcon.svelte';
+	import HkIcon from './HkIcon.svelte';
 
 	/**
 	 * Properties
@@ -22,7 +22,7 @@
 	 * label - text of the label to place below the icon
 	 *
 	 * @type {{
-	 *   src: import('$lib/components/icon/types.js').IconSource,
+	 *   src: import('./typedef.js').IconSource,
 	 *   iconTheme?: string,
 	 *   label?: string,
 	 *   route?: string,

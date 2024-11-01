@@ -1,6 +1,6 @@
-import { defineStateContext } from '$lib/util/svelte/state-context/index.js';
+import { defineStateContext } from '../../util/svelte/state-context/index.js';
+import { nav } from '../../states/navigation.svelte.js';
 
-import { nav } from '$lib/states/navigation.svelte.js';
 import { goto } from '$app/navigation';
 
 /**

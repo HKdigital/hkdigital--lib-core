@@ -8,7 +8,7 @@ import {
 	RE_USERNAME,
 	RE_SURNAME,
 	RE_PHONENUMBER
-} from '$lib/constants/regexp/index.js';
+} from '../constants/regexp/index.js';
 
 // > Exports
 

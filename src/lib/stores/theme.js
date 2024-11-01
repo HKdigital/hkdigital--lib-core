@@ -3,10 +3,9 @@
  *
  * // +layout.svelte
  * <script>
- * import {
- *   metaThemeColorBase,
- *   metaThemeColorDark
- * } from '$lib/stores/theme.js';
+ * import { theme as themeStore } from './theme.js';
+ *
+ * const { metaThemeColorBase, metaThemeColorDark } = themeStore;
  * </script>
  *
  * <svelte:head>

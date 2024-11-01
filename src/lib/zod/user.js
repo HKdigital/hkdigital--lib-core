@@ -2,7 +2,7 @@
 
 import { z } from 'zod';
 
-import { RE_FULLNAME, RE_NAME, RE_USERNAME } from '$lib/constants/regexp/index.js';
+import { RE_FULLNAME, RE_NAME, RE_USERNAME } from '../constants/regexp/index.js';
 
 // > Exports
 

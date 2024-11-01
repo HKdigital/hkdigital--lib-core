@@ -1,4 +1,4 @@
-export { default as HkIcon } from './icon/HkIcon.svelte';
-export { default as HkTabIcon } from './icon/HkTabIcon.svelte';
+export { default as HkIcon } from './HkIcon.svelte';
+export { default as HkTabIcon } from './HkTabIcon.svelte';
 
 export * from './typedef.js';

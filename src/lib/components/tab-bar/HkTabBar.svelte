@@ -8,7 +8,7 @@
 
 	import { createOrGetState } from './HkTabBar.state.svelte';
 
-	import HkGridArea from '$lib/components/area/HkGridArea.svelte';
+	import { HkGridArea } from '../area/index.js';
 
 	/**
 	 * @type {{

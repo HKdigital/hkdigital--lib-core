@@ -1,9 +1,9 @@
 import { writable } from 'svelte/store';
 
 // eslint-disable-next-line no-unused-vars
-import * as Zods from '$lib/zod/all.js';
+import * as Zods from '../../zod/all.js';
 
-import SubscribersCount from '$lib/classes/stores/SubscribersCount.js';
+import SubscribersCount from '../stores/SubscribersCount.js';
 
 // > Class
 

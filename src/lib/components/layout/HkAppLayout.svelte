@@ -3,7 +3,7 @@
 	 * @example
 	 * // file.svelte
 	 * <script>
-	 * import AppLayout from '$lib/components/layout/AppLayout.svelte';
+	 * import AppLayout from '.../components/layout';
 	 * <_/script>
 	 *
 	 * <AppLayout>
@@ -20,17 +20,7 @@
 	 * </AppLayout>
 	 */
 
-	import { onMount } from 'svelte';
-
-	import { useResizeObserver } from '$lib/util/svelte/observe.js';
-
-	import { beforeNavigate, onNavigate, afterNavigate } from '$app/navigation';
-
-	// import { getAppLayoutContext } from './app-layout.svelte';
-
-	// const ctx = getAppLayoutContext();
-
-	// @see https://next.skeleton.dev/docs/resources/contribute/components
+	import { useResizeObserver } from '../../util/svelte/observe/index.js';
 
 	/**
 	 * @typedef AppLayoutProps

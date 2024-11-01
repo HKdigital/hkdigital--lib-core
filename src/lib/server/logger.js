@@ -1,7 +1,7 @@
 /**
  * @example
  *
- * import { logger } from '$lib/server/logger.js';
+ * import { logger } from './logger.js';
  *
  * logger.info('Hello there!');
  * logger.info( { a: 1, b: 2 }, 'Test vars');
@@ -31,9 +31,6 @@ import pino from 'pino';
 import { dev } from '$app/environment';
 
 // import { browser, building, dev, version } from '$app/environment';
-
-// eslint-disable-next-line no-unused-vars
-import z, * as Zods from '$lib/zod/all.js';
 
 // > Setup
 
