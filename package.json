@@ -1,20 +1,20 @@
 {
 	"name": "@hkdigital/lib-sveltekit",
-	"version": "0.0.40",
+	"version": "0.0.41",
 	"author": "Jens Kleinhout, HKdigital (https://hkdigital.nl)",
 	"license": "ISC",
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/HKdigital/hkdigital--lib-sveltekit.git"
 	},
-  "keywords": [
-    "component-library",
-    "sveltekit",
-    "skeleton",
-    "tailwindcss",
-    "runed",
-    "valibot"
-  ],
+	"keywords": [
+		"component-library",
+		"sveltekit",
+		"skeleton",
+		"tailwindcss",
+		"runed",
+		"valibot"
+	],
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build && npm run package",
