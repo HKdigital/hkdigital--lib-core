@@ -5,7 +5,7 @@
 	"license": "ISC",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/HKdigital/hkdigital--lib-sveltekit"
+		"url": "git+https://github.com/HKdigital/hkdigital--lib-sveltekit.git"
 	},
 	"scripts": {
 		"dev": "vite dev",
