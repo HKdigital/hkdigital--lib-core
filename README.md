@@ -1,8 +1,21 @@
 # HKdigital's lib Sveltekit
 
-**EARLY DEVELOPMENT RELEASE**
+Base library that we use to power up our Sveltekit projects
 
-This is a library for [SvelteKit](https://svelte.dev/) projects, that contains common code and components that we use to create our projects. 
+This is a library for [SvelteKit](https://svelte.dev/) projects. 
+It contains common code and components that we use to create our projects. 
+
+## Status
+
+**EARLY DEVELOPMENT RELEASE**
+This package is incomplete and not fully tested.
+Do not use in production environments yet.
+
+## A note about tailwindcss
+
+Components in this package use [tailwindcss](https://tailwindcss.com/).
+
+To compile tailwind classes inside this package, you must add the package location to your tailwindcss plugin configuration (instructions below).
 
 ## Using the library
 
