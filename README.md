@@ -102,8 +102,9 @@ npm publish --access public
 ```
 
 ```bash
-# Run npm version patch && npm publish --access public as specified in package.json
-pnpm run publish
+# Run `npm version patch && npm publish --access public && git push`
+# as specified in package.json
+pnpm run publish:npm
 ```
 
 ### Contribute
