@@ -50,6 +50,14 @@
 			"types": "./dist/classes/index.d.ts",
 			"svelte": "./dist/classes/index.js"
 		},
+    "./classes/streams": {
+			"types": "./dist/classes/streams/index.d.ts",
+			"svelte": "./dist/classes/streams/index.js"
+		},
+    "./classes/stores": {
+			"types": "./dist/classes/stores/index.d.ts",
+			"svelte": "./dist/classes/stores/index.js"
+		},
 		"./components": {
 			"types": "./dist/components/index.d.ts",
 			"svelte": "./dist/components/index.js"
