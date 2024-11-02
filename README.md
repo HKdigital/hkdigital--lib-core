@@ -94,11 +94,17 @@ Everything inside `src/lib` is part of the library, everything inside `src/route
 
 The name of this library is `@hkdigital/lib-sveltekit` and it is published on [NPM](https://npmjs.com). You need NPM credentials to publish in the scope `@hkdigital`. 
 
-### Contribute
-If your wish to contribute to this library, please contact us [HKdigital](https://hkdigital.nl/contact). Alternatively, the license permits you to fork the library and publish under an alternative name. Change the package name in [package.json](./package.json) to do so.
-
 ```bash
+# Manually
 npm login
 npm version patch
 npm publish --access public
 ```
+
+```bash
+# Run npm version patch && npm publish --access public as specified in package.json
+pnpm run publish
+```
+
+### Contribute
+If your wish to contribute to this library, please contact us [HKdigital](https://hkdigital.nl/contact). Alternatively, the license permits you to fork the library and publish under an alternative name. Change the package name in [package.json](./package.json) to do so.
