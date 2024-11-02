@@ -41,6 +41,18 @@ For example:
 @import '../node_modules/@hkdigital/lib-sveltekit-test/dist/css/utilities.postcss';
 ```
 
+### Enable tailwind processing
+
+Allow the tailwind CSS processor to work on the library inside node_modules
+
+```js
+// tailwind.config.js
+export default {
+  content: [
+    './node_modules/@hkdigital/**/*.{html,js,svelte,ts}',
+    './src/**/*.{html,js,svelte,ts}',
+```
+
 ## Building the showcase app
 
 To build your library:
