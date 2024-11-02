@@ -7,6 +7,14 @@
 		"type": "git",
 		"url": "git+https://github.com/HKdigital/hkdigital--lib-sveltekit.git"
 	},
+  "keywords": [
+    "component-library",
+    "sveltekit",
+    "skeleton",
+    "tailwindcss",
+    "runed",
+    "valibot"
+  ],
 	"scripts": {
 		"dev": "vite dev",
 		"build": "vite build && npm run package",

@@ -43,7 +43,7 @@ For example to import a constant from `constants/regexp/index.js`
 import { CHAR } from '@hkdigital/lib-sveltekit-test/constants/regexp';
 ```
 
-### import CSS
+### Import CSS
 
 Vite should include postcss-import, but the only solution to get it working for now is to use a relative path to the node_modules folder.
 
