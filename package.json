@@ -1,6 +1,6 @@
 {
 	"name": "@hkdigital/lib-sveltekit",
-	"version": "0.0.41",
+	"version": "0.0.42",
 	"author": "Jens Kleinhout, HKdigital (https://hkdigital.nl)",
 	"license": "ISC",
 	"repository": {
@@ -50,11 +50,11 @@
 			"types": "./dist/classes/index.d.ts",
 			"svelte": "./dist/classes/index.js"
 		},
-    "./classes/streams": {
+		"./classes/streams": {
 			"types": "./dist/classes/streams/index.d.ts",
 			"svelte": "./dist/classes/streams/index.js"
 		},
-    "./classes/stores": {
+		"./classes/stores": {
 			"types": "./dist/classes/stores/index.d.ts",
 			"svelte": "./dist/classes/stores/index.js"
 		},
