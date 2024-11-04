@@ -40,7 +40,7 @@ All exports are in subfolders.
 For example to import a constant from `constants/regexp/index.js`
 
 ```svelte
-import { CHAR } from '@hkdigital/lib-sveltekit-test/constants/regexp';
+import { CHAR } from '@hkdigital/lib-sveltekit/constants/regexp';
 ```
 
 ### Import CSS
@@ -51,7 +51,7 @@ For example:
 
 ```css
 /* src/app.css */
-@import '../node_modules/@hkdigital/lib-sveltekit-test/dist/css/utilities.postcss';
+@import '../node_modules/@hkdigital/lib-sveltekit/dist/css/utilities.postcss';
 ```
 
 ### Enable tailwind processing

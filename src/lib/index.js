@@ -4,6 +4,6 @@
 // @see package.json > exports
 //
 // @example
-// import { TimeStampSource } from '@hkdigital/lib-sveltekit-test/classes';
+// import { TimeStampSource } from '@hkdigital/lib-sveltekit/classes';
 //
 //

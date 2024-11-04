@@ -45,6 +45,16 @@ export function string(value) {
 // > Base objects
 
 // object
+/**
+ * Throws a validation error if value is not an object
+ *
+ * @param {*} value
+ */
+function object_(value) {
+	v.parse(v.looseObject({}), value);
+}
+
+export { object_ as object };
 
 // array
 
@@ -124,6 +134,18 @@ export function notEmptyString(value) {
 
 // asyncIterator
 // iterable
+
+/**
+ * Throws a validation error if value is not iterable
+ *
+ * @param {*} value
+ */
+export function iterable(value) {
+	const schema = v.pipe(v.looseObject({ [Symbol.iterator]: v.function() }));
+
+	v.parse(schema, value);
+}
+
 // iterator
 
 // store
@@ -139,7 +161,7 @@ export function notEmptyString(value) {
 // objectNoFunction
 
 /**
- * Throws a validation error if value is not an array of objects
+ * Throws a validation error if value is not an object or null
  *
  * @param {*} value
  */
