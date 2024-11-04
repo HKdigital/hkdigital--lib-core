@@ -50,6 +50,10 @@
 			"types": "./dist/classes/index.d.ts",
 			"svelte": "./dist/classes/index.js"
 		},
+    "./classes/data": {
+			"types": "./dist/classes/data/index.d.ts",
+			"svelte": "./dist/classes/data/index.js"
+		},
 		"./classes/streams": {
 			"types": "./dist/classes/streams/index.d.ts",
 			"svelte": "./dist/classes/streams/index.js"
@@ -73,6 +77,10 @@
 		"./components/icon": {
 			"types": "./dist/components/icon/index.d.ts",
 			"svelte": "./dist/components/icon/index.js"
+		},
+    "./components/input": {
+			"types": "./dist/components/input/index.d.ts",
+			"svelte": "./dist/components/input/index.js"
 		},
 		"./components/tab-bar": {
 			"types": "./dist/components/tab-bar/index.d.ts",
@@ -102,13 +110,37 @@
 			"types": "./dist/util/index.d.ts",
 			"svelte": "./dist/util/index.js"
 		},
+    "./util/array": {
+			"types": "./dist/util/array/index.d.ts",
+			"svelte": "./dist/util/array/index.js"
+		},
+    "./util/compare": {
+			"types": "./dist/util/compare/index.d.ts",
+			"svelte": "./dist/util/compare/index.js"
+		},
 		"./util/expect": {
 			"types": "./dist/util/expect/index.d.ts",
 			"svelte": "./dist/util/expect/index.js"
 		},
+    "./util/is": {
+			"types": "./dist/util/is/index.d.ts",
+			"svelte": "./dist/util/is/index.js"
+		},
+    "./util/iterate": {
+			"types": "./dist/util/iterate/index.d.ts",
+			"svelte": "./dist/util/iterate/index.js"
+		},
+    "./util/object": {
+			"types": "./dist/util/object/index.d.ts",
+			"svelte": "./dist/util/object/index.js"
+		},
 		"./util/singleton": {
 			"types": "./dist/util/singleton/index.d.ts",
 			"svelte": "./dist/util/singleton/index.js"
+		},
+    "./util/string": {
+			"types": "./dist/util/string/index.d.ts",
+			"svelte": "./dist/util/string/index.js"
 		},
 		"./util/svelte": {
 			"types": "./dist/util/svelte/index.d.ts",
