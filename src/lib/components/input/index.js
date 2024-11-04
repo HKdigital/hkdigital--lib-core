@@ -1,1 +1,1 @@
-export { default as HKInputField } from './HKInputField.svelte';
+export { default as HkInputField } from './HkInputField.svelte';

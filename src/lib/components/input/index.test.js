@@ -1,11 +1,9 @@
 import { describe, it, expect } from 'vitest';
 
-import {
-    HKInputField
-} from './index.js';
+import { HkInputField } from './index.js';
 
-describe('HKInputField', () => {
+describe('HkInputField', () => {
 	it('should be a component (function)', () => {
-		expect(typeof HKInputField).toBe('function');
+		expect(typeof HkInputField).toBe('function');
 	});
 });
