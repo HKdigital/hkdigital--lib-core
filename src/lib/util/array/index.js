@@ -222,7 +222,7 @@ export function pathValues(items, path, options = {}) {
 	if (typeof path === 'string') {
 		path = toArrayPath(path, pathSeparator);
 	} else {
-		expect.arrayOfStrings(path);
+		expect.stringArray(path);
 	}
 
 	// >> CASE A: Output as plain Array
@@ -340,7 +340,7 @@ export function sortByPathValue(items, path, compareFn = smallestFirst) {
 	if (typeof path === 'string') {
 		path = toArrayPath(path);
 	} else {
-		expect.arrayOfStrings(path);
+		expect.stringArray(path);
 	}
 
 	const cache = new Map();
