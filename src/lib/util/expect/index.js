@@ -34,7 +34,7 @@ import * as v from 'valibot';
  * @param {*} value
  */
 export function string(value) {
-  v.parse(v.string(), value);
+	v.parse(v.string(), value);
 }
 
 // boolean
@@ -54,7 +54,7 @@ export function string(value) {
  * @param {*} value
  */
 export function stringArray(value) {
-  v.parse(v.array(v.string()), value);
+	v.parse(v.array(v.string()), value);
 }
 
 /**
@@ -63,7 +63,7 @@ export function stringArray(value) {
  * @param {*} value
  */
 export function objectArray(value) {
-  v.parse(v.array(v.looseObject({})), value);
+	v.parse(v.array(v.looseObject({})), value);
 }
 
 /**
@@ -72,7 +72,7 @@ export function objectArray(value) {
  * @param {*} value
  */
 function _function(value) {
-  v.parse(v.function(), value);
+	v.parse(v.function(), value);
 }
 
 export { _function as function };
@@ -94,7 +94,7 @@ export { _function as class };
  * @param {*} value
  */
 export function _true(value) {
-  v.value(true, value);
+	v.value(true, value);
 }
 
 export { _true as true };
@@ -115,9 +115,9 @@ export { _true as true };
  * @param {*} value
  */
 export function notEmptyString(value) {
-  const schema = v.pipe(v.string(), v.minLength(1));
+	const schema = v.pipe(v.string(), v.minLength(1));
 
-  v.parse(schema, value);
+	v.parse(schema, value);
 }
 
 // notEmptyStringOrNull
@@ -137,7 +137,16 @@ export function notEmptyString(value) {
 // uriComponent
 // objectNoArray
 // objectNoFunction
-// objectOrNull
+
+/**
+ * Throws a validation error if value is not an array of objects
+ *
+ * @param {*} value
+ */
+export function objectOrNull(value) {
+	v.parse(v.union([v.value(null), v.looseObject({})]), value);
+}
+
 // objectOrUndefined
 // objectPath
 // arrayOrSet
