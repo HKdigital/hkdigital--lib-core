@@ -1,6 +1,6 @@
 {
 	"name": "@hkdigital/lib-sveltekit",
-	"version": "0.0.45",
+	"version": "0.0.46",
 	"author": "Jens Kleinhout, HKdigital (https://hkdigital.nl)",
 	"license": "ISC",
 	"repository": {
@@ -50,7 +50,7 @@
 			"types": "./dist/classes/index.d.ts",
 			"svelte": "./dist/classes/index.js"
 		},
-    "./classes/data": {
+		"./classes/data": {
 			"types": "./dist/classes/data/index.d.ts",
 			"svelte": "./dist/classes/data/index.js"
 		},
@@ -78,7 +78,7 @@
 			"types": "./dist/components/icon/index.d.ts",
 			"svelte": "./dist/components/icon/index.js"
 		},
-    "./components/input": {
+		"./components/input": {
 			"types": "./dist/components/input/index.d.ts",
 			"svelte": "./dist/components/input/index.js"
 		},
@@ -110,11 +110,11 @@
 			"types": "./dist/util/index.d.ts",
 			"svelte": "./dist/util/index.js"
 		},
-    "./util/array": {
+		"./util/array": {
 			"types": "./dist/util/array/index.d.ts",
 			"svelte": "./dist/util/array/index.js"
 		},
-    "./util/compare": {
+		"./util/compare": {
 			"types": "./dist/util/compare/index.d.ts",
 			"svelte": "./dist/util/compare/index.js"
 		},
@@ -122,15 +122,15 @@
 			"types": "./dist/util/expect/index.d.ts",
 			"svelte": "./dist/util/expect/index.js"
 		},
-    "./util/is": {
+		"./util/is": {
 			"types": "./dist/util/is/index.d.ts",
 			"svelte": "./dist/util/is/index.js"
 		},
-    "./util/iterate": {
+		"./util/iterate": {
 			"types": "./dist/util/iterate/index.d.ts",
 			"svelte": "./dist/util/iterate/index.js"
 		},
-    "./util/object": {
+		"./util/object": {
 			"types": "./dist/util/object/index.d.ts",
 			"svelte": "./dist/util/object/index.js"
 		},
@@ -138,7 +138,7 @@
 			"types": "./dist/util/singleton/index.d.ts",
 			"svelte": "./dist/util/singleton/index.js"
 		},
-    "./util/string": {
+		"./util/string": {
 			"types": "./dist/util/string/index.d.ts",
 			"svelte": "./dist/util/string/index.js"
 		},
