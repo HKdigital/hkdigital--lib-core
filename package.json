@@ -1,6 +1,6 @@
 {
 	"name": "@hkdigital/lib-sveltekit",
-	"version": "0.0.47",
+	"version": "0.0.48",
 	"author": "Jens Kleinhout, HKdigital (https://hkdigital.nl)",
 	"license": "ISC",
 	"repository": {
@@ -54,7 +54,7 @@
 			"types": "./dist/classes/data/index.d.ts",
 			"svelte": "./dist/classes/data/index.js"
 		},
-    "./classes/promise": {
+		"./classes/promise": {
 			"types": "./dist/classes/promise/index.d.ts",
 			"svelte": "./dist/classes/promise/index.js"
 		},
@@ -126,7 +126,7 @@
 			"types": "./dist/util/expect/index.d.ts",
 			"svelte": "./dist/util/expect/index.js"
 		},
-    "./util/function": {
+		"./util/function": {
 			"types": "./dist/util/function/index.d.ts",
 			"svelte": "./dist/util/function/index.js"
 		},
