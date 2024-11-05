@@ -29,8 +29,25 @@ pnpm add @hkdigital/lib-sveltekit
 
 ### Update
 
+We use a global installion of the `ncu` package to upgrade our `package.json`. Install `ncu` first if you don't have it yet
+
+```bash
+npm install -g npm-check-updates
+```
+
+Upgrading works as follows:
+
 ```bash
 ncu "@hkdigital/*" -u && pnpm install
+```
+We use a wildcard to upgrade all installed `node_modules` in the scope `@hkdigital`.
+
+You can also add this command to your project's `package.json`. E.g. add the lines:
+
+```bash
+"scripts": {
+  "upgrade:hklib": "ncu '@hkdigital/*' -u && pnpm install",
+  "upgrade:all": "ncu -u && pnpm install"
 ```
 
 ### Import JS & Svelte
@@ -107,5 +124,5 @@ npm publish --access public
 pnpm run publish:npm
 ```
 
-### Contribute
+## Contribute
 If your wish to contribute to this library, please contact us [HKdigital](https://hkdigital.nl/contact). Alternatively, the license permits you to fork the library and publish under an alternative name. Change the package name in [package.json](./package.json) to do so.

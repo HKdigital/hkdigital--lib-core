@@ -378,10 +378,11 @@ export function sortByPathValue(items, path, compareFn = smallestFirst) {
  * Find the first item in the list of objects that matches the selector
  * - All items in the supplied array must be objects
  *
- * @param {object[]} arr
+ * @template {object} T
+ * @param {T[]} arr
  * @param {object|null} selector
  *
- * @returns {object|null} first matched item
+ * @returns {T|null} first matched item
  */
 export function findFirst(arr, selector) {
 	const selectorObj = new Selector(selector);
@@ -395,10 +396,11 @@ export function findFirst(arr, selector) {
  * Returns all items from the list of items that match the selector
  * - All items in the supplied array must be objects
  *
- * @param {object[]} arr
+ * @template {object} T
+ * @param {T[]} arr
  * @param {object|null} selector
  *
- * @returns {object[]} matching items
+ * @returns {T[]} matching items
  */
 export function findAll(arr, selector) {
 	const selectorObj = new Selector(selector);

@@ -53,9 +53,10 @@ export default class Selector {
 	/**
 	 * Returns the first item from the list of items that matches the selector
 	 *
-	 * @param {object[]|null} items
+	 * @template {object} T
+	 * @param {T[]|null} items
 	 *
-	 * @returns {object|null} item or null if not found
+	 * @returns {T|null} item or null if not found
 	 */
 	findFirst(items) {
 		if (!items) {
@@ -76,9 +77,10 @@ export default class Selector {
 	/**
 	 * Returns all items from the list of items that match the selector
 	 *
-	 * @param {object[]|null} items
+	 * @template {object} T
+	 * @param {T[]|null} items
 	 *
-	 * @returns {object|null} item or null if not found
+	 * @returns {T|null} item or null if not found
 	 */
 	findAll(items) {
 		const result = [];
