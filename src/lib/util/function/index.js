@@ -16,7 +16,7 @@
 
 /* ------------------------------------------------------------------ Imports */
 
-import * as Types from '$lib/typedef/base.js';
+import * as expect from '../expect/index.js';
 
 /* ------------------------------------------------------------------ Exports */
 
@@ -36,18 +36,16 @@ export const noop = () => {};
  * @returns {function} callback wrapped in `once` function
  */
 export function once(callback) {
-  Types.Number(callback);
+	expect.function(callback);
 
-  expectFunction(callback, 'Missing or invalid parameter [callback]');
+	let ignore = false;
 
-  let ignore = false;
-
-  return function () {
-    if (!ignore) {
-      ignore = true;
-      callback(...arguments);
-    }
-  };
+	return function () {
+		if (!ignore) {
+			ignore = true;
+			callback(...arguments);
+		}
+	};
 }
 
 // -----------------------------------------------------------------------------
@@ -63,40 +61,40 @@ export function once(callback) {
  * @returns {function} debounced function
  */
 export function debounce(fn, intervalMs = 200) {
-  let idleTimer;
-  let lastArguments;
+	let idleTimer;
+	let lastArguments;
 
-  // console.log("debounce");
+	// console.log("debounce");
 
-  return function debounced() {
-    // console.log("debounced");
+	return function debounced() {
+		// console.log("debounced");
 
-    if (idleTimer) {
-      // console.log("idleTimer running");
+		if (idleTimer) {
+			// console.log("idleTimer running");
 
-      // The function has been called recently
-      lastArguments = arguments;
-      return;
-    }
+			// The function has been called recently
+			lastArguments = arguments;
+			return;
+		}
 
-    idleTimer = setTimeout(() => {
-      // console.log("idleTimer finished", lastArguments);
+		idleTimer = setTimeout(() => {
+			// console.log("idleTimer finished", lastArguments);
 
-      idleTimer = null;
+			idleTimer = null;
 
-      if (lastArguments) {
-        //
-        // At least one call has been "debounced"
-        // -> make call with last arguments, so function always receives
-        //    the arguments of the last call to the function
-        //
-        fn(...lastArguments);
-        lastArguments = undefined;
-      }
-    }, intervalMs);
+			if (lastArguments) {
+				//
+				// At least one call has been "debounced"
+				// -> make call with last arguments, so function always receives
+				//    the arguments of the last call to the function
+				//
+				fn(...lastArguments);
+				lastArguments = undefined;
+			}
+		}, intervalMs);
 
-    fn(...arguments);
-  };
+		fn(...arguments);
+	};
 }
 
 // -----------------------------------------------------------------------------

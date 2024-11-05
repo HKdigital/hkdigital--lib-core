@@ -42,12 +42,11 @@ ncu "@hkdigital/*" -u && pnpm install
 ```
 We use a wildcard to upgrade all installed `node_modules` in the scope `@hkdigital`.
 
-You can also add this command to your project's `package.json`. E.g. add the lines:
+You can also add this command to your project. To do so, add the lines to the bottom of the `scripts` section of your `package.json`.
 
 ```bash
-"scripts": {
-  "upgrade:hklib": "ncu '@hkdigital/*' -u && pnpm install",
-  "upgrade:all": "ncu -u && pnpm install"
+"upgrade:hklib": "ncu '@hkdigital/*' -u && pnpm install",
+"upgrade:all": "ncu -u && pnpm install"
 ```
 
 ### Import JS & Svelte
