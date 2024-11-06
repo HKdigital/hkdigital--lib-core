@@ -30,12 +30,21 @@
 
 /* ------------------------------------------------------------------ Imports */
 
-// import { expectPositiveNumber } from './expect.js';
-// import { HkPromise } from './promises.js';
+import * as expect from '../expect/index.js';
+import { HkPromise } from '../../classes/promise/index.js';
 
 /* ---------------------------------------------------------------- Internals */
 
 /* ------------------------------------------------------------------ Exports */
+
+export const SECOND_MS = 1000;
+export const MINUTE_MS = 60 * SECOND_MS;
+export const HOUR_MS = 60 * MINUTE_MS;
+export const DAY_MS = 24 * HOUR_MS;
+export const WEEK_MS = 7 * DAY_MS;
+
+export const TIME_2020_01_01 = 1577836800000; // 2020-01-01T00:00:00.000Z
+export const TIME_2100_01_01 = 4102444800000; // 2100-01-01T00:00:00.000Z
 
 /**
  * Returns a promise that resolves after a specified timeout
@@ -52,37 +61,35 @@
  * @returns {Promise} promise that resolves after a specified timeout
  */
 export function delay(delayOrMinDelayMs, maxDelayMs) {
-  if (typeof delayOrMinDelayMs !== 'number') {
-    throw new Error('Invalid or missing parameter [delayOrMinDelayMs]');
-  }
+	expect.number(delayOrMinDelayMs);
 
-  if (maxDelayMs) {
-    //
-    // maxDelayMs was set -> generate random delay
-    //
-    if (maxDelayMs > delayOrMinDelayMs) {
-      delayOrMinDelayMs = Math.floor(
-        delayOrMinDelayMs + Math.random() * (maxDelayMs - delayOrMinDelayMs)
-      );
-    }
-  }
+	if (maxDelayMs) {
+		//
+		// maxDelayMs was set -> generate random delay
+		//
+		if (maxDelayMs > delayOrMinDelayMs) {
+			delayOrMinDelayMs = Math.floor(
+				delayOrMinDelayMs + Math.random() * (maxDelayMs - delayOrMinDelayMs)
+			);
+		}
+	}
 
-  const promise = new HkPromise();
+	const promise = new HkPromise();
 
-  let timer = setTimeout(() => {
-    timer = null;
-    promise.resolve();
-  }, delayOrMinDelayMs);
+	let timer = setTimeout(() => {
+		timer = null;
+		promise.resolve();
+	}, delayOrMinDelayMs);
 
-  // Register catch method to cancel timer when promise is rejected
-  promise.catch(() => {
-    if (timer) {
-      clearTimeout(timer);
-      timer = null;
-    }
-  });
+	// Register catch method to cancel timer when promise is rejected
+	promise.catch(() => {
+		if (timer) {
+			clearTimeout(timer);
+			timer = null;
+		}
+	});
 
-  return promise;
+	return promise;
 }
 
 // -----------------------------------------------------------------------------
@@ -96,7 +103,7 @@ export function delay(delayOrMinDelayMs, maxDelayMs) {
  * @returns {number} number of milliseconds since the specified time
  */
 export function sinceMs(sinceMs = TIME_2020_01_01) {
-  return Date.now() - sinceMs;
+	return Date.now() - sinceMs;
 }
 
 // -----------------------------------------------------------------------------
@@ -110,36 +117,36 @@ export function sinceMs(sinceMs = TIME_2020_01_01) {
  * @returns {string} time in human readable format
  */
 export function timeToString(timeMs) {
-  const days = Math.floor(timeMs / DAY_MS);
+	const days = Math.floor(timeMs / DAY_MS);
 
-  let restMs = timeMs - days * DAY_MS;
+	let restMs = timeMs - days * DAY_MS;
 
-  const hours = Math.floor(restMs / HOUR_MS);
+	const hours = Math.floor(restMs / HOUR_MS);
 
-  restMs = restMs - hours * HOUR_MS;
+	restMs = restMs - hours * HOUR_MS;
 
-  const minutes = Math.floor(restMs / MINUTE_MS);
+	const minutes = Math.floor(restMs / MINUTE_MS);
 
-  restMs = restMs - minutes * MINUTE_MS;
+	restMs = restMs - minutes * MINUTE_MS;
 
-  const seconds = Math.floor(restMs / SECOND_MS);
+	const seconds = Math.floor(restMs / SECOND_MS);
 
-  restMs = restMs - seconds * SECOND_MS;
+	restMs = restMs - seconds * SECOND_MS;
 
-  let str = '';
+	let str = '';
 
-  if (days) {
-    str += `${days.toString().padStart(2, '0')}:`;
-    str += `${hours.toString().padStart(2, '0')}:`;
-  } else if (hours) {
-    str += `${hours.toString().padStart(2, '0')}:`;
-  }
+	if (days) {
+		str += `${days.toString().padStart(2, '0')}:`;
+		str += `${hours.toString().padStart(2, '0')}:`;
+	} else if (hours) {
+		str += `${hours.toString().padStart(2, '0')}:`;
+	}
 
-  str += `${minutes.toString().padStart(2, '0')}:`;
-  str += `${seconds.toString().padStart(2, '0')}.`;
-  str += `${restMs.toString().padEnd(3, '0')}`;
+	str += `${minutes.toString().padStart(2, '0')}:`;
+	str += `${seconds.toString().padStart(2, '0')}.`;
+	str += `${restMs.toString().padEnd(3, '0')}`;
 
-  return str;
+	return str;
 }
 
 // -----------------------------------------------------------------------------
@@ -153,15 +160,15 @@ export function timeToString(timeMs) {
  * @returns {Date} date object
  */
 export function toDate(dateOrTimestamp) {
-  if (dateOrTimestamp instanceof Date) {
-    return dateOrTimestamp;
-  }
+	if (dateOrTimestamp instanceof Date) {
+		return dateOrTimestamp;
+	}
 
-  if (typeof dateOrTimestamp === 'number') {
-    return new Date(dateOrTimestamp);
-  }
+	if (typeof dateOrTimestamp === 'number') {
+		return new Date(dateOrTimestamp);
+	}
 
-  throw new Error('Missing or invalid parameter [dateOrTimestamp]');
+	throw new Error('Missing or invalid parameter [dateOrTimestamp]');
 }
 
 // -----------------------------------------------------------------------------
@@ -177,48 +184,48 @@ export function toDate(dateOrTimestamp) {
  * @returns {number} week number
  */
 export function getWeekNumber(dateOrTimestamp) {
-  const date = toDate(dateOrTimestamp);
+	const date = toDate(dateOrTimestamp);
 
-  //
-  // Create a copy of this date object
-  //
-  const target = new Date(date.valueOf());
+	//
+	// Create a copy of this date object
+	//
+	const target = new Date(date.valueOf());
 
-  //
-  // ISO week date weeks start on Monday, so correct the day number
-  //
-  const dayNumber = (date.getDay() + 6) % 7;
+	//
+	// ISO week date weeks start on Monday, so correct the day number
+	//
+	const dayNumber = (date.getDay() + 6) % 7;
 
-  //
-  // ISO 8601 states that week 1 is the week with the first Thursday
-  // of that year.
-  //
-  // Set the target date to the Thursday in the target week
-  //
-  target.setDate(target.getDate() - dayNumber + 3);
+	//
+	// ISO 8601 states that week 1 is the week with the first Thursday
+	// of that year.
+	//
+	// Set the target date to the Thursday in the target week
+	//
+	target.setDate(target.getDate() - dayNumber + 3);
 
-  //
-  // Store the millisecond value of the target date
-  //
-  const firstThursday = target.valueOf();
+	//
+	// Store the millisecond value of the target date
+	//
+	const firstThursday = target.valueOf();
 
-  // Set the target to the first Thursday of the year
-  // First, set the target to January 1st
-  target.setMonth(0, 1);
+	// Set the target to the first Thursday of the year
+	// First, set the target to January 1st
+	target.setMonth(0, 1);
 
-  //
-  // Not a Thursday? Correct the date to the next Thursday
-  //
-  if (target.getDay() !== 4) {
-    target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
-  }
+	//
+	// Not a Thursday? Correct the date to the next Thursday
+	//
+	if (target.getDay() !== 4) {
+		target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
+	}
 
-  //
-  // The week number is the number of weeks between the first Thursday
-  // of the year and the Thursday in the target week
-  // (604800000 = 7 * 24 * 3600 * 1000)
-  //
-  return 1 + Math.ceil((firstThursday - target) / 604800000);
+	//
+	// The week number is the number of weeks between the first Thursday
+	// of the year and the Thursday in the target week
+	// (604800000 = 7 * 24 * 3600 * 1000)
+	//
+	return 1 + Math.ceil((firstThursday - target) / 604800000);
 }
 
 // -----------------------------------------------------------------------------
@@ -244,7 +251,8 @@ export function getWeekNumber(dateOrTimestamp) {
  * @returns {string} name of the month (English)
  */
 export function getMonthName(dateOrTimestamp) {
-  return MONTH_NAME_LABELS_EN[toDate(dateOrTimestamp).getMonth()];
+	throw new Error('Not implemented yet');
+	// return MONTH_NAME_LABELS_EN[toDate(dateOrTimestamp).getMonth()];
 }
 
 // -----------------------------------------------------------------------------
@@ -270,7 +278,8 @@ export function getMonthName(dateOrTimestamp) {
  * @returns {string} name of the day (English)
  */
 export function getDayName(dateOrTimestamp) {
-  return DAY_NAME_LABELS_EN[toDate(dateOrTimestamp).getDay()];
+	throw new Error('Not implemented yet');
+	// return DAY_NAME_LABELS_EN[toDate(dateOrTimestamp).getDay()];
 }
 
 // -----------------------------------------------------------------------------
@@ -284,21 +293,21 @@ export function getDayName(dateOrTimestamp) {
  * @returns {number} timestamp of start of the day (00:00:00:0000)
  */
 export function getTimeAtStartOfDay(dateOrTimestamp) {
-  let d;
+	let d;
 
-  if (dateOrTimestamp) {
-    d = toDate(dateOrTimestamp);
-  } else {
-    // today, now
-    d = new Date();
-  }
+	if (dateOrTimestamp) {
+		d = toDate(dateOrTimestamp);
+	} else {
+		// today, now
+		d = new Date();
+	}
 
-  d.setHours(0);
-  d.setMinutes(0);
-  d.setSeconds(0);
-  d.setMilliseconds(0);
+	d.setHours(0);
+	d.setMinutes(0);
+	d.setSeconds(0);
+	d.setMilliseconds(0);
 
-  return d.getTime();
+	return d.getTime();
 }
 
 // -----------------------------------------------------------------------------
@@ -312,19 +321,19 @@ export function getTimeAtStartOfDay(dateOrTimestamp) {
  * @returns {number} timestamp of start of the day
  */
 export function getTimeAtEndOfDay(dateOrTimestamp) {
-  let d;
+	let d;
 
-  if (dateOrTimestamp) {
-    d = toDate(dateOrTimestamp);
-  } else {
-    // today, now
-    d = new Date();
-  }
+	if (dateOrTimestamp) {
+		d = toDate(dateOrTimestamp);
+	} else {
+		// today, now
+		d = new Date();
+	}
 
-  d.setHours(23);
-  d.setMinutes(59);
-  d.setSeconds(59);
-  d.setMilliseconds(999);
+	d.setHours(23);
+	d.setMinutes(59);
+	d.setSeconds(59);
+	d.setMilliseconds(999);
 
-  return d.getTime();
+	return d.getTime();
 }

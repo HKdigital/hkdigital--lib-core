@@ -154,6 +154,10 @@
 			"types": "./dist/util/svelte/index.d.ts",
 			"svelte": "./dist/util/svelte/index.js"
 		},
+    "./util/tick": {
+			"types": "./dist/util/tick/index.d.ts",
+			"svelte": "./dist/util/tick/index.js"
+		},
 		"./util/svelte/observe": {
 			"types": "./dist/util/svelte/observe/index.d.ts",
 			"svelte": "./dist/util/svelte/observe/index.js"
