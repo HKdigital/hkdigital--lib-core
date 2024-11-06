@@ -12,11 +12,64 @@
  *
  *   sayHelloOnce();
  *   sayHelloOnce();
+ *
+ * @example
+ *
+ *   import { defer } from './process.js';
+ *
+ *   defer( () => {
+ *     console.log("The execution of the function has been defered");
+ *   } );
  */
 
 /* ------------------------------------------------------------------ Imports */
 
 import * as expect from '../expect/index.js';
+
+/* ---------------------------------------------------------------- Internals */
+
+const NEXT_TICK_MESSAGE = 'hk-next-tick';
+
+/**
+ * Detect and return the most suitable setImmediate implementation available
+ * on the current platform
+ */
+function set_immediate_implementation() {
+	if (typeof global !== 'undefined') {
+		if (undefined !== global.setImmediate) {
+			return global.setImmediate;
+		}
+	} else if (typeof window !== 'undefined') {
+		if (window.postMessage && window.addEventListener) {
+			const queue = [];
+
+			window.addEventListener(
+				'message',
+				(event) => {
+					const source = event.source;
+
+					if ((source === window || source === null) && event.data === NEXT_TICK_MESSAGE) {
+						event.stopPropagation();
+						if (queue.length > 0) {
+							const fn = queue.shift();
+							fn();
+						}
+					}
+				},
+				true
+			);
+
+			return function nextTickUsingPostMessage(fn) {
+				expect.function(fn);
+
+				queue.push(fn);
+				window.postMessage(NEXT_TICK_MESSAGE, '*');
+			};
+		}
+	}
+
+	throw new Error('No suitable [setImmediate] implementation available');
+}
 
 /* ------------------------------------------------------------------ Exports */
 
@@ -96,6 +149,23 @@ export function debounce(fn, intervalMs = 200) {
 		fn(...arguments);
 	};
 }
+
+// -----------------------------------------------------------------------------
+
+/**
+ * Defer the execution of a function
+ *  - Uses the best 'setImmediate' implementation supported by the current
+ *    runtime environment
+ *
+ * @param {function} fn - Function to execute
+ *
+ * --
+ *
+ * @note setImmediate is preferred over nextTick
+ *
+ * @see https://nodejs.org/en/docs/guides/event-loop-timers-and-nexttick/
+ */
+export const defer = set_immediate_implementation();
 
 // -----------------------------------------------------------------------------
 
