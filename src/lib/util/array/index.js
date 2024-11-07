@@ -146,6 +146,27 @@ export function toArrayPath(path, pathSeparator = PATH_SEPARATOR) {
 // -----------------------------------------------------------------------------
 
 /**
+ * Push a value to an array if it is not null, undefined or an empty string
+ *
+ * @template {arrray} T
+ * @param {T} arr
+ * @param {*} value
+ *
+ * @returns {T} arr
+ */
+export function pushNotEmpty(arr, value) {
+	expect.array(arr);
+
+	if (value !== null && value !== undefined && value !== '') {
+		arr.push(value);
+	}
+
+	return arr;
+}
+
+// -----------------------------------------------------------------------------
+
+/**
  * Loop over the supplied array and call the callback for every element
  * - The callback will receive the current element of the array as
  *   first argument

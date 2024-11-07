@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { findFirst, findAll } from './index.js';
+import { findFirst, findAll, pushNotEmpty } from './index.js';
 
 describe('findFirst', () => {
 	it('should find an item in an array by key-value', () => {
@@ -18,7 +18,7 @@ describe('findFirst', () => {
 	});
 });
 
-describe('Selector.findAll', () => {
+describe('findAll', () => {
 	it('should find items in an array by key-value', () => {
 		// > Data
 
@@ -35,5 +35,22 @@ describe('Selector.findAll', () => {
 		// > Negative test
 
 		expect(findAll(arr, { name: 'foo' }).length).toBe(0);
+	});
+});
+
+describe('pushNotEmpty', () => {
+	it('should push not empty value to an array', () => {
+		// > Positive test
+
+		expect(pushNotEmpty([], 1)).toEqual([1]);
+		expect(pushNotEmpty([1], 2)).toEqual([1, 2]);
+		expect(pushNotEmpty(['one'], 'two')).toEqual(['one', 'two']);
+		expect(pushNotEmpty([], false)).toEqual([false]);
+
+		// > Negative test
+
+		expect(pushNotEmpty([], '')).toEqual([]);
+		expect(pushNotEmpty([], null)).toEqual([]);
+		expect(pushNotEmpty([], undefined)).toEqual([]);
 	});
 });
