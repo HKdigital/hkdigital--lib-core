@@ -18,6 +18,7 @@
 	 *   bg?: string,
 	 *   padding?: string,
 	 *   margin?: string,
+	 *   height?: string,
 	 *   classes?: string,
 	 *   style?: string,
 	 *   boxBase?: string,
@@ -35,6 +36,7 @@
 		bg,
 		padding,
 		margin,
+		height = 'h-full',
 		classes,
 		style,
 		boxBase,
@@ -58,7 +60,7 @@
 >
 	<div
 		data-hk-grid-layers
-		class="grid grid-cols-1 grid-rows-1 {base} {bg} {classes} {margin}"
+		class="grid grid-cols-1 grid-rows-1 {base} {bg} {height} {classes} {margin} {padding}"
 		{style}
 	>
 		{@render children()}
