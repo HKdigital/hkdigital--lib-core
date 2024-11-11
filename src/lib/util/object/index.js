@@ -1024,7 +1024,7 @@ export function setReadOnlyProperty(obj, propertyName, value) {
 
 	expect.string(propertyName);
 
-	expect.defined(value);
+	// expect.defined(value);
 
 	Object.defineProperty(obj, propertyName, {
 		value,
