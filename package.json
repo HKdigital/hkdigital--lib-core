@@ -1,6 +1,6 @@
 {
 	"name": "@hkdigital/lib-sveltekit",
-	"version": "0.0.54",
+	"version": "0.0.55",
 	"author": "Jens Kleinhout, HKdigital (https://hkdigital.nl)",
 	"license": "ISC",
 	"repository": {
@@ -76,7 +76,7 @@
 			"types": "./dist/components/area/index.d.ts",
 			"svelte": "./dist/components/area/index.js"
 		},
-    "./components/icon": {
+		"./components/icon": {
 			"types": "./dist/components/icon/index.d.ts",
 			"svelte": "./dist/components/icon/index.js"
 		},
