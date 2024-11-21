@@ -72,11 +72,11 @@
 		grid-area: 1/1/2/2;
 	}
 
-	& [data-hk-grid-layers] > :global(*) {
+	[data-hk-grid-layers] > :global(*) {
 		grid-area: 2/1/3/2;
 	}
 
-	& [data-hk-grid-layers] > :global(.area-below) {
+	[data-hk-grid-layers] > :global(.area-below) {
 		grid-area: 3/1/4/2;
 	}
 </style>
