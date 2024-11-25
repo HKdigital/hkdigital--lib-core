@@ -87,7 +87,7 @@ export function interpolate(template, templateData, expressionRegexp = RE_MUSTAC
  * @returns {string} string that can be used as uri
  */
 export function toUriName(str) {
-	expectString(str, 'Missing or invalid variable [str]');
+	expect.string(str, 'Missing or invalid variable [str]');
 
 	str = str.toLowerCase().replace(/[^a-z0-9]+/gi, '-');
 
