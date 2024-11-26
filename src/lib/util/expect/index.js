@@ -21,6 +21,10 @@ import * as v from 'valibot';
 
 import { isObject } from '../is/index.js';
 
+/** Internals */
+
+const ObjectSchema = v.custom(isObject, `Invalid type: Expected object`);
+
 /** Exports */
 
 // > Primitives
@@ -80,7 +84,7 @@ export { undefined_ as undefined };
  * @param {*} value
  */
 function object_(value) {
-	v.parse(v.custom(isObject), value);
+	v.parse(ObjectSchema, value);
 	// v.parse(v.looseObject({}), value);
 }
 
