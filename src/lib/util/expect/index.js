@@ -124,20 +124,20 @@ export function objectArray(value) {
  *
  * @param {*} value
  */
-function _function(value) {
+function function_(value) {
 	v.parse(v.function(), value);
 }
 
-export { _function as function };
+export { function_ as function };
 
-export { _function as class };
+export { function_ as class };
 
 /**
  * Throws a validation error if value is not a Promise
  *
  * @param {*} value
  */
-export function promise_(value) {
+function promise_(value) {
 	v.parse(v.instance(Promise), value);
 }
 
@@ -148,7 +148,7 @@ export { promise_ as promise };
  *
  * @param {*} value
  */
-export function map_(value) {
+function map_(value) {
 	v.parse(v.instance(Map), value);
 }
 
@@ -159,7 +159,7 @@ export { map_ as map };
  *
  * @param {*} value
  */
-export function set_(value) {
+function set_(value) {
 	v.parse(v.instance(Set), value);
 }
 
