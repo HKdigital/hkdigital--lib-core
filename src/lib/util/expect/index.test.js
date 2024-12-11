@@ -137,3 +137,138 @@ describe('expect.stringArray', () => {
 		}
 	});
 });
+
+
+describe('expect.notEmptyString', () => {
+    it('should test if a value is an non-empty string', () => {
+        // > Positive test
+
+        expect_.notEmptyString('valid string')
+        expect_.notEmptyString('a')
+
+        // > Negative test
+
+        try {
+            expect_.notEmptyString(null);
+        } catch (e) {
+            expect(e.message).toEqual('Invalid type: Expected string but received null');
+        }
+    });
+});
+
+
+describe('expect.arrayLike', () => {
+    it('should test if the value is array-like', () => {
+        // > Positive test
+
+        expect_.arrayLike([]);
+        expect_.arrayLike({ length: 0 });
+
+        // > Negative test
+
+        try {
+            expect_.arrayLike(123);
+        } catch (e) {
+            expect(e.message).toEqual('Invalid type: Expected Object but received 123');
+        }
+    });
+});
+
+describe('expect.arrayOrSet', () => {
+    it('should test if the value is an array or a set', () => {
+        // > Positive test
+
+        expect_.arrayOrSet([]);
+        expect_.arrayOrSet(new Set());
+
+        // > Negative test
+
+        try {
+            expect_.arrayOrSet({});
+        } catch (e) {
+            expect(e.message).toEqual('Invalid type: Expected (Array | Set) but received Object');
+        }
+    });
+});
+
+describe('expect.notNull', () => {
+    it('should test that the value is not null', () => {
+        // > Positive test
+
+        expect_.notNull('string')
+
+        // > Negative test
+
+        try {
+            expect_.notNull(null);
+        } catch (e) {
+            expect(e.message).toEqual('Invalid value: Expected a non-null value');
+        }
+    });
+});
+
+describe('expect.objectNoArray', () => {
+    it('should test that the value is an object and not an array', () => {
+        // > Positive test
+
+       expect_.objectNoArray({})
+
+        // > Negative test
+
+        try {
+            expect_.objectNoArray([]);
+        } catch (e) {
+            expect(e.message).toEqual('Invalid type: Expected unknown but received Array');
+        }
+    });
+});
+
+describe('expect.objectNoFunction', () => {
+    it('should test that the value is an object and not a function', () => {
+        // > Positive test
+
+        expect_.objectNoFunction({});
+        expect_.objectNoFunction([]);
+
+        // > Negative test
+
+        try {
+            expect_.objectNoFunction(() => {});
+        } catch (e) {
+            expect(e.message).toEqual('Invalid type: Expected unknown but received Function');
+        }
+    });
+});
+
+describe('expect.store', () => {
+	it('should test if value is a store', () => {
+		// > Positive test
+		const storeTest = {
+			subscribe: () => {}
+		};
+		expect_.store(storeTest);
+
+		// > Negative test
+
+		try {
+			expect_.store({ subscribe: null });
+		} catch (e) {
+			expect(e.message).toEqual('Invalid type: Expected unknown but received Object');
+		}
+	});
+});
+
+describe('expect.set_', () => {
+	it('should test if value is a Set', () => {
+		// > Positive test
+		const setTest = new Set();
+		expect_.set_(setTest);
+
+		// > Negative test
+		try {
+			expect_.set_(null);
+		} catch (e) {
+			expect(e.message).toEqual('Invalid type: Expected Set but received null');
+		}
+	});
+});
