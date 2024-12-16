@@ -2,7 +2,7 @@ import { defineStateContext } from '../../util/svelte/state-context';
 
 import { browser } from '$app/environment';
 
-import { MediaQuery } from 'runed';
+import { MediaQuery } from 'svelte/reactivity';
 
 /* ------------------------------------------------------- Define state class */
 

@@ -20,7 +20,7 @@
 	 * </AppLayout>
 	 */
 
-	import { useResizeObserver } from '../../util/svelte/observe/index.js';
+	import { useResizeObserver } from '$lib/util/svelte/observe/index.js';
 
 	/**
 	 * @typedef AppLayoutProps
