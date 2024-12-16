@@ -63,3 +63,43 @@ export async function expectResponseOk(response, url) {
 		{ cause: error }
 	);
 }
+
+/**
+ * Wait for a response and check if the response is ok
+ *
+ * @example
+ *   const response = await waitForAndCheckResponse( responsePromise );
+ *
+ * @param {Promise<object>} responsePromise
+ * @param {URL} url - An url that is used for error messages
+ *
+ * @throws ResponseError - A response error if something went wrong
+ *
+ * @returns {object} response
+ */
+export async function waitForAndCheckResponse(responsePromise, url) {
+	expect.promise(responsePromise);
+
+	url = toURL(url);
+
+	let response;
+
+	try {
+		response = await responsePromise;
+
+		if (false === response.ok) {
+			// if response.ok is false, it also indicates a network error
+			throw new Error(`Response failed [response.ok=false]`);
+		}
+	} catch (e) {
+		if (e instanceof TypeError || response.ok === false) {
+			throw new ResponseError(`A network error occurred for request [${decodeURI(url.href)}]`, {
+				cause: e
+			});
+		} else {
+			throw e;
+		}
+	}
+
+	return response;
+}
