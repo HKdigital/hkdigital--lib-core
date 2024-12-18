@@ -8,7 +8,7 @@ const instancesByNeedle = new Map();
  * - The singleton is identified by a needle string
  *
  * @param {object} _
- * @param {*} _.class
+ * @param {any} _.class
  * @param {*[]} [_.args] - Constructor arguments
  * @param {string} [_.needle]
  *   If not supplied, a needle will be constructed from the serialized

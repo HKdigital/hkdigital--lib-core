@@ -13,7 +13,7 @@ export class HkTabBarState {
 	/** @type {Tab[]} */
 	tabs = $state.raw([]);
 
-	/** @type {*} */
+	/** @type {any} */
 	tabBarElement = $state();
 
 	/** @type {HTMLElement[]} */

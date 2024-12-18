@@ -32,7 +32,7 @@ const ObjectSchema = v.custom(isObject, `Invalid type: Expected object`);
 /**
  * Throws a validation error if value is not a string
  *
- * @param {*} value
+ * @param {any} value
  */
 export function string(value) {
 	v.parse(v.string(), value);
@@ -41,7 +41,7 @@ export function string(value) {
 /**
  * Throws a validation error if value is not a boolean
  *
- * @param {*} value
+ * @param {any} value
  */
 export function boolean(value) {
 	v.parse(v.boolean(), value);
@@ -50,7 +50,7 @@ export function boolean(value) {
 /**
  * Throws a validation error if value is not a number
  *
- * @param {*} value
+ * @param {any} value
  */
 export function number(value) {
 	v.parse(v.number(), value);
@@ -59,29 +59,36 @@ export function number(value) {
 /**
  * Throws a validation error if value is not a Symbol
  *
- * @param {*} value
+ * @param {any} value
  */
 export function symbol(value) {
 	v.parse(v.symbol(), value);
 }
 
 /**
- * Throws a validation error if value is undefined
+ * Throws a validation error if value is not defined
  *
- * @param {*} value
+ * @param {any} value
  */
-function undefined_(value) {
-	v.parse(v.undefined(), value);
-}
+export function defined(value) {
+	v.parse(
+		v.custom((value) => {
+			if (value === undefined) {
+				return false;
+			}
 
-export { undefined_ as undefined };
+			return true;
+		}, 'Invalid type: Expected any value, but received undefined'),
+		value
+	);
+}
 
 // > Base objects
 
 /**
  * Throws a validation error if value is not an object
  *
- * @param {*} value
+ * @param {any} value
  */
 function object_(value) {
 	v.parse(ObjectSchema, value);
@@ -93,7 +100,7 @@ export { object_ as object };
 /**
  * Throws a validation error if value is not an array
  *
- * @param {*} value
+ * @param {any} value
  */
 function array_(value) {
 	v.parse(v.instance(Array), value);
@@ -104,7 +111,7 @@ export { array_ as array };
 /**
  * Throws a validation error if value is not an array of strings
  *
- * @param {*} value
+ * @param {any} value
  */
 export function stringArray(value) {
 	v.parse(v.array(v.string()), value);
@@ -113,7 +120,7 @@ export function stringArray(value) {
 /**
  * Throws a validation error if value is not an array of objects
  *
- * @param {*} value
+ * @param {any} value
  */
 export function objectArray(value) {
 	v.parse(v.array(v.looseObject({})), value);
@@ -122,7 +129,7 @@ export function objectArray(value) {
 /**
  * Throws a validation error if value is not a function
  *
- * @param {*} value
+ * @param {any} value
  */
 function function_(value) {
 	v.parse(v.function(), value);
@@ -135,7 +142,7 @@ export { function_ as class };
 /**
  * Throws a validation error if value is not a Promise
  *
- * @param {*} value
+ * @param {any} value
  */
 function promise_(value) {
 	v.parse(v.instance(Promise), value);
@@ -146,7 +153,7 @@ export { promise_ as promise };
 /**
  * Throws a validation error if value is not a Map
  *
- * @param {*} value
+ * @param {any} value
  */
 function map_(value) {
 	v.parse(v.instance(Map), value);
@@ -157,7 +164,7 @@ export { map_ as map };
 /**
  * Throws a validation error if value is not a Set
  *
- * @param {*} value
+ * @param {any} value
  */
 function set_(value) {
 	v.parse(v.instance(Set), value);
@@ -168,7 +175,7 @@ export { set_ as set };
 /**
  * Throws a validation error if value is not an Error instance
  *
- * @param {*} value
+ * @param {any} value
  */
 export function error_(value) {
 	v.parse(v.instance(Map), value);
@@ -181,7 +188,7 @@ export { error_ as error };
 /**
  * Expect a value not to be null
  *
- * @param {*} value
+ * @param {any} value
  */
 export function notNull(value) {
 	v.notValue(null, value);
@@ -190,7 +197,7 @@ export function notNull(value) {
 /**
  * Expect a value to be a boolean and true
  *
- * @param {*} value
+ * @param {any} value
  */
 export function _true(value) {
 	v.value(true, value);
@@ -211,7 +218,7 @@ export { _true as true };
 /**
  * Throws a validation error if value is not a string
  *
- * @param {*} value
+ * @param {any} value
  */
 export function notEmptyString(value) {
 	const schema = v.pipe(v.string(), v.minLength(1));
@@ -227,7 +234,7 @@ export function notEmptyString(value) {
 /**
  * Throws a validation error if value is not iterable
  *
- * @param {*} value
+ * @param {any} value
  */
 export function iterable(value) {
 	const schema = v.pipe(v.looseObject({ [Symbol.iterator]: v.function() }));
@@ -241,7 +248,7 @@ export function iterable(value) {
  * Throws a validation error if value is not a a store (has not subscribe
  * method)
  *
- * @param {*} value
+ * @param {any} value
  */
 export function store(value) {
 	v.parse(
@@ -262,7 +269,7 @@ export function store(value) {
  * Throws a validation error if value is not array like
  * - Checks if the value is an object and has a property `length`
  *
- * @param {*} value
+ * @param {any} value
  */
 export function arrayLike(value) {
 	v.parse(v.object({ length: v.number() }), value);
@@ -277,7 +284,7 @@ export function arrayLike(value) {
  * Throws a validation error if value is not an object or the value
  * is an array
  *
- * @param {*} value
+ * @param {any} value
  */
 export function objectNoArray(value) {
 	v.parse(
@@ -296,7 +303,7 @@ export function objectNoArray(value) {
  * Throws a validation error if value is not an object or the value
  * is a function
  *
- * @param {*} value
+ * @param {any} value
  */
 export function objectNoFunction(value) {
 	v.parse(
@@ -314,7 +321,7 @@ export function objectNoFunction(value) {
 /**
  * Throws a validation error if value is not an object or null
  *
- * @param {*} value
+ * @param {any} value
  */
 export function objectOrNull(value) {
 	v.parse(v.union([v.value(null), v.looseObject({})]), value);
@@ -326,7 +333,7 @@ export function objectOrNull(value) {
 /**
  * Throws a validation error if value is not an array or Set
  *
- * @param {*} value
+ * @param {any} value
  */
 export function arrayOrSet(value) {
 	v.parse(v.union([v.instance(Array), v.instance(Set)]), value);

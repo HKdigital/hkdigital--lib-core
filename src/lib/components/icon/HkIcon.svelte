@@ -38,7 +38,7 @@
     ...attrs
   } = $props();
 
-  /** @type {*} */
+  /** @type {any} */
   let icon = $state();
 
   $effect(() => {

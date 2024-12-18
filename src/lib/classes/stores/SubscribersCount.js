@@ -73,7 +73,7 @@ export default class SubscribersCount {
 
 		const handler = {
 			/**
-			 * @param {*} target
+			 * @param {any} target
 			 * @param {string} prop
 			 */
 			get(target, prop) {

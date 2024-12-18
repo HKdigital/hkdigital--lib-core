@@ -29,7 +29,7 @@ export { arraySlice, arrayConcat };
  * - If the value is undefined or null, an empty array is returned
  * - A primitive value is "wrapped" in an array
  *
- * @param {mixed} value - Item to convert
+ * @param {any} value - Item to convert
  *
  * @param {number} [start]
  *   Index of the array to start extraction.
@@ -150,7 +150,7 @@ export function toArrayPath(path, pathSeparator = PATH_SEPARATOR) {
  *
  * @template {arrray} T
  * @param {T} arr
- * @param {*} value
+ * @param {any} value
  *
  * @returns {T} arr
  */

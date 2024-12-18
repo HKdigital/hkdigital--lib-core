@@ -7,8 +7,8 @@ import { objectGet } from '../object/index.js';
 /**
  * Check if the values of two variables should be considered the same
  *
- * @param  {*} value1 - First value for comparison
- * @param  {*} value2 - Second value for comparison
+ * @param  {any} value1 - First value for comparison
+ * @param  {any} value2 - Second value for comparison
  *
  * @return {boolean} true if the two values can be considered the same
  */
@@ -107,8 +107,8 @@ export function equals(value1, value2, _pendingComparisons) {
 /**
  * Returns true if x is greater than y
  *
- * @param {*} x - First value
- * @param {*} y - Second value
+ * @param {any} x - First value
+ * @param {any} y - Second value
  */
 export function isGreaterThan(x, y) {
 	if (typeof x === 'undefined') {
@@ -131,8 +131,8 @@ export function isGreaterThan(x, y) {
 /**
  * Returns true if x is less than y
  *
- * @param {*} x - First value
- * @param {*} y - Second value
+ * @param {any} x - First value
+ * @param {any} y - Second value
  */
 export function isLessThan(x, y) {
 	if (typeof x === 'undefined') {
@@ -156,8 +156,8 @@ export function isLessThan(x, y) {
  * Compare function that can be used for sorting smallest values first
  * - undefined values are placed at the ...???FIXME???... of the sorted array
  *
- * @param {*} x - First value
- * @param {*} y - Second value
+ * @param {any} x - First value
+ * @param {any} y - Second value
  *
  * @returns {number} 0 = keep original order,
  *                   1 = sort x after y,
@@ -185,8 +185,8 @@ export function smallestFirst(x, y) {
  * Compare function that can be used for sorting largest values first
  * - undefined values are placed at the ...???FIXME???... of the sorted array
  *
- * @param {*} x - First value
- * @param {*} y - Second value
+ * @param {any} x - First value
+ * @param {any} y - Second value
  *
  * @returns {number} 0 = keep original order,
  *                   1 = sort x after y,
@@ -215,8 +215,8 @@ export function largestFirst(x, y) {
  *
  * @param {function} compareFn - Function to use to compare the values
  *
- * @param {*} a - First value
- * @param {*} b - Second value
+ * @param {any} a - First value
+ * @param {any} b - Second value
  *
  * @param {string|string[]} path - Object path
  */
@@ -237,8 +237,8 @@ export function compareUsingPath(compareFn, a, b, path) {
  * @param {function} compareFn - Function to use to compare the values
  * @param {string|string[]} path - Object path
  *
- * @param {*} x - First value
- * @param {*} y - Second value
+ * @param {any} x - First value
+ * @param {any} y - Second value
  */
 export function compareUsingKey(compareFn, key, a, b) {
 	// @note assume a and b are objects

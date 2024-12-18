@@ -221,9 +221,9 @@ export function keep(obj, keys, removeNullAndUndefined = true) {
  * - Allows non-objects to be passed as input parameter (non-objects are
  *   immutable by default).
  *
- * @param {mixed} value
+ * @param {any} value
  *
- * @returns {mixed}
+ * @returns {any}
  *   recursively frozen object or original input value if a non-object was
  *   supplied as input parameter
  */
@@ -263,7 +263,7 @@ export function deepFreeze(value, _found) {
  *
  * @param {object} obj - Object to set the value in
  * @param {string|Array} path - Dot separated string path or array path
- * @param {mixed} value - value to set
+ * @param {any} value - value to set
  *
  * @returns {boolean} true if the value was changed
  */
@@ -335,7 +335,7 @@ export function objectSet(obj, path, value) {
  *
  * @param {object} obj - Object to set the value in
  * @param {string|Array} path - Dot separated string path or array path
- * @param {mixed} value - value to set
+ * @param {any} value - value to set
  */
 export function deletePath(obj, path) {
 	expect.object(obj);
@@ -455,10 +455,10 @@ export function deletePath(obj, path) {
  * @param {object} obj - Object to get the value from
  * @param {string|Array} path - Dot separated string path or array path
  *
- * @param {mixed} [defaultValue=undefined]
+ * @param {any} [defaultValue=undefined]
  *   Value to return if the value does not exist
  *
- * @return {*} value found at path, defaultValue or undefined
+ * @return {any} value found at path, defaultValue or undefined
  */
 export function objectGet(obj, path, defaultValue) {
 	expect.object(obj);
@@ -502,7 +502,7 @@ export function objectGet(obj, path, defaultValue) {
  * @throws No value found at path
  * @throws Invalid value
  *
- * @return {*} value found at path
+ * @return {any} value found at path
  */
 export function objectGetWithThrow(obj, path, parseFn) {
 	let value = objectGet(obj, path);
@@ -540,7 +540,7 @@ export function objectGetWithThrow(obj, path, parseFn) {
  * DEPRECEATED >>> NOT COMPATIBLE WITH LIGHTWEIGHT ITERATOR
  * @param {object} [options.unique=false] - Only return unique values
  *
- * @param {mixed} [options.defaultValue]
+ * @param {any} [options.defaultValue]
  *   Value to return if the value does not exist
  *
  * @returns {Iterator<mixed>} value at the specified path for each item
@@ -889,9 +889,9 @@ export function getTree(obj, tree, options) {
  *   - Browser objects
  *   - Functions
  *
- * @param {mixed} objectToBeCloned - Variable to clone
+ * @param {any} objectToBeCloned - Variable to clone
  *
- * @returns {mixed} cloned output
+ * @returns {any} cloned output
  */
 export function clone(objectToBeCloned, _seenObjects) {
 	// const startTime = Date.now();
@@ -1017,7 +1017,7 @@ export function clone(objectToBeCloned, _seenObjects) {
  *
  * @param {object} obj - Object to set the read only property in
  * @param {string} propertyName - Name of the property to set
- * @param {mixed} value - Value to set
+ * @param {any} value - Value to set
  */
 export function setReadOnlyProperty(obj, propertyName, value) {
 	expect.object(obj);

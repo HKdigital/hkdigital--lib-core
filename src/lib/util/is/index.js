@@ -14,7 +14,7 @@ const objectToString = Object.prototype.toString;
 /**
  * Check if a value looks like an array
  *
- * @param {mixed} item - Item to check
+ * @param {any} item - Item to check
  *
  * @return {boolean} true if the value looks like an array
  */
@@ -35,7 +35,7 @@ export function isArrayLike(item) {
 /**
  * Check if a value is an Arguments object
  *
- * @param {*} value
+ * @param {any} value
  *
  * @returns {boolean} true if the value is an Arguments object
  */
@@ -49,7 +49,7 @@ export function isArguments(value) {
  * Check if a value is an array that only contains primitives
  * - A primitive is a not-object value
  *
- * @param {mixed} value - value to check
+ * @param {any} value - value to check
  *
  * @return {boolean} true if the value is an array of primitives
  */
@@ -74,7 +74,7 @@ export function isArrayOfPrimitives(arr) {
  * Check if the supplied value is async iterable
  * - Aync iterable objects must implement the "@@asyncIterator" method
  *
- * @param {mixed} value
+ * @param {any} value
  *
  * @returns {boolean} true if the value is async iterable
  */
@@ -96,7 +96,7 @@ export function isAsyncIterator(value) {
  * @warning this function does not return [true] for (sync) functions that
  *   return a promise.
  *
- * @param {mixed} value
+ * @param {any} value
  *
  * @returns {boolean} true if the value is an async function
  */
@@ -115,7 +115,7 @@ export function isAsyncFunction(value) {
  * - Iterable objects must implement the "@@iterator" method
  * - Generators are also iterable
  *
- * @param {mixed} value
+ * @param {any} value
  *
  * @returns {boolean} true if the value is (not async) iterable
  */
@@ -134,7 +134,7 @@ export function isIterable(value) {
  * - Promises return false
  * - Arrays return true
  *
- * @param {mixed} value
+ * @param {any} value
  *
  * @returns {boolean} true if the value is an Object, but not a Promise
  */

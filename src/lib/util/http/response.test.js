@@ -1,5 +1,3 @@
-// import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
 import { describe, it, expect } from 'vitest';
 
 import { WWW_AUTHENTICATE } from '$lib/constants/http/headers.js';
@@ -8,20 +6,6 @@ import { expectResponseOk, waitForAndCheckResponse } from './response.js';
 
 // import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
 // import { APPLICATION_JSON } from '$lib/constants/mime/application.js';
-
-// > Mocks
-
-// beforeEach(() => {
-// 	const mockResponse = { test: 123 };
-
-// 	global.fetch = vi.fn(() =>
-// 		Promise.resolve({
-// 			json: () => Promise.resolve(mockResponse)
-// 		})
-// 	);
-// });
-
-// afterEach(() => {});
 
 // > Tests
 

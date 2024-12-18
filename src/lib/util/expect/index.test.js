@@ -69,18 +69,21 @@ describe('expect.symbol', () => {
 	});
 });
 
-describe('expect.undefined', () => {
-	it('should test if a value is undefined', () => {
+describe('expect.defined', () => {
+	it('should test if a value is defined', () => {
 		// > Positive test
 
-		expect_.undefined(undefined);
+		expect_.defined(123);
+		expect_.defined(0);
+		expect_.defined(null);
+		expect_.defined('');
 
 		// > Negative test
 
 		try {
-			expect_.undefined(null);
+			expect_.defined(undefined);
 		} catch (e) {
-			expect(e.message).toEqual('Invalid type: Expected undefined but received null');
+			expect(e.message).toEqual('Invalid type: Expected any value, but received undefined');
 		}
 	});
 });

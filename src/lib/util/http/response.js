@@ -87,12 +87,12 @@ export async function waitForAndCheckResponse(responsePromise, url) {
 	try {
 		response = await responsePromise;
 
-		if (false === response.ok) {
+		if (response && false === response.ok) {
 			// if response.ok is false, it also indicates a network error
 			throw new Error(`Response failed [response.ok=false]`);
 		}
 	} catch (e) {
-		if (e instanceof TypeError || response.ok === false) {
+		if (e instanceof TypeError || response?.ok === false) {
 			throw new ResponseError(`A network error occurred for request [${decodeURI(url.href)}]`, {
 				cause: e
 			});

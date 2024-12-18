@@ -141,7 +141,7 @@ export default class HkPromise extends Promise {
 	/**
 	 * Resolve the promise
 	 *
-	 * @param {mixed} [value] - Value to pass to the "then" callbacks
+	 * @param {any} [value] - Value to pass to the "then" callbacks
 	 *
 	 * @returns {object} this
 	 */
@@ -179,7 +179,7 @@ export default class HkPromise extends Promise {
 	/**
 	 * Resolve the promise if the promise is still pending
 	 *
-	 * @param {mixed} [value] - Value to pass to the "catch" callbacks
+	 * @param {any} [value] - Value to pass to the "catch" callbacks
 	 *
 	 * @returns {object} this
 	 */
