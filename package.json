@@ -1,6 +1,6 @@
 {
 	"name": "@hkdigital/lib-sveltekit",
-	"version": "0.0.59",
+	"version": "0.0.60",
 	"author": "Jens Kleinhout, HKdigital (https://hkdigital.nl)",
 	"license": "ISC",
 	"repository": {
@@ -29,7 +29,7 @@
 		"test:unit": "vitest",
 		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test",
-    "upgrade:all": "ncu -u && pnpm install"
+		"upgrade:all": "ncu -u && pnpm install"
 	},
 	"files": [
 		"dist",
@@ -101,15 +101,15 @@
 			"types": "./dist/constants/index.d.ts",
 			"svelte": "./dist/constants/index.js"
 		},
-    "./constants/error": {
+		"./constants/error": {
 			"types": "./dist/constants/error/index.d.ts",
 			"svelte": "./dist/constants/error/index.js"
 		},
-    "./constants/http": {
+		"./constants/http": {
 			"types": "./dist/constants/http/index.d.ts",
 			"svelte": "./dist/constants/http/index.js"
 		},
-    "./constants/mime": {
+		"./constants/mime": {
 			"types": "./dist/constants/mime/index.d.ts",
 			"svelte": "./dist/constants/mime/index.js"
 		},
@@ -149,7 +149,7 @@
 			"types": "./dist/util/function/index.d.ts",
 			"svelte": "./dist/util/function/index.js"
 		},
-    "./util/http": {
+		"./util/http": {
 			"types": "./dist/util/http/index.d.ts",
 			"svelte": "./dist/util/http/index.js"
 		},
