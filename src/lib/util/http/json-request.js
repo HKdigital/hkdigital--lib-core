@@ -2,11 +2,11 @@ import { METHOD_GET, METHOD_POST } from '$lib/constants/http/methods.js';
 
 import { APPLICATION_JSON } from '$lib/constants/mime/application.js';
 import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
+import { ResponseError } from '$lib/constants/errors.js';
 
 import * as expect from '$lib/util/expect/index.js';
 
 import { toURL } from './url.js';
-import { ResponseError } from './errors.js';
 import { httpRequest } from './http-request.js';
 import { waitForAndCheckResponse } from './response.js';
 
