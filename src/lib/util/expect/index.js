@@ -27,61 +27,8 @@ const ObjectSchema = v.custom(isObject, `Invalid type: Expected object`);
 
 /** Exports */
 
-// > Primitives
-
-/**
- * Throws a validation error if value is not a string
- *
- * @param {any} value
- */
-export function string(value) {
-	v.parse(v.string(), value);
-}
-
-/**
- * Throws a validation error if value is not a boolean
- *
- * @param {any} value
- */
-export function boolean(value) {
-	v.parse(v.boolean(), value);
-}
-
-/**
- * Throws a validation error if value is not a number
- *
- * @param {any} value
- */
-export function number(value) {
-	v.parse(v.number(), value);
-}
-
-/**
- * Throws a validation error if value is not a Symbol
- *
- * @param {any} value
- */
-export function symbol(value) {
-	v.parse(v.symbol(), value);
-}
-
-/**
- * Throws a validation error if value is not defined
- *
- * @param {any} value
- */
-export function defined(value) {
-	v.parse(
-		v.custom((value) => {
-			if (value === undefined) {
-				return false;
-			}
-
-			return true;
-		}, 'Invalid type: Expected any value, but received undefined'),
-		value
-	);
-}
+export * from './arrays.js';
+export * from './primitives.js';
 
 // > Base objects
 
@@ -96,35 +43,6 @@ function object_(value) {
 }
 
 export { object_ as object };
-
-/**
- * Throws a validation error if value is not an array
- *
- * @param {any} value
- */
-function array_(value) {
-	v.parse(v.instance(Array), value);
-}
-
-export { array_ as array };
-
-/**
- * Throws a validation error if value is not an array of strings
- *
- * @param {any} value
- */
-export function stringArray(value) {
-	v.parse(v.array(v.string()), value);
-}
-
-/**
- * Throws a validation error if value is not an array of objects
- *
- * @param {any} value
- */
-export function objectArray(value) {
-	v.parse(v.array(v.looseObject({})), value);
-}
 
 /**
  * Throws a validation error if value is not a function
@@ -261,18 +179,6 @@ export function store(value) {
 		}),
 		value
 	);
-}
-
-// notEmptyArray
-// arrayLike
-/**
- * Throws a validation error if value is not array like
- * - Checks if the value is an object and has a property `length`
- *
- * @param {any} value
- */
-export function arrayLike(value) {
-	v.parse(v.object({ length: v.number() }), value);
 }
 
 // ArrayBuffer
