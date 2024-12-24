@@ -70,7 +70,25 @@ export const ValidateRelativeUrl = v.pipe(
 	})
 );
 
-// export const ValidateAbsOrRelUrl
+export const ValidateAbsOrRelUrl = v.pipe(
+	v.string(),
+	ValidateTrim,
+	v.custom((value) => {
+		try {
+			if (/^https?:\/\//.test(value)) {
+				// Absolute url using protocol http(s)
+				return new URL(value);
+			} else {
+				// Relative URL
+				return new URL(value, 'http://localhost');
+			}
+
+			// eslint-disable-next-line no-unused-vars
+		} catch (e) {
+			throw new Error('Invalid relative URL');
+		}
+	})
+);
 
 /**
  * Schema to validate an url that may miss the protocol part

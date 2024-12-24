@@ -8,6 +8,7 @@ describe('expect.url', () => {
 
 		expect_.url('http://localhost');
 		expect_.url('https://hkdigital.nl');
+		expect_.url('https://hkdigital.nl/path/to?query=1#hash');
 
 		// > Negative test
 
@@ -131,6 +132,42 @@ describe('expect.relativeUrl', () => {
 
 		try {
 			expect_.relativeUrl('/  ');
+		} catch (e) {
+			expect(e.message).toEqual('Should not start or end with whitespace');
+		}
+	});
+});
+
+describe('expect.absOrRelUrl', () => {
+	it('should test if a value is an absolute or relative url', () => {
+		// > Positive test
+
+		expect_.absOrRelUrl('/');
+		expect_.absOrRelUrl('');
+		expect_.absOrRelUrl('/path/to?query');
+		expect_.absOrRelUrl('path/to');
+		expect_.absOrRelUrl('path/to?query#hash');
+
+		expect_.url('http://localhost');
+		expect_.url('https://hkdigital.nl');
+		expect_.url('https://hkdigital.nl/path/to?query=1#hash');
+
+		// > Negative test
+
+		try {
+			expect_.absOrRelUrl(123);
+		} catch (e) {
+			expect(e.message).toEqual('Invalid type: Expected string but received 123');
+		}
+
+		try {
+			expect_.absOrRelUrl('  /');
+		} catch (e) {
+			expect(e.message).toEqual('Should not start or end with whitespace');
+		}
+
+		try {
+			expect_.absOrRelUrl('/  ');
 		} catch (e) {
 			expect(e.message).toEqual('Should not start or end with whitespace');
 		}

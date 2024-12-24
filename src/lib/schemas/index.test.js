@@ -25,3 +25,9 @@ describe('schemas.ValidateRelativeUrl', () => {
 		expect(schemas.ValidateRelativeUrl).toBeInstanceOf(Object);
 	});
 });
+
+describe('schemas.ValidateAbsOrRelUrl', () => {
+	it('should be an object', () => {
+		expect(schemas.ValidateAbsOrRelUrl).toBeInstanceOf(Object);
+	});
+});

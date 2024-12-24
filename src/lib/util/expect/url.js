@@ -6,7 +6,8 @@ import {
 	ValidateUrl,
 	ValidateUrlOrEmptyString,
 	ValidateUrlPath,
-	ValidateRelativeUrl
+	ValidateRelativeUrl,
+	ValidateAbsOrRelUrl
 } from '$lib/schemas/validate-url.js';
 
 // > Exports
@@ -46,4 +47,14 @@ export function urlPath(value) {
  */
 export function relativeUrl(value) {
 	v.parse(ValidateRelativeUrl, value);
+}
+
+/**
+ * Throws a validation error if value is not an absolute
+ * or relative url
+ *
+ * @param {any} value
+ */
+export function absOrRelUrl(value) {
+	v.parse(ValidateAbsOrRelUrl, value);
 }
