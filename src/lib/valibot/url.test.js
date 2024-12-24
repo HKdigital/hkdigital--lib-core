@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 import * as v from 'valibot';
 
-import { UrlOrEmptyString, HumanUrl, UrlPath, RelativeUrl, AbsOrRelUrl } from './web.js';
+import { UrlOrEmptyString, HumanUrl, UrlPath, RelativeUrl, AbsOrRelUrl } from './url.js';
 
 describe('UrlOrEmptyString', () => {
 	it('should parse an url or empty string', () => {

@@ -29,6 +29,7 @@ const ObjectSchema = v.custom(isObject, `Invalid type: Expected object`);
 
 export * from './arrays.js';
 export * from './primitives.js';
+export * from './url.js';
 
 // > Base objects
 
