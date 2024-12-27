@@ -1,7 +1,7 @@
 import { ResponseError } from '$lib/constants/errors/index.js';
 import * as expect from '$lib/util/expect/index.js';
 
-import { WWW_AUTHENTICATE } from '$lib/constants/http/headers.js';
+import { WWW_AUTHENTICATE, CONTENT_LENGTH } from '$lib/constants/http/headers.js';
 
 import { href } from './url.js';
 
@@ -60,6 +60,23 @@ export async function expectResponseOk(response, url) {
 		`Server returned - ${response.status} ${response.statusText} ` + `[url=${href(url)}]`,
 		{ cause: error }
 	);
+}
+
+/**
+ * Get the response size from the content-length response header
+ *
+ * @param {Response} response
+ *
+ * @returns {number} response size or 0 if unknown
+ */
+export function getResponseSize(response) {
+	const sizeStr = response.headers.get(CONTENT_LENGTH);
+
+	if (!sizeStr) {
+		return 0;
+	}
+
+	return parseInt(sizeStr, 10);
 }
 
 /**

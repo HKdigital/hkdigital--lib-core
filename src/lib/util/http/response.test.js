@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 
-import { WWW_AUTHENTICATE } from '$lib/constants/http/headers.js';
+import { WWW_AUTHENTICATE, CONTENT_LENGTH } from '$lib/constants/http/headers.js';
 
-import { expectResponseOk, waitForAndCheckResponse } from './response.js';
+import { expectResponseOk, getResponseSize, waitForAndCheckResponse } from './response.js';
 
 // import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
 // import { APPLICATION_JSON } from '$lib/constants/mime/application.js';
@@ -62,6 +62,14 @@ describe('expectResponseOk', () => {
 				'Server returned - 501 Internal Server Error [url=http://localhost/]'
 			);
 		}
+	});
+});
+
+describe('getResponseSize', () => {
+	it('should return the response size', async () => {
+		expect(getResponseSize({ headers: new Headers({ [CONTENT_LENGTH]: 1234 }) })).toEqual(1234);
+
+		expect(getResponseSize({ headers: new Headers() })).toEqual(0);
 	});
 });
 
