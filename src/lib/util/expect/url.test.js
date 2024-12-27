@@ -147,6 +147,7 @@ describe('expect.absOrRelUrl', () => {
 		expect_.absOrRelUrl('/path/to?query');
 		expect_.absOrRelUrl('path/to');
 		expect_.absOrRelUrl('path/to?query#hash');
+		expect_.absOrRelUrl('/src/lib/assets/sounds/test/sine-wave-1khz.mp3');
 
 		expect_.url('http://localhost');
 		expect_.url('https://hkdigital.nl');

@@ -14,20 +14,22 @@ import { waitForAndCheckResponse } from './response.js';
 /**
  * Make GET request
  *
- * @param {string|URL} url - Url string or URL object
+ * @paramm {object} _
  *
- * @param {object} [urlSearchParams]
+ * @param {string|URL} _.url - Url string or URL object
+ *
+ * @param {object} [_.urlSearchParams]
  *   Parameters that should be added to the request url
  *
- * @param {object} [headers]
+ * @param {object} [_.headers]
  *   Object that contains custom headers. A header is a name, value pair.
  *
  *   e.g. options.headers = { "content-type": "application/json" }
  *
- * @param {function} [requestHandler]
+ * @param {function} [_.requestHandler]
  *   If defined, this function will receive the abort handler function
  *
- * @param {number} [timeoutMs]
+ * @param {number} [_.timeoutMs]
  *   If defined, this request will abort after the specified number of
  *   milliseconds. Values above the the built-in request timeout won't work.
  *
@@ -49,19 +51,21 @@ export async function httpGet({ url, urlSearchParams, headers, requestHandler, t
 /**
  * Make POST request
  *
- * @param {string|URL} url - Url string or URL object
+ * @paramm {object} _
  *
- * @param {any} [body] - POST data
+ * @param {string|URL} _.url - Url string or URL object
  *
- * @param {object} [headers]
+ * @param {any} [_.body] - POST data
+ *
+ * @param {object} [_.headers]
  *   Object that contains custom headers. A header is a name, value pair.
  *
  *   e.g. options.headers = { "content-type": "application/json" }
  *
- * @param {function} [requestHandler]
+ * @param {function} [_.requestHandler]
  *   If defined, this function will receive the abort handler function
  *
- * @param {number} [timeoutMs]
+ * @param {number} [_.timeoutMs]
  *   If defined, this request will abort after the specified number of
  *   milliseconds. Values above the the built-in request timeout won't work.
  *
@@ -87,23 +91,25 @@ export async function httpPost({ url, body = null, headers, requestHandler, time
  * - This is a low level function, consider using
  *   httpGet, httpPost, jsonGet or jsonPost instead
  *
- * @param {string|URL} url - Url string or URL object
+ * @paramm {object} _
  *
- * @param {string} method - Request method: METHOD_GET | METHOD_POST
+ * @param {string|URL} _.url - Url string or URL object
  *
- * @param {object} [urlSearchParams] - URL search parameters as key-value pairs
+ * @param {string} _.method - Request method: METHOD_GET | METHOD_POST
  *
- * @param {any} [body] - POST data
+ * @param {object} [_.urlSearchParams] - URL search parameters as key-value pairs
  *
- * @param {object} [headers]
+ * @param {any} [_.body] - POST data
+ *
+ * @param {object} [_.headers]
  *   Object that contains custom headers. A header is a name, value pair.
  *
  *   e.g. options.headers = { "content-type": "application/json" }
  *
- * @param {function} [requestHandler]
+ * @param {( { controller: AbortController, abort: ( reason?: Error ) => void, timeout: number } )=> void} [_.requestHandler]
  *   If defined, this function will receive the abort handler function
  *
- * @param {number} [timeoutMs]
+ * @param {number} [_.timeoutMs]
  *   If defined, this request will abort after the specified number of
  *   milliseconds. Values above the the built-in request timeout won't work.
  *
@@ -219,7 +225,7 @@ export async function httpRequest({
 	const promise = fetch(request, { signal });
 
 	if (requestHandler || timeoutMs) {
-		const abort = (reason) => {
+		const abort = (/** @type {Error?} */ reason) => {
 			if (!reason) {
 				reason = new AbortError(`Request [${url.href}] aborted`);
 			}
