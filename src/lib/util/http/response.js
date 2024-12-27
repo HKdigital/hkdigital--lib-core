@@ -3,7 +3,7 @@ import * as expect from '$lib/util/expect/index.js';
 
 import { WWW_AUTHENTICATE } from '$lib/constants/http/headers.js';
 
-import { toURL } from './url.js';
+import { href } from './url.js';
 
 import { getErrorFromResponse } from './errors.js';
 
@@ -19,8 +19,6 @@ import { getErrorFromResponse } from './errors.js';
 export async function expectResponseOk(response, url) {
 	expect.object(response);
 
-	url = toURL(url);
-
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/201
 
@@ -28,7 +26,7 @@ export async function expectResponseOk(response, url) {
 		if (!response.ok) {
 			throw new ResponseError(
 				`Server returned - ${response.status} ${response.statusText} ` +
-					`[response.ok=false] [url=${decodeURI(url.href)}]`
+					`[response.ok=false] [url=${href(url)}]`
 			);
 		}
 
@@ -49,7 +47,7 @@ export async function expectResponseOk(response, url) {
 			errorMessage += ` (${authValue})`;
 		}
 
-		errorMessage += ` [url=${decodeURI(url.href)}]`;
+		errorMessage += ` [url=${href(url)}]`;
 
 		throw new Error(errorMessage);
 	}
@@ -59,7 +57,7 @@ export async function expectResponseOk(response, url) {
 	const error = await getErrorFromResponse(response);
 
 	throw new ResponseError(
-		`Server returned - ${response.status} ${response.statusText} ` + `[url=${decodeURI(url.href)}]`,
+		`Server returned - ${response.status} ${response.statusText} ` + `[url=${href(url)}]`,
 		{ cause: error }
 	);
 }
@@ -80,8 +78,6 @@ export async function expectResponseOk(response, url) {
 export async function waitForAndCheckResponse(responsePromise, url) {
 	expect.promise(responsePromise);
 
-	url = toURL(url);
-
 	let response;
 
 	try {
@@ -93,7 +89,7 @@ export async function waitForAndCheckResponse(responsePromise, url) {
 		}
 	} catch (e) {
 		if (e instanceof TypeError || response?.ok === false) {
-			throw new ResponseError(`A network error occurred for request [${decodeURI(url.href)}]`, {
+			throw new ResponseError(`A network error occurred for request [${href(url)}]`, {
 				cause: e
 			});
 		} else {

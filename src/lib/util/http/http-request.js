@@ -1,7 +1,7 @@
 import { METHOD_GET, METHOD_POST } from '$lib/constants/http/methods.js';
 
 import { APPLICATION_JSON } from '$lib/constants/mime/application.js';
-import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
+import { CONTENT_TYPE, CONTENT_LENGTH } from '$lib/constants/http/headers.js';
 
 import { AbortError, TimeoutError } from '$lib/constants/errors/api.js';
 
@@ -10,6 +10,13 @@ import * as expect from '$lib/util/expect/index.js';
 import { toURL } from './url.js';
 import { setRequestHeaders } from './headers.js';
 import { waitForAndCheckResponse } from './response.js';
+
+/**
+ * @callback requestHandler
+ * @param {AbortController} controller
+ * @param {( reason?: Error ) => void} abort
+ * @param {( delayMs: number) => void} timeout
+ */
 
 /**
  * Make GET request
@@ -26,8 +33,7 @@ import { waitForAndCheckResponse } from './response.js';
  *
  *   e.g. options.headers = { "content-type": "application/json" }
  *
- * @param {function} [_.requestHandler]
- *   If defined, this function will receive the abort handler function
+ * @param {requestHandler} [_.requestHandler]
  *
  * @param {number} [_.timeoutMs]
  *   If defined, this request will abort after the specified number of
@@ -62,8 +68,7 @@ export async function httpGet({ url, urlSearchParams, headers, requestHandler, t
  *
  *   e.g. options.headers = { "content-type": "application/json" }
  *
- * @param {function} [_.requestHandler]
- *   If defined, this function will receive the abort handler function
+ * @param {requestHandler} [_.requestHandler]
  *
  * @param {number} [_.timeoutMs]
  *   If defined, this request will abort after the specified number of
@@ -106,8 +111,7 @@ export async function httpPost({ url, body = null, headers, requestHandler, time
  *
  *   e.g. options.headers = { "content-type": "application/json" }
  *
- * @param {( { controller: AbortController, abort: ( reason?: Error ) => void, timeout: number } )=> void} [_.requestHandler]
- *   If defined, this function will receive the abort handler function
+ * @param {requestHandler} [_.requestHandler]
  *
  * @param {number} [_.timeoutMs]
  *   If defined, this request will abort after the specified number of
@@ -261,5 +265,23 @@ export async function httpRequest({
 		}
 	}
 
+	// response promise
 	return promise;
+}
+
+/**
+ * Get the response size from the content-length response header
+ *
+ * @param {Response} response
+ *
+ * @returns {number} response size or 0 if unknown
+ */
+export function getResponseSize(response) {
+	const sizeStr = response.headers.get(CONTENT_LENGTH);
+
+	if (!sizeStr) {
+		return 0;
+	}
+
+	return parseInt(sizeStr, 10);
 }

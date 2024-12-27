@@ -39,3 +39,14 @@ export function hasProtocol(url) {
 
 	return false;
 }
+
+/**
+ * Convert an url to an absolute url and apply decodeURI to
+ * convert URI encoded characters to normal characters
+ *
+ * @param {string} url
+ */
+export function href(url) {
+	const urlObj = toURL(url);
+	return decodeURI(urlObj.href);
+}

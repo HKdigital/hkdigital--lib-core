@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import { httpGet, httpPost } from './http-request.js';
+import { httpGet, httpPost, getResponseSize } from './http-request.js';
+
+import { CONTENT_LENGTH } from '$lib/constants/http/headers.js';
 
 import { createJsonFetchResponse } from './mocks.js';
 
@@ -45,5 +47,13 @@ describe('httpPost', () => {
 		const parsedResponse = await response.json();
 
 		expect(parsedResponse?.hello).toEqual('world');
+	});
+});
+
+describe('getResponseSize', () => {
+	it('should return the response size', async () => {
+		expect(getResponseSize({ headers: new Headers({ [CONTENT_LENGTH]: 1234 }) })).toEqual(1234);
+
+		expect(getResponseSize({ headers: new Headers() })).toEqual(0);
 	});
 });
