@@ -268,20 +268,3 @@ export async function httpRequest({
 	// response promise
 	return promise;
 }
-
-/**
- * Get the response size from the content-length response header
- *
- * @param {Response} response
- *
- * @returns {number} response size or 0 if unknown
- */
-export function getResponseSize(response) {
-	const sizeStr = response.headers.get(CONTENT_LENGTH);
-
-	if (!sizeStr) {
-		return 0;
-	}
-
-	return parseInt(sizeStr, 10);
-}
