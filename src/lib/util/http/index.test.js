@@ -4,7 +4,11 @@ import {
 	getErrorFromResponse,
 	setRequestHeaders,
 	expectResponseOk,
+	getResponseSize,
+	waitForAndCheckResponse,
 	toURL,
+	hasProtocol,
+	href,
 	httpGet,
 	httpPost,
 	jsonGet,
@@ -29,9 +33,33 @@ describe('expectResponseOk', () => {
 	});
 });
 
+describe('getResponseSize', () => {
+	it('should be a function', () => {
+		expect(typeof getResponseSize).toBe('function');
+	});
+});
+
+describe('waitForAndCheckResponse', () => {
+	it('should be a function', () => {
+		expect(typeof waitForAndCheckResponse).toBe('function');
+	});
+});
+
 describe('toURL', () => {
 	it('should be a function', () => {
 		expect(typeof toURL).toBe('function');
+	});
+});
+
+describe('hasProtocol', () => {
+	it('should be a function', () => {
+		expect(typeof hasProtocol).toBe('function');
+	});
+});
+
+describe('href', () => {
+	it('should be a function', () => {
+		expect(typeof href).toBe('function');
 	});
 });
 
