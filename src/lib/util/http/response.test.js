@@ -1,8 +1,13 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 import { WWW_AUTHENTICATE, CONTENT_LENGTH } from '$lib/constants/http/headers.js';
 
-import { expectResponseOk, getResponseSize, waitForAndCheckResponse } from './response.js';
+import {
+	expectResponseOk,
+	getResponseSize,
+	waitForAndCheckResponse,
+	loadResponseBuffer
+} from './response.js';
 
 // import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
 // import { APPLICATION_JSON } from '$lib/constants/mime/application.js';
@@ -105,5 +110,22 @@ describe('waitForAndCheckResponse', () => {
 		} catch (e) {
 			expect(e.message).toEqual('A network error occurred for request [http://localhost/]');
 		}
+	});
+});
+
+describe('loadResponseBuffer', () => {
+	it('should load response as ArrayBuffer', async () => {
+		const response = new Response(new Blob(['0123456789'], { type: 'text/plain' }));
+
+		const onProgress = vi.fn();
+
+		const { bufferPromise, abort } = loadResponseBuffer(response, onProgress);
+
+		expect(abort).toBeTypeOf('function');
+
+		const buffer = await bufferPromise;
+
+		expect(buffer).toBeInstanceOf(ArrayBuffer);
+		expect(buffer.byteLength).toEqual(10);
 	});
 });

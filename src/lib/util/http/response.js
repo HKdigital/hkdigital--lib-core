@@ -7,6 +7,17 @@ import { href } from './url.js';
 
 import { getErrorFromResponse } from './errors.js';
 
+// > Types
+
+/**
+ * @callback progressCallback
+ * @param {object} _
+ * @param {number} _.bytesLoaded
+ * @param {number} _.size
+ */
+
+// > Exports
+
 /**
  * Check if the response status is ok
  *
@@ -116,3 +127,91 @@ export async function waitForAndCheckResponse(responsePromise, url) {
 
 	return response;
 }
+
+/**
+ * Load response body as ArrayBuffer
+ * - Progress can be monitored by suppying an onProgress callback
+ * - Loading can be aborted by calling the returned abort function
+ *
+ * @param {Response} response - Fetch response
+ * @param {progressCallback} onProgress
+ *
+ * @returns {{ bufferPromise: Promise<ArrayBuffer>, abort: () => void }}
+ */
+export function loadResponseBuffer(response, onProgress) {
+	// @note size might be 0
+	const size = getResponseSize(response);
+
+	let bytesLoaded = 0;
+
+	if (onProgress && size) {
+		onProgress({ bytesLoaded, size });
+	}
+
+	if (!response.body) {
+		throw new Error('Missing [response.body]');
+	}
+
+	const reader = response.body.getReader();
+
+	let aborted = false;
+
+	/**
+	 * @returns {Promise<ArrayBuffer>}
+	 */
+	async function read() {
+		let loading = true;
+		let chunks = [];
+
+		// - Use flag 'loading'
+		// - Check if #abortLoading still exists
+		while (loading) {
+			const { done, value } = await reader.read();
+
+			if (done || aborted) {
+				// Loading complete or this.#abortLoading has been cleared,
+				// which is done when the request has been cancelled
+				loading = false;
+			} else {
+				bytesLoaded += value.length;
+
+				if (size && bytesLoaded > size) {
+					throw new Error(`Received more bytes that specified by header content-length`);
+				}
+
+				chunks.push(value);
+
+				if (onProgress && size) {
+					onProgress({ bytesLoaded, size });
+				}
+			}
+		} // end while
+
+		if (size && bytesLoaded !== size) {
+			throw new Error(`Received [${bytesLoaded}], but expected [${size}] bytes`);
+		}
+
+		// Concat the chinks into a single array
+		let buffer = new ArrayBuffer(bytesLoaded);
+		let body = new Uint8Array(buffer);
+
+		let offset = 0;
+
+		// Place the chunks in the buffer
+		for (let chunk of chunks) {
+			body.set(chunk, offset);
+			offset += chunk.length;
+		} // end for
+
+		return buffer;
+	}
+
+	const bufferPromise = read();
+
+	return {
+		bufferPromise,
+		abort: () => {
+			aborted = true;
+		}
+	};
+} // end fn

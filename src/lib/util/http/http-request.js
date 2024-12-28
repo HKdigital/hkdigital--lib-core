@@ -122,7 +122,7 @@ export async function httpPost({ url, body = null, headers, requestHandler, time
  * @note Check the `ok` property of the resolved response to check if the
  *       response was successfull (e.g. in case of a 404, ok is false)
  *
- * @returns {Promise<*>} responsePromise
+ * @returns {Promise<Response>} responsePromise
  */
 export async function httpRequest({
 	method,

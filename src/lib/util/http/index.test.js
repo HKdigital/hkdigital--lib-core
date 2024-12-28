@@ -6,6 +6,7 @@ import {
 	expectResponseOk,
 	getResponseSize,
 	waitForAndCheckResponse,
+	loadResponseBuffer,
 	toURL,
 	hasProtocol,
 	href,
@@ -42,6 +43,12 @@ describe('getResponseSize', () => {
 describe('waitForAndCheckResponse', () => {
 	it('should be a function', () => {
 		expect(typeof waitForAndCheckResponse).toBe('function');
+	});
+});
+
+describe('loadResponseBuffer', () => {
+	it('should be a function', () => {
+		expect(typeof loadResponseBuffer).toBe('function');
 	});
 });
 
