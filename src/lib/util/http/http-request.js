@@ -21,7 +21,7 @@ import { waitForAndCheckResponse } from './response.js';
 /**
  * Make GET request
  *
- * @paramm {object} _
+ * @param {object} _
  *
  * @param {string|URL} _.url - Url string or URL object
  *
@@ -39,7 +39,7 @@ import { waitForAndCheckResponse } from './response.js';
  *   If defined, this request will abort after the specified number of
  *   milliseconds. Values above the the built-in request timeout won't work.
  *
- * @returns {Promise<*>} responsePromise
+ * @returns {Promise<Response>} responsePromise
  */
 export async function httpGet({ url, urlSearchParams, headers, requestHandler, timeoutMs }) {
 	const responsePromise = httpRequest({
@@ -57,7 +57,7 @@ export async function httpGet({ url, urlSearchParams, headers, requestHandler, t
 /**
  * Make POST request
  *
- * @paramm {object} _
+ * @param {object} _
  *
  * @param {string|URL} _.url - Url string or URL object
  *
@@ -74,7 +74,7 @@ export async function httpGet({ url, urlSearchParams, headers, requestHandler, t
  *   If defined, this request will abort after the specified number of
  *   milliseconds. Values above the the built-in request timeout won't work.
  *
- * @returns {Promise<*>} responsePromise
+ * @returns {Promise<Response>} responsePromise
  */
 export async function httpPost({ url, body = null, headers, requestHandler, timeoutMs }) {
 	const responsePromise = httpRequest({
@@ -96,7 +96,7 @@ export async function httpPost({ url, body = null, headers, requestHandler, time
  * - This is a low level function, consider using
  *   httpGet, httpPost, jsonGet or jsonPost instead
  *
- * @paramm {object} _
+ * @param {object} _
  *
  * @param {string|URL} _.url - Url string or URL object
  *
