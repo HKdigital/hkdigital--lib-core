@@ -1,7 +1,7 @@
 import { METHOD_GET, METHOD_POST } from '$lib/constants/http/methods.js';
 
 import { APPLICATION_JSON } from '$lib/constants/mime/application.js';
-import { CONTENT_TYPE, CONTENT_LENGTH } from '$lib/constants/http/headers.js';
+import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
 
 import { AbortError, TimeoutError } from '$lib/constants/errors/api.js';
 
@@ -229,7 +229,10 @@ export async function httpRequest({
 	const promise = fetch(request, { signal });
 
 	if (requestHandler || timeoutMs) {
-		const abort = (/** @type {Error?} */ reason) => {
+		/**
+		 * @type {(any?: reason) => void}
+		 */
+		const abort = (reason) => {
 			if (!reason) {
 				reason = new AbortError(`Request [${url.href}] aborted`);
 			}
