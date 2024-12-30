@@ -1,6 +1,6 @@
 {
 	"name": "@hkdigital/lib-sveltekit",
-	"version": "0.0.73",
+	"version": "0.0.74",
 	"author": "Jens Kleinhout, HKdigital (https://hkdigital.nl)",
 	"license": "ISC",
 	"repository": {
@@ -46,7 +46,7 @@
 	"type": "module",
 	"exports": {
 		"./*": "./dist/*",
-    "./*/index.js": "./dist/*"
+		"./*/index.js": "./dist/*"
 	},
 	"peerDependencies": {
 		"svelte": "^5.0.0"
