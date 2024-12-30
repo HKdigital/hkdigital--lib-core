@@ -45,7 +45,8 @@
 	"types": "./dist/index.d.ts",
 	"type": "module",
 	"exports": {
-		"./*": "./dist/*"
+		"./*": "./dist/*",
+    "./*/index.js": "./dist/*"
 	},
 	"peerDependencies": {
 		"svelte": "^5.0.0"
