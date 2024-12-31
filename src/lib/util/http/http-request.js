@@ -230,7 +230,7 @@ export async function httpRequest({
 
 	if (requestHandler || timeoutMs) {
 		/**
-		 * @type {(any?: reason) => void}
+		 * @type {(reason?: any) => void}
 		 */
 		const abort = (reason) => {
 			if (!reason) {

@@ -11,6 +11,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+	// @ts-ignore
 	delete global.fetch;
 });
 

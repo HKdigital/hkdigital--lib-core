@@ -1,5 +1,6 @@
 import { ResponseError } from '$lib/constants/errors/index.js';
 import * as expect from '$lib/util/expect/index.js';
+import { toURL } from '$lib/util/http/url.js';
 
 import { WWW_AUTHENTICATE, CONTENT_LENGTH } from '$lib/constants/http/headers.js';
 
@@ -96,15 +97,17 @@ export function getResponseSize(response) {
  * @example
  *   const response = await waitForAndCheckResponse( responsePromise );
  *
- * @param {Promise<object>} responsePromise
- * @param {URL} url - An url that is used for error messages
+ * @param {Promise<Response>} responsePromise
+ * @param {string|URL} url - An url that is used for error messages
  *
  * @throws ResponseError - A response error if something went wrong
  *
- * @returns {object} response
+ * @returns {Promise<Response>} response
  */
 export async function waitForAndCheckResponse(responsePromise, url) {
 	expect.promise(responsePromise);
+
+	url = toURL(url);
 
 	let response;
 
@@ -157,23 +160,25 @@ export function loadResponseBuffer(response, onProgress) {
 	let aborted = false;
 
 	/**
+	 * Read chunks from response body using reader
+	 *
 	 * @returns {Promise<ArrayBuffer>}
 	 */
 	async function read() {
-		let loading = true;
 		let chunks = [];
 
 		// - Use flag 'loading'
 		// - Check if #abortLoading still exists
-		while (loading) {
+		for (;;) {
 			const { done, value } = await reader.read();
 
-			if (done || aborted) {
-				// Loading complete or this.#abortLoading has been cleared,
-				// which is done when the request has been cancelled
-				loading = false;
-			} else {
-				bytesLoaded += value.length;
+			if (value) {
+				// @note value is an ArrayBuffer
+				bytesLoaded += value.byteLength;
+
+				// console.log({ done, value, byteLength: value.byteLength, bytesLoaded });
+
+				// console.log({ size, bytesLoaded, value });
 
 				if (size && bytesLoaded > size) {
 					throw new Error(`Received more bytes that specified by header content-length`);
@@ -184,6 +189,11 @@ export function loadResponseBuffer(response, onProgress) {
 				if (onProgress && size) {
 					onProgress({ bytesLoaded, size });
 				}
+			}
+
+			if (done || aborted) {
+				// Loading complete or aborted by user
+				break;
 			}
 		} // end while
 
@@ -200,7 +210,7 @@ export function loadResponseBuffer(response, onProgress) {
 		// Place the chunks in the buffer
 		for (let chunk of chunks) {
 			body.set(chunk, offset);
-			offset += chunk.length;
+			offset += chunk.byteLength;
 		} // end for
 
 		return buffer;

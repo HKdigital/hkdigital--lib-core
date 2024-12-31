@@ -126,7 +126,16 @@ export { _true as true };
 
 // > Compounds
 
-// positiveNumber
+/**
+ * Expect a positive number
+ *
+ * @param {any} value
+ */
+export function positiveNumber(value) {
+	const schema = v.pipe(v.number(), v.minValue(0));
+	v.parse(schema, value);
+}
+
 // notNegativeNumber
 // positiveInteger
 // notNegativeInteger

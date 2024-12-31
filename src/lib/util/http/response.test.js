@@ -9,6 +9,8 @@ import {
 	loadResponseBuffer
 } from './response.js';
 
+import { createStreamedResponse } from './mocks.js';
+
 // import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
 // import { APPLICATION_JSON } from '$lib/constants/mime/application.js';
 
@@ -72,9 +74,11 @@ describe('expectResponseOk', () => {
 
 describe('getResponseSize', () => {
 	it('should return the response size', async () => {
-		expect(getResponseSize({ headers: new Headers({ [CONTENT_LENGTH]: 1234 }) })).toEqual(1234);
+		expect(
+			getResponseSize(new Response(null, { headers: new Headers({ [CONTENT_LENGTH]: '1234' }) }))
+		).toEqual(1234);
 
-		expect(getResponseSize({ headers: new Headers() })).toEqual(0);
+		expect(getResponseSize(new Response(null, { headers: new Headers() }))).toEqual(0);
 	});
 });
 
@@ -115,7 +119,10 @@ describe('waitForAndCheckResponse', () => {
 
 describe('loadResponseBuffer', () => {
 	it('should load response as ArrayBuffer', async () => {
-		const response = new Response(new Blob(['0123456789'], { type: 'text/plain' }));
+		// const response = new Response(new Blob(['0123456789'], { type: 'text/plain' }));
+
+		const responseSize = 100;
+		const response = createStreamedResponse(new ArrayBuffer(responseSize));
 
 		const onProgress = vi.fn();
 
@@ -126,6 +133,6 @@ describe('loadResponseBuffer', () => {
 		const buffer = await bufferPromise;
 
 		expect(buffer).toBeInstanceOf(ArrayBuffer);
-		expect(buffer.byteLength).toEqual(10);
+		expect(buffer.byteLength).toEqual(responseSize);
 	});
 });
