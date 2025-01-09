@@ -162,7 +162,7 @@ export function generateDefaultDirectives(options) {
 
 		// params.set('withoutEnlargement', 'true');
 
-		console.log('defaultDirectives:output params', params);
+		// console.log('defaultDirectives:output params', params);
 
 		return params;
 	};
