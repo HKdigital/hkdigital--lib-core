@@ -32,39 +32,29 @@ const DEFAULT_PRESETS = {
  * Configures and returns a function that can be used as
  * 'resolveConfigs' parameter in imagetools config
  *
- * - This function runs after 'defaultDirectives'
- *
  * @param {object} [options]
  * @param {number[]} [options.widths=DEFAULT_WIDTHS]
- *
- * @returns {(config: [ key:string, [ value: string] ][]) => Record<string, string>[]|undefined}
+ * @returns {(
+ *   entries: [string, string[]][]
+ * ) => { [key: string]: string | string[] }[]}
  */
 export function generateResponseConfigs(options) {
-	/**
-	 * Function that returns a list that specifies the image
-	 * widths for the image variants that should be generated
-	 * when the directive 'responsive' is set.
-	 *
-	 * @param {[ key:string, [ value: string] ][]} config
-	 *
-	 * @returns {Record<string, string>[]|undefined}
-	 */
-	return function resolveConfigs(config) {
-		console.log('resolveConfigs:config', config);
+	return function resolveConfigs(entries /*, outputFormats*/) {
+		console.log('resolveConfigs:entries', entries);
 
 		// @ts-ignore
-		const responsiveConfig = config.find(([key]) => key === 'responsive');
+		const responsiveConfig = entries.find(([key]) => key === 'responsive');
 
 		if (!responsiveConfig) {
-			// Driective 'responsive' was not set => do nothing
-			return undefined;
+			// Directive 'responsive' was not set => do nothing
+			return [];
 		}
 
 		const widths = options?.widths ?? DEFAULT_WIDTHS;
 
 		const configPairs = {};
 
-		for (const current of config) {
+		for (const current of entries) {
 			const key = current[0];
 			const value = current[1][0];
 
@@ -72,6 +62,7 @@ export function generateResponseConfigs(options) {
 			configPairs[key] = value;
 		}
 
+		/** @type {[key: string]: string | string[] }[]} */
 		return widths.map((w) => {
 			return { ...configPairs, w: String(w) };
 		});
