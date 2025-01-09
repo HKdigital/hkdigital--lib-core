@@ -40,7 +40,7 @@ const DEFAULT_PRESETS = {
  */
 export function generateResponseConfigs(options) {
 	return function resolveConfigs(entries /*, outputFormats*/) {
-		console.log('resolveConfigs:entries', entries);
+		// console.log('resolveConfigs:entries', entries);
 
 		// @ts-ignore
 		const responsiveConfig = entries.find(([key]) => key === 'responsive');
@@ -109,7 +109,7 @@ export function generateDefaultDirectives(options) {
 		// @ts-ignore
 		let preset = presets[presetName];
 
-		console.log(`defaultDirectives [url=${url}]`, preset);
+		// console.log(`defaultDirectives [url=${url}]`, preset);
 
 		if (!preset) {
 			preset = DEFAULT_PRESETS.default;
