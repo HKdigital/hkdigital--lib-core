@@ -1,0 +1,103 @@
+<script>
+	/** @typedef {import('$lib/types/imagetools.js').ImageVariant} ImageVariant */
+
+	import { ImageVariantsLoader } from '$lib/classes/svelte/image/index.js';
+
+	/**
+	 * @type {{
+	 *   base?: string,
+	 *   classes?: string
+	 *   boxBase?: string,
+	 *   boxClasses?: string
+	 *   boxAttrs?: { [attr: string]: * },
+	 *   images: ImageVariant[],
+	 *   alt?: string
+	 * } & { [attr: string]: * }}
+	 */
+	const {
+		base,
+		classes,
+		boxBase,
+		boxClasses,
+		boxAttrs,
+
+		// Functional
+		images,
+		alt = '',
+
+		// Attributes
+		...attrs
+	} = $props();
+
+	let variantsLoader = new ImageVariantsLoader(images);
+
+	let containerWidth = $state(0);
+
+	/** @type {ImageVariant|null} */
+	let imageVariant = $state(null);
+
+	$effect(() => {
+		variantsLoader.updateOptimalImageVariant(containerWidth);
+	});
+
+	// $effect(() => {
+	//   console.log('imageVariant', $state.snapshot(imageVariant));
+	// });
+
+	/** @type {string|null} */
+	let imageUrl = $state(null);
+
+	$effect(() => {
+		let image;
+
+		if (variantsLoader.loaded) {
+			// @ts-ignore
+			imageUrl = variantsLoader.getObjectUrl();
+
+			// image = new Image();
+			// image.src = url;
+
+			// image.onload = () => {
+			//   console.log('loaded');
+			//   imageUrl = url;
+			// };
+		}
+
+		return () => {
+			// if (image) {
+			//   image.onload = null;
+			//   image = undefined;
+			// }
+
+			if (imageUrl) {
+				URL.revokeObjectURL(imageUrl);
+				imageUrl = null;
+			}
+		};
+	});
+
+	let variant = $derived(variantsLoader.variant);
+
+	// let image = $derived(variantsLoader.image);
+</script>
+
+<div
+	bind:clientWidth={containerWidth}
+	data-hk--responsive-image-box
+	class="{boxBase} {boxClasses}"
+	{...boxAttrs}
+>
+	<!-- <p class="p text-white">variant: {JSON.stringify(variant)}</p> -->
+
+	{#if variant}
+		<img
+			data-responsive-image
+			src={imageUrl ? imageUrl : ''}
+			width={variant.width}
+			height={variant.height}
+			{alt}
+			class="{boxBase} {boxClasses}"
+			{...attrs}
+		/>
+	{/if}
+</div>

@@ -143,6 +143,7 @@ export async function waitForAndCheckResponse(responsePromise, url) {
  */
 export function loadResponseBuffer(response, onProgress) {
 	// @note size might be 0
+	// @note might not be send by server in dev mode
 	const size = getResponseSize(response);
 
 	let bytesLoaded = 0;

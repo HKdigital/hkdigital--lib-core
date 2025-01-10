@@ -29,7 +29,12 @@ export function objectArray(value) {
 	v.parse(v.array(v.looseObject({})), value);
 }
 
-// notEmptyArray
+/**
+ * Throws an exception if the value is not an Array or the array is empty
+ */
+export function notEmptyArray(value) {
+	v.parse(v.pipe(v.instance(Array), v.nonEmpty()), value);
+}
 
 /**
  * Throws a validation error if value is not array like

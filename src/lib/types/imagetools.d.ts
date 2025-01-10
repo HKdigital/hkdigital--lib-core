@@ -1,68 +1,65 @@
 
-interface ImageVariant {
-  src: string;
-  width?: number;
-  height?: number;
 
-}
+// Reference the JSDoc types
+export type ImageVariant = import('./imagetools.js').ImageVariant;
 
 declare module '*?responsive' {
-  const out: Promise<ImageVariant[]|string[]|string>;
+  const out: ImageVariant[];
   export default out;
 }
 
 declare module '*&responsive' {
-  const out: Promise<ImageVariant[]|string[]|string>;
+  const out: ImageVariant[];
   export default out;
 }
 
 declare module '*?preset=gradient' {
-  const out: Promise<ImageVariant[]|string[]|string>;
+  const out: ImageVariant[]|string[]|string;
   export default out;
 }
 
 declare module '*&preset=gradient' {
-  const out: Promise<ImageVariant[]|string[]|string>;
+  const out: ImageVariant[]|string[]|string;
   export default out;
 }
 
 declare module '*?preset=photo' {
-  const out: Promise<ImageVariant[]|string[]|string>;
+  const out: ImageVariant[]|string[]|string;
   export default out;
 }
 
 declare module '*&preset=photo' {
-  const out: Promise<ImageVariant[]|string[]|string>;
+  const out: ImageVariant[]|string[]|string;
   export default out;
 }
 
 declare module '*?preset=drawing' {
-  const out: Promise<ImageVariant[]|string[]|string>;
+  const out: ImageVariant[]|string[]|string;
   export default out;
 }
 
 declare module '*&preset=drawing' {
-  const out: Promise<ImageVariant[]|string[]|string>;
+  const out: ImageVariant[]|string[]|string;
   export default out;
 }
 
 declare module '*?preset=savedata' {
-  const out: Promise<ImageVariant[]|string[]|string>;
+  const out: ImageVariant[]|string[]|string;
   export default out;
 }
 
 declare module '*&preset=savedata' {
-  const out: Promise<ImageVariant[]|string[]|string>;
+  const out: ImageVariant[]|string[]|string;
   export default out;
 }
 
 declare module '*?preset=blur' {
-  const out: Promise<ImageVariant[]|string[]|string>;
+  const out: ImageVariant[]|string[]|string;
   export default out;
 }
 
 declare module '*&preset=blur' {
-  const out: Promise<ImageVariant[]|string[]|string>;
+  const out: ImageVariant[]|string[]|string;
   export default out;
 }
 

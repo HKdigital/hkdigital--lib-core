@@ -17,7 +17,7 @@ export default [
 		}
 	},
 	{
-		files: ['**/*.svelte.js'],
+		files: ['**/*.svelte.js', '**/*.svelte.test.js'],
 		languageOptions: {
 			globals: {
 				...globals.browser,

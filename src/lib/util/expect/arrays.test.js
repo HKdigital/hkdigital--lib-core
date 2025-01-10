@@ -38,6 +38,8 @@ describe('expect.stringArray', () => {
 
 // TODO: objectArray
 
+// TODO: notEmptyArray
+
 describe('expect.arrayLike', () => {
 	it('should test if the value is array-like', () => {
 		// > Positive test
