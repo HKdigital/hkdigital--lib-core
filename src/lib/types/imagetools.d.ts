@@ -1,8 +1,5 @@
 
 
-// Reference the JSDoc types (doesn't work?)
-// export type ImageVariant = import('./imagetools.js').ImageVariant;
-
 interface ImageVariant {
   src: string;
   width?: number;
