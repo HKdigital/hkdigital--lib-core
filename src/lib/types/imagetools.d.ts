@@ -1,7 +1,13 @@
 
 
-// Reference the JSDoc types
-export type ImageVariant = import('./imagetools.js').ImageVariant;
+// Reference the JSDoc types (doesn't work?)
+// export type ImageVariant = import('./imagetools.js').ImageVariant;
+
+interface ImageVariant {
+  src: string;
+  width?: number;
+  height?: number;
+}
 
 declare module '*?responsive' {
   const out: ImageVariant[];
