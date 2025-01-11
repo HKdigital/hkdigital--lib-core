@@ -7,24 +7,29 @@ const DEFAULT_PRESETS = {
 	},
 	gradient: {
 		format: 'jpg',
-		quality: '95'
+		quality: '95',
+		as: 'metadata'
 	},
 	photo: {
 		format: 'jpg',
-		quality: '95'
+		quality: '95',
+		as: 'metadata'
 	},
 	drawing: {
 		format: 'avif',
-		quality: '90'
+		quality: '90',
+		as: 'metadata'
 	},
 	savedata: {
 		format: 'avif',
-		quality: '85'
+		quality: '85',
+		as: 'metadata'
 	},
 	blur: {
 		format: 'avif',
 		quality: '50',
-		blur: '75'
+		blur: '75',
+		as: 'metadata'
 	}
 };
 
@@ -105,6 +110,7 @@ export function generateDefaultDirectives(options) {
 		if (params.has('responsive')) {
 			params.set('as', 'metadata');
 		}
+
 		// > Process presets
 
 		if (presetName) {
