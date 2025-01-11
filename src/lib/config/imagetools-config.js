@@ -34,24 +34,20 @@ const DEFAULT_PRESETS = {
  *
  * @param {object} [options]
  * @param {number[]} [options.widths=DEFAULT_WIDTHS]
+ *
  * @returns {(
  *   entries: [string, string[]][]
- * ) => { [key: string]: string | string[] }[]}
+ * ) => (Record<string, string | string[]>[])}
  */
 export function generateResponseConfigs(options) {
+	//
+	// @see https://github.com/JonasKruckenberg/imagetools
+	//      /blob/main/docs/core/src/functions/resolveConfigs.md
+	//
 	return function resolveConfigs(entries /*, outputFormats*/) {
 		// console.log('resolveConfigs:entries', entries);
 
-		// @ts-ignore
-		const responsiveConfig = entries.find(([key]) => key === 'responsive');
-
-		if (!responsiveConfig) {
-			// Directive 'responsive' was not set => do nothing
-			return [];
-		}
-
-		const widths = options?.widths ?? DEFAULT_WIDTHS;
-
+		/** @type {Record<string, string | string[]>} */
 		const configPairs = {};
 
 		for (const current of entries) {
@@ -62,7 +58,20 @@ export function generateResponseConfigs(options) {
 			configPairs[key] = value;
 		}
 
-		/** @type {[key: string]: string | string[] }[]} */
+		// @ts-ignore
+		const responsiveConfig = entries.find(([key]) => key === 'responsive');
+
+		if (!responsiveConfig) {
+			// Directive 'responsive' was not set => return original config
+
+			return [configPairs];
+
+			// Alternative: by returning undefined, the default resolveConfig is used
+			// return undefined;
+		}
+
+		const widths = options?.widths ?? DEFAULT_WIDTHS;
+
 		return widths.map((w) => {
 			return { ...configPairs, w: String(w) };
 		});
