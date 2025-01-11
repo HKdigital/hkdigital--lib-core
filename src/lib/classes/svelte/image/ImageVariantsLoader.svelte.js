@@ -1,4 +1,4 @@
-/** @typedef {import('./typedef.js').ImageVariant} ImageVariant */
+/** @typedef {import('./typedef.js').ImageMeta} ImageMeta */
 
 // import * as expect from '@hkdigital/lib-sveltekit/util/expect/index.js';
 
@@ -6,14 +6,14 @@ import { untrack } from 'svelte';
 
 import ImageLoader from './ImageLoader.svelte.js';
 
-export default class ImageVariantsLoader {
+export default class ImageMetasLoader {
   /** @type {number} */
   #devicePixelRatio;
 
-  /** @type {ImageVariant[]} */
+  /** @type {ImageMeta[]} */
   #imagesMeta;
 
-  /** @type {ImageVariant|null} */
+  /** @type {ImageMeta|null} */
   #imageVariant = $state(null);
 
   /** @type {ImageLoader|null} */
@@ -32,7 +32,7 @@ export default class ImageVariantsLoader {
   #loaded = $derived(this.#progress.loaded);
 
   /**
-   * @param {ImageVariant[]} imagesMeta
+   * @param {ImageMeta[]} imagesMeta
    */
   constructor(imagesMeta, { devicePixelRatio = 1 } = {}) {
     // expect.notEmptyArray( imagesMeta );
@@ -66,8 +66,8 @@ export default class ImageVariantsLoader {
    *
    * @param {number} containerWidth
    */
-  updateOptimalImageVariant(containerWidth) {
-    const newVariant = this.getOptimalImageVariant(containerWidth);
+  updateOptimalImageMeta(containerWidth) {
+    const newVariant = this.getOptimalImageMeta(containerWidth);
 
     if (
       !newVariant ||
@@ -127,9 +127,9 @@ export default class ImageVariantsLoader {
    *
    * @param {number} containerWidth
    *
-   * @returns {ImageVariant|null}
+   * @returns {ImageMeta|null}
    */
-  getOptimalImageVariant(containerWidth) {
+  getOptimalImageMeta(containerWidth) {
     if (!containerWidth) {
       return null;
     }

@@ -1,7 +1,7 @@
 <script>
-	/** @typedef {import('$lib/types/imagetools.js').ImageVariant} ImageVariant */
+	/** @typedef {import('$lib/types/imagetools.js').ImageMeta} ImageMeta */
 
-	import { ImageVariantsLoader } from '$lib/classes/svelte/image/index.js';
+	import { ImageMetasLoader } from '$lib/classes/svelte/image/index.js';
 
 	/**
 	 * @type {{
@@ -10,7 +10,7 @@
 	 *   boxBase?: string,
 	 *   boxClasses?: string
 	 *   boxAttrs?: { [attr: string]: * },
-	 *   images: ImageVariant[],
+	 *   images: ImageMeta[],
 	 *   alt?: string
 	 * } & { [attr: string]: * }}
 	 */
@@ -29,15 +29,15 @@
 		...attrs
 	} = $props();
 
-	let variantsLoader = new ImageVariantsLoader(images);
+	let variantsLoader = new ImageMetasLoader(images);
 
 	let containerWidth = $state(0);
 
-	/** @type {ImageVariant|null} */
+	/** @type {ImageMeta|null} */
 	let imageVariant = $state(null);
 
 	$effect(() => {
-		variantsLoader.updateOptimalImageVariant(containerWidth);
+		variantsLoader.updateOptimalImageMeta(containerWidth);
 	});
 
 	// $effect(() => {
