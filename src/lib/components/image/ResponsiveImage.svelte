@@ -1,7 +1,7 @@
 <script>
 	/** @typedef {import('$lib/types/imagetools.js').ImageMeta} ImageMeta */
 
-	import { ImageMetasLoader } from '$lib/classes/svelte/image/index.js';
+	import { ImageVariantsLoader } from '$lib/classes/svelte/image/index.js';
 
 	/**
 	 * @type {{
@@ -29,7 +29,7 @@
 		...attrs
 	} = $props();
 
-	let variantsLoader = new ImageMetasLoader(images);
+	let variantsLoader = new ImageVariantsLoader(images);
 
 	let containerWidth = $state(0);
 

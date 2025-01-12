@@ -6,7 +6,7 @@ import { untrack } from 'svelte';
 
 import ImageLoader from './ImageLoader.svelte.js';
 
-export default class ImageMetasLoader {
+export default class ImageVariantsLoader {
   /** @type {number} */
   #devicePixelRatio;
 
@@ -69,11 +69,7 @@ export default class ImageMetasLoader {
   updateOptimalImageMeta(containerWidth) {
     const newVariant = this.getOptimalImageMeta(containerWidth);
 
-    if (
-      !newVariant ||
-      !this.#imageVariant ||
-      newVariant.width > this.#imageVariant.width
-    ) {
+    if (!newVariant || !this.#imageVariant || newVariant.width > this.#imageVariant.width) {
       // Only update imageVariant is width is larger
       this.#imageVariant = newVariant;
     }
@@ -141,9 +137,7 @@ export default class ImageMetasLoader {
 
     // Find the smallest image that's larger than our required width
 
-    const optimal = imagesMeta.find(
-      (current) => current.width >= requiredWidth
-    );
+    const optimal = imagesMeta.find((current) => current.width >= requiredWidth);
 
     // Fall back to the largest image if nothing is big enough
     return optimal || imagesMeta[imagesMeta.length - 1];
