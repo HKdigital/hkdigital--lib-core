@@ -1,7 +1,7 @@
 import {
-  NetworkLoader,
-  ERROR_NOT_LOADED,
-  ERROR_TRANSFERRED
+  NetworkLoader
+  // ERROR_NOT_LOADED,
+  // ERROR_TRANSFERRED
 } from '$lib/classes/svelte/network-loader/index.js';
 
 /**
@@ -9,4 +9,14 @@ import {
  * - Loads image data from network
  * - The loading process can be monitored
  */
-export default class ImageLoader extends NetworkLoader {} // end class
+export default class ImageLoader extends NetworkLoader {
+  // > Inherited methods
+  //
+  // /**
+  //  * Get object URL that can be used as src parameter of an HTML image
+  //  *
+  //  * @note the objectURL should be revoked when no longer used
+  //  */
+  // getObjectUrl() {}
+  //
+} // end class

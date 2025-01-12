@@ -18,10 +18,7 @@ import {
 
 import * as expect from '@hkdigital/lib-sveltekit/util/expect/index.js';
 
-import {
-  httpGet,
-  loadResponseBuffer
-} from '@hkdigital/lib-sveltekit/util/http/index.js';
+import { httpGet, loadResponseBuffer } from '@hkdigital/lib-sveltekit/util/http/index.js';
 
 import { ERROR_NOT_LOADED, ERROR_TRANSFERRED } from './constants.js';
 
@@ -212,6 +209,36 @@ export default class NetworkLoader {
     }
 
     return new Blob([this.getArrayBuffer()], options);
+  }
+
+  /**
+   * Get object URL
+   *
+   * @note the objectURL should be revoked when no longer used
+   *
+   * @returns {string|null}
+   */
+  getObjectUrl() {
+    //
+    // Example usage:
+    //
+    // $effect(() => {
+    //   if (loader.loaded) {
+    //     // @ts-ignore
+    //     objectUrl = loader.getObjectUrl();
+    //   }
+    //
+    //   return () => {
+    //     if (objectUrl) {
+    //       URL.revokeObjectURL(objectUrl);
+    //       objectUrl = null;
+    //     }
+    //   };
+    // });
+
+    const blob = this.getBlob();
+
+    return blob ? URL.createObjectURL(blob) : null;
   }
 
   /**
