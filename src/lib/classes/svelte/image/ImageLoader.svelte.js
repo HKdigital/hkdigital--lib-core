@@ -10,7 +10,14 @@ import {
  * - The loading process can be monitored
  */
 export default class ImageLoader extends NetworkLoader {
-  // > Inherited methods
+  //
+  // /**
+  //  * Construct ImageLoader
+  //  *
+  //  * @param {object} _
+  //  * @param {string} _.url
+  //  */
+  // constructor( { url } ) {}
   //
   // /**
   //  * Get object URL that can be used as src parameter of an HTML image

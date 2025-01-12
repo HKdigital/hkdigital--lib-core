@@ -32,6 +32,7 @@ describe('NetworkLoader', () => {
     const cleanup = $effect.root(() => {
       networkLoader = new NetworkLoader({ url });
 
+      expect(networkLoader.initial).toEqual(true);
       expect(networkLoader.loaded).toEqual(false);
 
       networkLoader.load();

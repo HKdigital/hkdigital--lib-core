@@ -33,6 +33,10 @@ export default class NetworkLoader {
   // @note this exported state is set by $effect's
   state = $state(STATE_INITIAL);
 
+  initial = $derived.by(() => {
+    return this.state === STATE_INITIAL;
+  });
+
   loaded = $derived.by(() => {
     return this.state === STATE_LOADED;
   });
