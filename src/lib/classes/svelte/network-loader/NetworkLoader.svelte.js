@@ -1,4 +1,4 @@
-import { CONTENT_TYPE } from '@hkdigital/lib-sveltekit/constants/http/index.js';
+import { CONTENT_TYPE } from '$lib/constants/http/index.js';
 
 import {
   LoadingStateMachine,
@@ -16,9 +16,9 @@ import {
   INITIAL
 } from '$lib/classes/svelte/loading-state-machine/index.js';
 
-import * as expect from '@hkdigital/lib-sveltekit/util/expect/index.js';
+import * as expect from '$lib/util/expect/index.js';
 
-import { httpGet, loadResponseBuffer } from '@hkdigital/lib-sveltekit/util/http/index.js';
+import { httpGet, loadResponseBuffer } from '$lib/util/http/index.js';
 
 import { ERROR_NOT_LOADED, ERROR_TRANSFERRED } from './constants.js';
 
@@ -28,17 +28,19 @@ import { ERROR_NOT_LOADED, ERROR_TRANSFERRED } from './constants.js';
  * - Loaded data can be transferred to an AudioBufferSourceNode
  */
 export default class NetworkLoader {
+  // _state = $state(new LoadingStateMachine());
   _state = new LoadingStateMachine();
 
-  // @note this exported state is set by $effect's
-  state = $state(STATE_INITIAL);
+  state = $derived.by(() => {
+    return this._state.current;
+  });
 
   initial = $derived.by(() => {
-    return this.state === STATE_INITIAL;
+    return this._state.current === STATE_INITIAL;
   });
 
   loaded = $derived.by(() => {
-    return this.state === STATE_LOADED;
+    return this._state.current === STATE_LOADED;
   });
 
   /** @type {string|null} */
@@ -60,6 +62,8 @@ export default class NetworkLoader {
   _buffer = null;
 
   // Export state property as readonly
+
+  /** @type {import('./typedef.js').LoadingProgress} */
   progress = $derived.by(() => {
     return {
       bytesLoaded: this._bytesLoaded,
@@ -84,11 +88,15 @@ export default class NetworkLoader {
 
     const state = this._state;
 
-    $effect(() => {
+    //
+    // ISSUE: $effect is not triggered by  this._state changes,
+    //        using onenter instead
+    //
+    this._state.onenter = () => {
       switch (state.current) {
         case STATE_LOADING:
           {
-            // console.log('NetworkLoader:loading');
+            // console.log('**** NetworkLoader:loading');
             this.#load();
           }
           break;
@@ -125,15 +133,14 @@ export default class NetworkLoader {
           }
           break;
       } // end switch
-
-      this.state = state.current;
-    });
+    };
   }
 
   /**
    * Start loading all network data
    */
   load() {
+    // console.log('NetworkLoader: load() called');
     this._state.send(LOAD);
   }
 
@@ -222,14 +229,14 @@ export default class NetworkLoader {
    *
    * @returns {string|null}
    */
-  getObjectUrl() {
+  getObjectURL() {
     //
     // Example usage:
     //
     // $effect(() => {
     //   if (loader.loaded) {
     //     // @ts-ignore
-    //     objectUrl = loader.getObjectUrl();
+    //     objectUrl = loader.getObjectURL();
     //   }
     //
     //   return () => {
@@ -251,7 +258,7 @@ export default class NetworkLoader {
    */
   async #load() {
     try {
-      // console.log('#load', this._url);
+      // console.log('>>>> NetworkLoader:#load', this._url);
 
       if (this._abortLoading) {
         // console.log('Abort loading');

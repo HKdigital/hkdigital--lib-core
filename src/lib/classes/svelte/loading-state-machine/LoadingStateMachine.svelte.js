@@ -47,6 +47,7 @@ export default class LoadingStateMachine extends FiniteStateMachine {
       },
       [STATE_LOADING]: {
         _enter: () => {
+          // console.log('LoadingStateMachine: enter LOADING');
           this.onenter?.(STATE_LOADING);
         },
         [CANCEL]: STATE_CANCELLED,
@@ -55,6 +56,7 @@ export default class LoadingStateMachine extends FiniteStateMachine {
       },
       [STATE_LOADED]: {
         _enter: () => {
+          // console.log('LoadingStateMachine: enter LOADED');
           this.onenter?.(STATE_LOADED);
         },
         [LOAD]: STATE_LOADING,

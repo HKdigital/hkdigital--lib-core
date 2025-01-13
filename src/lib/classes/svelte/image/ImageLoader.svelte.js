@@ -10,6 +10,22 @@ import {
  * - The loading process can be monitored
  */
 export default class ImageLoader extends NetworkLoader {
+  // onenter(label) {
+  //   console.log('ImageLoader:onenter', label);
+  // }
+
+  // constructor({ url }) {
+  //   super({ url });
+
+  //   $effect(() => {
+  //     console.log('ImageLoader: state', this.state);
+  //   });
+  // }
+
+  get url() {
+    return this._url;
+  }
+
   //
   // /**
   //  * Construct ImageLoader
@@ -24,6 +40,6 @@ export default class ImageLoader extends NetworkLoader {
   //  *
   //  * @note the objectURL should be revoked when no longer used
   //  */
-  // getObjectUrl() {}
+  // getObjectURL() {}
   //
 } // end class

@@ -1,4 +1,4 @@
-import * as expect from '@hkdigital/lib-sveltekit/util/expect/index.js';
+import * as expect from '$lib/util/expect/index.js';
 
 import {
 	LoadingStateMachine,

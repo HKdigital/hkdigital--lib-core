@@ -52,7 +52,7 @@
 
 		if (variantsLoader.loaded) {
 			// @ts-ignore
-			imageUrl = variantsLoader.getObjectUrl();
+			imageUrl = variantsLoader.getObjectURL();
 
 			// image = new Image();
 			// image.src = url;

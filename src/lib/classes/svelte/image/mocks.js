@@ -1,9 +1,6 @@
-import {
-  CONTENT_TYPE,
-  CONTENT_LENGTH
-} from '@hkdigital/lib-sveltekit/constants/http/index.js';
+import { CONTENT_TYPE, CONTENT_LENGTH } from '$lib/constants/http/index.js';
 
-import { IMAGE_PNG } from '@hkdigital/lib-sveltekit/constants/mime/image.js';
+import { IMAGE_PNG } from '$lib/constants/mime/image.js';
 
 /**
  * A minimal 1x1 black PNG encoded as base64

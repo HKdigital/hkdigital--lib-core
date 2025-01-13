@@ -1,6 +1,6 @@
 /** @typedef {import('./typedef.js').ImageMeta} ImageMeta */
 
-// import * as expect from '@hkdigital/lib-sveltekit/util/expect/index.js';
+// import * as expect from '$lib/util/expect/index.js';
 
 import { untrack } from 'svelte';
 
@@ -90,13 +90,13 @@ export default class ImageVariantsLoader {
    *
    * @returns {string|null}
    */
-  getObjectUrl() {
+  getObjectURL() {
     // Example usage:
     //
     // $effect(() => {
     //   if (variantsLoader.loaded) {
     //     // @ts-ignore
-    //     imageUrl = variantsLoader.getObjectUrl();
+    //     imageUrl = variantsLoader.getObjectURL();
     //   }
 
     //   return () => {

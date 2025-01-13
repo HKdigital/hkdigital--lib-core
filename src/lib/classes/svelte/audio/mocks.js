@@ -1,6 +1,6 @@
-import { CONTENT_TYPE, CONTENT_LENGTH } from '@hkdigital/lib-sveltekit/constants/http/index.js';
+import { CONTENT_TYPE, CONTENT_LENGTH } from '$lib/constants/http/index.js';
 
-import { AUDIO_WAV } from '@hkdigital/lib-sveltekit/constants/mime/audio.js';
+import { AUDIO_WAV } from '$lib/constants/mime/audio.js';
 
 // import MockWav from './tiny-silence.wav?raw';
 

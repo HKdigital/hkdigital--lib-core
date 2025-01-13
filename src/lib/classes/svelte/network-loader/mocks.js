@@ -1,6 +1,6 @@
-import { CONTENT_TYPE, CONTENT_LENGTH } from '@hkdigital/lib-sveltekit/constants/http/index.js';
+import { CONTENT_TYPE, CONTENT_LENGTH } from '$lib/constants/http/index.js';
 
-import { OCTET_STREAM } from '@hkdigital/lib-sveltekit/constants/mime/application.js';
+import { OCTET_STREAM } from '$lib/constants/mime/application.js';
 
 const BASE64_DATA =
   'UklGRnwAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YVgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA';

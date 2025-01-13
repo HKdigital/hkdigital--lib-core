@@ -17,19 +17,19 @@
 	],
 	"scripts": {
 		"dev": "vite dev",
-		"build": "vite build && npm run package",
+		"build": "cross-env vite build && npm run package",
 		"preview": "vite preview",
-		"package": "svelte-kit sync && svelte-package && publint",
-		"prepublishOnly": "npm run package",
-		"publish:npm": "npm version patch && npm publish --access public && git push",
-		"check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
-		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
+		"package": "cross-env svelte-kit sync && svelte-package && publint",
+		"prepublishOnly": "cross-env npm run package",
+		"publish:npm": "cross-env npm version patch && npm publish --access public && git push",
+		"check": "cross-env svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
+		"check:watch": "cross-env svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
 		"format": "prettier --write .",
-		"lint": "prettier --check . && eslint .",
+		"lint": "cross-env prettier --check . && eslint .",
 		"test:unit": "vitest",
-		"test": "npm run test:unit -- --run && npm run test:e2e",
+		"test": "cross-env npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test",
-		"upgrade:all": "ncu -u && pnpm install"
+		"upgrade:all": "cross-env ncu -u && pnpm install"
 	},
 	"files": [
 		"dist",
@@ -57,6 +57,7 @@
 		"@sveltejs/vite-plugin-svelte": "^5.0.3",
 		"@types/eslint": "^9.6.1",
 		"autoprefixer": "^10.4.20",
+		"cross-env": "^7.0.3",
 		"eslint": "^9.17.0",
 		"eslint-config-prettier": "^9.1.0",
 		"eslint-plugin-svelte": "^2.46.1",
@@ -72,6 +73,7 @@
 		"tailwindcss": "^3.4.17",
 		"typescript": "^5.7.3",
 		"vite": "^6.0.7",
+		"vite-imagetools": "^7.0.5",
 		"vitest": "^2.1.8"
 	},
 	"dependencies": {

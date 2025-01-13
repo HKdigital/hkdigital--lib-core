@@ -5,12 +5,17 @@ const DEFAULT_PRESETS = {
 		format: 'avif',
 		quality: '90'
 	},
-	gradient: {
+	render: {
 		format: 'jpg',
 		quality: '95',
 		as: 'metadata'
 	},
 	photo: {
+		format: 'jpg',
+		quality: '95',
+		as: 'metadata'
+	},
+	gradient: {
 		format: 'jpg',
 		quality: '95',
 		as: 'metadata'

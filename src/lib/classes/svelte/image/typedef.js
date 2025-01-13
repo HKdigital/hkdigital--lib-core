@@ -1,5 +1,3 @@
-// /** @typedef {import('@hkdigital/lib-sveltekit/types/imagetools.js').ImageMeta} ImageMeta */
-
 /**
  * @typedef {Object} ImageMeta
  * @property {string} src - URL of the image
