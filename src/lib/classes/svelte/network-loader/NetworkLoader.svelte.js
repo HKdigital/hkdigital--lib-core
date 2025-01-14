@@ -227,7 +227,7 @@ export default class NetworkLoader {
    *
    * @note the objectURL should be revoked when no longer used
    *
-   * @returns {string|null}
+   * @returns {string}
    */
   getObjectURL() {
     //
@@ -247,9 +247,7 @@ export default class NetworkLoader {
     //   };
     // });
 
-    const blob = this.getBlob();
-
-    return blob ? URL.createObjectURL(blob) : null;
+    return URL.createObjectURL(this.getBlob());
   }
 
   /**

@@ -3,6 +3,8 @@
 
 	import { ImageLoader } from '$lib/classes/svelte/image/index.js';
 
+	import { toSingleImageMeta } from '$lib/util/image/index.js';
+
 	/**
 	 * @example
 	 * import { ImageBox } from '/path/to/ImageBox/index.js';
@@ -73,7 +75,13 @@
    * @property {string} [overflow] - Overflow behavior
    * @property {ObjectFit} [fit] - Object-fit property
    * @property {ObjectPosition} [position] - Object-position property
-   * @property {ImageMeta|ImageMeta[]} image - Image metadata or array of image metadata
+   *
+   * @property {ImageMeta|ImageMeta[]} [imageMeta]
+   *   Image metadata, TODO: array of image metadata for responsive image
+   *
+   * @property {ImageLoader} [imageLoader]
+   *   Image loader
+   *
    * @property {string} [alt] - Alternative text for the image
    * @property {() => LoadingProgress} [onProgress] - Progress callback function
    * @property {*} [attr] - Additional arbitrary attributes
@@ -94,8 +102,10 @@
 		fit = 'contain',
 		position = 'left top',
 
-    // Image meta
-		image,
+    // Image meta data
+		imageMeta,
+
+		imageLoader,
 
 		alt = '',
 
@@ -118,16 +128,12 @@
 	let metaWidth = $state(0);
 	let metaHeight = $state(0);
 
-	let singleImage = $state();
+	let imageMeta_ = $state();
 
 	$effect(() => {
-		if (image instanceof Array && image[0]) {
-			throw new Error('Responsive image is not supported (yet)');
-		} else if (typeof image === 'object') {
-			// expect image.src
-			// expect image.width
-			// expect image.height
-			singleImage = image;
+		if( imageMeta )
+		{
+			imageMeta_ = toSingleImageMeta( imageMeta );
 		}
 	});
 
@@ -135,19 +141,30 @@
 		//
 		// Set meta width and height
 		//
-		if (singleImage) {
-			if (singleImage.width) {
-				metaWidth = singleImage.width;
+		if (imageMeta_) {
+			if (imageMeta_.width) {
+				metaWidth = imageMeta_.width;
 			}
 
-			if (singleImage.height) {
-				metaHeight = singleImage.height;
+			if (imageMeta_.height) {
+				metaHeight = imageMeta_.height;
 			}
 		}
 	});
 
 	/** @type {ImageLoader|undefined} */
-	let imageLoader = $state();
+	let imageLoader_ = $state();
+
+	$effect( () => {
+		//
+		// User supplied imageLoader instead of imageMeta
+		//
+		if( !imageMeta && imageLoader && !imageLoader_ )
+		{
+			imageLoader_ = imageLoader;
+			imageMeta_ = imageLoader.imageMeta;
+		}
+	} );
 
 	/** @type {string|null} */
 	let objectUrl = $state(null);
@@ -156,20 +173,19 @@
 		//
 		// Create image loader
 		//
-		if (singleImage.src && !imageLoader) {
-			const url = singleImage.src;
-			imageLoader = new ImageLoader({ url });
+		if (imageMeta_ && !imageLoader_) {
+			imageLoader_ = new ImageLoader({ imageMeta: imageMeta_ });
 		}
 	});
 
 	$effect(() => {
 		//
-		// Start loading if imageLoader is in state 'initial'
+		// Start loading if imageLoader_ is in state 'initial'
 		//
 		// TODO: implement lazy flag
 		//
-		if (imageLoader?.initial) {
-			imageLoader.load();
+		if (imageLoader_?.initial) {
+			imageLoader_.load();
 		}
 	});
 
@@ -177,9 +193,9 @@
 		//
 		// Get objectUrl when the image has finished loading
 		//
-		if (imageLoader.loaded) {
+		if (imageLoader_.loaded) {
 			// @ts-ignore
-			objectUrl = imageLoader.getObjectURL();
+			objectUrl = imageLoader_.getObjectURL();
 		}
 
 		return () => {
@@ -190,9 +206,6 @@
 		};
 	});
 
-	$effect(() => {
-		console.log('classes', classes);
-	});
 </script>
 
 <div

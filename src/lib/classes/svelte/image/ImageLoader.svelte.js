@@ -1,3 +1,7 @@
+/** @typedef {import('./typedef.js').ImageMeta} ImageMeta */
+
+import { toSingleImageMeta } from '$lib/util/image/index.js';
+
 import {
   NetworkLoader
   // ERROR_NOT_LOADED,
@@ -10,31 +14,29 @@ import {
  * - The loading process can be monitored
  */
 export default class ImageLoader extends NetworkLoader {
-  // onenter(label) {
-  //   console.log('ImageLoader:onenter', label);
-  // }
+  /** @type {ImageMeta} */
+  #imageMeta;
 
-  // constructor({ url }) {
-  //   super({ url });
+  /**
+   * @param {object} _
+   * @param {ImageMeta|ImageMeta[]} _.imageMeta
+   */
+  constructor({ imageMeta }) {
+    imageMeta = toSingleImageMeta(imageMeta);
 
-  //   $effect(() => {
-  //     console.log('ImageLoader: state', this.state);
-  //   });
-  // }
+    super({ url: imageMeta.src });
+
+    this.#imageMeta = imageMeta;
+  }
+
+  get imageMeta() {
+    return this.#imageMeta;
+  }
 
   get url() {
     return this._url;
   }
 
-  //
-  // /**
-  //  * Construct ImageLoader
-  //  *
-  //  * @param {object} _
-  //  * @param {string} _.url
-  //  */
-  // constructor( { url } ) {}
-  //
   // /**
   //  * Get object URL that can be used as src parameter of an HTML image
   //  *
