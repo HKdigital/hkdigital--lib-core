@@ -1,5 +1,5 @@
 <script>
-	/** @typedef {import('$lib/types/imagetools.js').ImageMeta} ImageMeta */
+	/** @typedef {import('$lib/config/typedef.js').ImageMeta} ImageMeta */
 
 	import { ImageVariantsLoader } from '$lib/classes/svelte/image/index.js';
 

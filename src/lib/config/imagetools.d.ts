@@ -1,9 +1,3 @@
-// export interface ImageMeta {
-//   src: string;
-//   width: number;
-//   height: number;
-// }
-
 type ImageMeta = import('./typedef.js').ImageMeta;
 
 declare module '*?responsive' {
