@@ -1,6 +1,6 @@
 {
 	"name": "@hkdigital/lib-sveltekit",
-	"version": "0.0.93",
+	"version": "0.0.94",
 	"author": {
 		"name": "HKdigital",
 		"url": "https://hkdigital.nl"
@@ -64,7 +64,7 @@
 	"devDependencies": {
 		"@playwright/test": "^1.49.1",
 		"@skeletonlabs/skeleton": "3.0.0-next.2",
-  	"@skeletonlabs/skeleton-svelte": "1.0.0-next.4",
+		"@skeletonlabs/skeleton-svelte": "1.0.0-next.4",
 		"@sveltejs/adapter-auto": "^3.3.1",
 		"@sveltejs/package": "^2.3.7",
 		"@sveltejs/vite-plugin-svelte": "^5.0.3",
