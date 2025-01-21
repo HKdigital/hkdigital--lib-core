@@ -1,13 +1,11 @@
 <script>
   import { onMount, untrack } from 'svelte';
 
-  import { ArmyGreen, ElectricBlue } from '../img/index.js';
+  import { ArmyGreen, ElectricBlue } from '../assets/img/index.js';
 
   import ImageBox from '$lib/components/image/ImageBox.svelte';
 
   import ImageScene from '$lib/classes/svelte/image/ImageScene.svelte';
-
-let jens =     456;
 
   const ARMY_GREEN = 'army-green';
   const ELECTRIC_BLUE = 'electric-blue';

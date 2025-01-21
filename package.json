@@ -1,7 +1,10 @@
 {
 	"name": "@hkdigital/lib-sveltekit",
 	"version": "0.0.93",
-	"author": "Jens Kleinhout, HKdigital (https://hkdigital.nl)",
+	"author": {
+		"name": "HKdigital",
+		"url": "https://hkdigital.nl"
+	},
 	"license": "ISC",
 	"repository": {
 		"type": "git",
@@ -45,14 +48,23 @@
 	"types": "./dist/index.d.ts",
 	"type": "module",
 	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"svelte": "./dist/index.js",
+			"default": "./dist/index.js"
+		},
 		"./*": "./dist/*"
 	},
 	"peerDependencies": {
 		"@sveltejs/kit": "^2.15.2",
-		"svelte": "^5.0.0"
+		"svelte": "^5.0.0",
+		"runed": "^0.23.0",
+		"valibot": "^0.42.1"
 	},
 	"devDependencies": {
 		"@playwright/test": "^1.49.1",
+		"@skeletonlabs/skeleton": "3.0.0-next.2",
+  	"@skeletonlabs/skeleton-svelte": "1.0.0-next.4",
 		"@sveltejs/adapter-auto": "^3.3.1",
 		"@sveltejs/package": "^2.3.7",
 		"@sveltejs/vite-plugin-svelte": "^5.0.3",
@@ -64,6 +76,8 @@
 		"eslint-plugin-svelte": "^2.46.1",
 		"globals": "^15.14.0",
 		"jsdom": "^26.0.0",
+		"postcss": "^8.5.1",
+		"postcss-mixins": "^11.0.3",
 		"prettier": "^3.4.2",
 		"prettier-plugin-svelte": "^3.3.3",
 		"prettier-plugin-tailwindcss": "^0.6.9",
@@ -78,8 +92,6 @@
 		"vitest": "^2.1.8"
 	},
 	"dependencies": {
-		"runed": "^0.23.0",
-		"valibot": "^0.42.1",
 		"zod": "^3.24.1"
 	}
 }

@@ -79,10 +79,7 @@ export default class ImageScene {
   });
 
   /**
-   * Construct AudioScene
-   *
-   * @param {object} _
-   * @param {AudioContext} _.audioContext
+   * Construct ImageScene
    */
   constructor() {
     const state = this.#state;

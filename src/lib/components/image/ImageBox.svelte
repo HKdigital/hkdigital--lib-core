@@ -113,6 +113,11 @@
 		...attrs
 	} = $props();
 
+  if( !imageMeta )
+  {
+    throw new Error('Missing [imageMeta]');
+  }
+
 	// let show = $state(false);
 
 	/** @type {HTMLDivElement|undefined} */

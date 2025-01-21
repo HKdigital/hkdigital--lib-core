@@ -1,11 +1,11 @@
 <script>
 	import { onMount, untrack } from 'svelte';
 
-	import ArmyGreen from '../img/army-green.jpg?preset=gradient';
+	import ArmyGreen from '../assets/img/army-green.jpg?preset=gradient';
 
 	// console.log(ArmyGreen);
 
-	import ElectricBlue from '../img/electric-blue.jpg?preset=gradient';
+	import ElectricBlue from '../assets/img/electric-blue.jpg?preset=gradient';
 
 	console.log(ElectricBlue);
 
