@@ -83,7 +83,6 @@
 
 <div
 	bind:clientWidth={containerWidth}
-	data-hk--responsive-image-box
 	class="{boxBase} {boxClasses}"
 	{...boxAttrs}
 >
@@ -91,7 +90,7 @@
 
 	{#if variant}
 		<img
-			data-responsive-image
+			data-image="responsive"
 			src={imageUrl ? imageUrl : ''}
 			width={variant.width}
 			height={variant.height}

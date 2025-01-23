@@ -22,7 +22,7 @@
    * theme - name of the icon set theme (e.g. 'solid' or 'outline')
    *
    * @type {{
-   *   src: import('./types.js').IconSource,
+   *   src: import('./typedef.js').IconSource,
    *   size?: string,
    *   theme?: string,
    *   base?: string,

@@ -1,4 +1,3 @@
-<!-- CompareLeftRight.svelte -->
 <script>
   /** @type {HTMLElement | null} */
   let container = $state(null);
@@ -13,11 +12,16 @@
     handleColor?: string
   } & Record<string, any>} */
   let {
-    leftContent,
-    rightContent,
+    width='w-[100vw]',
+    height='aspect-video',
+    border='border border-surface-500',
     classes = '',
     dividerColor = 'bg-surface-500',
     handleColor = 'bg-surface-700',
+
+    // Snippets
+    leftContent,
+    rightContent,
     ...attrs
   } = $props();
 
@@ -114,7 +118,7 @@
 
 <div
   bind:this={container}
-  class="relative flex h-full w-full overflow-hidden {classes}"
+  class="relative {width} {height} {border} {classes}"
   role="group"
   aria-label="Content comparison"
   {...attrs}
@@ -140,16 +144,16 @@
 
   <!-- Slider control -->
   <div
-    class="absolute inset-y-0 z-10 flex w-1 cursor-col-resize items-center justify-center {dividerColor}"
+    class="absolute inset-y-0 z-10 flex w-1 items-center justify-center {dividerColor}"
     style={dividerStyle}
   >
     <!-- Vertical separator line -->
-    <div class="absolute inset-y-0 w-0.5 bg-current opacity-50"></div>
+    <div class="absolute inset-y-0 w-0.5 bg-current opacity-50 pointer-events-none"></div>
 
     <button
-      class="flex h-10 w-10 items-center justify-center rounded-full shadow-lg hover:scale-110 transition-transform focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2 {handleColor}"
-      on:mousedown={handleMouseDown}
-      on:keydown={handleKeyDown}
+      class="flex h-10 w-10 items-center justify-center rounded-full shadow-lg transition-transform {handleColor}"
+      onmousedown={handleMouseDown}
+      onkeydown={handleKeyDown}
       role="slider"
       aria-orientation="vertical"
       aria-valuenow={position}

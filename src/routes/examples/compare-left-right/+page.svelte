@@ -2,70 +2,93 @@
 <script>
   import { CompareLeftRight } from '$lib/components/widgets/compare-left-right/index.js';
 
-  import ArmyGreen from '../assets/img/army-green.jpg?raw';
+  // Raw images
 
-  import ElectricBlue from '../assets/img/electric-blue.jpg?raw';
+  import ArmyGreenRaw from '../assets/img/army-green.jpg?raw';
+
+  import ElectricBlueRaw from '../assets/img/electric-blue.jpg?raw';
+
+  // Imagebox images
+
+  import ArmyGreen from '../assets/img/army-green.jpg?preset=gradient';
+
+  import ElectricBlue from '../assets/img/electric-blue.jpg?preset=gradient';
+
+  import ImageBox from '$lib/components/image/ImageBox.svelte';
+
+
 </script>
 
 
-<div class="container h-full min-h-screen mx-auto p-4 space-y-8">
-  <h1 class="h1">Content Comparison Examples</h1>
+<CompareLeftRight width="w-[90vw]">
+  {#snippet leftContent()}
+    <img
+      src={ArmyGreenRaw}
+      alt="Landscape before editing"
+      class="h-full w-full object-cover"
+    />
+  {/snippet}
 
-  <!-- Image comparison -->
-  <section class="pt-10 space-y-5  h-[600px]">
-    <h2 class="h2">Image Comparison</h2>
-    <div class="h-full">
-      <CompareLeftRight classes="h-full rounded-lg border border-surface-300">
-        {#snippet leftContent()}
-          <img
-            src={ArmyGreen}
-            alt="Landscape before editing"
-            class="h-full w-full object-cover"
-          />
-        {/snippet}
+  {#snippet rightContent()}
+    <img
+      src={ElectricBlueRaw}
+      alt="Landscape after editing"
+      class="h-full w-full object-cover"
+    />
+  {/snippet}
+</CompareLeftRight>
 
-        {#snippet rightContent()}
-          <img
-            src={ElectricBlue}
-            alt="Landscape after editing"
-            class="h-full w-full object-cover"
-          />
-        {/snippet}
-      </CompareLeftRight>
+<br>
+
+<CompareLeftRight width="w-[90vw]" height="h-[200px]">
+  {#snippet leftContent()}
+    <div class="prose p-8">
+      <h3>Contract Version 1</h3>
+      <p>
+        The party of the first part hereby agrees to deliver the specified goods
+        within 30 days of receipt of payment. All deliveries will be made during
+        normal business hours, Monday through Friday.
+      </p>
     </div>
-  </section>
+  {/snippet}
 
-  <!-- Text comparison -->
-  <section class="pt-10 space-y-5 h-[400px]">
-    <h2 class="h2">Text Comparison</h2>
-    <div class="h-full">
-      <CompareLeftRight
-        classes="h-full rounded-lg border border-surface-300"
-        dividerColor="bg-primary-500"
-        handleColor="bg-primary-700"
-      >
-        {#snippet leftContent()}
-          <div class="h-full w-full p-4 bg-surface-100 overflow-auto">
-            <h3 class="h3 mb-2">Contract Version 1</h3>
-            <p>
-              The party of the first part hereby agrees to deliver the specified goods
-              within 30 days of receipt of payment. All deliveries will be made during
-              normal business hours, Monday through Friday.
-            </p>
-          </div>
-        {/snippet}
-
-        {#snippet rightContent()}
-          <div class="h-full w-full p-4 bg-surface-50 overflow-auto">
-            <h3 class="h3 mb-2">Contract Version 2</h3>
-            <p>
-              The party of the first part hereby agrees to deliver the specified goods
-              within 14 days of receipt of payment. All deliveries will be made during
-              extended business hours, Monday through Saturday.
-            </p>
-          </div>
-        {/snippet}
-      </CompareLeftRight>
+  {#snippet rightContent()}
+  <div class="prose p-8">
+      <h3>Contract Version 2</h3>
+      <p>
+        The party of the first part hereby agrees to deliver the specified goods
+        within 14 days of receipt of payment. All deliveries will be made during
+        extended business hours, Monday through Saturday.
+      </p>
     </div>
-  </section>
-</div>
+  {/snippet}
+</CompareLeftRight>
+
+<br>
+
+<CompareLeftRight width="w-[90vw]" height="h-[200px]">
+  {#snippet leftContent()}
+
+    <ImageBox
+      imageMeta={ArmyGreen}
+      fit="contain"
+      position="center center"
+      width="w-full"
+      height="h-[200px]"
+      classes="border-8 border-green-500"
+    />
+  {/snippet}
+
+  {#snippet rightContent()}
+    <ImageBox
+        imageMeta={ElectricBlue}
+        fit="contain"
+        position="center center"
+        width="w-full"
+        height="h-[200px]"
+        classes="border-8 border-green-500"
+      />
+  {/snippet}
+</CompareLeftRight>
+
+<br>

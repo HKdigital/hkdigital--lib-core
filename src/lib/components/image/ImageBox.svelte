@@ -214,7 +214,7 @@
 </script>
 
 <div
-	data-image-box
+	data-image="box"
 	bind:this={imgBoxElem}
 	class="{base} {bg} {aspect} {overflow} {width} {height} {classes}"
 	style:--fit={fit}
@@ -230,7 +230,7 @@
 </div>
 
 <style>
-	[data-image-box] {
+	[data-image="box"] {
 		max-width: 100%;
 		max-height: 100%;
 	}

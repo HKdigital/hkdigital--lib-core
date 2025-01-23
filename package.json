@@ -57,8 +57,8 @@
 	},
 	"peerDependencies": {
 		"@sveltejs/kit": "^2.15.2",
-		"svelte": "^5.0.0",
 		"runed": "^0.23.0",
+		"svelte": "^5.0.0",
 		"valibot": "^0.42.1"
 	},
 	"devDependencies": {
@@ -92,6 +92,7 @@
 		"vitest": "^2.1.8"
 	},
 	"dependencies": {
+		"@tailwindcss/typography": "^0.5.16",
 		"zod": "^3.24.1"
 	}
 }

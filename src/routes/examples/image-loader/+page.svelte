@@ -9,7 +9,7 @@
 
   import ElectricBlue from '../assets/img/electric-blue.jpg?preset=gradient';
 
-  console.log( ElectricBlue);
+  console.log("ElectricBlue", ElectricBlue);
 
   let imageLoader = $state();
 
