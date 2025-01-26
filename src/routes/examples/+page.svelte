@@ -4,7 +4,6 @@
   console.log(import.meta);
   const url = import.meta.url;
   const baseUrl = import.meta.url;
-  const jens = 123;
 </script>
 
 <section class="prose p-40p">

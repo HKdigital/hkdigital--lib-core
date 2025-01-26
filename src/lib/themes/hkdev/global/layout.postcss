@@ -1,0 +1,39 @@
+
+@define-mixin all_layout {
+
+  .page-centered-xl {
+    @apply max-w-xl px-20p mb-40p;
+    @apply flex flex-col;
+
+    @apply self-center;
+    @apply w-full;
+  }
+
+  .page-full {
+    @apply flex flex-col;
+
+    @apply w-full h-full;
+  }
+
+  .page-row {
+    @apply w-full flex flex-col;
+  }
+
+
+  .page-ui-margins
+  {
+    @apply mt-120p;
+    @apply mr-20p;
+    @apply mb-120p;
+    @apply ml-20p;
+  }
+
+  .page-ui-margins-equal
+  {
+    @apply mt-20p;
+    @apply mr-20p;
+    @apply mb-20p;
+    @apply ml-20p;
+  }
+
+}

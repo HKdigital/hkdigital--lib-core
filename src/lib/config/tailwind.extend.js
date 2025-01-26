@@ -1,4 +1,5 @@
 export const spacing = {
+  // Between elements spacing
   '5p': '0.3125rem',
   '10p': '0.625rem',
   '20p': '1.25rem',
@@ -12,6 +13,9 @@ export const spacing = {
   '160p': '10rem',
   '180p': '11.25rem',
 
+  // Text related spacing
+  '1p': '0.0625rem',
+  '2p': '0.125rem',
   '4p': '0.25rem',
   '6p': '0.375rem',
   '8p': '0.5rem',
@@ -20,31 +24,28 @@ export const spacing = {
 };
 
 export const fontSize = {
+  '12p': '0.75rem',
+  '14p': '0.875rem',
   '16p': '1rem',
+  '18p': '1.125rem',
   '20p': '1.25rem',
   '24p': '1.5rem',
   '32p': '2rem',
   '50p': '3.125rem',
 
-  sm: '87.5%',
-  base: '100%', // 16
-  lg: '112.5%', // 18
-  xl: '125%', // 20
-  '2xl': '150%', // 24
-  '3xl': '187.5%', // 30
-  '4xl': '250%', // 40
-  '5xl': '312.5%', // 50
-  '6xl': '375%', // 60
-  '7xl': '450%', // 72
-  '8xl': '600%', // 96
-  '9xl': '800%x' // 128
+  sm: '0.875rem',
+  base: '1rem',
+  lg: '1.125rem',
+  xl: '1.25rem'
 };
 
 export const borderRadius = {
   none: 0,
+  xs: '0.250rem',
   sm: '0.875rem',
   md: '1.25rem',
-  lg: '2.5rem',
+  lg: '2rem',
+  xl: '3.125rem',
   full: '9999px'
 };
 

@@ -1,0 +1,108 @@
+
+/*@import "../../global/on-colors.postcss";*/
+
+@define-mixin inputs-text-input {
+
+  [data-input="text-input"] {
+
+    /* Base */
+
+
+
+    /* Required and disabled */
+
+    &.required {}
+    &.disabled {}
+
+    /* Focus */
+
+    &.focused {
+      border: solid thin black;
+
+      & [data-child="legend"] {
+        color: black;
+      }
+
+      & [data-child="input"] {
+        color: black;
+      }
+    }
+
+    &.unfocused {
+      border: solid thin grey;
+
+      & [data-child="legend"] {
+        color: grey;
+      }
+
+      & [data-child="input"] {
+        color: grey;
+      }
+    }
+
+    /* Invalid */
+    &.invalid {
+      &.pristine [data-child="legend"] {
+        color: white;
+        background-color: orange;
+      }
+
+      &.dirty {
+        &.focused [data-child="legend"] {
+          color: black;
+          background-color: yellow;
+        }
+
+        &.unfocused [data-child="legend"] {
+          color: white;
+          background-color: red;
+        }
+      }
+    }
+
+    /* Pristine (valid-invalid) */
+
+    &.pristine.valid {
+      & [data-child="icon-box"] {
+        color: grey;
+      }
+    }
+
+    &.pristine.invalid {
+      & [data-child="icon-box"] {
+        color: orange;
+      }
+    }
+
+    /* Dirty (valid-invalid) */
+
+    &.dirty.valid {
+      &.focused {
+        & [data-child="icon-box"] {
+          color: grey;
+        }
+      }
+
+      &.unfocused {
+        & [data-child="icon-box"] {
+          color: green;
+        }
+      }
+    }
+
+    &.dirty.invalid {
+      &.focused {
+        & [data-child="icon-box"] {
+          color: orange;
+        }
+      }
+
+      &.unfocused {
+        & [data-child="icon-box"] {
+          color: red;
+        }
+      }
+    }
+
+  }
+}
