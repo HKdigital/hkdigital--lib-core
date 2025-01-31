@@ -7,7 +7,7 @@
 
 	import ElectricBlue from '../assets/img/electric-blue.jpg?preset=gradient';
 
-	console.log("ElectricBlue", ElectricBlue);
+	console.log('ElectricBlue', ElectricBlue);
 
 	import ImageBox from '$lib/components/image/ImageBox.svelte';
 </script>
