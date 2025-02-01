@@ -1,20 +1,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import { toURL } from './index.js';
+import { toURL, hasProtocol, href } from './index.js';
 
 // > Mocks
 
 beforeEach(() => {
-	const mockResponse = { test: 123 };
-
-	global.fetch = vi.fn(() =>
-		Promise.resolve({
-			json: () => Promise.resolve(mockResponse)
-		})
-	);
+	global.location = { origin: 'http://test:1234' };
 });
 
-afterEach(() => {});
+afterEach(() => {
+	delete global.location;
+});
 
 // > Tests
 
@@ -39,5 +35,33 @@ describe('toURL', () => {
 		const returned = toURL(original);
 
 		expect(returned).toStrictEqual(original);
+	});
+});
+
+describe('toURL', () => {
+	it('should use the currect hostname to construct an absolute url', () => {
+		const original = '/path/to?q=test#test';
+
+		const returned = toURL(original);
+
+		expect(returned.href).toEqual('http://test:1234/path/to?q=test#test');
+	});
+});
+
+describe('hasProtocol', () => {
+	it('should check if the url has a protocol part', () => {
+		expect(hasProtocol('http://localhost')).toEqual(true);
+		expect(hasProtocol('https://hkdigital.nl')).toEqual(true);
+		expect(hasProtocol('mailto://hello@hkdigital.nl')).toEqual(true);
+
+		expect(hasProtocol('www.hkdigital.nl')).toEqual(false);
+	});
+});
+
+describe('href', () => {
+	it('should convert to an absolute url and apply decodeURI', () => {
+		expect(href('http://localhost')).toEqual('http://localhost/');
+		expect(href('/path/to')).toEqual('http://test:1234/path/to');
+		expect(href('http://localhost?x=hello%20world')).toEqual('http://localhost/?x=hello world');
 	});
 });

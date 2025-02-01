@@ -1,0 +1,10 @@
+// > Imports
+
+import * as v from 'valibot';
+
+// > Exports
+
+/**
+ * Schema to validate a Date or ISO timestamp.
+ */
+export const DateOrIsoTimeStamp = v.union([v.date(), v.pipe(v.string(), v.isoTimestamp())]);

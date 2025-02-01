@@ -14,6 +14,8 @@ export * from './headers.js';
 export * from './errors.js';
 export * from './url.js';
 export * from './response.js';
+export * from './http-request.js';
+export * from './json-request.js';
 
 // import { CONTENT_TYPE, METHOD_GET, METHOD_POST } from '$lib/constants/http/index.js';
 

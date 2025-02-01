@@ -1,0 +1,73 @@
+
+@import "../../global/on-colors.postcss";
+
+@define-mixin buttons-plain-button {
+
+  [data-button="plain-button"] {
+    @apply py-6p rounded-sm;
+
+     & p {
+      @apply text-20p base-font-family font-black my-0 mx-16p uppercase;
+    }
+
+    /* not disabled */
+
+    &:not([disabled]) {
+      &.role-primary {
+        @apply border-4p border-primary-500 bg-primary-500;
+        & .p {
+          color: rgb(var(--color-primary-50));
+        }
+      }
+
+      &.role-secondary {
+        @apply border-4p border-primary-500;
+
+        & .p {
+          color: rgb(var(--color-primary-500));
+        }
+
+        &.variant-white
+        {
+          @apply border-surface-50;
+
+          & .p {
+            color: rgb(var(--color-surface-50));
+          }
+        }
+      }
+    }
+
+    /* disabled */
+
+    &[disabled] {
+      &.role-primary {
+        @apply bg-surface-500;
+        & .p {
+          color: rgb(var(--color-surface-300));
+        }
+      }
+
+      &.role-secondary {
+        @apply border-4p bg-primary-50;
+
+        & .p {
+          color: rgb(var(--color-surface-300));
+        }
+      }
+
+    }
+  }
+
+
+
+  /*[data-button-round-arrow-next] {
+    / * @apply bg-primary-500; * /
+    @apply text-24p base-font-family font-bold;
+
+    & svg {
+      color: rgb(var(--color-primary-500));    
+      @apply w-80p h-80p;
+    }
+  }*/
+}

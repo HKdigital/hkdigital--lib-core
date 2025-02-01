@@ -1,0 +1,52 @@
+
+@import "../../global/on-colors.postcss";
+
+@define-mixin panels-speech-bubble {
+  [data-panel="speech-bubble"] {
+
+    @mixin on_surface_light;
+    @apply bg-primary-50;
+
+    @apply pt-20p pb-20p pr-40p pl-40p rounded-tl-lg rounded-tr-lg rounded-bl-lg;
+
+    /* max-width: 26vw;*/
+    /* width: 26vw; */
+
+    &.small {
+      max-width: 16vw;
+    }
+
+    & picture {
+      display: block;
+      max-width: 100%;
+      @apply pr-80p;      
+      /* border: solid 1px red; */
+    }
+
+    & [data-section="title"]
+    {
+      & .h1 {
+        @apply text-32p pt-8p pb-8p;
+      }
+    }
+
+    & [data-section="text"]
+    {
+      & .p {
+        @apply text-20p pb-10p;
+
+        /*& + picture {
+          @apply mt-40p;
+        }*/
+      }
+    }
+
+
+    /* Footer */
+
+    & [data-row][data-section="footer"]
+    {
+      @apply pt-10p;
+    }
+  }
+}

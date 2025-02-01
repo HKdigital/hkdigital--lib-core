@@ -1,0 +1,19 @@
+import { describe, it, expect } from 'vitest';
+
+import * as v from 'valibot';
+
+import { DateOrIsoTimeStamp } from './date.js__';
+
+describe('DateOrIsoTimeStamp', () => {
+	it('should parse a date or an ISO timestamp', () => {
+		// > Positive test
+
+		const parsed1 = v.parse(DateOrIsoTimeStamp, new Date('2024-12-22T15:00:49.021Z'));
+
+		expect(parsed1.toISOString()).toEqual('2024-12-22T15:00:49.021Z');
+
+		const parsed2 = v.parse(DateOrIsoTimeStamp, '2024-12-22T15:00:49.021Z');
+
+		expect(parsed2).toEqual('2024-12-22T15:00:49.021Z');
+	});
+});

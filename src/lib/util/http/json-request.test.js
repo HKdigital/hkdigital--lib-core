@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import { APPLICATION_JSON } from '$lib/constants/mime/application.js';
-import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
+// import { APPLICATION_JSON } from '$lib/constants/mime/application.js';
+// import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
 
 import { jsonGet, jsonPost } from './json-request.js';
 
@@ -14,6 +14,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+	// @ts-ignore
 	delete global.fetch;
 });
 
@@ -21,6 +22,7 @@ describe('jsonGet', () => {
 	it('should fetch data', async () => {
 		const url = 'http://localhost';
 
+		// @ts-ignore
 		fetch.mockResolvedValue(createJsonFetchResponse({ hello: 'world' }));
 
 		const data = await jsonGet({ url });
@@ -34,6 +36,7 @@ describe('jsonPost', () => {
 		const url = 'http://localhost';
 		const body = JSON.stringify(null);
 
+		// @ts-ignore
 		fetch.mockResolvedValue(createJsonFetchResponse({ hello: 'world' }));
 
 		const data = await jsonPost({ url, body });

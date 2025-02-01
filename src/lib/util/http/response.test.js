@@ -1,8 +1,15 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
-import { WWW_AUTHENTICATE } from '$lib/constants/http/headers.js';
+import { WWW_AUTHENTICATE, CONTENT_LENGTH } from '$lib/constants/http/headers.js';
 
-import { expectResponseOk, waitForAndCheckResponse } from './response.js';
+import {
+	expectResponseOk,
+	getResponseSize,
+	waitForAndCheckResponse,
+	loadResponseBuffer
+} from './response.js';
+
+import { createStreamedResponse } from './mocks.js';
 
 // import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
 // import { APPLICATION_JSON } from '$lib/constants/mime/application.js';
@@ -65,6 +72,16 @@ describe('expectResponseOk', () => {
 	});
 });
 
+describe('getResponseSize', () => {
+	it('should return the response size', async () => {
+		expect(
+			getResponseSize(new Response(null, { headers: new Headers({ [CONTENT_LENGTH]: '1234' }) }))
+		).toEqual(1234);
+
+		expect(getResponseSize(new Response(null, { headers: new Headers() }))).toEqual(0);
+	});
+});
+
 describe('waitForAndCheckResponse', () => {
 	it('should wait for a response', async () => {
 		const responsePromise = Promise.resolve(new Response());
@@ -97,5 +114,25 @@ describe('waitForAndCheckResponse', () => {
 		} catch (e) {
 			expect(e.message).toEqual('A network error occurred for request [http://localhost/]');
 		}
+	});
+});
+
+describe('loadResponseBuffer', () => {
+	it('should load response as ArrayBuffer', async () => {
+		// const response = new Response(new Blob(['0123456789'], { type: 'text/plain' }));
+
+		const responseSize = 100;
+		const response = createStreamedResponse(new ArrayBuffer(responseSize));
+
+		const onProgress = vi.fn();
+
+		const { bufferPromise, abort } = loadResponseBuffer(response, onProgress);
+
+		expect(abort).toBeTypeOf('function');
+
+		const buffer = await bufferPromise;
+
+		expect(buffer).toBeInstanceOf(ArrayBuffer);
+		expect(buffer.byteLength).toEqual(responseSize);
 	});
 });

@@ -2,11 +2,11 @@ import { METHOD_GET, METHOD_POST } from '$lib/constants/http/methods.js';
 
 import { APPLICATION_JSON } from '$lib/constants/mime/application.js';
 import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
+import { ResponseError } from '$lib/constants/errors/index.js';
 
 import * as expect from '$lib/util/expect/index.js';
 
 import { toURL } from './url.js';
-import { ResponseError } from './errors.js';
 import { httpRequest } from './http-request.js';
 import { waitForAndCheckResponse } from './response.js';
 
@@ -16,12 +16,13 @@ const ACCEPT = 'accept';
  * Make a GET request to fetch JSON encoded data
  * - Expect JSON response from server
  *
- * @param {string|URL} url - Url string or URL object
+ * @param {object} _
+ * @param {string|URL} _.url - Url string or URL object
  *
- * @param {object} [urlSearchParams]
+ * @param {object} [_.urlSearchParams]
  *   Parameters that should be added to the request url
  *
- * @param {array[]} [headers]
+ * @param {[string, string][]} [_.headers]
  *   List of custom headers. Each header is an array that contains
  *   the header name and the header value.
  *   E.g. [ "content-type", "application/json" ]
@@ -29,13 +30,13 @@ const ACCEPT = 'accept';
  * @throws ResponseError
  *   If a network error occurred or the response was not ok
  *
- * @returns {any} parsed JSON data
+ * @returns {Promise<any>} parsed JSON data
  */
 export async function jsonGet({ url, urlSearchParams, headers }) {
 	url = toURL(url);
 
 	if (!headers) {
-		headers = {};
+		headers = [];
 	}
 
 	headers[ACCEPT] = APPLICATION_JSON;
@@ -75,19 +76,20 @@ export async function jsonGet({ url, urlSearchParams, headers }) {
  * Make a POST request to fetch JSON encoded data
  * - Expect JSON response from server
  *
- * @param {string|URL} url - Url string or URL object
+ * @param {object} _
+ * @param {string|URL} _.url - Url string or URL object
  *
- * @param {any} body
+ * @param {any} _.body
  *   Data that will be converted to a JSON encoded string and send to the server
  *
- * @param {object} [urlSearchParams]
+ * @param {object} [_.urlSearchParams]
  *   Parameters that should be added to the request url.
  *
- *   @note
- *   Be careful when using urlSearchParams in POST requests, it can be
- *   confusing since the parameters usually go in the body part of the request.
+ *   - Be careful when using urlSearchParams in POST requests, it can be
+ *     confusing since the parameters usually go in the body part of
+ *     the request.
  *
- * @param {array[]} [headers]
+ * @param {[string, string][]} [_.headers]
  *   List of custom headers. Each header is an array that contains
  *   the header name and the header value.
  *   E.g. [ "content-type", "application/json" ]
@@ -95,13 +97,13 @@ export async function jsonGet({ url, urlSearchParams, headers }) {
  * @throws ResponseError
  *   If a network error occurred or the response was not ok
  *
- * @returns {any} parsed JSON data
+ * @returns {Promise<any>} parsed JSON data
  */
 export async function jsonPost({ url, body, urlSearchParams, headers }) {
 	url = toURL(url);
 
 	if (!headers) {
-		headers = {};
+		headers = [];
 	} else {
 		expect.object(headers);
 	}
@@ -111,7 +113,7 @@ export async function jsonPost({ url, body, urlSearchParams, headers }) {
 	headers[ACCEPT] = APPLICATION_JSON;
 	headers[CONTENT_TYPE] = APPLICATION_JSON;
 
-	const responsePromise = httpRequest({ METHOD_POST, url, body, urlSearchParams, headers });
+	const responsePromise = httpRequest({ method: METHOD_POST, url, body, urlSearchParams, headers });
 
 	const response = await waitForAndCheckResponse(responsePromise, url);
 

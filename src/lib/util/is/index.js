@@ -1,4 +1,4 @@
-/* ---------------------------------------------------------------- Internals */
+/** Internals */
 
 //
 // @see https://developer.mozilla.org/
@@ -7,9 +7,7 @@
 const AsyncFunction = Object.getPrototypeOf(async () => {}).constructor;
 const objectToString = Object.prototype.toString;
 
-/* ------------------------------------------------------------------ Exports */
-
-// ---------------------------------------------------------------------- Method
+/** Exports */
 
 /**
  * Check if a value looks like an array
@@ -30,8 +28,6 @@ export function isArrayLike(item) {
 	return false;
 }
 
-// ---------------------------------------------------------------------- Method
-
 /**
  * Check if a value is an Arguments object
  *
@@ -42,8 +38,6 @@ export function isArrayLike(item) {
 export function isArguments(value) {
 	return objectToString.call(value) === '[object Arguments]';
 }
-
-// ---------------------------------------------------------------------- Method
 
 /**
  * Check if a value is an array that only contains primitives
@@ -68,8 +62,6 @@ export function isArrayOfPrimitives(arr) {
 	return true;
 }
 
-// ---------------------------------------------------------------------- Method
-
 /**
  * Check if the supplied value is async iterable
  * - Aync iterable objects must implement the "@@asyncIterator" method
@@ -85,8 +77,6 @@ export function isAsyncIterator(value) {
 
 	return true;
 }
-
-// ---------------------------------------------------------------------- Method
 
 /**
  * Check if the supplied value is an async function
@@ -108,8 +98,6 @@ export function isAsyncFunction(value) {
 	return false;
 }
 
-// ---------------------------------------------------------------------- Method
-
 /**
  * Check if the supplied value is iterable
  * - Iterable objects must implement the "@@iterator" method
@@ -126,8 +114,6 @@ export function isIterable(value) {
 
 	return true;
 }
-
-// ---------------------------------------------------------------------- Method
 
 /**
  * Check if the supplied value is an object bu not a promise

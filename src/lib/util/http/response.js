@@ -1,11 +1,23 @@
 import { ResponseError } from '$lib/constants/errors/index.js';
 import * as expect from '$lib/util/expect/index.js';
+import { toURL } from '$lib/util/http/url.js';
 
-import { WWW_AUTHENTICATE } from '$lib/constants/http/headers.js';
+import { WWW_AUTHENTICATE, CONTENT_LENGTH } from '$lib/constants/http/headers.js';
 
-import { toURL } from './url.js';
+import { href } from './url.js';
 
 import { getErrorFromResponse } from './errors.js';
+
+// > Types
+
+/**
+ * @callback progressCallback
+ * @param {object} _
+ * @param {number} _.bytesLoaded
+ * @param {number} _.size
+ */
+
+// > Exports
 
 /**
  * Check if the response status is ok
@@ -19,8 +31,6 @@ import { getErrorFromResponse } from './errors.js';
 export async function expectResponseOk(response, url) {
 	expect.object(response);
 
-	url = toURL(url);
-
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200
 	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/201
 
@@ -28,7 +38,7 @@ export async function expectResponseOk(response, url) {
 		if (!response.ok) {
 			throw new ResponseError(
 				`Server returned - ${response.status} ${response.statusText} ` +
-					`[response.ok=false] [url=${decodeURI(url.href)}]`
+					`[response.ok=false] [url=${href(url)}]`
 			);
 		}
 
@@ -49,7 +59,7 @@ export async function expectResponseOk(response, url) {
 			errorMessage += ` (${authValue})`;
 		}
 
-		errorMessage += ` [url=${decodeURI(url.href)}]`;
+		errorMessage += ` [url=${href(url)}]`;
 
 		throw new Error(errorMessage);
 	}
@@ -59,9 +69,26 @@ export async function expectResponseOk(response, url) {
 	const error = await getErrorFromResponse(response);
 
 	throw new ResponseError(
-		`Server returned - ${response.status} ${response.statusText} ` + `[url=${decodeURI(url.href)}]`,
+		`Server returned - ${response.status} ${response.statusText} ` + `[url=${href(url)}]`,
 		{ cause: error }
 	);
+}
+
+/**
+ * Get the response size from the content-length response header
+ *
+ * @param {Response} response
+ *
+ * @returns {number} response size or 0 if unknown
+ */
+export function getResponseSize(response) {
+	const sizeStr = response.headers.get(CONTENT_LENGTH);
+
+	if (!sizeStr) {
+		return 0;
+	}
+
+	return parseInt(sizeStr, 10);
 }
 
 /**
@@ -70,12 +97,12 @@ export async function expectResponseOk(response, url) {
  * @example
  *   const response = await waitForAndCheckResponse( responsePromise );
  *
- * @param {Promise<object>} responsePromise
- * @param {URL} url - An url that is used for error messages
+ * @param {Promise<Response>} responsePromise
+ * @param {string|URL} url - An url that is used for error messages
  *
  * @throws ResponseError - A response error if something went wrong
  *
- * @returns {object} response
+ * @returns {Promise<Response>} response
  */
 export async function waitForAndCheckResponse(responsePromise, url) {
 	expect.promise(responsePromise);
@@ -93,7 +120,7 @@ export async function waitForAndCheckResponse(responsePromise, url) {
 		}
 	} catch (e) {
 		if (e instanceof TypeError || response?.ok === false) {
-			throw new ResponseError(`A network error occurred for request [${decodeURI(url.href)}]`, {
+			throw new ResponseError(`A network error occurred for request [${href(url)}]`, {
 				cause: e
 			});
 		} else {
@@ -103,3 +130,99 @@ export async function waitForAndCheckResponse(responsePromise, url) {
 
 	return response;
 }
+
+/**
+ * Load response body as ArrayBuffer
+ * - Progress can be monitored by suppying an onProgress callback
+ * - Loading can be aborted by calling the returned abort function
+ *
+ * @param {Response} response - Fetch response
+ * @param {progressCallback} onProgress
+ *
+ * @returns {{ bufferPromise: Promise<ArrayBuffer>, abort: () => void }}
+ */
+export function loadResponseBuffer(response, onProgress) {
+	// @note size might be 0
+	// @note might not be send by server in dev mode
+	const size = getResponseSize(response);
+
+	let bytesLoaded = 0;
+
+	if (onProgress && size) {
+		onProgress({ bytesLoaded, size });
+	}
+
+	if (!response.body) {
+		throw new Error('Missing [response.body]');
+	}
+
+	const reader = response.body.getReader();
+
+	let aborted = false;
+
+	/**
+	 * Read chunks from response body using reader
+	 *
+	 * @returns {Promise<ArrayBuffer>}
+	 */
+	async function read() {
+		let chunks = [];
+
+		// - Use flag 'loading'
+		// - Check if #abortLoading still exists
+		for (;;) {
+			const { done, value } = await reader.read();
+
+			if (value) {
+				// @note value is an ArrayBuffer
+				bytesLoaded += value.byteLength;
+
+				// console.log({ done, value, byteLength: value.byteLength, bytesLoaded });
+
+				// console.log({ size, bytesLoaded, value });
+
+				if (size && bytesLoaded > size) {
+					throw new Error(`Received more bytes that specified by header content-length`);
+				}
+
+				chunks.push(value);
+
+				if (onProgress && size) {
+					onProgress({ bytesLoaded, size });
+				}
+			}
+
+			if (done || aborted) {
+				// Loading complete or aborted by user
+				break;
+			}
+		} // end while
+
+		if (size && bytesLoaded !== size) {
+			throw new Error(`Received [${bytesLoaded}], but expected [${size}] bytes`);
+		}
+
+		// Concat the chinks into a single array
+		let buffer = new ArrayBuffer(bytesLoaded);
+		let body = new Uint8Array(buffer);
+
+		let offset = 0;
+
+		// Place the chunks in the buffer
+		for (let chunk of chunks) {
+			body.set(chunk, offset);
+			offset += chunk.byteLength;
+		} // end for
+
+		return buffer;
+	}
+
+	const bufferPromise = read();
+
+	return {
+		bufferPromise,
+		abort: () => {
+			aborted = true;
+		}
+	};
+} // end fn

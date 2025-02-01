@@ -8,30 +8,36 @@ import * as expect from '../expect/index.js';
  *
  * @param {Headers} target - Headers object to set the extra headers in
  *
- * @param {object} [nameValuePairs]
- *   Object that contains custom headers. A header is a name, value pair.
+ * @param {null|object|[string, string][]} [pairs]
  */
-export function setRequestHeaders(target, nameValuePairs) {
+export function setRequestHeaders(target, pairs) {
 	if (!(target instanceof Headers)) {
 		throw new Error('Invalid parameter [target] (expected Headers object)');
 	}
 
-	expect.objectNoArray(nameValuePairs);
+	// expect.objectNoArray(pairs);
 
-	if (nameValuePairs instanceof Headers) {
-		throw new Error('Invalid parameter [nameValuePairs] (should not be a Headers object)');
+	if (pairs instanceof Headers) {
+		throw new Error('Invalid parameter [pairs] (should not be a Headers object)');
 	}
 
-	for (const name in nameValuePairs) {
+	if (!pairs) {
+		return;
+	}
+
+	if (typeof pairs !== 'object') {
+		throw new Error('Invalid value for parameter [pairs]');
+	}
+
+	if (!Array.isArray(pairs)) {
+		pairs = Object.entries(pairs);
+	}
+
+	for (const [name, value] of pairs) {
 		expect.notEmptyString(name);
-
-		const value = nameValuePairs[name];
-
 		expect.notEmptyString(value);
 
-		//
-		// Headers should be encoded lowercase in HTTP2
-		//
+		// @note Headers should be encoded lowercase in HTTP2
 		const nameLower = name.toLowerCase();
 
 		target.set(nameLower, value); /* overwrites existing value */

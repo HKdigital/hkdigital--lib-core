@@ -66,7 +66,7 @@ Vite should include postcss-import, but the only solution to get it working for 
 For example:
 
 ```css
-/* src/app.css */
+/* src/app.postcss */
 @import '../node_modules/@hkdigital/lib-sveltekit/dist/css/utilities.postcss';
 ```
 

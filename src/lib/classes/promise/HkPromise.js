@@ -45,8 +45,24 @@ const hasThen$ = Symbol('hasThen');
 
 /**
  * HkPromise extends the default javascript Promise class
+ * - Exposes methods to interact with the state of the
+ *   promise, such as 'resolve' and 'reject'
  */
 export default class HkPromise extends Promise {
+	// > TODO: convert to JS private properties
+	// #resolveFn
+	// #rejectFn
+	// #pending
+	// #resolved
+	// #rejected
+	// #cancelled
+	// #timeout
+	// #timeoutTimer
+	// #hasThen
+
+	/**
+	 * @param {()=>void} [initFn]
+	 */
 	constructor(initFn) {
 		let _resolveFn;
 		let _rejectFn;
@@ -81,8 +97,6 @@ export default class HkPromise extends Promise {
 		// this[ timeoutTimer$ ] = undefined;
 	}
 
-	// -------------------------------------------------------------------- Method
-
 	/**
 	 * Get value of property [resolved]
 	 *
@@ -91,8 +105,6 @@ export default class HkPromise extends Promise {
 	get resolved() {
 		return this[resolved$] ? true : false;
 	}
-
-	// -------------------------------------------------------------------- Method
 
 	/**
 	 * Get value of property [rejected]
@@ -103,8 +115,6 @@ export default class HkPromise extends Promise {
 		return this[rejected$] ? true : false;
 	}
 
-	// -------------------------------------------------------------------- Method
-
 	/**
 	 * Get value of property [pending]
 	 *
@@ -113,8 +123,6 @@ export default class HkPromise extends Promise {
 	get pending() {
 		return this[pending$];
 	}
-
-	// -------------------------------------------------------------------- Method
 
 	/**
 	 * Get value of property [cancelled]
@@ -125,8 +133,6 @@ export default class HkPromise extends Promise {
 		return this[cancelled$] ? true : false;
 	}
 
-	// -------------------------------------------------------------------- Method
-
 	/**
 	 * Get value of property [timeout]
 	 *
@@ -135,8 +141,6 @@ export default class HkPromise extends Promise {
 	get timeout() {
 		return this[timeout$] ? true : false;
 	}
-
-	// -------------------------------------------------------------------- Method
 
 	/**
 	 * Resolve the promise
@@ -191,8 +195,6 @@ export default class HkPromise extends Promise {
 		return this;
 	}
 
-	// -------------------------------------------------------------------- Method
-
 	/**
 	 * Reject the promise
 	 *
@@ -238,8 +240,6 @@ export default class HkPromise extends Promise {
 		return this;
 	}
 
-	// -------------------------------------------------------------------- Method
-
 	/**
 	 * Reject the promise if the promise is still pending
 	 *
@@ -255,8 +255,6 @@ export default class HkPromise extends Promise {
 
 		return this;
 	}
-
-	// -------------------------------------------------------------------- Method
 
 	/**
 	 * Reject the promise and set this.cancelled=true
@@ -283,8 +281,6 @@ export default class HkPromise extends Promise {
 		return this;
 	}
 
-	// -------------------------------------------------------------------- Method
-
 	/**
 	 * Reject the promise and set this.cancelled=true
 	 *
@@ -300,8 +296,6 @@ export default class HkPromise extends Promise {
 
 		return this;
 	}
-
-	// -------------------------------------------------------------------- Method
 
 	/**
 	 * Specify the number of milliseconds until the promise should time out.
@@ -360,8 +354,6 @@ export default class HkPromise extends Promise {
 		return this;
 	}
 
-	// -------------------------------------------------------------------- Method
-
 	/**
 	 * Register a callback that is called when the promise resolves
 	 *
@@ -372,8 +364,6 @@ export default class HkPromise extends Promise {
 
 		return super.then(...arguments);
 	}
-
-	// -------------------------------------------------------------------- Method
 
 	/**
 	 * Register a callback that is called when the promise rejects, is
