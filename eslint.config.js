@@ -24,7 +24,8 @@ export default [
 				...globals.node,
 				$state: 'readonly',
 				$derived: 'readonly',
-				$effect: 'readonly'
+				$effect: 'readonly',
+				$inspect: 'readonly'
 			}
 		}
 	},

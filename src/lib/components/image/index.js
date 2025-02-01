@@ -1,1 +1,1 @@
-export { default as EnhancedImage } from './EnhancedImage.svelte';
+export { default as ImageBox } from './ImageBox.svelte';

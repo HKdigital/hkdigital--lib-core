@@ -1,0 +1,241 @@
+<script>
+	import { onMount } from 'svelte';
+	import { ImageLoader } from '$lib/classes/svelte/image/index.js';
+	import { ImageVariantsLoader } from '$lib/classes/svelte/image/index.js';
+	import { toSingleImageMeta } from '$lib/util/image/index.js';
+
+	/**
+	 * @type {{
+	 *   base?: string,
+	 *   bg?: string,
+	 *   classes?: string,
+	 *   width?: string,
+	 *   height?: string,
+	 *   aspect?: string,
+	 *   overflow?: string,
+	 *   fit?: 'contain' | 'cover' | 'fill',
+	 *   position?: string,
+	 *   imageMeta: import('$lib/config/typedef.js').ImageMeta | import('$lib/config/typedef.js').ImageMeta[],
+	 *   imageLoader?: import('$lib/classes/svelte/image/index.js').ImageLoader,
+	 *   alt?: string,
+	 *   onProgress?: () => import('$lib/classes/svelte/network-loader/typedef.js').LoadingProgress,
+	 *   debug?: boolean,
+	 *   [attr: string]: any
+	 * }}
+	 */
+	let {
+		// Style
+		base,
+		bg,
+		classes,
+		width,
+		height,
+		aspect,
+		overflow = 'overflow-clip',
+
+		// Fitting and positioning of image in its container
+		fit = 'contain',
+		position = 'left top',
+
+		// Single image or responsive image meta data
+		imageMeta,
+		imageLoader,
+
+		// Accessibility
+		alt = '',
+
+		// Development
+		debug = false,
+
+		// Additional attributes
+		...attrs
+	} = $props();
+
+	if (!imageMeta) {
+		throw new Error('Missing [imageMeta]');
+	}
+
+	/** @type {HTMLDivElement|undefined} */
+	let containerElem = $state();
+
+	/** @type {HTMLImageElement|undefined} */
+	let imgElem = $state();
+
+	let aspectStyle = $state('');
+
+	// > Loading
+	let metaWidth = $state(0);
+	let metaHeight = $state(0);
+
+	let imageMeta_ = $state();
+	let variantsLoader = $state();
+	let variantObjectUrl = $state(null);
+	let objectUrl = $state(null);
+
+	$effect(() => {
+		//
+		// Is imageMeta is a list of responsive options:
+		// => setup variants loader
+		//
+		if (Array.isArray(imageMeta) && !imageLoader && !variantsLoader) {
+			// $inspect(imageMeta, 'Creating variantsLoader');
+
+			variantsLoader = new ImageVariantsLoader(imageMeta, {
+				devicePixelRatio: window.devicePixelRatio
+			});
+		}
+		//
+		// Single image meta (only if not using variants)
+		//
+		else if (imageMeta && !variantsLoader) {
+			// Only run if there is no variantsLoader
+
+			//$inspect(imageMeta, 'Using single imageMeta');
+
+			imageMeta_ = toSingleImageMeta(imageMeta);
+		}
+	});
+
+	$effect(() => {
+		//
+		// Set meta width and height for single image
+		//
+		if (imageMeta_) {
+			if (imageMeta_.width) {
+				metaWidth = imageMeta_.width;
+			}
+
+			if (imageMeta_.height) {
+				metaHeight = imageMeta_.height;
+			}
+		}
+	});
+
+	/** @type {ImageLoader|undefined} */
+	let imageLoader_ = $state();
+
+	$effect(() => {
+		//
+		// User supplied imageLoader instead of imageMeta
+		//
+		if (!imageMeta && imageLoader && !imageLoader_) {
+			imageLoader_ = imageLoader;
+			imageMeta_ = imageLoader.imageMeta;
+		}
+	});
+
+	$effect(() => {
+		//
+		// Create image loader for single image
+		//
+		if (imageMeta_ && !imageLoader_) {
+			imageLoader_ = new ImageLoader({ imageMeta: imageMeta_ });
+		}
+	});
+
+	$effect(() => {
+		//
+		// Start loading if imageLoader_ is in state 'initial'
+		//
+		if (imageLoader_?.initial) {
+			imageLoader_.load();
+		}
+	});
+
+	$effect(() => {
+		//
+		// Get objectUrl when the single image has finished loading
+		//
+		if (imageLoader_?.loaded) {
+			objectUrl = imageLoader_.getObjectURL();
+		}
+
+		return () => {
+			if (objectUrl) {
+				URL.revokeObjectURL(objectUrl);
+				objectUrl = null;
+			}
+		};
+	});
+
+	$effect(() => {
+		//
+		// Setup resize observer for variants loading
+		//
+		if (!containerElem || !variantsLoader) return;
+
+		const resizeObserver = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				const { width, height } = entry.contentRect;
+
+				variantsLoader.updateOptimalImageMeta({
+					containerWidth: width,
+					containerHeight: height,
+					fit
+				});
+			}
+		});
+
+		resizeObserver.observe(containerElem);
+
+		return () => {
+			resizeObserver.disconnect();
+		};
+	});
+
+	$effect(() => {
+		//
+		// Get variantObjectUrl when a variant has finished loading
+		//
+		if (variantsLoader?.loaded) {
+			variantObjectUrl = variantsLoader.getObjectURL();
+		}
+
+		return () => {
+			if (variantObjectUrl) {
+				URL.revokeObjectURL(variantObjectUrl);
+				variantObjectUrl = null;
+			}
+		};
+	});
+</script>
+
+<div
+	data-image="box"
+	bind:this={containerElem}
+	class="{base} {bg} {aspect} {overflow} {width} {height} {classes}"
+	style:--fit={fit}
+	style:--pos={position}
+	style:aspect-ratio={aspectStyle}
+	style:width={width || (height && aspect) ? undefined : '100%'}
+	style:height={height || (width && aspect) ? undefined : '100%'}
+	{...attrs}
+>
+	{#if variantsLoader?.loaded && variantObjectUrl}
+		<img
+			src={variantObjectUrl}
+			{alt}
+			width={variantsLoader.variant.width}
+			height={variantsLoader.variant.height}
+		/>
+	{:else if objectUrl && metaWidth && metaHeight}
+		<img src={objectUrl} {alt} width={metaWidth} height={metaHeight} />
+	{/if}
+</div>
+
+<style>
+	[data-image='box'] {
+		max-width: 100%;
+		max-height: 100%;
+	}
+
+	img {
+		display: block;
+		width: 100%;
+		height: 100%;
+		max-width: 100%;
+		max-height: 100%;
+		object-fit: var(--fit);
+		object-position: var(--pos);
+	}
+</style>

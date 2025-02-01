@@ -1,0 +1,7 @@
+
+@define-mixin all_vars {
+
+  /* --tab-bar-height: 72px;  
+  --tab-bar-selector-width: 132px;
+  --tab-bar-selector-height: var(--tab-bar-height, 72px); */
+}

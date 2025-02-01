@@ -1,0 +1,102 @@
+<script>
+  /**
+   * @type {{
+   *   base?: string,
+   *   error?: string,
+   *   classes?: string,
+   *   fieldClasses?: string,
+   *   fieldError?: string,
+   *   legendBase?: string,
+   *   legendClasses?: string,
+   *   legendError?: string,
+   *   value?: string,
+   *   type?: 'text' | 'url' | 'email' | 'number',
+   *   pattern?: string,
+   *   required?: boolean,
+   *   title?: string,
+   *   valid?: boolean,
+   *   pristine?: boolean,
+   *   validate?: (value: string) => string | undefined,
+   * } & { [attr: string]: * }}
+   */
+  let {
+    base = '',
+    error = '',
+    classes = '',
+
+    fieldClasses,
+    fieldError,
+
+    legendBase = 'ml-16p px-8p',
+    legendClasses,
+    legendError,
+
+    value = $bindable(''),
+    type = 'text',
+    pattern,
+    required = false,
+
+    title = '',
+
+    valid = $bindable(true),
+    pristine = $bindable(true),
+
+    validate,
+
+    ...attrs
+  } = $props();
+
+  let inputRef = $state();
+  let validationMessage = $state('');
+  let initialValue = $state('');
+
+  $effect(() => {
+    if (!inputRef) return;
+    initialValue = value;
+    validateInput(inputRef, value);
+  });
+
+  function validateInput(input, currentValue) {
+    input.setCustomValidity('');
+    const isBuiltInValid = input.checkValidity();
+
+    if (isBuiltInValid && validate) {
+      const customError = validate(currentValue);
+      input.setCustomValidity(customError || '');
+    }
+
+    pristine = currentValue === initialValue;
+    valid = input.validity.valid;
+    validationMessage = input.validationMessage;
+  }
+
+  function handleInput(event) {
+    validateInput(event.target, event.target.value);
+  }
+</script>
+
+<fieldset
+  data-inputs="text-input"
+  class="flex w-full items-center rounded {fieldClasses}"
+>
+  <legend class="{legendBase} {legendClasses}">{title}</legend>
+
+  <input
+    bind:this={inputRef}
+    {type}
+    {pattern}
+    {required}
+    {value}
+    class="w-full border-none bg-transparent {base} {classes}"
+    aria-invalid={!valid}
+    aria-errormessage={!valid ? 'validation-message' : undefined}
+    oninput={handleInput}
+    {...attrs}
+  />
+
+  {#if !valid}
+    <small id="validation-message" class="text-error" role="alert">
+      {validationMessage}
+    </small>
+  {/if}
+</fieldset>
