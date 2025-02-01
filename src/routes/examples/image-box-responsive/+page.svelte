@@ -10,7 +10,7 @@
   };
 </script>
 
-<div class="w-full border-4 border-blue-500 relative">
+<div class="w-full aspect-video border-4 border-blue-500 relative">
   <ImageBox
     imageMeta={ArmyGreenResponsive}
     fit="contain"
