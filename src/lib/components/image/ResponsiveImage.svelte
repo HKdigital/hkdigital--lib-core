@@ -37,7 +37,7 @@
 	let imageVariant = $state(null);
 
 	$effect(() => {
-		variantsLoader.updateOptimalImageMeta(containerWidth);
+		variantsLoader.updateOptimalImageMeta({ containerWidth });
 	});
 
 	// $effect(() => {
@@ -53,22 +53,9 @@
 		if (variantsLoader.loaded) {
 			// @ts-ignore
 			imageUrl = variantsLoader.getObjectURL();
-
-			// image = new Image();
-			// image.src = url;
-
-			// image.onload = () => {
-			//   console.log('loaded');
-			//   imageUrl = url;
-			// };
 		}
 
 		return () => {
-			// if (image) {
-			//   image.onload = null;
-			//   image = undefined;
-			// }
-
 			if (imageUrl) {
 				URL.revokeObjectURL(imageUrl);
 				imageUrl = null;
@@ -81,6 +68,7 @@
 	// let image = $derived(variantsLoader.image);
 </script>
 
+™
 <div
 	bind:clientWidth={containerWidth}
 	class="{boxBase} {boxClasses}"

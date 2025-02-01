@@ -2,6 +2,8 @@
 
 // import * as expect from '$lib/util/expect/index.js';
 
+import { calculateEffectiveWidth } from '$lib/util/image/index.js';
+
 import { untrack } from 'svelte';
 
 import ImageLoader from './ImageLoader.svelte.js';
@@ -21,57 +23,60 @@ export default class ImageVariantsLoader {
 
   #progress = $derived.by(() => {
     if (this.#imageLoader) {
-      // const progress = this.#imageLoader.progress;
-
       return this.#imageLoader.progress;
     } else {
       return { bytesLoaded: 0, size: 0, loaded: false };
     }
   });
 
-  #loaded = $derived(this.#progress.loaded);
+  #loaded = $derived.by(() => this.#progress?.loaded || false);
 
   /**
    * @param {ImageMeta[]} imagesMeta
    */
   constructor(imagesMeta, { devicePixelRatio = 1 } = {}) {
-    // expect.notEmptyArray( imagesMeta );
-
     this.#devicePixelRatio = devicePixelRatio ?? 1;
-
-    // Sort images meta by width ascending
     this.#imagesMeta = [...imagesMeta].sort((a, b) => a.width - b.width);
-
-    $effect(() => {
-      const variant = this.#imageVariant;
-
-      if (variant) {
-        // console.log('Load new variant', $state.snapshot(variant));
-
-        // TODO: abort loading if imageLoader exists
-
-        untrack(() => {
-          const loader = (this.#imageLoader = new ImageLoader({
-            url: variant.src
-          }));
-
-          loader.load();
-        });
-      }
-    });
   }
 
   /**
    * Set new optimal image variant or keep current
    *
-   * @param {number} containerWidth
+   * @param {object} params
+   * @param {number} [params.containerWidth] Container width
+   * @param {number} [params.containerHeight] Container height
+   * @param {'cover'|'contain'|'fill'} [params.fit='contain'] Fit mode
    */
-  updateOptimalImageMeta(containerWidth) {
-    const newVariant = this.getOptimalImageMeta(containerWidth);
+  updateOptimalImageMeta({ containerWidth, containerHeight, fit = 'contain' }) {
+    const baseImage = this.#imagesMeta[0];
+    const imageAspectRatio = baseImage.width / baseImage.height;
 
-    if (!newVariant || !this.#imageVariant || newVariant.width > this.#imageVariant.width) {
-      // Only update imageVariant is width is larger
+    const effectiveWidth = calculateEffectiveWidth({
+      containerWidth,
+      containerHeight,
+      imageAspectRatio,
+      fit
+    });
+
+    const newVariant = this.getOptimalImageMeta(effectiveWidth);
+
+    if (
+      !newVariant ||
+      !this.#imageVariant ||
+      newVariant.width > this.#imageVariant.width
+    ) {
       this.#imageVariant = newVariant;
+
+      // Create and start loader here directly when variant changes
+      if (this.#imageLoader?.initial) {
+        this.#imageLoader.unload();
+      }
+
+      this.#imageLoader = new ImageLoader({
+        imageMeta: newVariant
+      });
+
+      this.#imageLoader.load();
     }
   }
 
@@ -137,7 +142,9 @@ export default class ImageVariantsLoader {
 
     // Find the smallest image that's larger than our required width
 
-    const optimal = imagesMeta.find((current) => current.width >= requiredWidth);
+    const optimal = imagesMeta.find(
+      (current) => current.width >= requiredWidth
+    );
 
     // Fall back to the largest image if nothing is big enough
     return optimal || imagesMeta[imagesMeta.length - 1];

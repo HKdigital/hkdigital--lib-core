@@ -3,7 +3,9 @@
 
 	import ArmyGreen from '../assets/img/army-green.jpg?preset=gradient';
 
-	// console.log(ArmyGreen);
+	import ArmyGreenResponsive from '../assets/img/army-green.jpg?preset=gradient&responsive';
+
+	console.log('ArmyGreenResponsive', ArmyGreenResponsive);
 
 	import ElectricBlue from '../assets/img/electric-blue.jpg?preset=gradient';
 
