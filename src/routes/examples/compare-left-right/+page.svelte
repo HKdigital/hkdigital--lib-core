@@ -4,21 +4,18 @@
 
   // Raw images
 
-  import ArmyGreenRaw from '../assets/img/army-green.jpg?raw';
+  import ArmyGreenRaw from '../assets/images/army-green.jpg?raw';
 
-  import ElectricBlueRaw from '../assets/img/electric-blue.jpg?raw';
+  import ElectricBlueRaw from '../assets/images/electric-blue.jpg?raw';
 
   // Imagebox images
 
-  import ArmyGreen from '../assets/img/army-green.jpg?preset=gradient';
+  import ArmyGreen from '../assets/images/army-green.jpg?preset=gradient';
 
-  import ElectricBlue from '../assets/img/electric-blue.jpg?preset=gradient';
+  import ElectricBlue from '../assets/images/electric-blue.jpg?preset=gradient';
 
   import ImageBox from '$lib/components/image/ImageBox.svelte';
-
-
 </script>
-
 
 <CompareLeftRight width="w-[90vw]">
   {#snippet leftContent()}
@@ -38,7 +35,7 @@
   {/snippet}
 </CompareLeftRight>
 
-<br>
+<br />
 
 <CompareLeftRight width="w-[90vw]" height="h-[200px]">
   {#snippet leftContent()}
@@ -53,7 +50,7 @@
   {/snippet}
 
   {#snippet rightContent()}
-  <div class="prose p-8">
+    <div class="prose p-8">
       <h3>Contract Version 2</h3>
       <p>
         The party of the first part hereby agrees to deliver the specified goods
@@ -64,11 +61,10 @@
   {/snippet}
 </CompareLeftRight>
 
-<br>
+<br />
 
 <CompareLeftRight width="w-[90vw]" height="h-[200px]">
   {#snippet leftContent()}
-
     <ImageBox
       imageMeta={ArmyGreen}
       fit="contain"
@@ -81,14 +77,14 @@
 
   {#snippet rightContent()}
     <ImageBox
-        imageMeta={ElectricBlue}
-        fit="contain"
-        position="center center"
-        width="w-full"
-        height="h-[200px]"
-        classes="border-8 border-green-500"
-      />
+      imageMeta={ElectricBlue}
+      fit="contain"
+      position="center center"
+      width="w-full"
+      height="h-[200px]"
+      classes="border-8 border-green-500"
+    />
   {/snippet}
 </CompareLeftRight>
 
-<br>
+<br />

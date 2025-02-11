@@ -1,5 +1,5 @@
 <script>
-  import ArmyGreenResponsive from '../assets/img/army-green.jpg?preset=gradient&responsive';
+  import ArmyGreenResponsive from '../assets/images/army-green.jpg?preset=gradient&responsive';
   import ImageBox from '$lib/components/image/ImageBox.svelte';
 
   /** @type {import('$lib/classes/svelte/network-loader/typedef.js').LoadingProgress} */

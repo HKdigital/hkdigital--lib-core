@@ -54,3 +54,11 @@ export const borderWidth = {
   '2p': '0.125rem',
   '4p': '0.250rem'
 };
+
+export const strokeWidth = {
+  '1p': '0.0625rem',
+  '2p': '0.125rem',
+  '4p': '0.250rem',
+  '6p': '0.375rem',
+  '8p': '0.5rem'
+};

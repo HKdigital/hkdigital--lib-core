@@ -1,7 +1,7 @@
 <script>
   import { onMount, untrack } from 'svelte';
 
-  import { ArmyGreen, ElectricBlue } from '../assets/img/index.js';
+  import { ArmyGreen, ElectricBlue } from '../assets/images/index.js';
 
   import ImageBox from '$lib/components/image/ImageBox.svelte';
 
@@ -81,27 +81,31 @@
 </script>
 
 {#if imageScene}
-<ImageBox
-  imageLoader="{imageScene.getImageLoader(ARMY_GREEN)}"
-  fit="contain"
-  position="center center"
-  width="w-[200px]"
-  height="h-[200px]"
-  classes="border-8 border-green-500"
-/>
+  <ImageBox
+    imageLoader={imageScene.getImageLoader(ARMY_GREEN)}
+    fit="contain"
+    position="center center"
+    width="w-[200px]"
+    height="h-[200px]"
+    classes="border-8 border-green-500"
+  />
 
-<ImageBox
-  imageLoader="{imageScene.getImageLoader(ELECTRIC_BLUE)}"
-  fit="contain"
-  position="center center"
-  width="w-[200px]"
-  height="h-[200px]"
-  classes="border-8 border-green-500"
-/>
-{/if} {#if imageScene?.loaded} {#if armyGreenUrl}
-<!-- svelte-ignore a11y_missing_attribute -->
-<img src="{armyGreenUrl}" width="200px" />
-{/if} {#if electricBlueUrl}
-<!-- svelte-ignore a11y_missing_attribute -->
-<img src="{electricBlueUrl}" width="200px" />
-{/if} {/if}
+  <ImageBox
+    imageLoader={imageScene.getImageLoader(ELECTRIC_BLUE)}
+    fit="contain"
+    position="center center"
+    width="w-[200px]"
+    height="h-[200px]"
+    classes="border-8 border-green-500"
+  />
+{/if}
+{#if imageScene?.loaded}
+  {#if armyGreenUrl}
+    <!-- svelte-ignore a11y_missing_attribute -->
+    <img src={armyGreenUrl} width="200px" />
+  {/if}
+  {#if electricBlueUrl}
+    <!-- svelte-ignore a11y_missing_attribute -->
+    <img src={electricBlueUrl} width="200px" />
+  {/if}
+{/if}

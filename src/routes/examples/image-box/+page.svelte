@@ -1,15 +1,13 @@
 <script>
 	import { onMount, untrack } from 'svelte';
 
-	import ArmyGreen from '../assets/img/army-green.jpg?preset=gradient';
+	import ArmyGreen from '../assets/images/army-green.jpg?preset=gradient';
 
-	import ArmyGreenResponsive from '../assets/img/army-green.jpg?preset=gradient&responsive';
+	import ElectricBlue from '../assets/images/electric-blue.jpg?preset=gradient';
 
-	console.log('ArmyGreenResponsive', ArmyGreenResponsive);
+	import { TransparentLines } from '../assets/images.js';
 
-	import ElectricBlue from '../assets/img/electric-blue.jpg?preset=gradient';
-
-	console.log('ElectricBlue', ElectricBlue);
+	// console.log('ElectricBlue', ElectricBlue);
 
 	import ImageBox from '$lib/components/image/ImageBox.svelte';
 </script>
@@ -47,6 +45,16 @@
 	height="h-[200px]"
 	aspect="aspect-square"
 	classes="border-8 border-green-500"
+/>
+
+<!-- Transparent image -->
+<ImageBox
+	imageMeta={TransparentLines}
+	fit="contain"
+	position="center center"
+	height="h-[200px]"
+	aspect="aspect-square"
+	classes="border-8 bg-blue-500 border-green-500"
 />
 
 <!-- Or hack it using !important -->
