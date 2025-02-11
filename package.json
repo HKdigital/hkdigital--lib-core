@@ -1,6 +1,6 @@
 {
 	"name": "@hkdigital/lib-sveltekit",
-	"version": "0.0.99",
+	"version": "0.1.0",
 	"author": {
 		"name": "HKdigital",
 		"url": "https://hkdigital.nl"
@@ -20,19 +20,19 @@
 	],
 	"scripts": {
 		"dev": "vite dev",
-		"build": "cross-env vite build && npm run package",
+		"build": "vite build && npm run package",
 		"preview": "vite preview",
-		"package": "cross-env svelte-kit sync && svelte-package && publint",
-		"prepublishOnly": "cross-env npm run package",
-		"publish:npm": "cross-env npm version patch && npm publish --access public && git push",
-		"check": "cross-env svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
-		"check:watch": "cross-env svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
+		"package": "svelte-kit sync && svelte-package && publint",
+		"prepublishOnly": "npm run package",
+		"publish:npm": "npm version patch && npm publish --access public && git push",
+		"check": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json",
+		"check:watch": "svelte-kit sync && svelte-check --tsconfig ./jsconfig.json --watch",
 		"format": "prettier --write .",
-		"lint": "cross-env prettier --check . && eslint .",
+		"lint": "prettier --check . && eslint .",
 		"test:unit": "vitest",
-		"test": "cross-env npm run test:unit -- --run && npm run test:e2e",
+		"test": "npm run test:unit -- --run && npm run test:e2e",
 		"test:e2e": "playwright test",
-		"upgrade:all": "cross-env ncu -u && pnpm install"
+		"upgrade:all": "ncu -u && pnpm install"
 	},
 	"files": [
 		"dist",
@@ -73,7 +73,6 @@
 		"@tailwindcss/typography": "^0.5.16",
 		"@types/eslint": "^9.6.1",
 		"autoprefixer": "^10.4.20",
-		"cross-env": "^7.0.3",
 		"eslint": "^9.18.0",
 		"eslint-config-prettier": "^10.0.1",
 		"eslint-plugin-svelte": "^2.46.1",

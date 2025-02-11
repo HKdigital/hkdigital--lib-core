@@ -10,7 +10,8 @@ import {
   spacing,
   fontSize,
   borderRadius,
-  borderWidth
+  borderWidth,
+  strokeWidth
 } from './src/lib/config/tailwind.extend.js';
 
 /** @type {import('tailwindcss').Config} \*/
@@ -22,7 +23,8 @@ export default {
       spacing,
       fontSize,
       borderRadius,
-      borderWidth
+      borderWidth,
+      strokeWidth
     }
   },
   plugins: [
