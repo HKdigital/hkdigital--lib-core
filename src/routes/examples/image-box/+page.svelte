@@ -31,8 +31,8 @@
 
 <ImageBox
 	imageMeta={ArmyGreen}
-	fit="contain"
-	position="center center"
+	fit="cover"
+	position="right bottom"
 	width="w-[200px]"
 	aspect="aspect-square"
 	classes="border-8 border-green-500"
@@ -40,7 +40,7 @@
 
 <ImageBox
 	imageMeta={ArmyGreen}
-	fit="contain"
+	fit="fill"
 	position="center center"
 	height="h-[200px]"
 	aspect="aspect-square"
@@ -59,12 +59,12 @@
 
 <!-- Or hack it using !important -->
 
-<ImageBox
+<!-- <ImageBox
 	imageMeta={ArmyGreen}
 	fit="contain"
 	position="center center"
 	classes="!w-[200px] !h-[200px] border-8 border-green-500"
-/>
+/> -->
 
 <style>
 	.outer-box {

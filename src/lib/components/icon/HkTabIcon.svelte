@@ -36,7 +36,7 @@
 	 *   iconHeight?: string,
 	 *   labelClasses? : string,
 	 *   rect?: DOMRect,
-	 * } & { [attr: string]: * }}
+	 * } & { [attr: string]: any }}
 	 *
 	 *
 	 */
@@ -74,7 +74,11 @@
 </script>
 
 {#snippet contents()}
-	<div data-hk--icon-box class="flex aspect-square w-full justify-center" bind:this={iconBoxElem}>
+	<div
+		data-hk--icon-box
+		class="flex aspect-square w-full justify-center"
+		bind:this={iconBoxElem}
+	>
 		<HkIcon {src} size="100%" theme={iconTheme} classes={iconClasses} />
 	</div>
 

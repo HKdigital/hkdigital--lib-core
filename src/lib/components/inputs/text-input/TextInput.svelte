@@ -40,7 +40,7 @@
    *   iconRequired?: import('svelte').Snippet,
    *   iconValid?: import('svelte').Snippet,
    *   iconInvalid?: import('svelte').Snippet
-   * } & { [attr: string]: * }}
+   * } & { [attr: string]: any }}
    */
   let {
     value = $bindable(''),

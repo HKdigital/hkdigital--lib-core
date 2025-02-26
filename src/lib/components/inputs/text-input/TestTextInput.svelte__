@@ -17,7 +17,7 @@
    *   valid?: boolean,
    *   pristine?: boolean,
    *   validate?: (value: string) => string | undefined,
-   * } & { [attr: string]: * }}
+   * } & { [attr: string]: any }}
    */
   let {
     base = '',
@@ -27,7 +27,7 @@
     fieldClasses,
     fieldError,
 
-    legendBase = 'ml-16p px-8p',
+    legendBase = 'ml-16tp px-8tp',
     legendClasses,
     legendError,
 

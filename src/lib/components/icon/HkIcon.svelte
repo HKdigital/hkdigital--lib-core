@@ -27,7 +27,7 @@
    *   theme?: string,
    *   base?: string,
    *   classes?: string
-   * } & { [attr: string]: * }}
+   * } & { [attr: string]: any }}
    */
   let {
     src,

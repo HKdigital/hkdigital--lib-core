@@ -12,7 +12,7 @@
 	 *   boxAttrs?: { [attr: string]: * },
 	 *   images: ImageMeta[],
 	 *   alt?: string
-	 * } & { [attr: string]: * }}
+	 * } & { [attr: string]: any }}
 	 */
 	const {
 		base,

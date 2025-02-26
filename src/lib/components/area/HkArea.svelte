@@ -16,7 +16,7 @@
    *   classes?: string,
    *   style?: string,
    *   children: import('svelte').Snippet
-   * } & { [attr: string]: * }}
+   * } & { [attr: string]: any }}
    */
   let {
     // Style

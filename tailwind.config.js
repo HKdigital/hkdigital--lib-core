@@ -12,7 +12,7 @@ import {
   borderRadius,
   borderWidth,
   strokeWidth
-} from './src/lib/config/tailwind.extend.js';
+} from './src/lib/tailwind/extend/scaling/index.js';
 
 /** @type {import('tailwindcss').Config} \*/
 export default {

@@ -13,7 +13,7 @@
    *   gap?: string,
    *   classes?: string,
    *   children?: import('svelte').Snippet,
-   * } & { [attr: string]: * }}
+   * } & { [attr: string]: any }}
    */
   const {
     // Style

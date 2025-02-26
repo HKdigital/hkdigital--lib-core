@@ -10,7 +10,7 @@
 	 *   placeholder: string,
 	 *   required: boolean,
 	 *   snippetWarning?: import('svelte').Snippet,
-	 * } & { [attr: string]: * }}
+	 * } & { [attr: string]: any }}
 	 */
 	let {
 		// Style

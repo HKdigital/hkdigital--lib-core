@@ -26,7 +26,7 @@
    *   boxClasses?: string,
    *   boxAttrs?: { [attr: string]: * },
    *   children: import('svelte').Snippet
-   * } & { [attr: string]: * }}
+   * } & { [attr: string]: any }}
    */
   let {
     // Style

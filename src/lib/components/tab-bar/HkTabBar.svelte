@@ -23,7 +23,7 @@
 	 *   children: import('svelte').Snippet,
 	 *   onmount?: function,
 	 *   domElem?: HTMLElement
-	 * } & { [attr: string]: * }}
+	 * } & { [attr: string]: any }}
 	 */
 	let {
 		// Functional

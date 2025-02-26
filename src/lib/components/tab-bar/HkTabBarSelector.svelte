@@ -18,7 +18,7 @@
    *   boxClasses?: string,
    *   boxAttrs?: { [attr: string]: * },
    *   instanceKey?: Symbol | string
-   * } & { [attr: string]: * }}
+   * } & { [attr: string]: any }}
    */
   let {
     // Style

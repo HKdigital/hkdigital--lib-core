@@ -29,7 +29,7 @@
    *   onload?: ( e: (Event|{ type: string, target: HTMLImageElement }) ) => void,
    *   onerror?: ( e: (Event|{ type: string, target: HTMLImageElement }) ) => void,
    *   loading?: string
-   * } & { [attr: string]: * }}
+   * } & { [attr: string]: any }}
    */
   let {
     // Style

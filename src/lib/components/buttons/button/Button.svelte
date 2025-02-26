@@ -3,7 +3,6 @@
    * @type {{
    *   base?: string,
    *   bg?: string,
-   *   variant?: string,
    *   classes?: string,
    *   role?: 'primary' | 'secondary',
    *   children: import('svelte').Snippet,
@@ -14,7 +13,6 @@
     // Style
     base,
     bg,
-    variant,
     classes,
 
     role = 'primary',
@@ -28,10 +26,13 @@
 </script>
 
 <button
-  data-button="plain-button"
+  data-component="button"
+  data-type="default"
+  data-role={role}
+  data-variant="default"
   type="button"
-  class="{base} {bg} {variant} {classes} role-{role}"
+  class="{base} {bg} {classes}"
   {...attrs}
 >
-  <p class="p">{@render children()}</p>
+  {@render children()}
 </button>
