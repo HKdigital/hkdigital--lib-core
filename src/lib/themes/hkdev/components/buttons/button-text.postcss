@@ -1,66 +1,51 @@
-
 @define-mixin component-button-text {
 
-  [data-component="button"][data-variant="default"][data-type="text"] {
+  /* @note using CSS vars defined in the parent button postcss */
 
-    /* common */
+  [data-component="button"][data-type="text"] {
+    @apply heading-font-family;
+    @apply heading-font-weight;
+    @apply heading-letter-spacing;
+    @apply text-ui-base uppercase;
+  }
 
-    @apply rounded-md;
+  /* Size variants */
+  [data-component="button"][data-type="text"][data-size="sm"],
+  [data-component="button"][data-type="text"][data-size="md"],
+  [data-component="button"][data-type="text"][data-size="lg"] {
+    @apply rounded-sm;
+    @apply py-8ut px-20ut;
+  }
 
-    & p {
-      @apply my-16ut mx-16ut;
-      @apply text-ui-base base-font-family font-black uppercase;
+  /* Role-based styling for enabled buttons */
+  [data-component="button"][data-type="text"]:not([disabled]) {
+    &[data-role="primary"] {
+      @apply border-width-normal;
+      border-color: rgb(var(--btn-primary-border));
+      background-color: rgb(var(--btn-primary-bg));
+      color: rgb(var(--btn-primary-text));
+
+      &:hover {
+        border-color: rgb(var(--btn-primary-hover-bg));
+        background-color: rgb(var(--btn-primary-hover-bg));
+      }
     }
 
-    /* not disabled */
+    &[data-role="secondary"] {
+      @apply border-width-normal;
+      border-color: rgb(var(--btn-secondary-border));
+      color: rgb(var(--btn-secondary-text));
+      background-color: var(--btn-secondary-bg);
 
-    &:not([disabled]) {
-      &[data-role="primary"] {
-        @apply border-width-normal border-primary-500;
-        @apply bg-primary-500;
-
-        & p {
-          color: rgb(var(--color-primary-50));
-        }
+      &:hover {
+        background-color: rgb(var(--btn-secondary-hover-bg));
       }
-
-      &[data-role="secondary"] {
-        @apply border-width-normal border-primary-500;
-
-        & p {
-          color: rgb(var(--color-primary-500));
-        }
-      }
-    }
-
-    /* disabled */
-
-    &[disabled] {
-      &.role-primary {
-        @apply bg-surface-500;
-        & p {
-          color: rgb(var(--color-surface-300));
-        }
-      }
-
-      &.role-secondary {
-        @apply border-width-normal bg-primary-50;
-
-        & p {
-          color: rgb(var(--color-surface-300));
-        }
-      }
-
     }
   }
 
-  /*[data-button-round-arrow-next] {
-    / * @apply bg-primary-500; * /
-    @apply text-24p base-font-family font-bold;
-
-    & svg {
-      color: rgb(var(--color-primary-500));    
-      @apply w-80p h-80p;
-    }
-  }*/
+  /* Disabled state */
+  [data-component="button"][data-type="text"][disabled] {
+    cursor: not-allowed;
+    opacity: var(--btn-disabled-opacity);
+  }
 }

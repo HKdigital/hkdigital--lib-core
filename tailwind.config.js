@@ -6,6 +6,16 @@ import * as defaultThemes from '@skeletonlabs/skeleton/themes';
 
 import * as customThemes from './src/lib/themes/index.js';
 
+/**
+ * Tailwind extensions for consistent scaling
+ *
+ * @note
+ * Requires PostCSS import for CSS variables used in this config.
+ *
+ * In your src/app.postcss:
+ * // @import "../src/lib/tailwind/extend/scaling/vars.postcss";
+ *
+ */
 import {
   spacing,
   fontSize,

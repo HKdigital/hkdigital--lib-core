@@ -1,6 +1,8 @@
 /* == Text == */
 
-export const TEXT_POINT_SIZES = [1, 2, 4, 6, 8, 11, 16, 20, 32, 50];
+export const TEXT_POINT_SIZES = [
+  1, 2, 4, 6, 8, 10, 11, 12, 16, 20, 24, 32, 36, 50
+];
 
 export const VIEWPORT_POINT_SIZES = [
   1, 2, 4, 5, 6, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 120, 140, 160, 180,
@@ -22,17 +24,17 @@ export const TEXT_HEADING_SIZES = {
 };
 
 export const TEXT_UI_SIZES = {
-  sm: { size: 16, lineHeight: 1 },
-  base: { size: 20, lineHeight: 1 },
-  lg: { size: 24, lineHeight: 1 }
+  sm: { size: 10, lineHeight: 1 },
+  base: { size: 12, lineHeight: 1 },
+  lg: { size: 14, lineHeight: 1 }
 };
 
 /* == Border radius == */
 
 export const RADIUS_SIZES = {
   none: '0px',
-  xs: { size: 10 },
-  sm: { size: 15 },
+  xs: { size: 2 },
+  sm: { size: 2 },
   md: { size: 25 },
   lg: { size: 35 },
   full: '9999px'
@@ -40,7 +42,7 @@ export const RADIUS_SIZES = {
 
 /* == Border width == */
 
-export const BORDER_SIZES = {
+export const BORDER_WIDTH_SIZES = {
   thin: { size: 1 },
   normal: { size: 2 },
   thick: { size: 4 }
@@ -48,7 +50,7 @@ export const BORDER_SIZES = {
 
 /* == Stroke width == */
 
-export const STROKE_SIZES = {
+export const STROKE_WIDTH_SIZES = {
   thin: { size: 1 },
   normal: { size: 2 },
   thick: { size: 4 }

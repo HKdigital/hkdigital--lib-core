@@ -90,8 +90,8 @@ import {
   TEXT_HEADING_SIZES,
   TEXT_UI_SIZES,
   RADIUS_SIZES,
-  BORDER_SIZES,
-  STROKE_SIZES
+  BORDER_WIDTH_SIZES,
+  STROKE_WIDTH_SIZES
 } from './config.js';
 
 /* == Internals */
@@ -123,10 +123,10 @@ export const borderRadius = {
 
 export const borderWidth = {
   // Named styles
-  ...generateBorderWidthStyles(BORDER_SIZES, 'width')
+  ...generateBorderWidthStyles(BORDER_WIDTH_SIZES, 'width')
 };
 
 export const strokeWidth = {
   // Named styles
-  ...generateStrokeWidthStyles(STROKE_SIZES, 'width')
+  ...generateStrokeWidthStyles(STROKE_WIDTH_SIZES, 'width')
 };

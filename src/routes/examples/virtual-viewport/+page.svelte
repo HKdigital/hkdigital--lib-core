@@ -1,5 +1,5 @@
 <script>
-  import VirtualViewport from './VirtualViewport.svelte';
+  import { VirtualViewport } from '$lib/components/boxes/index.js';
   import { Button, TextButton } from '$lib/components/buttons/index.js';
 
   // Track viewport scaling values
@@ -16,10 +16,11 @@
 
   // Define viewport presets
   const viewportPresets = [
-    { name: '1920×1080 (×0.5)', width: 960, height: 540, scale: 0.5 },
-    { name: '1920×1080 (×1)', width: 1920, height: 1080, scale: 1 },
-    { name: '1920×1080 (×2)', width: 3840, height: 2160, scale: 2 },
-    { name: '1000×1000 (×1)', width: 1000, height: 1000, scale: 1 }
+    { name: 'sm', width: 640, height: 360, scale: 0.33 },
+    { name: 'md', width: 768, height: 432, scale: 0.4 },
+    { name: 'lg', width: 1024, height: 576, scale: 0.53 },
+    { name: 'xl', width: 1280, height: 720, scale: 0.67 },
+    { name: '2xl', width: 1536, height: 864, scale: 0.8 }
   ];
 
   // Apply preset size to the container
@@ -30,20 +31,16 @@
     containerElement.style.height = `${height}px`;
   }
 
-  // Set the default size (1920×1080 ×0.5) when the component mounts
-  function setDefaultSize() {
-    // Using the first preset as default (1920×1080 ×0.5)
-    const defaultPreset = viewportPresets[0];
-    applyViewportSize(defaultPreset.width, defaultPreset.height);
-  }
+  const designWidth = 1024;
+  const designHeight = 576;
 </script>
 
 <div class="flex flex-col gap-6 p-6">
-  <h1 class="text-3xl font-bold">Virtual Viewport Demo</h1>
-
   <div class="flex flex-wrap gap-4 mb-4">
     {#each viewportPresets as preset}
       <TextButton
+        role="secondary"
+        size="sm"
         onclick={() => applyViewportSize(preset.width, preset.height)}
       >
         {preset.name}
@@ -52,15 +49,15 @@
   </div>
 
   <div
-    data-whoami="container"
     bind:this={containerElement}
-    class="border-width-normal border-primary-500 resize overflow-hidden"
-    use:setDefaultSize
+    style:width={designWidth + 2 + 'px'}
+    style:height={designHeight + 2 + 'px'}
+    class="border-1 border-primary-500 resize overflow-hidden"
   >
     <!-- Viewport with all text scales -->
     <VirtualViewport
-      designWidth={1500}
-      designHeight={500}
+      {designWidth}
+      {designHeight}
       bind:scaleViewport={viewportScaleViewport}
       bind:scaleW={viewportScaleW}
       bind:scaleH={viewportScaleH}
@@ -70,18 +67,41 @@
       bind:scaleTextUI={viewportScaleTextUI}
       class="p-20p"
     >
-      <TextButton role="primary">Primary</TextButton>
-      <TextButton role="secondary">Secondary</TextButton>
+      <!-- <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col items-start gap-2">
+          <Button role="primary" data-size="sm">Primary</Button>
+          <Button role="primary" data-size="md">Primary</Button>
+          <Button role="primary" data-size="lg">Primary</Button>
+        </div>
 
+        <div class="flex flex-col items-start gap-2">
+          <Button role="secondary" data-size="sm">Secondary</Button>
+          <Button role="secondary" data-size="md">Secondary</Button>
+          <Button role="secondary" data-size="lg">Secondary</Button>
+        </div>
+      </div>
+
+      <br />
       <hr />
+      <br /> -->
 
-      <Button role="primary">
-        <p class="jens2">Primary</p>
-      </Button>
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col items-start gap-2">
+          <TextButton role="primary" data-size="sm">Primary</TextButton>
+          <TextButton role="primary" data-size="md">Primary</TextButton>
+          <TextButton role="primary" data-size="lg">Primary</TextButton>
+        </div>
 
-      <Button role="secondary">
-        <p class="jens">Secondary</p>
-      </Button>
+        <div class="flex flex-col items-start gap-2">
+          <TextButton role="secondary" data-size="sm">Secondary</TextButton>
+          <TextButton role="secondary" data-size="md">Secondary</TextButton>
+          <TextButton role="secondary" data-size="lg">Secondary</TextButton>
+        </div>
+      </div>
+
+      <br />
+      <hr />
+      <br />
 
       <div class="p-20p">
         <!-- Heading text samples -->

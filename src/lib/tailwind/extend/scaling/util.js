@@ -242,13 +242,13 @@ export function generateBorderRadiusStyles(sizes) {
  * @throws {Error} If a size has an invalid type
  *
  * @example
- * const BORDER_SIZES = {
+ * const BORDER_WIDTH_SIZES = {
  *   thin: { size: 1 },
  *   normal: { size: 2 },
  *   thick: { size: 4 }
  * };
  *
- * generateBorderWidthStyles(BORDER_SIZES, 'width')
+ * generateBorderWidthStyles(BORDER_WIDTH_SIZES, 'width')
  * // Returns:
  * // {
  * //   'width-thin': 'calc(1px * var(--scale-text))',
@@ -296,13 +296,13 @@ export function generateBorderWidthStyles(sizes, prefix = 'width') {
  * @throws {Error} If a size has an invalid type
  *
  * @example
- * const STROKE_SIZES = {
+ * const STROKE_WIDTH_SIZES = {
  *   thin: { size: 1 },
  *   normal: { size: 2 },
  *   thick: { size: 4 }
  * };
  *
- * generateStrokeWidthStyles(STROKE_SIZES, 'width')
+ * generateStrokeWidthStyles(STROKE_WIDTH_SIZES, 'width')
  * // Returns:
  * // {
  * //   'width-thin': 'calc(1px * var(--scale-ui))',

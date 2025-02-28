@@ -16,6 +16,7 @@
     classes,
 
     role = 'primary',
+    size = 'md',
 
     // Snippets
     children,
@@ -27,9 +28,10 @@
 
 <button
   data-component="button"
-  data-type="default"
+  data-type="plain"
   data-role={role}
-  data-variant="default"
+  data-size={size}
+  data-variant="none"
   type="button"
   class="{base} {bg} {classes}"
   {...attrs}
