@@ -10,9 +10,9 @@ export const VIEWPORT_POINT_SIZES = [
 ];
 
 export const TEXT_CONTENT_SIZES = {
-  sm: { size: 16, lineHeight: 1.5 },
-  base: { size: 20, lineHeight: 1.5 },
-  lg: { size: 24, lineHeight: 1.4 }
+  sm: { size: 14, lineHeight: 1.5 },
+  base: { size: 16, lineHeight: 1.5 },
+  lg: { size: 20, lineHeight: 1.4 }
 };
 
 export const TEXT_HEADING_SIZES = {

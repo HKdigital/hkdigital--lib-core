@@ -31,8 +31,8 @@
   let {
     designWidth = 1920,
     designHeight = 1080,
-    minScale = 0.3,
-    maxScale = 2,
+    minScale = 0.75,
+    maxScale = 1.5,
     base,
     bg,
     classes,
@@ -83,8 +83,8 @@
     // Apply clamping similar to root styles
     scaleUI = Math.max(minScale, Math.min(scaleViewport, maxScale));
     scaleTextContent = Math.max(
-      0.75 * minScale,
-      Math.min(scaleViewport, 1.5 * maxScale)
+      minScale,
+      Math.min(scaleViewport, maxScale)
     );
     scaleTextHeading = Math.max(
       0.75 * minScale,
