@@ -2,10 +2,10 @@
   import { onMount } from 'svelte';
   import {
     getRootCssDesignWidth,
-    getRootCssDesignHeight
-  } from '$lib/util/css/index.js';
-
-  import { getClampParams, clamp } from './VirtualViewport.util.js';
+    getRootCssDesignHeight,
+    getClampParams,
+    clamp
+  } from '$lib/util/design-system/index.js';
 
   /**
    * Virtual viewport component that creates a container with its own scaling

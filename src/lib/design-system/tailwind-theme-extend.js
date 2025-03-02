@@ -80,7 +80,7 @@ import {
   generateTextStyles,
   generateBorderRadiusStyles,
   generateWidthStyles
-} from '../util/design-system/index.js';
+} from '../util/design-system/tailwind.js';
 
 import {
   TEXT_POINT_SIZES,

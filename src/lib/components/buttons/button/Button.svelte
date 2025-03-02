@@ -1,5 +1,5 @@
 <script>
-  import { toStateClasses } from '$lib/util/css/design-system.js';
+  import { toStateClasses } from '$lib/util/design-system/index.js';
 
   /**
    * @type {{

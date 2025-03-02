@@ -1,4 +1,4 @@
-import { getRootCssVar } from './css-vars.js';
+import { getRootCssVar } from '$lib/util/css/css-vars.js';
 
 /**
  * Generates a complete HTML style tag with CSS custom properties for
@@ -28,7 +28,7 @@ import { getRootCssVar } from './css-vars.js';
  * <script>
  * import { DESIGN, CLAMPING } from '$lib/tailwind/extend/clamping/config.js';
  *
- * import { rootDesignVarsHTML } from '$lib/util/css/design-system.js';
+ * import { rootDesignVarsHTML } from '$lib/util/design-system/index.js';
  * </script>
  *
  * <svelte:head>
@@ -76,24 +76,25 @@ export function getRootCssDesignHeight() {
 }
 
 /**
- * Generates state classes from an object of state variables
+ * Retrieves all current scaling factors from CSS variables
  *
- * @param {Object.<string, boolean>} stateObject
- *   Object with state names as keys and boolean values
- *
- * @returns {string} Space-separated string of state classes
- *
- * @example
- * // Returns "state-selected state-error"
- * toStateClasses({ selected: true, loading: false, error: true });
+ * @returns {Object} An object containing all scaling factors
  */
-export function toStateClasses(stateObject) {
-  if (!stateObject || typeof stateObject !== 'object') {
-    return '';
-  }
+export function getAllRootScalingVars() {
+  const styles = getComputedStyle(document.documentElement);
 
-  return Object.entries(stateObject)
-    .filter((entry) => entry[1] === true)
-    .map(([state]) => `state-${state}`)
-    .join(' ');
+  return {
+    scaleW: parseFloat(styles.getPropertyValue('--scale-w').trim()) || 0,
+    scaleH: parseFloat(styles.getPropertyValue('--scale-h').trim()) || 0,
+    scaleViewport:
+      parseFloat(styles.getPropertyValue('--scale-viewport').trim()) || 0,
+
+    scaleUI: parseFloat(styles.getPropertyValue('--scale-ui').trim()) || 0,
+    scaleTextContent:
+      parseFloat(styles.getPropertyValue('--scale-text-content').trim()) || 0,
+    scaleTextHeading:
+      parseFloat(styles.getPropertyValue('--scale-text-heading').trim()) || 0,
+    scaleTextUI:
+      parseFloat(styles.getPropertyValue('--scale-text-ui').trim()) || 0
+  };
 }

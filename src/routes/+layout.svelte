@@ -52,7 +52,7 @@
 
 	import { DESIGN, CLAMPING } from '$lib/design-system/design-config.js';
 
-	import { rootDesignVarsHTML } from '$lib/util/css/design-system.js';
+	import { rootDesignVarsHTML } from '$lib/util/design-system/index.js';
 </script>
 
 <svelte:head>
