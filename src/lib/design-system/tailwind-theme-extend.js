@@ -80,7 +80,7 @@ import {
   generateTextStyles,
   generateBorderRadiusStyles,
   generateWidthStyles
-} from './util.js';
+} from '../util/design-system/index.js';
 
 import {
   TEXT_POINT_SIZES,

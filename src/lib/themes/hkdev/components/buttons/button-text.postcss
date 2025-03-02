@@ -5,7 +5,7 @@
   /* Type-based styling for text buttons */
   [data-component="button"][data-type="text"] {
     /* Typography settings */
-    @apply text-ui-base;
+    @apply text-ui-base uppercase;
     @apply whitespace-nowrap;
 
     /* Adjust padding to better fit text */
@@ -23,11 +23,11 @@
 
     /* Role-specific text adjustments */
     &[data-role="primary"] {
-      font-weight: 500;
+      @apply font-extrabold;
     }
 
     &[data-role="secondary"] {
-      font-weight: normal;
+      @apply font-bold;
     }
   }
 

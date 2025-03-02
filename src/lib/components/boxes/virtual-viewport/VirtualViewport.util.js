@@ -35,6 +35,7 @@ export function getClampParams(varName) {
       : null;
 
   if (!clampMatch || clampMatch.length < 3) {
+    // console.log(declaration);
     throw new Error(
       `CSS variable --${varName} does not contain a valid clamp function`
     );

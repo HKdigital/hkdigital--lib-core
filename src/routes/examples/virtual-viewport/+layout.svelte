@@ -153,7 +153,7 @@
   </div>
 
   <!-- Scale info display -->
-  <div class="bg-gray-100 p-10p text-ui-base">
+  <div class="bg-gray-100 p-10p text-content-base">
     <h3 class="font-bold mb-4ut">Viewport Scaling</h3>
     <div class="grid grid-cols-2 gap-2ut">
       <div>

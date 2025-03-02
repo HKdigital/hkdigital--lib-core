@@ -24,7 +24,7 @@ import {
   strokeWidth,
   outlineWidth,
   outlineOffset
-} from './src/lib/tailwind/extend/scaling/index.js';
+} from './src/lib/design-system/tailwind-theme-extend.js';
 
 /** @type {import('tailwindcss').Config} \*/
 export default {

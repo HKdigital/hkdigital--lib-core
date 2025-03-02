@@ -50,13 +50,13 @@
 	// 	};
 	// });
 
-	import { DESIGN, SCALING } from '$lib/tailwind/extend/scaling/config.js';
+	import { DESIGN, CLAMPING } from '$lib/design-system/design-config.js';
 
 	import { rootDesignVarsHTML } from '$lib/util/css/design-system.js';
 </script>
 
 <svelte:head>
-	{@html rootDesignVarsHTML(DESIGN, SCALING)}
+	{@html rootDesignVarsHTML(DESIGN, CLAMPING)}
 </svelte:head>
 
 {@render children()}
