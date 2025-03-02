@@ -1,0 +1,41 @@
+@define-mixin text_block {
+
+/* .on-primary-dark
+{
+  & [data-title-text-button-block] {
+    & > .title-box {
+      @apply text-white;
+    }
+
+    & > .text-box {
+      ...text color
+    }  
+  }
+} */
+
+[data-title-text-button-block] {
+
+  &.block-width {
+    @apply w-1/2;
+  }
+
+  & > .title-box {
+    @apply text-heading-h3;
+    @apply uppercase;
+  }
+
+  & > .content-box .p {
+    @apply text-content-base;
+  }
+
+  & > .content-box:has( + .footer-box )
+  {
+    @apply mb-30p; /* 10p + 20p */
+  }
+
+  & > .footer-box {
+  }
+}
+
+
+}
