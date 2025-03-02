@@ -91,7 +91,7 @@ import {
   RADIUS_SIZES,
   BORDER_WIDTH_SIZES,
   STROKE_WIDTH_SIZES
-} from './config.js';
+} from './design-config.js';
 
 /* == Internals */
 
