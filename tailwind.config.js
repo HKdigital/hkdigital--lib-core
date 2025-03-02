@@ -21,7 +21,9 @@ import {
   fontSize,
   borderRadius,
   borderWidth,
-  strokeWidth
+  strokeWidth,
+  outlineWidth,
+  outlineOffset
 } from './src/lib/tailwind/extend/scaling/index.js';
 
 /** @type {import('tailwindcss').Config} \*/
@@ -34,7 +36,9 @@ export default {
       fontSize,
       borderRadius,
       borderWidth,
-      strokeWidth
+      strokeWidth,
+      outlineWidth,
+      outlineOffset
     }
   },
   plugins: [

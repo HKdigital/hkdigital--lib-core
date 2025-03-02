@@ -228,81 +228,30 @@ export function generateBorderRadiusStyles(sizes) {
 }
 
 /**
- * Generates border width styles with text-based scaling and explicit naming
+ * Generates width styles for various CSS properties with UI scaling and explicit naming
  *
  * @param {{[key: string]: {size: number}}} sizes
- *   Set of border width sizes to generate
+ *   Set of width sizes to generate
  *
- * @param {string} prefix
+ * @param {string} [prefix='width']
  *   Prefix to add before each variant name (default: 'width')
  *
+ * @param {string} scaleVar
+ *   CSS variable to use for scaling (default: '--scale-ui')
+ *
  * @returns {{[key: string]: string}}
- *   Generated border width styles in Tailwind format
+ *   Generated width styles in Tailwind format
  *
  * @throws {Error} If a size has an invalid type
  *
  * @example
- * const BORDER_WIDTH_SIZES = {
+ * const WIDTH_SIZES = {
  *   thin: { size: 1 },
  *   normal: { size: 2 },
  *   thick: { size: 4 }
  * };
  *
- * generateBorderWidthStyles(BORDER_WIDTH_SIZES, 'width')
- * // Returns:
- * // {
- * //   'width-thin': 'calc(1px * var(--scale-text))',
- * //   'width-normal': 'calc(2px * var(--scale-text))',
- * //   'width-thick': 'calc(4px * var(--scale-text))'
- * // }
- */
-export function generateBorderWidthStyles(sizes, prefix = 'width') {
-  if (!sizes || typeof sizes !== 'object') {
-    throw new Error('sizes must be an object');
-  }
-
-  return Object.entries(sizes).reduce((result, [variant, value]) => {
-    if (typeof value === 'object' && value !== null) {
-      if (typeof value.size !== 'number') {
-        throw new Error(
-          `Invalid border width size for "${variant}": size must be a number`
-        );
-      }
-
-      result[`${prefix}-${variant}`] =
-        `calc(${value.size}px * var(--scale-text))`;
-    } else {
-      throw new Error(
-        `Invalid border width value for "${variant}": ` +
-          `must be an object with size property`
-      );
-    }
-    return result;
-  }, {});
-}
-
-/**
- * Generates stroke width styles with UI scaling and explicit naming
- *
- * @param {{[key: string]: {size: number}}} sizes
- *   Set of stroke width sizes to generate
- *
- * @param {string} prefix
- *   Prefix to add before each variant name (default: 'width')
- *
- * @returns {{[key: string]: string}}
- *   Generated stroke width styles in Tailwind format
- *
- * @throws {Error} If a size has an invalid type
- *
- * @example
- * const STROKE_WIDTH_SIZES = {
- *   thin: { size: 1 },
- *   normal: { size: 2 },
- *   thick: { size: 4 }
- * };
- *
- * generateStrokeWidthStyles(STROKE_WIDTH_SIZES, 'width')
+ * generateWidthStyles(WIDTH_SIZES, 'width')
  * // Returns:
  * // {
  * //   'width-thin': 'calc(1px * var(--scale-ui))',
@@ -310,7 +259,11 @@ export function generateBorderWidthStyles(sizes, prefix = 'width') {
  * //   'width-thick': 'calc(4px * var(--scale-ui))'
  * // }
  */
-export function generateStrokeWidthStyles(sizes, prefix = 'width') {
+export function generateWidthStyles(
+  sizes,
+  prefix = 'width',
+  scaleVar = '--scale-ui'
+) {
   if (!sizes || typeof sizes !== 'object') {
     throw new Error('sizes must be an object');
   }
@@ -319,15 +272,15 @@ export function generateStrokeWidthStyles(sizes, prefix = 'width') {
     if (typeof value === 'object' && value !== null) {
       if (typeof value.size !== 'number') {
         throw new Error(
-          `Invalid stroke width size for "${variant}": size must be a number`
+          `Invalid width size for "${variant}": size must be a number`
         );
       }
 
-      result[`${prefix}-${variant}`] =
-        `calc(${value.size}px * var(--scale-ui))`;
+      result[`${prefix}${prefix.length ? '-' : ''}${variant}`] =
+        `calc(${value.size}px * var(${scaleVar}))`;
     } else {
       throw new Error(
-        `Invalid stroke width value for "${variant}": ` +
+        `Invalid width value for "${variant}": ` +
           `must be an object with size property`
       );
     }

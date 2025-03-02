@@ -49,6 +49,14 @@
 	// 		window.removeEventListener('resize', updateScaleValues);
 	// 	};
 	// });
+
+	import { DESIGN, SCALING } from '$lib/tailwind/extend/scaling/config.js';
+
+	import { rootDesignVarsHTML } from '$lib/util/css/design-system.js';
 </script>
+
+<svelte:head>
+	{@html rootDesignVarsHTML(DESIGN, SCALING)}
+</svelte:head>
 
 {@render children()}

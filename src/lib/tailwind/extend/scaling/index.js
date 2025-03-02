@@ -79,8 +79,7 @@ import {
   generateViewportBasedSpacing,
   generateTextStyles,
   generateBorderRadiusStyles,
-  generateBorderWidthStyles,
-  generateStrokeWidthStyles
+  generateWidthStyles
 } from './util.js';
 
 import {
@@ -123,10 +122,24 @@ export const borderRadius = {
 
 export const borderWidth = {
   // Named styles
-  ...generateBorderWidthStyles(BORDER_WIDTH_SIZES, 'width')
+  ...generateWidthStyles(BORDER_WIDTH_SIZES, 'width')
 };
 
 export const strokeWidth = {
   // Named styles
-  ...generateStrokeWidthStyles(STROKE_WIDTH_SIZES, 'width')
+  ...generateWidthStyles(STROKE_WIDTH_SIZES, 'width')
 };
+
+export const outlineWidth = {
+  // Named styles
+  ...generateWidthStyles(STROKE_WIDTH_SIZES, '')
+};
+
+export const outlineOffset = {
+  // Named styles
+  ...generateWidthStyles(STROKE_WIDTH_SIZES, '')
+};
+
+// console.log('borderWidth', borderWidth);
+// console.log('outlineWidth', outlineWidth);
+// console.log('outlineOffset', outlineOffset);

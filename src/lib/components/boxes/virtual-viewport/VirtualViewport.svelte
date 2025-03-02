@@ -1,22 +1,25 @@
 <script>
   import { onMount } from 'svelte';
+  import {
+    getRootCssDesignWidth,
+    getRootCssDesignHeight
+  } from '$lib/util/css/index.js';
+
+  import { getClampParams, clamp } from './VirtualViewport.util.js';
 
   /**
    * Virtual viewport component that creates a container with its own scaling
    * system based on its actual dimensions.
    *
    * @type {{
-   *   designWidth?: number,
-   *   designHeight?: number,
-   *   minScale?: number,
-   *   maxScale?: number,
    *   base?: string,
    *   bg?: string,
    *   classes?: string,
    *   width?: string,
    *   height?: string,
-   *   aspect?: string,
    *   overflow?: string,
+   *   designWidth?: number,
+   *   designHeight?: number,
    *   scaleViewport?: number,
    *   scaleW?: number,
    *   scaleH?: number,
@@ -29,17 +32,17 @@
    * }}
    */
   let {
-    designWidth = 1920,
-    designHeight = 1080,
-    minScale = 0.3,
-    maxScale = 2,
+    // Style related props first
     base,
     bg,
     classes,
     width,
     height,
-    aspect,
     overflow = 'overflow-clip',
+
+    // Functional bindable props
+    designWidth = $bindable(0),
+    designHeight = $bindable(0),
     scaleViewport = $bindable(0),
     scaleW = $bindable(0),
     scaleH = $bindable(0),
@@ -47,7 +50,11 @@
     scaleTextContent = $bindable(0),
     scaleTextHeading = $bindable(0),
     scaleTextUI = $bindable(0),
+
+    // Snippets
     children,
+
+    // Rest of attributes
     ...attrs
   } = $props();
 
@@ -61,6 +68,13 @@
    * Current scaling variables
    */
   let scaleVars = $state('');
+
+  // No separate variables for design dimensions
+
+  /**
+   * Error state for CSS variable parsing
+   */
+  let cssParsingError = $state(null);
 
   /**
    * Update scaling based on current dimensions
@@ -77,23 +91,43 @@
     scaleW = containerWidth / designWidth;
     scaleH = containerHeight / designHeight;
 
-    // Use the smaller ratio to ensure content fits
+    // Use the smaller ratio to ensure content fits (from vars.postcss)
     scaleViewport = Math.min(scaleW, scaleH);
 
-    // Apply clamping similar to root styles
-    scaleUI = Math.max(minScale, Math.min(scaleViewport, maxScale));
-    scaleTextContent = Math.max(
-      0.75 * minScale,
-      Math.min(scaleViewport, 1.5 * maxScale)
-    );
-    scaleTextHeading = Math.max(
-      0.75 * minScale,
-      Math.min(scaleViewport, 2.25 * maxScale)
-    );
-    scaleTextUI = Math.max(
-      0.5 * minScale,
-      Math.min(scaleViewport, 1.25 * maxScale)
-    );
+    try {
+      // Get clamp parameters from CSS variables
+      const uiParams = getClampParams('scale-ui');
+      const contentParams = getClampParams('scale-text-content');
+      const headingParams = getClampParams('scale-text-heading');
+      const textUIParams = getClampParams('scale-text-ui');
+
+      // Apply scaling according to extracted clamp parameters
+      scaleUI = clamp(uiParams.min, scaleViewport, uiParams.max);
+      scaleTextContent = clamp(
+        contentParams.min,
+        scaleViewport,
+        contentParams.max
+      );
+      scaleTextHeading = clamp(
+        headingParams.min,
+        scaleViewport,
+        headingParams.max
+      );
+      scaleTextUI = clamp(textUIParams.min, scaleViewport, textUIParams.max);
+
+      // Clear any previous error
+      cssParsingError = null;
+    } catch (error) {
+      // Store the error for debugging
+      cssParsingError = error;
+      console.error('VirtualViewport scaling error:', error);
+
+      // Fallback to simple scaling without clamping
+      scaleUI = scaleViewport;
+      scaleTextContent = scaleViewport;
+      scaleTextHeading = scaleViewport;
+      scaleTextUI = scaleViewport;
+    }
 
     // Update the style variables
     scaleVars = `
@@ -107,32 +141,59 @@
     `;
   }
 
-  onMount(() => {
-    // Initial calculation
+  // Watch for changes and update scaling
+  $effect(() => {
     updateScaling();
+  });
 
-    // Set up ResizeObserver to update scaling when container size changes
-    const resizeObserver = new ResizeObserver(() => {
+  onMount(() => {
+    try {
+      // Get design dimensions from CSS variables if props are zero
+      if (designWidth === 0) {
+        designWidth = getRootCssDesignWidth() ?? 1920;
+      }
+
+      if (designHeight === 0) {
+        designHeight = getRootCssDesignHeight() ?? 1080;
+      }
+
+      // Initial calculation
       updateScaling();
-    });
 
-    resizeObserver.observe(container);
+      // Set up ResizeObserver to update scaling when container size changes
+      const resizeObserver = new ResizeObserver(() => {
+        updateScaling();
+      });
 
-    // Clean up
-    return () => {
-      resizeObserver.disconnect();
-    };
+      resizeObserver.observe(container);
+
+      // Clean up
+      return () => {
+        resizeObserver.disconnect();
+      };
+    } catch (error) {
+      cssParsingError = error;
+      console.error('VirtualViewport initialization error:', error);
+    }
   });
 </script>
 
 <div
   data-component="virtual-viewport"
   bind:this={container}
-  class="{base} {bg} {width} {height} {aspect} {overflow} {classes}"
+  class="{base} {bg} {width} {height} {overflow} {classes}"
   style={scaleVars}
-  style:width={width || (height && aspect) ? undefined : '100%'}
-  style:height={height || (width && aspect) ? undefined : '100%'}
+  style:width={width ? width : '100%'}
+  style:height={height ? height : '100%'}
   {...attrs}
 >
+  {#if cssParsingError}
+    <!-- Add a discreet error indicator for development -->
+    <div
+      class="absolute top-0 right-0 p-1 text-red-500 text-xs bg-black bg-opacity-50 rounded-bl"
+    >
+      CSS Parsing Error
+    </div>
+  {/if}
   {@render children()}
 </div>

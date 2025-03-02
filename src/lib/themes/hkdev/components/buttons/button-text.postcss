@@ -2,50 +2,33 @@
 
   /* @note using CSS vars defined in the parent button postcss */
 
+  /* Type-based styling for text buttons */
   [data-component="button"][data-type="text"] {
-    @apply heading-font-family;
-    @apply heading-font-weight;
-    @apply heading-letter-spacing;
-    @apply text-ui-base uppercase;
-  }
+    /* Typography settings */
+    @apply text-ui-base;
+    @apply whitespace-nowrap;
 
-  /* Size variants */
-  [data-component="button"][data-type="text"][data-size="sm"],
-  [data-component="button"][data-type="text"][data-size="md"],
-  [data-component="button"][data-type="text"][data-size="lg"] {
-    @apply rounded-sm;
-    @apply py-8ut px-20ut;
-  }
+    /* Adjust padding to better fit text */
+    &[data-size="sm"] {
+      @apply px-8ut py-8ut;
+    }
 
-  /* Role-based styling for enabled buttons */
-  [data-component="button"][data-type="text"]:not([disabled]) {
+    &[data-size="md"] {
+      @apply px-16ut py-12ut;
+    }
+
+    &[data-size="lg"] {
+      @apply px-32ut py-16ut;
+    }
+
+    /* Role-specific text adjustments */
     &[data-role="primary"] {
-      @apply border-width-normal;
-      border-color: rgb(var(--btn-primary-border));
-      background-color: rgb(var(--btn-primary-bg));
-      color: rgb(var(--btn-primary-text));
-
-      &:hover {
-        border-color: rgb(var(--btn-primary-hover-bg));
-        background-color: rgb(var(--btn-primary-hover-bg));
-      }
+      font-weight: 500;
     }
 
     &[data-role="secondary"] {
-      @apply border-width-normal;
-      border-color: rgb(var(--btn-secondary-border));
-      color: rgb(var(--btn-secondary-text));
-      background-color: var(--btn-secondary-bg);
-
-      &:hover {
-        background-color: rgb(var(--btn-secondary-hover-bg));
-      }
+      font-weight: normal;
     }
   }
 
-  /* Disabled state */
-  [data-component="button"][data-type="text"][disabled] {
-    cursor: not-allowed;
-    opacity: var(--btn-disabled-opacity);
-  }
 }

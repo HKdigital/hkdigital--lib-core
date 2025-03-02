@@ -1,79 +1,138 @@
 @define-mixin component-button {
-
-  /* [data-component="button"][data-type="plain"] {*/
   [data-component="button"] {
-    /* Primary Button Colors */
+    /* ---- Core Button Variables ---- */
+    /* These are the most reusable across button types */
+    --btn-border-width: 2px;
+    --btn-transition-duration: 150ms;
+    --btn-disabled-opacity: 0.6;
+    --btn-focus-ring-width: 3px;
+    --btn-focus-ring-opacity: 0.4;
+
+    /* ---- Primary Button Variables ---- */
     --btn-primary-bg: var(--color-primary-500);
-    --btn-primary-hover-bg: var(--color-primary-600);
     --btn-primary-text: var(--color-primary-50);
     --btn-primary-border: var(--color-primary-500);
+    --btn-primary-selected-bg: var(--color-primary-700);
+    --btn-primary-selected-border: var(--color-primary-800);
+    --btn-primary-selected-text: var(--color-primary-50);
+    --btn-primary-hover-bg: var(--color-primary-600);
+    --btn-primary-hover-border: var(--color-primary-600);
+    --btn-primary-focus-outline: var(--color-primary-800);
 
-    /* Secondary Button Colors */
+    /* ---- Secondary Button Variables ---- */
     --btn-secondary-bg: transparent;
-    --btn-secondary-hover-bg: var(--color-secondary-50);
     --btn-secondary-text: var(--color-secondary-500);
     --btn-secondary-border: var(--color-secondary-500);
+    --btn-secondary-selected-bg: var(--color-secondary-100);
+    --btn-secondary-selected-border: var(--color-secondary-600);
+    --btn-secondary-selected-text: var(--color-secondary-800);
+    --btn-secondary-hover-bg: var(--color-secondary-50);
+    --btn-secondary-hover-border: var(--color-secondary-500);
+    --btn-secondary-focus-outline: var(--color-secondary-800);
 
-    /* Disabled Button Colors */
-    --btn-disabled-opacity: 0.6;
+    /* ---- State Variables ---- */
+    --btn-active-transform: scale(0.98);
+    --btn-active-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.1);
+
+    --btn-error-border: var(--color-error-500);
+    --btn-loading-opacity: 0.8;
 
     /* Base styles */
     display: inline-flex;
     justify-content: center;
     align-items: center;
     cursor: pointer;
-    transition-property: background-color, color, border-color;
-    transition-duration: 150ms;
+    position: relative;
+    transition-property: background-color, color, border-color, transform, box-shadow;
+    transition-duration: var(--btn-transition-duration);
   }
 
   /* Size variants */
-  [data-component="button"][data-type="plain"][data-size="sm"] {
+  [data-component="button"][data-size="sm"] {
     @apply rounded-xs;
     @apply py-8ut px-8ut;
     @apply min-w-24ut min-h-24ut;
   }
 
-  [data-component="button"][data-type="plain"][data-size="md"] {
+  [data-component="button"][data-size="md"] {
     @apply rounded-sm;
     @apply py-8ut px-16ut;
     @apply min-w-32ut min-h-32ut;
   }
 
-  [data-component="button"][data-type="plain"][data-size="lg"] {
+  [data-component="button"][data-size="lg"] {
     @apply rounded-sm;
     @apply py-16ut px-36ut;
     @apply min-w-36ut min-h-36ut;
   }
 
-  /* Role-based styling for enabled buttons */
-  [data-component="button"][data-type="plain"]:not([disabled]) {
-    &[data-role="primary"] {
-      @apply border-width-normal;
-      border-color: rgb(var(--btn-primary-border));
-      background-color: rgb(var(--btn-primary-bg));
-      color: rgb(var(--btn-primary-text));
+  /* Role-based styling for primary buttons */
+  [data-component="button"][data-role="primary"] {
+    @apply border-width-normal;
+    border-color: rgb(var(--btn-primary-border));
+    background-color: rgb(var(--btn-primary-bg));
+    color: rgb(var(--btn-primary-text));
 
-      &:hover {
-        border-color: rgb(var(--btn-primary-hover-bg));
-        background-color: rgb(var(--btn-primary-hover-bg));
-      }
+    &:hover:not(:disabled):not(.state-selected) {
+      border-color: rgb(var(--btn-primary-hover-border));
+      background-color: rgb(var(--btn-primary-hover-bg));
     }
 
-    &[data-role="secondary"] {
-      @apply border-width-normal;
-      border-color: rgb(var(--btn-secondary-border));
-      color: rgb(var(--btn-secondary-text));
-      background-color: var(--btn-secondary-bg);
+    &:focus-visible {
+      @apply outline outline-normal outline-offset-normal;
+      outline-color: rgb(var(--btn-primary-focus-outline));
+    }
 
-      &:hover {
-        background-color: rgb(var(--btn-secondary-hover-bg));
-      }
+    &.state-selected {
+      background-color: rgb(var(--btn-primary-selected-bg));
+      border-color: rgb(var(--btn-primary-selected-border));
+      color: rgb(var(--btn-primary-selected-text));
     }
   }
 
+  /* Role-based styling for secondary buttons */
+  [data-component="button"][data-role="secondary"] {
+    @apply border-width-normal;
+    border-color: rgb(var(--btn-secondary-border));
+    color: rgb(var(--btn-secondary-text));
+    background-color: var(--btn-secondary-bg);
+
+    &:hover:not(:disabled):not(.state-selected) {
+      background-color: rgb(var(--btn-secondary-hover-bg));
+      border-color: rgb(var(--btn-secondary-hover-border));
+    }
+
+    &:focus-visible {
+      @apply outline outline-normal outline-offset-normal;
+      outline-color: rgb(var(--btn-secondary-focus-outline));
+    }
+
+    &.state-selected {
+      background-color: rgb(var(--btn-secondary-selected-bg));
+      border-color: rgb(var(--btn-secondary-selected-border));
+      color: rgb(var(--btn-secondary-selected-text));
+    }
+  }
+
+  /* State-based styling */
+  [data-component="button"].state-active {
+    transform: var(--btn-active-transform);
+    box-shadow: var(--btn-active-shadow);
+  }
+
+  [data-component="button"].state-error {
+    border-color: rgb(var(--btn-error-border));
+  }
+
+  [data-component="button"].state-loading {
+    opacity: var(--btn-loading-opacity);
+    cursor: wait;
+  }
+
   /* Disabled state */
-  [data-component="button"][data-type="plain"][disabled] {
+  [data-component="button"]:disabled {
     cursor: not-allowed;
     opacity: var(--btn-disabled-opacity);
+    pointer-events: none;
   }
 }
