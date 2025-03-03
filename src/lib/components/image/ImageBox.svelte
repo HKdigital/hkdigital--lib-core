@@ -1,6 +1,6 @@
 <script>
-	import { ImageLoader } from '$lib/classes/svelte/image/index.js';
-	import { ImageVariantsLoader } from '$lib/classes/svelte/image/index.js';
+	import { ImageLoader } from '$lib/classes/svkit/image/index.js';
+	import { ImageVariantsLoader } from '$lib/classes/svkit/image/index.js';
 	import { toSingleImageMeta } from '$lib/util/image/index.js';
 
 	/**
@@ -15,9 +15,9 @@
 	 *   fit?: 'contain' | 'cover' | 'fill',
 	 *   position?: string,
 	 *   imageMeta: import('$lib/config/typedef.js').ImageMeta | import('$lib/config/typedef.js').ImageMeta[],
-	 *   imageLoader?: import('$lib/classes/svelte/image/index.js').ImageLoader,
+	 *   imageLoader?: import('$lib/classes/svkit/image/index.js').ImageLoader,
 	 *   alt?: string,
-	 *   onProgress?: (progress: import('$lib/classes/svelte/network-loader/typedef.js').LoadingProgress) => void,
+	 *   onProgress?: (progress: import('$lib/classes/svkit/network-loader/typedef.js').LoadingProgress) => void,
 	 *   [attr: string]: any
 	 * }}
 	 */

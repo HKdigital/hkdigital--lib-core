@@ -14,7 +14,7 @@ import {
   LOADED,
   UNLOAD,
   INITIAL
-} from '$lib/classes/svelte/loading-state-machine/index.js';
+} from '$lib/classes/svkit/loading-state-machine/index.js';
 
 import * as expect from '$lib/util/expect/index.js';
 

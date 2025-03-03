@@ -1,6 +1,6 @@
 //import { FiniteStateMachine } from 'runed';
 
-import { FiniteStateMachine } from '$lib/classes/svelte/final-state-machine/index.js';
+import { FiniteStateMachine } from '$lib/classes/svkit/final-state-machine/index.js';
 
 import {
   // > States

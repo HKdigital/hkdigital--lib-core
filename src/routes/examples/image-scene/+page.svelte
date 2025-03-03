@@ -5,7 +5,7 @@
 
   import ImageBox from '$lib/components/image/ImageBox.svelte';
 
-  import ImageScene from '$lib/classes/svelte/image/ImageScene.svelte';
+  import ImageScene from '$lib/classes/svkit/image/ImageScene.svelte';
 
   const ARMY_GREEN = 'army-green';
   const ELECTRIC_BLUE = 'electric-blue';
