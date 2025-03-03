@@ -7,13 +7,28 @@ import * as defaultThemes from '@skeletonlabs/skeleton/themes';
 import * as customThemes from './src/lib/themes/index.js';
 
 /**
- * Tailwind extensions for consistent scaling
+ * The following tailwind theme extensions require CSS custom
+ * properties (variables) to be set at the root level
+ * of your application to function properly.
  *
- * @note
- * Requires PostCSS import for CSS variables used in this config.
+ * @example Implementation in SvelteKit +layout.svelte
+ * <script>
+ *   import { onMount } from 'svelte';
  *
- * In your src/app.postcss:
- * // @import "../src/lib/tailwind/extend/scaling/vars.postcss";
+ *   import '../app.postcss';
+ *
+ *   let { children } = $props();
+ *
+ *   import { DESIGN, CLAMPING } from '$lib/design/design-config.js';
+ *
+ *   import { rootDesignVarsHTML } from '@hkdigital/lib-sveltekit/util/design-system/index.js';
+ * </script>
+ *
+ * <svelte:head>
+ *   {@html rootDesignVarsHTML(DESIGN, CLAMPING)}
+ * </svelte:head>
+ *
+ * {@render children()}
  *
  */
 import {
