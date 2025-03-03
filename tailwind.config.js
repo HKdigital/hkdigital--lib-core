@@ -48,3 +48,13 @@ export default {
     })
   ]
 };
+
+// console.log("tailwind > theme > extend", {
+//   spacing,
+//   fontSize,
+//   borderRadius,
+//   borderWidth,
+//   strokeWidth,
+//   outlineWidth,
+//   outlineOffset
+// });

@@ -7,9 +7,15 @@
  * It contains CSS variables used by the Tailwind theme extensions defined
  * below
  *
+ *
+ *
+ * FIXME>>>
+ *
  * e.g. in your app.postcss:
  *
  * // @import "../src/lib/tailwind/extend/scaling/vars.postcss";
+ *
+ * <<<FIXME
  *
  * Base units:
  * --scale-w: 0.052vw  (Viewport Width Point)
