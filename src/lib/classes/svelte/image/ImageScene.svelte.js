@@ -16,9 +16,9 @@ import {
   LOADED,
   UNLOAD,
   INITIAL
-} from '$lib/classes/svkit/loading-state-machine/index.js';
+} from '$lib/classes/svelte/loading-state-machine/index.js';
 
-import ImageLoader from '$lib/classes/svkit/image/ImageLoader.svelte.js';
+import ImageLoader from '$lib/classes/svelte/image/ImageLoader.svelte.js';
 
 /**
  * @typedef {object} SourceConfig

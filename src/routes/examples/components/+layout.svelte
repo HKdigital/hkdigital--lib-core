@@ -1,6 +1,6 @@
 <script>
   import { onMount } from 'svelte';
-  import { DESIGN, CLAMPING } from '$lib/design-system/design-config.js';
+  import { DESIGN, CLAMPING } from '$lib/design/design-config.js';
   import {
     enableScalingUI,
     getAllRootScalingVars

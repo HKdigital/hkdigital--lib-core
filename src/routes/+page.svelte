@@ -1,14 +1,8 @@
-<section class="prose p-40p">
-  <h1>Welcome</h1>
+<section class="p-40p">
+  <h2 class="text-heading-h2">Welcome</h2>
 
-  <p>
-    Please have a look at the <a href="/examples">Examples</a>.
+  <p class="text-content">
+    Please have a look at the <a class="underline" href="/examples">examples</a
+    >.
   </p>
-
-
 </section>
-
-<style>
-
-</style>
-

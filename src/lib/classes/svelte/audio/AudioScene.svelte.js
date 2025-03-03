@@ -14,9 +14,9 @@ import {
 	LOADED,
 	UNLOAD,
 	INITIAL
-} from '$lib/classes/svkit/loading-state-machine/index.js';
+} from '$lib/classes/svelte/loading-state-machine/index.js';
 
-import AudioLoader from '$lib/classes/svkit/audio/AudioLoader.svelte.js';
+import AudioLoader from '$lib/classes/svelte/audio/AudioLoader.svelte.js';
 
 /**
  * @typedef {object} SourceConfig
