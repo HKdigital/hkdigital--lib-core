@@ -1,0 +1,22 @@
+@define-mixin component-icon-steeze {
+
+  /* @note using CSS vars defined in the parent button postcss */
+
+  /* Type-based styling for text buttons */
+  [data-component="icon"][data-type="steeze"] {
+
+    &[data-size="sm"] {
+      @apply w-16ct h-16ct;
+    }
+
+    &[data-size="md"] {
+      @apply w-28ct h-28ct;
+    }
+
+    &[data-size="lg"] {
+      @apply w-50ct h-50ct;
+    }
+
+  }
+
+}

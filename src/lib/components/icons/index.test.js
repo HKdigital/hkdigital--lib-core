@@ -1,6 +1,12 @@
 import { describe, it, expect } from 'vitest';
 
-import { HkIcon, HkTabIcon } from './index.js';
+import { SteezeIcon, HkIcon, HkTabIcon } from './index.js';
+
+describe('SteezeIcon', () => {
+	it('should be a component (function)', () => {
+		expect(typeof SteezeIcon).toBe('function');
+	});
+});
 
 describe('HkIcon', () => {
 	it('should be a component (function)', () => {

@@ -3,19 +3,28 @@
  * Using CSS Custom Properties (variables) for consistent scaling
  *
  * @note
- * Make sure to import scaling.vars.postcss in your application.
- * It contains CSS variables used by the Tailwind theme extensions defined
- * below
+ * The tailwind theme extensions require CSS custom
+ * properties (variables) to be set at the root level
+ * of your application to function properly.
  *
+ * @example Implementation in SvelteKit +layout.svelte
+ * <script>
+ *   import { onMount } from 'svelte';
  *
+ *   import '../app.postcss';
  *
- * FIXME>>>
+ *   let { children } = $props();
  *
- * e.g. in your app.postcss:
+ *   import { DESIGN, CLAMPING }
+ *     from '$lib/design/design-config.js';
  *
- * // @import "../src/lib/tailwind/extend/scaling/vars.postcss";
+ *   import { rootDesignVarsHTML }
+ *     from '@hkdigital/lib-sveltekit/util/design-system/index.js';
+ * </script>
  *
- * <<<FIXME
+ * <svelte:head>
+ *   {@html rootDesignVarsHTML(DESIGN, CLAMPING)}
+ * </svelte:head>
  *
  * Base units:
  * --scale-w: 0.052vw  (Viewport Width Point)

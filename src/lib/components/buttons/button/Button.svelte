@@ -26,6 +26,7 @@
     base,
     bg,
     classes,
+
     type = '',
     role = 'primary',
     size = 'md',
