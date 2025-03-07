@@ -11,9 +11,9 @@ import { clamp } from '../css/clamp.js';
  * @param {Object} clamping.ui - UI element scaling constraints
  * @param {number} clamping.ui.min - Minimum UI scale factor
  * @param {number} clamping.ui.max - Maximum UI scale factor
- * @param {Object} clamping.textContent - Content text scaling constraints
- * @param {number} clamping.textContent.min - Minimum content text scale factor
- * @param {number} clamping.textContent.max - Maximum content text scale factor
+ * @param {Object} clamping.textBase - Base text scaling constraints
+ * @param {number} clamping.textBase.min - Minimum base text scale factor
+ * @param {number} clamping.textBase.max - Maximum base text scale factor
  * @param {Object} clamping.textHeading - Heading text scaling constraints
  * @param {number} clamping.textHeading.min - Minimum heading text scale factor
  * @param {number} clamping.textHeading.max - Maximum heading text scale factor
@@ -41,23 +41,23 @@ export function enableScalingUI(design, clamping) {
       const scaleViewport = Math.min(scaleW, scaleH);
 
       // Apply clamping to different element types
-      const scaleUI = clamp(scaleViewport, clamping.ui.min, clamping.ui.max);
+      const scaleUI = clamp(clamping.ui.min, scaleViewport, clamping.ui.max);
 
-      const scaleTextContent = clamp(
+      const scaleTextBase = clamp(
+        clamping.textBase.min,
         scaleViewport,
-        clamping.textContent.min,
-        clamping.textContent.max
+        clamping.textBase.max
       );
 
       const scaleTextHeading = clamp(
-        scaleViewport,
         clamping.textHeading.min,
+        scaleViewport,
         clamping.textHeading.max
       );
 
       const scaleTextUi = clamp(
-        scaleViewport,
         clamping.textUi.min,
+        scaleViewport,
         clamping.textUi.max
       );
 
@@ -70,8 +70,8 @@ export function enableScalingUI(design, clamping) {
       );
       document.documentElement.style.setProperty('--scale-ui', String(scaleUI));
       document.documentElement.style.setProperty(
-        '--scale-text-content',
-        String(scaleTextContent)
+        '--scale-text-base',
+        String(scaleTextBase)
       );
       document.documentElement.style.setProperty(
         '--scale-text-heading',

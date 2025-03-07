@@ -11,9 +11,9 @@ import { getRootCssVar } from '$lib/util/css/css-vars.js';
  * @param {Object} clamping.ui - UI clamping configuration
  * @param {number} clamping.ui.min - Minimum UI scaling factor
  * @param {number} clamping.ui.max - Maximum UI scaling factor
- * @param {Object} clamping.textContent - Content text scaling configuration
- * @param {number} clamping.textContent.min - Minimum content text scaling
- * @param {number} clamping.textContent.max - Maximum content text scaling
+ * @param {Object} clamping.textBase - Base text scaling configuration
+ * @param {number} clamping.textBase.min - Minimum base text scaling
+ * @param {number} clamping.textBase.max - Maximum base text scaling
  * @param {Object} clamping.textHeading - Heading text clamping configuration
  * @param {number} clamping.textHeading.min - Minimum heading text scaling
  * @param {number} clamping.textHeading.max - Maximum heading text scaling
@@ -51,7 +51,7 @@ export function rootDesignVarsHTML(design, clamping) {
 
       /* Scaling factors with configurable clamping */
       --scale-ui: clamp(${clamping.ui.min}, var(--scale-viewport), ${clamping.ui.max});
-      --scale-text-content: clamp(${clamping.textContent.min}, var(--scale-viewport), ${clamping.textContent.max});
+      --scale-text-base: clamp(${clamping.textBase.min}, var(--scale-viewport), ${clamping.textBase.max});
       --scale-text-heading: clamp(${clamping.textHeading.min}, var(--scale-viewport), ${clamping.textHeading.max});
       --scale-text-ui: clamp(${clamping.textUi.min}, var(--scale-viewport), ${clamping.textUi.max});
     }</style>`;
@@ -90,8 +90,8 @@ export function getAllRootScalingVars() {
       parseFloat(styles.getPropertyValue('--scale-viewport').trim()) || 0,
 
     scaleUI: parseFloat(styles.getPropertyValue('--scale-ui').trim()) || 0,
-    scaleTextContent:
-      parseFloat(styles.getPropertyValue('--scale-text-content').trim()) || 0,
+    scaleTextBase:
+      parseFloat(styles.getPropertyValue('--scale-text-base').trim()) || 0,
     scaleTextHeading:
       parseFloat(styles.getPropertyValue('--scale-text-heading').trim()) || 0,
     scaleTextUI:

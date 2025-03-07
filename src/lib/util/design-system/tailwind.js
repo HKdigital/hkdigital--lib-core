@@ -1,12 +1,12 @@
 /**
  * Generates text-based spacing units with with different scaling
- * units (ut, ct, ht)
+ * units (ut, bt, ht)
  *
  * @param {number[]} values
  *   Array of pixel values to generate text-based spacing units for
  *
  * @returns {{[key: string]: string}}
- *   Generated text-based spacing units with ut, ct, and ht suffixes
+ *   Generated text-based spacing units with ut, bt, and ht suffixes
  *
  * @throws {Error} If values is not an array or contains non-numeric values
  *
@@ -16,8 +16,8 @@
  * // {
  * //   '1ut': 'calc(1px * var(--scale-text-ui))',
  * //   '2ut': 'calc(2px * var(--scale-text-ui))',
- * //   '1ct': 'calc(1px * var(--scale-text-content))',
- * //   '2ct': 'calc(2px * var(--scale-text-content))',
+ * //   '1bt': 'calc(1px * var(--scale-text-base))',
+ * //   '2bt': 'calc(2px * var(--scale-text-base))',
  * //   '1ht': 'calc(1px * var(--scale-text-heading))',
  * //   '2ht': 'calc(2px * var(--scale-text-heading))'
  * // }
@@ -35,8 +35,8 @@ export function generateTextBasedSpacing(values) {
     // Generate UI text spacing units
     units[`${value}ut`] = `calc(${value}px * var(--scale-text-ui))`;
 
-    // Generate content text spacing units
-    units[`${value}ct`] = `calc(${value}px * var(--scale-text-content))`;
+    // Generate base text spacing units
+    units[`${value}bt`] = `calc(${value}px * var(--scale-text-base))`;
 
     // Generate heading text spacing units
     units[`${value}ht`] = `calc(${value}px * var(--scale-text-heading))`;
@@ -47,15 +47,15 @@ export function generateTextBasedSpacing(values) {
 
 /**
  * Generates viewport-based spacing units with different scaling
- * units (p, vp, wp, hp)
+ * units (up, wp, hp)
  *
  * @param {number[]} values
  *   Array of pixel values to generate viewport-based spacing units for
  *
  * @returns {Object.<string, string>}
  *   Generated viewport-based spacing units:
- *   - p:  UI points (clamped scaling)
- *   - vp: Viewport points (min of width/height)
+ *   - up: UI points (clamped scaling)
+ *   - p:  UI points (deprecated, will be removed in future versions)
  *   - wp: Width points
  *   - hp: Height points
  *
@@ -65,8 +65,8 @@ export function generateTextBasedSpacing(values) {
  * generateViewportBasedSpacing([1, 2, 4])
  * // Returns:
  * // {
- * //   '1p': 'calc(1px * var(--scale-ui))',
- * //   '1vp': 'calc(1px * var(--scale-viewport))',
+ * //   '1up': 'calc(1px * var(--scale-ui))',
+ * //   '1p': 'calc(1px * var(--scale-ui))',  // deprecated
  * //   '1wp': 'calc(1px * var(--scale-w))',
  * //   '1hp': 'calc(1px * var(--scale-h))'
  * // }
@@ -81,13 +81,13 @@ export function generateViewportBasedSpacing(values) {
       throw new Error(`Invalid spacing value: ${value}. Must be a number.`);
     }
 
-    // Viewport points (min of width/height)
-    units[`${value}vp`] = `calc(${value}px * var(--scale-viewport))`;
     // Width points
     units[`${value}wp`] = `calc(${value}px * var(--scale-w))`;
     // Height points
     units[`${value}hp`] = `calc(${value}px * var(--scale-h))`;
-    // UI points
+    // UI points (standard)
+    units[`${value}up`] = `calc(${value}px * var(--scale-ui))`;
+    // UI points (deprecated)
     units[`${value}p`] = `calc(${value}px * var(--scale-ui))`;
     return units;
   }, {});
@@ -95,13 +95,13 @@ export function generateViewportBasedSpacing(values) {
 
 /**
  * Generates semantic text style definitions for a specific text category
- * (content, UI, or heading). Each style includes a scaled font size and
+ * (base, UI, or heading). Each style includes a scaled font size and
  * line height.
  *
  * @param {{[key: string]: {size: number, lineHeight?: number}}} sizes
  *   Set of text sizes to generate styles for
  *
- * @param {'content' | 'ui' | 'heading'} category
+ * @param {'base' | 'ui' | 'heading'} category
  *   Text category to generate styles for
  *
  * @returns {{[key: string]: [string, {lineHeight: number}]}}
@@ -110,21 +110,21 @@ export function generateViewportBasedSpacing(values) {
  * @throws {Error} If a size has an invalid size or lineHeight
  *
  * @example
- * const TEXT_CONTENT_SIZES = {
+ * const TEXT_BASE_SIZES = {
  *   sm: { size: 16, lineHeight: 1.5 },
  *   base: { size: 20, lineHeight: 1.5 },
  *   lg: { size: 24, lineHeight: 1.4 }
  * };
  *
- * generateTextStyles(TEXT_CONTENT_SIZES, 'content');
+ * generateTextStyles(TEXT_BASE_SIZES, 'base');
  * // Returns:
  * // {
- * //   'content-sm':
- * //     ['calc(16px * var(--scale-text-content))', { lineHeight: 1.5 }],
- * //   'content-base':
- * //     ['calc(20px * var(--scale-text-content))', { lineHeight: 1.5 }],
- * //   'content-lg':
- * //     ['calc(24px * var(--scale-text-content))', { lineHeight: 1.4 }]
+ * //   'base-sm':
+ * //     ['calc(16px * var(--scale-text-base))', { lineHeight: 1.5 }],
+ * //   'base-base':
+ * //     ['calc(20px * var(--scale-text-base))', { lineHeight: 1.5 }],
+ * //   'base-lg':
+ * //     ['calc(24px * var(--scale-text-base))', { lineHeight: 1.4 }]
  * // }
  */
 export function generateTextStyles(sizes, category) {
@@ -132,8 +132,8 @@ export function generateTextStyles(sizes, category) {
     throw new Error('sizes must be an object');
   }
 
-  if (!['content', 'ui', 'heading'].includes(category)) {
-    throw new Error('category must be one of: content, ui, heading');
+  if (!['base', 'ui', 'heading'].includes(category)) {
+    throw new Error('category must be one of: base, ui, heading');
   }
 
   return Object.entries(sizes).reduce((result, [variant, config]) => {

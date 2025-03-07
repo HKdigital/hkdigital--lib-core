@@ -20,7 +20,7 @@
     scaleH: 0,
     scaleViewport: 0,
     scaleUI: 0,
-    scaleTextContent: 0,
+    scaleTextBase: 0,
     scaleTextHeading: 0,
     scaleTextUI: 0
   });
@@ -119,7 +119,7 @@
       <div>{formatNumber(scalingValues.scaleUI)}</div>
 
       <div class="text-gray-400">Text Content:</div>
-      <div>{formatNumber(scalingValues.scaleTextContent)}</div>
+      <div>{formatNumber(scalingValues.scaleTextBase)}</div>
 
       <div class="text-gray-400">Text Heading:</div>
       <div>{formatNumber(scalingValues.scaleTextHeading)}</div>

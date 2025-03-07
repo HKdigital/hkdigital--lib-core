@@ -56,11 +56,11 @@ export function getClampParams(varName) {
 /**
  * CSS clamp function implementation
  *
- * @param {number} value - Value to clamp
  * @param {number} min - Minimum value
+ * @param {number} value - Value to clamp
  * @param {number} max - Maximum value
  * @returns {number} Clamped value
  */
-export function clamp(value, min, max) {
+export function clamp(min, value, max) {
   return Math.max(min, Math.min(value, max));
 }

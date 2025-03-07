@@ -24,7 +24,7 @@
    *   scaleW?: number,
    *   scaleH?: number,
    *   scaleUI?: number,
-   *   scaleTextContent?: number,
+   *   scaleTextBase?: number,
    *   scaleTextHeading?: number,
    *   scaleTextUI?: number,
    *   children?: import('svelte').Snippet,
@@ -47,7 +47,7 @@
     scaleW = $bindable(0),
     scaleH = $bindable(0),
     scaleUI = $bindable(0),
-    scaleTextContent = $bindable(0),
+    scaleTextBase = $bindable(0),
     scaleTextHeading = $bindable(0),
     scaleTextUI = $bindable(0),
 
@@ -97,17 +97,14 @@
     try {
       // Get clamp parameters from CSS variables
       const uiParams = getClampParams('scale-ui');
-      const contentParams = getClampParams('scale-text-content');
+      const baseParams = getClampParams('scale-text-base');
       const headingParams = getClampParams('scale-text-heading');
       const textUIParams = getClampParams('scale-text-ui');
 
       // Apply scaling according to extracted clamp parameters
       scaleUI = clamp(uiParams.min, scaleViewport, uiParams.max);
-      scaleTextContent = clamp(
-        contentParams.min,
-        scaleViewport,
-        contentParams.max
-      );
+
+      scaleTextBase = clamp(baseParams.min, scaleViewport, baseParams.max);
       scaleTextHeading = clamp(
         headingParams.min,
         scaleViewport,
@@ -124,7 +121,7 @@
 
       // Fallback to simple scaling without clamping
       scaleUI = scaleViewport;
-      scaleTextContent = scaleViewport;
+      scaleTextBase = scaleViewport;
       scaleTextHeading = scaleViewport;
       scaleTextUI = scaleViewport;
     }
@@ -135,7 +132,7 @@
       --scale-h: ${scaleH};
       --scale-viewport: ${scaleViewport};
       --scale-ui: ${scaleUI};
-      --scale-text-content: ${scaleTextContent};
+      --scale-text-base: ${scaleTextBase};
       --scale-text-heading: ${scaleTextHeading};
       --scale-text-ui: ${scaleTextUI};
     `;

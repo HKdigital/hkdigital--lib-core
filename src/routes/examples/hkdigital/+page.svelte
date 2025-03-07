@@ -16,7 +16,7 @@
       const scaleViewport = Math.min(scaleW, scaleH);
 
       const scaleUI = Math.max(0.3, Math.min(scaleViewport, 2));
-      const scaleTextContent = Math.max(0.75, Math.min(scaleViewport, 1.5));
+      const scaleTextBase = Math.max(0.75, Math.min(scaleViewport, 1.5));
       const scaleTextHeading = Math.max(0.75, Math.min(scaleViewport, 2.25));
       const scaleTextUi = Math.max(0.5, Math.min(scaleViewport, 1.25));
 
@@ -29,7 +29,7 @@
       document.documentElement.style.setProperty('--scale-ui', String(scaleUI));
       document.documentElement.style.setProperty(
         '--scale-text-content',
-        String(scaleTextContent)
+        String(scaleTextBase)
       );
       document.documentElement.style.setProperty(
         '--scale-text-heading',
@@ -100,5 +100,4 @@
       </div>
     {/snippet}
   </TextBlock>
-  
-  </div>
+</div>

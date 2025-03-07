@@ -144,7 +144,7 @@
       bind:scaleW={viewportScaleW}
       bind:scaleH={viewportScaleH}
       bind:scaleUI={viewportScaleUI}
-      bind:scaleTextContent={viewportScaleTextContent}
+      bind:scaleTextBase={viewportScaleTextContent}
       bind:scaleTextHeading={viewportScaleTextHeading}
       bind:scaleTextUI={viewportScaleTextUI}
     >
@@ -153,7 +153,7 @@
   </div>
 
   <!-- Scale info display -->
-  <div class="bg-gray-100 p-10p text-content-base">
+  <div class="bg-gray-100 p-10p text-base-md">
     <h3 class="font-bold mb-4ut">Viewport Scaling</h3>
     <div class="grid grid-cols-2 gap-2ut">
       <div>

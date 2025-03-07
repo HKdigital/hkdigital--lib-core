@@ -31,22 +31,22 @@
  * --scale-h: 0.09259vh (Viewport Height Point)
  * --scale-viewport: min(var(--scale-w), var(--scale-h)) (Viewport Point)
  * --scale-ui: clamp(0.3, var(--scale-viewport), 2) (UI Point)
- * --scale-text-content: clamp(0.75, var(--scale-viewport), 1.5) (Content Text)
+ * --scale-text-base: clamp(0.75, var(--scale-viewport), 1.5) (Base Text)
  * --scale-text-heading: clamp(0.75, var(--scale-viewport), 2.25) (Heading Text)
  * --scale-text-ui: clamp(0.5, var(--scale-viewport), 1.25) (UI Text)
  *
  * --
  *
- * UI Points (p) - Clamped scaling values
+ * UI Points (up) - Clamped scaling values
  * Based on viewport scaling with minimum and maximum bounds
  * to ensure usability across all screen sizes
  *
  * > PREFERRED METHOD FOR UI ELEMENT SCALING
  *
  * Examples:
- * 5p  = 5px  at design size (clamps between 1.5px and 10px)
- * 10p = 10px at design size (clamps between 3px and 20px)
- * 20p = 20px at design size (clamps between 6px and 40px)
+ * 5up  = 5px  at design size (clamps between 1.5px and 10px)
+ * 10up = 10px at design size (clamps between 3px and 20px)
+ * 20up = 20px at design size (clamps between 6px and 40px)
  *
  * Used for:
  * - Component padding and margins
@@ -55,32 +55,30 @@
  *
  * --
  *
- * Text-Based Spacing Units (ut, ct, ht)
+ * Text-Based Spacing Units (ut, bt, ht)
  * Scaled by their respective text scaling variables
  *
  * > PREFERRED METHOD FOR TEXT-RELATED SPACING
  *
  * Examples:
  * 4ut = calc(4px * var(--scale-text-ui))       // UI text spacing
- * 4ct = calc(4px * var(--scale-text-content))  // Content text spacing
+ * 4bt = calc(4px * var(--scale-text-base))  // Base text spacing
  * 4ht = calc(4px * var(--scale-text-heading))  // Heading text spacing
  *
  * Used for:
  * - ut: Button padding, form spacing, UI component margins
- * - ct: Paragraph margins, list spacing, content gaps
+ * - bt: Paragraph margins, list spacing, base gaps
  * - ht: Heading margins, title spacing
  *
  * --
  *
- * Viewport Points (vp, wp, hp) - Responsive scaling values
- * vp: Uses min of width/height scaling
+ * Viewport Points (wp, hp) - Responsive scaling values
  * wp: Uses width-based scaling (1920px reference)
  * hp: Uses height-based scaling (1080px reference)
  *
  * > ALTERNATIVE SCALING METHODS
  *
  * Examples:
- * 10vp = calc(10px * var(--scale-viewport))
  * 10wp = calc(10px * var(--scale-w))
  * 10hp = calc(10px * var(--scale-h))
  *
@@ -100,7 +98,7 @@ import {
 import {
   TEXT_POINT_SIZES,
   VIEWPORT_POINT_SIZES,
-  TEXT_CONTENT_SIZES,
+  TEXT_BASE_SIZES,
   TEXT_HEADING_SIZES,
   TEXT_UI_SIZES,
   RADIUS_SIZES,
@@ -125,7 +123,7 @@ export const fontSize = {
   ...TEXT_BASED_SPACING,
 
   // Named styles
-  ...generateTextStyles(TEXT_CONTENT_SIZES, 'content'),
+  ...generateTextStyles(TEXT_BASE_SIZES, 'base'),
   ...generateTextStyles(TEXT_HEADING_SIZES, 'heading'),
   ...generateTextStyles(TEXT_UI_SIZES, 'ui')
 };

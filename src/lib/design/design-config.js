@@ -9,7 +9,7 @@ export const DESIGN = {
 
 export const CLAMPING = {
   ui: { min: 0.3, max: 2 },
-  textContent: { min: 0.75, max: 1.5 },
+  textBase: { min: 0.75, max: 1.5 },
   textHeading: { min: 0.75, max: 2.25 },
   textUi: { min: 0.5, max: 1.25 }
 };
@@ -25,9 +25,9 @@ export const VIEWPORT_POINT_SIZES = [
   200
 ];
 
-export const TEXT_CONTENT_SIZES = {
+export const TEXT_BASE_SIZES = {
   sm: { size: 14, lineHeight: 1.5 },
-  base: { size: 16, lineHeight: 1.5 },
+  md: { size: 16, lineHeight: 1.5 },
   lg: { size: 18, lineHeight: 1.4 }
 };
 
@@ -41,7 +41,7 @@ export const TEXT_HEADING_SIZES = {
 
 export const TEXT_UI_SIZES = {
   sm: { size: 14, lineHeight: 1.1 },
-  base: { size: 16, lineHeight: 1.1 },
+  md: { size: 16, lineHeight: 1.1 },
   lg: { size: 18, lineHeight: 1.1 }
 };
 

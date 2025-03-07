@@ -72,7 +72,7 @@
       Small content text - Lorem ipsum dolor sit amet, consectetur adipiscing
       elit.
     </p>
-    <p class="text-content-base mb-10p">
+    <p class="text-base-md mb-10p">
       Base content text - Lorem ipsum dolor sit amet, consectetur adipiscing
       elit.
     </p>
@@ -90,7 +90,7 @@
             Small UI Text
           </button>
           <button
-            class="bg-primary-200 p-15p rounded-md border-width-normal text-ui-base"
+            class="bg-primary-200 p-15p rounded-md border-width-normal text-ui-md"
           >
             Base UI Text
           </button>
@@ -104,17 +104,17 @@
   <!-- Viewport points demo -->
   <div class="mt-30p flex gap-10p">
     <div
-      class="w-100wp h-100wp bg-secondary-500 flex items-center justify-center text-white text-ui-base"
+      class="w-100wp h-100wp bg-secondary-500 flex items-center justify-center text-white text-ui-md"
     >
       100wp
     </div>
     <div
-      class="w-100vp h-100vp bg-tertiary-500 flex items-center justify-center text-white text-ui-base"
+      class="w-100vp h-100vp bg-tertiary-500 flex items-center justify-center text-white text-ui-md"
     >
       100vp
     </div>
     <div
-      class="w-100p h-100p bg-success-500 flex items-center justify-center text-white text-ui-base"
+      class="w-100p h-100p bg-success-500 flex items-center justify-center text-white text-ui-md"
     >
       100p
     </div>
