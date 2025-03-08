@@ -38,6 +38,12 @@
  */
 export function customUtilitiesPlugin({ addUtilities }) {
   const utilities = {
+    '.font-heading': {
+      'font-family': 'var(--heading-font-family)'
+    },
+    '.font-base': {
+      'font-family': 'var(--base-font-family))'
+    },
     '.font-ui': {
       'font-family': 'var(--ui-font-family, var(--base-font-family))'
     },

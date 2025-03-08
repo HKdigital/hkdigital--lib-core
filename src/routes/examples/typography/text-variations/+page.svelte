@@ -15,11 +15,11 @@
         <h2 class="text-heading-h2 mb-4">Headings</h2>
 
         <div class="space-y-4">
-          <h1 class="text-heading-h1">H1 Heading (Guyot-Sans)</h1>
-          <h2 class="text-heading-h2">H2 Heading (Guyot-Sans)</h2>
-          <h3 class="text-heading-h3">H3 Heading (Guyot-Sans)</h3>
-          <h4 class="text-heading-h4">H4 Heading (Guyot-Sans)</h4>
-          <h5 class="text-heading-h5">H5 Heading (Guyot-Sans)</h5>
+          <h1 class="text-heading-h1 font-heading">H1 Heading (Guyot-Sans)</h1>
+          <h2 class="text-heading-h2 font-heading">H2 Heading (Guyot-Sans)</h2>
+          <h3 class="text-heading-h3 font-heading">H3 Heading (Guyot-Sans)</h3>
+          <h4 class="text-heading-h4 font-heading">H4 Heading (Guyot-Sans)</h4>
+          <h5 class="text-heading-h5 font-heading">H5 Heading (Guyot-Sans)</h5>
         </div>
       </div>
 
@@ -27,9 +27,9 @@
         <h2 class="text-heading-h2 mb-4">Base text variations</h2>
 
         <div class="space-y-4">
-          <p class="text-base-sm">Small Base Text (Mulish)</p>
-          <p class="text-base-md">Medium Base Text (Mulish)</p>
-          <p class="text-base-lg">Large Base Text (Mulish)</p>
+          <p class="text-base-sm font-base">Small Base Text (Mulish)</p>
+          <p class="text-base-md font-base">Medium Base Text (Mulish)</p>
+          <p class="text-base-lg font-base">Large Base Text (Mulish)</p>
         </div>
       </div>
     </div>
