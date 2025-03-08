@@ -41,7 +41,7 @@
     if (typeof window !== 'undefined') {
       const windowSizeElement = document.getElementById('window-size');
       if (windowSizeElement) {
-        windowSizeElement.textContent = `${window.innerWidth}×${window.innerHeight}px`;
+        windowSizeElement.textBase = `${window.innerWidth}×${window.innerHeight}px`;
       }
     }
   }
@@ -133,7 +133,7 @@
       <div class="grid grid-cols-3 text-2xs">
         <div>UI: {CLAMPING.ui.min} - {CLAMPING.ui.max}</div>
         <div>
-          Content: {CLAMPING.textContent.min} - {CLAMPING.textContent.max}
+          Content: {CLAMPING.textBase.min} - {CLAMPING.textBase.max}
         </div>
         <div>
           Heading: {CLAMPING.textHeading.min} - {CLAMPING.textHeading.max}
