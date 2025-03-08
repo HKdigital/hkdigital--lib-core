@@ -41,6 +41,16 @@ const theme = {
     '--anchor-text-decoration-hover': 'underline',
     '--anchor-text-decoration-active': 'none',
     '--anchor-text-decoration-focus': 'none',
+
+    '--ui-font-color': 'var(--color-surface-950)',
+    '--ui-font-color-dark': 'var(--color-surface-50)',
+    '--ui-font-family': 'Source Sans Pro, system-ui, sans-serif',
+    '--ui-font-size': 'inherit',
+    '--ui-line-height': 'inherit',
+    '--ui-font-weight': 'normal',
+    '--ui-font-style': 'normal',
+    '--ui-letter-spacing': '0em',
+
     '--space-scale-factor': '1',
     '--radii-default': '6px',
     '--radii-container': '12px',

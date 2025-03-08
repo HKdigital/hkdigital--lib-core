@@ -2,7 +2,10 @@ import { default as TailwindTypography } from '@tailwindcss/typography';
 
 import { skeleton } from '@skeletonlabs/skeleton/plugin';
 
+import { customSkeletonPlugin } from './src/lib/util/design-system/skeleton.js';
+
 import * as defaultThemes from '@skeletonlabs/skeleton/themes';
+import { skeleton } from '@skeletonlabs/skeleton/plugin';
 
 import * as customThemes from './src/lib/themes/index.js';
 
@@ -39,7 +42,11 @@ import {
   strokeWidth,
   outlineWidth,
   outlineOffset
+  // fontFamily,
+  // textColor
 } from './src/lib/design/tailwind-theme-extend.js';
+
+import { customUtilitiesPlugin } from './src/lib/util/design-system/skeleton.js';
 
 /** @type {import('tailwindcss').Config} \*/
 export default {
@@ -54,17 +61,20 @@ export default {
       strokeWidth,
       outlineWidth,
       outlineOffset
+      // fontFamily,
+      // textColor
     }
   },
   plugins: [
     TailwindTypography,
+    customUtilitiesPlugin,
     skeleton({
       themes: [defaultThemes.cerberus, defaultThemes.rose, customThemes.hkdev]
     })
   ]
 };
 
-// console.log("tailwind > theme > extend", {
+// console.log('tailwind > theme > extend', {
 //   spacing,
 //   fontSize,
 //   borderRadius,
@@ -72,4 +82,6 @@ export default {
 //   strokeWidth,
 //   outlineWidth,
 //   outlineOffset
+//   // fontFamily,
+//   // textColor
 // });

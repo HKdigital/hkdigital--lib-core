@@ -5,10 +5,11 @@
   /* Type-based styling for text buttons */
   [data-component="button"][data-type="text"] {
     /* Typography settings */
-    @apply text-ui-md uppercase;
+    @apply font-ui text-ui-md;
+    @apply uppercase;
     @apply whitespace-nowrap;
 
-    /* Adjust padding to better fit text */
+    /* Size specific adjustments */
     /*&[data-size="sm"] {
       @apply px-8ut py-8ut;
     }

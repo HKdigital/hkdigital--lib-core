@@ -287,3 +287,49 @@ export function generateWidthStyles(
     return result;
   }, {});
 }
+
+/**
+ * Generates font family styles for different text categories
+ * with fallbacks to base properties when needed
+ *
+ * @returns {Object.<string, string>} Generated font family styles
+ *
+ * @example
+ * // Returns:
+ * // {
+ * //   'ui': 'var(--ui-font-family, var(--base-font-family))'
+ * // }
+ */
+export function generateFontFamilyStyles() {
+  return {
+    // UI font family with fallback to base font family
+    ui: 'var(--ui-font-family, var(--base-font-family))'
+  };
+}
+
+/**
+ * Generates text color styles for different text categories
+ * with fallbacks to base properties when needed
+ *
+ * @returns {Object.<string, Object.<string, string>>} Generated text color styles
+ *
+ * @example
+ * // Returns:
+ * // {
+ * //   'ui': {
+ * //     'DEFAULT': 'var(--ui-font-color, var(--base-font-color))',
+ * //     'dark': 'var(--ui-font-color-dark, var(--base-font-color-dark))'
+ * //   }
+ * // }
+ */
+export function generateTextColorStyles() {
+  return {
+    // UI text color with fallbacks
+    ui: {
+      // Default color (light mode)
+      DEFAULT: 'var(--ui-font-color, var(--base-font-color))',
+      // Dark mode color
+      dark: 'var(--ui-font-color-dark, var(--base-font-color-dark))'
+    }
+  };
+}
