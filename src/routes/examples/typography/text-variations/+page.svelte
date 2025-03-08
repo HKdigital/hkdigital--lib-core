@@ -52,16 +52,21 @@
       <div>
         <h3 class="text-heading-h3 mb-4">Color variations</h3>
 
-        <div class="space-y-4">
+        <div class="py-20up">
           <p class="text-primary-500">Primary color text</p>
           <p class="text-secondary-500">Secondary color text</p>
           <p class="text-tertiary-500">Tertiary color text</p>
-          <p class="heading-base-color">Text base color</p>
-          <p class="text-base-color">Text base color</p>
-          <p class="ui-base-color">Text base color</p>
-          <p class="heading-base-color-dark">Text base color dark</p>
-          <p class="text-base-color-dark">Text base color dark</p>
-          <p class="ui-base-color-dark">Text base color dark</p>
+        </div>
+
+        <div class="py-20up">
+          <p class="text-heading-color">Heading color</p>
+          <p class="text-base-color">Base text color</p>
+          <p class="ui-base-color">UI text color</p>
+        </div>
+        <div class="py-20up bg-surface-950">
+          <p class="text-heading-color-dark">Heading color dark</p>
+          <p class="text-base-color-dark">Base text color dark</p>
+          <p class="text-ui-color-dark">UI text color dark</p>
         </div>
       </div>
     </div>

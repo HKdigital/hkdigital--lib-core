@@ -42,22 +42,22 @@ export function customUtilitiesPlugin({ addUtilities }) {
       'font-family': 'var(--ui-font-family, var(--base-font-family))'
     },
     '.text-base-color': {
-      color: 'var(--base-font-color)'
+      color: 'rgb( var(--base-font-color) )'
     },
     '.text-base-color-dark': {
-      color: 'var(--base-font-color-dark)'
+      color: 'rgb( var(--base-font-color-dark) )'
     },
     '.text-heading-color': {
-      color: 'var(--heading-font-color)'
+      color: 'rgb( var(--heading-font-color) )'
     },
     '.text-heading-color-dark': {
-      color: 'var(--heading-font-color-dark)'
+      color: 'rgb( var(--heading-font-color-dark) )'
     },
     '.text-ui-color': {
-      color: 'var(--ui-font-color, var(--base-font-color))'
+      color: 'rgb( var(--ui-font-color, var(--base-font-color)) )'
     },
     '.text-ui-color-dark': {
-      color: 'var(--ui-font-color-dark, var(--base-font-color-dark))'
+      color: 'rgb( var(--ui-font-color-dark, var(--base-font-color-dark)) )'
     }
   };
 
