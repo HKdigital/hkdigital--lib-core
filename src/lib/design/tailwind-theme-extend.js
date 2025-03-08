@@ -92,9 +92,7 @@ import {
   generateViewportBasedSpacing,
   generateTextStyles,
   generateBorderRadiusStyles,
-  generateWidthStyles,
-  generateFontFamilyStyles,
-  generateTextColorStyles
+  generateWidthStyles
 } from '../util/design-system/tailwind.js';
 
 import {
@@ -153,16 +151,6 @@ export const outlineWidth = {
 export const outlineOffset = {
   // Named styles
   ...generateWidthStyles(STROKE_WIDTH_SIZES, '')
-};
-
-// Add UI font family extension
-export const fontFamily = {
-  ...generateFontFamilyStyles()
-};
-
-// Add UI text color extension
-export const textColor = {
-  ...generateTextColorStyles()
 };
 
 // console.log('borderWidth', borderWidth);

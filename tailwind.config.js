@@ -42,8 +42,6 @@ import {
   strokeWidth,
   outlineWidth,
   outlineOffset
-  // fontFamily,
-  // textColor
 } from './src/lib/design/tailwind-theme-extend.js';
 
 import { customUtilitiesPlugin } from './src/lib/util/design-system/skeleton.js';
@@ -61,8 +59,6 @@ export default {
       strokeWidth,
       outlineWidth,
       outlineOffset
-      // fontFamily,
-      // textColor
     }
   },
   plugins: [
@@ -82,6 +78,4 @@ export default {
 //   strokeWidth,
 //   outlineWidth,
 //   outlineOffset
-//   // fontFamily,
-//   // textColor
 // });
