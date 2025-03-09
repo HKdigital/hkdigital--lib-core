@@ -2,7 +2,8 @@
   /**
    * Steeze like icon component
    * The main difference with the original Steeze svelte component is that
-   * the component follows the conventions used for components in this library
+   * the component follows the conventions used for components in
+   * this library
    *
    * @see https://github.com/steeze-ui/icons
    *
