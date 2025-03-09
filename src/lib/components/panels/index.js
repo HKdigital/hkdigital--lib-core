@@ -1,1 +1,1 @@
-export { default as PlainPanel } from './plain-panel/PlainPanel.svelte';
+export { default as Panel } from './panel/Panel.svelte';

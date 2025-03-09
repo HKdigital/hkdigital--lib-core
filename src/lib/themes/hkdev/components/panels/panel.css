@@ -1,0 +1,27 @@
+@define-mixin component-panel {
+  [data-component='panel'] {
+    @apply py-30up px-40up;
+    @apply rounded-md;
+
+    &[data-variant='light'] {
+      @apply bg-surface-50;
+    }
+
+    &[data-variant='dark'] {
+      @apply bg-surface-950;
+    }
+
+    /* Size variants */
+    &[data-width='sm'] {
+      width: calc(400px * var(--scale-ui));
+    }
+
+    &[data-width='md'] {
+      width: calc(600px * var(--scale-ui));
+    }
+
+    &[data-width='lg'] {
+      width: calc(800px * var(--scale-ui));
+    }
+  }
+}

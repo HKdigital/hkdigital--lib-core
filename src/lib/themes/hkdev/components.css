@@ -1,8 +1,5 @@
 /* Import component styles */
 
-/* Panels */
-/*@import "./components/panels/plain-panel.css";*/
-
 /* Rows */
 /*@import "./components/rows/panel-grid-row.css";*/
 /*@import "./components/rows/panel-row-2.css";*/
@@ -17,24 +14,18 @@
 /* Icons */
 @import './components/icons/icon-steeze.css';
 
+/* Panels */
+@import './components/panels/panel.css';
+
 /* Inputs */
 @import './components/inputs/text-input.css';
 
 /* ... */
-/*@import "./components/select-level.css";*/
 @import './components/blocks/text-block.css';
-
-/* Not used */
-/*@import "./components/hk-tab-icon.css";*/
-/*@import "./components/avatar-layer.css";*/
 
 /* Wrap component styles in theme selector */
 
 [data-theme='hkdev'] {
-  /* Panels */
-  /*  @mixin panels-plain-panel;*/
-  /*  @mixin panels-speech-bubble;*/
-
   /* Rows */
   /*  @mixin rows-panel-grid-row;*/
   /*  @mixin rows-panel-row-2;*/
@@ -47,13 +38,10 @@
 
   @mixin component-icon-steeze;
 
+  @mixin component-panel;
+
   @mixin text_block;
 
   /* Inputs */
   @mixin inputs-text-input;
-
-  /* ... */
-  /*  @mixin hk_tab_icon;*/
-  /*  @mixin avatar_layer;*/
-  /*  @mixin select_level;*/
 }

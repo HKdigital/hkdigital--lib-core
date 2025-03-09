@@ -1,10 +1,10 @@
 @define-mixin component-button {
-  [data-component="button"] {
+  [data-component='button'] {
     /* ---- Core Button Variables ---- */
 
     /* Size variables */
-    --btn-min-width: calc( 150px * var(--scale-ui) );
-    --btn-min-height: calc( 40px * var(--scale-ui) );
+    --btn-min-width: calc(150px * var(--scale-ui));
+    --btn-min-height: calc(40px * var(--scale-ui));
 
     /* ---- Primary Button Variables ---- */
     --btn-primary-bg: var(--color-primary-500);
@@ -48,7 +48,8 @@
     align-items: center;
     cursor: pointer;
     position: relative;
-    transition-property: background-color, color, border-color, transform, box-shadow;
+    transition-property:
+      background-color, color, border-color, transform, box-shadow;
     transition-duration: var(--btn-transition-duration);
   }
 
@@ -66,7 +67,7 @@
   }*/
 
   /* Role-based styling for primary buttons */
-  [data-component="button"][data-role="primary"] {
+  [data-component='button'][data-role='primary'] {
     @apply border-width-normal;
     border-color: rgb(var(--btn-primary-border));
     background-color: rgb(var(--btn-primary-bg));
@@ -90,7 +91,7 @@
   }
 
   /* Role-based styling for secondary buttons */
-  [data-component="button"][data-role="secondary"] {
+  [data-component='button'][data-role='secondary'] {
     @apply border-width-normal;
     border-color: rgb(var(--btn-secondary-border));
     color: rgb(var(--btn-secondary-text));
@@ -113,23 +114,27 @@
     }
   }
 
-  /* State-based styling */
-  [data-component="button"].state-active {
-    transform: var(--btn-active-transform);
-    box-shadow: var(--btn-active-shadow);
-  }
+  /* State-based styling for primary and secondary buttons */
 
-  [data-component="button"].state-error {
-    border-color: rgb(var(--btn-error-border));
-  }
+  [data-component='button'][data-role='primary'],
+  [data-component='button'][data-role='secondary'] {
+    &.state-active {
+      transform: var(--btn-active-transform);
+      box-shadow: var(--btn-active-shadow);
+    }
 
-  [data-component="button"].state-loading {
-    opacity: var(--btn-loading-opacity);
-    cursor: wait;
+    &.state-error {
+      border-color: rgb(var(--btn-error-border));
+    }
+
+    &.state-loading {
+      opacity: var(--btn-loading-opacity);
+      cursor: wait;
+    }
   }
 
   /* Disabled state */
-  [data-component="button"]:disabled {
+  [data-component='button']:disabled {
     cursor: not-allowed;
     opacity: var(--btn-disabled-opacity);
     pointer-events: none;

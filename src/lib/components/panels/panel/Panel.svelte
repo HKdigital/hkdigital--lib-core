@@ -9,8 +9,9 @@
    * @type {{
    *   base?: string,
    *   bg?: string,
-   *   width?: string,
-   *   classes?: string
+   *   classes?: string,
+   *   width?: 'sm' | 'md' | 'lg',
+   *   variant?: string,
    *   children?: import('svelte').Snippet,
    * } & { [attr: string]: any }}
    */
@@ -18,9 +19,12 @@
     // Style
     base,
     bg,
-    width,
     classes,
 
+    width = 'md',
+    variant = 'light',
+
+    // Snippets
     children,
 
     // Attributes
@@ -28,6 +32,12 @@
   } = $props();
 </script>
 
-<div data-panel="plain-panel" class="{base} {bg} {width} {classes}" {...attrs}>
+<div
+  data-component="panel"
+  data-width={width}
+  data-variant={variant}
+  class="{base} {bg} {classes}"
+  {...attrs}
+>
   {@render children()}
 </div>

@@ -4,6 +4,12 @@
   import { SteezeIconButton } from '$lib/components/buttons/index.js';
 </script>
 
-<SteezeIconButton src={Star} iconSize="sm" />
-<SteezeIconButton src={Star} iconSize="md" />
-<SteezeIconButton src={Star} iconSize="lg" />
+<div class="p-20up">
+  <h5 class="text-heading-h5 heading-font-family pt-10up">Default</h5>
+
+  <div class="py-20up">
+    <SteezeIconButton src={Star} iconSize="sm" />
+    <SteezeIconButton src={Star} iconSize="md" />
+    <SteezeIconButton src={Star} iconSize="lg" />
+  </div>
+</div>

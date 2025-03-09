@@ -40,19 +40,19 @@ export const TEXT_HEADING_SIZES = {
 };
 
 export const TEXT_UI_SIZES = {
-  sm: { size: 14, lineHeight: 1.1 },
-  md: { size: 16, lineHeight: 1.1 },
-  lg: { size: 18, lineHeight: 1.1 }
+  sm: { size: 14, lineHeight: 1 },
+  md: { size: 16, lineHeight: 1 },
+  lg: { size: 18, lineHeight: 1 }
 };
 
 /* == Border radius == */
 
 export const RADIUS_SIZES = {
   none: '0px',
-  xs: { size: 1 },
-  sm: { size: 2 },
-  md: { size: 4 },
-  lg: { size: 8 },
+  xs: { size: 5 },
+  sm: { size: 10 },
+  md: { size: 25 },
+  lg: { size: 35 },
   full: '9999px'
 };
 
