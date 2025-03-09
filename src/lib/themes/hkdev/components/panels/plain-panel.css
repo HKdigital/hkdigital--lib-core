@@ -1,21 +1,20 @@
-/*@import "../../global/on-colors.postcss";*/
+/*@import "../../global/on-colors.css";*/
 
 @define-mixin panels-plain-panel {
-  [data-panel="plain-panel"] {
-
+  [data-panel='plain-panel'] {
     @mixin on_surface_light;
     @apply bg-primary-50;
 
     @apply p-40p rounded-md;
 
     max-width: 50vw;
-/*    max-width: 27vw;*/
+    /*    max-width: 27vw;*/
     /* width: 26vw; */
 
     & picture {
       display: block;
       max-width: 100%;
-      @apply pr-80p;      
+      @apply pr-80p;
       /* border: solid 1px red; */
     }
 
@@ -29,7 +28,6 @@
       & + picture {
         @apply mt-40p;
       }
-      
     }
 
     & button {

@@ -1,0 +1,7 @@
+@import '../../global/on-colors.css';
+
+@define-mixin rows-panel-row-2 {
+  [data-row='panel-grid-row'][data-wrapper='panel-row-2'] {
+    @apply gap-20p mb-8p mt-8p;
+  }
+}

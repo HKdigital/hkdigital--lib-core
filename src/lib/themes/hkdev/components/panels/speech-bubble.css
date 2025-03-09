@@ -1,9 +1,7 @@
-
-@import "../../global/on-colors.postcss";
+@import '../../global/on-colors.css';
 
 @define-mixin panels-speech-bubble {
-  [data-panel="speech-bubble"] {
-
+  [data-panel='speech-bubble'] {
     @mixin on_surface_light;
     @apply bg-primary-50;
 
@@ -19,19 +17,17 @@
     & picture {
       display: block;
       max-width: 100%;
-      @apply pr-80p;      
+      @apply pr-80p;
       /* border: solid 1px red; */
     }
 
-    & [data-section="title"]
-    {
+    & [data-section='title'] {
       & .h1 {
         @apply text-32p pt-8p pb-8p;
       }
     }
 
-    & [data-section="text"]
-    {
+    & [data-section='text'] {
       & .p {
         @apply text-20p pb-10p;
 
@@ -41,11 +37,9 @@
       }
     }
 
-
     /* Footer */
 
-    & [data-row][data-section="footer"]
-    {
+    & [data-row][data-section='footer'] {
       @apply pt-10p;
     }
   }

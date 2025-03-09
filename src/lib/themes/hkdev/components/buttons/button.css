@@ -1,12 +1,10 @@
 @define-mixin component-button {
   [data-component="button"] {
     /* ---- Core Button Variables ---- */
-    /* These are the most reusable across button types */
-    --btn-border-width: 2px;
-    --btn-transition-duration: 150ms;
-    --btn-disabled-opacity: 0.6;
-    --btn-focus-ring-width: 3px;
-    --btn-focus-ring-opacity: 0.4;
+
+    /* Size variables */
+    --btn-min-width: calc( 150px * var(--scale-ui) );
+    --btn-min-height: calc( 40px * var(--scale-ui) );
 
     /* ---- Primary Button Variables ---- */
     --btn-primary-bg: var(--color-primary-500);
@@ -37,6 +35,13 @@
     --btn-error-border: var(--color-error-500);
     --btn-loading-opacity: 0.8;
 
+    /* Appearance variations */
+    --btn-border-width: 2px;
+    --btn-transition-duration: 150ms;
+    --btn-disabled-opacity: 0.6;
+    --btn-focus-ring-width: 3px;
+    --btn-focus-ring-opacity: 0.4;
+
     /* Base styles */
     display: inline-flex;
     justify-content: center;
@@ -48,23 +53,17 @@
   }
 
   /* Size variants */
-  [data-component="button"][data-size="sm"] {
+  /*[data-component="button"][data-size="sm"] {
     @apply rounded-xs;
     @apply py-8ut px-8ut;
     @apply min-w-24ut min-h-24ut;
-  }
+  }*/
 
-  [data-component="button"][data-size="md"] {
-    @apply rounded-sm;
-    @apply py-8ut px-16ut;
-    @apply min-w-32ut min-h-32ut;
-  }
-
-  [data-component="button"][data-size="lg"] {
+  /*[data-component="button"][data-size="lg"] {
     @apply rounded-sm;
     @apply py-16ut px-36ut;
     @apply min-w-36ut min-h-36ut;
-  }
+  }*/
 
   /* Role-based styling for primary buttons */
   [data-component="button"][data-role="primary"] {

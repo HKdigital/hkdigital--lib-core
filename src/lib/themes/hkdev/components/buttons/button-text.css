@@ -4,23 +4,20 @@
 
   /* Type-based styling for text buttons */
   [data-component="button"][data-type="text"] {
+
     /* Typography settings */
     @apply font-ui text-ui-md;
     @apply uppercase;
     @apply whitespace-nowrap;
 
-    /* Size specific adjustments */
-    /*&[data-size="sm"] {
-      @apply px-8ut py-8ut;
-    }
+    /* Size settings */
 
     &[data-size="md"] {
-      @apply px-16ut py-12ut;
+      @apply rounded-sm;
+      @apply py-8ut px-16ut;
+      min-width: var(--btn-min-width);
+      min-height: var(--btn-min-height);
     }
-
-    &[data-size="lg"] {
-      @apply px-32ut py-16ut;
-    }*/
 
     /* Role-specific text adjustments */
     &[data-role="primary"] {

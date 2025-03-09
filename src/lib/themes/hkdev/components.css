@@ -1,0 +1,59 @@
+/* Import component styles */
+
+/* Panels */
+/*@import "./components/panels/plain-panel.css";*/
+
+/* Rows */
+/*@import "./components/rows/panel-grid-row.css";*/
+/*@import "./components/rows/panel-row-2.css";*/
+
+/* Buttons */
+@import './components/buttons/button.css';
+@import './components/buttons/button-text.css';
+@import './components/buttons/button-icon-steeze.css';
+
+/*@import "./components/buttons/skip-button.css";*/
+
+/* Icons */
+@import './components/icons/icon-steeze.css';
+
+/* Inputs */
+@import './components/inputs/text-input.css';
+
+/* ... */
+/*@import "./components/select-level.css";*/
+@import './components/blocks/text-block.css';
+
+/* Not used */
+/*@import "./components/hk-tab-icon.css";*/
+/*@import "./components/avatar-layer.css";*/
+
+/* Wrap component styles in theme selector */
+
+[data-theme='hkdev'] {
+  /* Panels */
+  /*  @mixin panels-plain-panel;*/
+  /*  @mixin panels-speech-bubble;*/
+
+  /* Rows */
+  /*  @mixin rows-panel-grid-row;*/
+  /*  @mixin rows-panel-row-2;*/
+
+  /* Buttons */
+  @mixin component-button;
+  @mixin component-button-text;
+  @mixin component-button-icon-steeze;
+  /*  @mixin buttons-skip-button;*/
+
+  @mixin component-icon-steeze;
+
+  @mixin text_block;
+
+  /* Inputs */
+  @mixin inputs-text-input;
+
+  /* ... */
+  /*  @mixin hk_tab_icon;*/
+  /*  @mixin avatar_layer;*/
+  /*  @mixin select_level;*/
+}

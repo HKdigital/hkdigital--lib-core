@@ -2,8 +2,8 @@
 
 Base library that we use to power up our Sveltekit projects
 
-This is a library for [SvelteKit](https://svelte.dev/) projects. 
-It contains common code and components that we use to create our projects. 
+This is a library for [SvelteKit](https://svelte.dev/) projects.
+It contains common code and components that we use to create our projects.
 
 ## Status
 
@@ -40,6 +40,7 @@ Upgrading works as follows:
 ```bash
 ncu "@hkdigital/*" -u && pnpm install
 ```
+
 We use a wildcard to upgrade all installed `node_modules` in the scope `@hkdigital`.
 
 You can also add this command to your project. To do so, add the lines to the bottom of the `scripts` section of your `package.json`.
@@ -66,8 +67,8 @@ Vite should include postcss-import, but the only solution to get it working for 
 For example:
 
 ```css
-/* src/app.postcss */
-@import '../node_modules/@hkdigital/lib-sveltekit/dist/css/utilities.postcss';
+/* src/app.css */
+@import '../node_modules/@hkdigital/lib-sveltekit/dist/css/utilities.css';
 ```
 
 ### Enable tailwind processing
@@ -108,7 +109,7 @@ Everything inside `src/lib` is part of the library, everything inside `src/route
 
 ## Publishing
 
-The name of this library is `@hkdigital/lib-sveltekit` and it is published on [NPM](https://npmjs.com). You need NPM credentials to publish in the scope `@hkdigital`. 
+The name of this library is `@hkdigital/lib-sveltekit` and it is published on [NPM](https://npmjs.com). You need NPM credentials to publish in the scope `@hkdigital`.
 
 ```bash
 # Manually
@@ -124,4 +125,5 @@ pnpm run publish:npm
 ```
 
 ## Contribute
+
 If your wish to contribute to this library, please contact us [HKdigital](https://hkdigital.nl/contact). Alternatively, the license permits you to fork the library and publish under an alternative name. Change the package name in [package.json](./package.json) to do so.

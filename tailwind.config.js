@@ -18,7 +18,7 @@ import * as customThemes from './src/lib/themes/index.js';
  * <script>
  *   import { onMount } from 'svelte';
  *
- *   import '../app.postcss';
+ *   import '../app.css';
  *
  *   let { children } = $props();
  *

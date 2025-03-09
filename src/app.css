@@ -1,9 +1,8 @@
-
 /* Import common CSS */
 
-/*@import "./lib/css/utilities.postcss";*/
+/*@import "./lib/css/utilities.css";*/
 
-/*@import "./lib/css/body.postcss";*/
+/*@import "./lib/css/body.css";*/
 
 /* Import font styles */
 
@@ -12,14 +11,13 @@
 
 /* Import theme classes and styles */
 
-@import "$lib/themes/hkdev/debug.postcss";
-@import "$lib/themes/hkdev/globals.postcss";
-@import "$lib/themes/hkdev/components.postcss";
-@import "$lib/themes/hkdev/responsive.postcss";
+/*@import '$lib/themes/hkdev/debug.css';*/
+@import '$lib/themes/hkdev/globals.css';
+@import '$lib/themes/hkdev/components.css';
+@import '$lib/themes/hkdev/responsive.css';
 
 /* Insert tailwind classes and styles */
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-

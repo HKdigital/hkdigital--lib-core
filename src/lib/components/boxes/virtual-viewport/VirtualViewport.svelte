@@ -91,7 +91,7 @@
     scaleW = containerWidth / designWidth;
     scaleH = containerHeight / designHeight;
 
-    // Use the smaller ratio to ensure content fits (from vars.postcss)
+    // Use the smaller ratio to ensure content fits
     scaleViewport = Math.min(scaleW, scaleH);
 
     try {

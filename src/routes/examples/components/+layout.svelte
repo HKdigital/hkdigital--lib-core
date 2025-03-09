@@ -41,7 +41,7 @@
     if (typeof window !== 'undefined') {
       const windowSizeElement = document.getElementById('window-size');
       if (windowSizeElement) {
-        windowSizeElement.textBase = `${window.innerWidth}×${window.innerHeight}px`;
+        windowSizeElement.textContent = `${window.innerWidth}×${window.innerHeight}px`;
       }
     }
   }

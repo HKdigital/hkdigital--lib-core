@@ -26,17 +26,17 @@ export const VIEWPORT_POINT_SIZES = [
 ];
 
 export const TEXT_BASE_SIZES = {
-  sm: { size: 14, lineHeight: 1.5 },
-  md: { size: 16, lineHeight: 1.5 },
-  lg: { size: 18, lineHeight: 1.4 }
+  sm: { size: 14, lineHeight: 1.25 },
+  md: { size: 16, lineHeight: 1.25 },
+  lg: { size: 18, lineHeight: 1.25 }
 };
 
 export const TEXT_HEADING_SIZES = {
-  h1: { size: 32, lineHeight: 1.1 },
-  h2: { size: 28, lineHeight: 1.1 },
-  h3: { size: 24, lineHeight: 1.2 },
-  h4: { size: 20, lineHeight: 1.2 },
-  h5: { size: 16, lineHeight: 1.3 }
+  h1: { size: 32, lineHeight: 1.25 },
+  h2: { size: 28, lineHeight: 1.25 },
+  h3: { size: 24, lineHeight: 1.25 },
+  h4: { size: 20, lineHeight: 1.25 },
+  h5: { size: 16, lineHeight: 1.25 }
 };
 
 export const TEXT_UI_SIZES = {
