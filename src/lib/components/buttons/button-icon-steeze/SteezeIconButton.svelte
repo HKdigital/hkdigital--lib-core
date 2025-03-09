@@ -6,8 +6,8 @@
   /**
    * @type {{
    *   src: import('$lib/components/icons/typedef.js').IconSource,
-   *   size?: string,
-   *   subset?: string,
+   *   iconSize?: string,
+   *   theme?: string,
    *   [key: string]: any
    * }}
    */
@@ -15,7 +15,7 @@
     // Icon
     src,
     iconSize,
-    subset,
+    theme,
 
     // Snippets
     children,
@@ -26,5 +26,5 @@
 </script>
 
 <Button type="icon-steeze" {...attrs}>
-  <SteezeIcon {src} size={iconSize} {subset} />
+  <SteezeIcon {src} size={iconSize} {theme} />
 </Button>

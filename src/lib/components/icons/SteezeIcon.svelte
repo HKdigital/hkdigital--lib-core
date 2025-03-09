@@ -20,12 +20,12 @@
    * ----------
    * src - icon component
    * size - width and height of the icon as percentage (..%) or in pixels
-   * subset - name of the icon subset (e.g. 'solid' or 'outline')
+   * theme - name of the icon theme (e.g. 'solid' or 'outline')
    *
    * @type {{
    *   src: import('./typedef.js').IconSource,
    *   size?: string,
-   *   subset?: string,
+   *   theme?: string,
    *   base?: string,
    *   classes?: string
    * } & { [attr: string]: any }}
@@ -40,7 +40,7 @@
 
     // Functional
     src,
-    subset = 'default', // icon subset 'default'|'solid'|'outline'...
+    theme = 'default', // icon theme 'default'|'solid'|'outline'...
 
     // States
     // ...
@@ -53,7 +53,7 @@
   let icon = $state();
 
   $effect(() => {
-    icon = src?.[subset] ?? src?.['default'] ?? Object.values(src)?.[0];
+    icon = src?.[theme] ?? src?.['default'] ?? Object.values(src)?.[0];
   });
 
   // if (size !== '100%') {
