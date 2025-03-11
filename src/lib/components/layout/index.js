@@ -6,4 +6,6 @@ export {
 
 export { default as HkAppLayout } from './HkAppLayout.svelte';
 
-export { default as GridLayersLayout } from './GridLayersLayout.svelte';
+export { default as GameBox } from './game-box/GameBox.svelte';
+export { default as GridLayers } from './grid-layers/GridLayers.svelte';
+export { default as VirtualViewport } from './virtual-viewport/VirtualViewport.svelte';

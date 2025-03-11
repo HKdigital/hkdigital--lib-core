@@ -1,8 +1,8 @@
 <script>
-  import { GridLayersLayout } from '$lib/components/layout/index.js';
+  import { GridLayers } from '$lib/components/layout/index.js';
 </script>
 
-<GridLayersLayout classes="m-20up border w-[500px] h-[500px]">
+<GridLayers classes="m-20up border w-[500px] h-[500px]">
   <div class="justify-self-start self-start">
     <div class="bg-blue-500 w-[100px] h-[100px]">Top Left</div>
   </div>
@@ -34,10 +34,10 @@
       Bottom Right with margins
     </div>
   </div>
-</GridLayersLayout>
+</GridLayers>
 
-<GridLayersLayout classes="m-20up border w-[500px] h-[500px]">
+<GridLayers classes="m-20up border w-[500px] h-[500px]">
   <div class="justify-self-stretch">
     <div class="bg-blue-500 h-[100px]">Top Left</div>
   </div>
-</GridLayersLayout>
+</GridLayers>

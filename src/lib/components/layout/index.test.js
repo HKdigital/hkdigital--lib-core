@@ -5,7 +5,7 @@ import {
 	createOrGetAppLayoutState,
 	createAppLayoutState,
 	getAppLayoutState,
-	GridLayersLayout
+	GridLayers
 } from './index.js';
 
 describe('HkAppLayout', () => {
@@ -32,8 +32,8 @@ describe('getAppLayoutState', () => {
 	});
 });
 
-describe('GridLayersLayout', () => {
+describe('GridLayers', () => {
 	it('should be a component (function)', () => {
-		expect(typeof GridLayersLayout).toBe('function');
+		expect(typeof GridLayers).toBe('function');
 	});
 });

@@ -241,11 +241,11 @@
 		grid-area: 1 / 1 / 2 / 2; /* row-start, col-start, row-end, col-end */
 	}
 
-	:global(html:not(.no-scrollbar-shift-fix)) {
-		/*
+	/*
     * Shift contents of page to the left when scrollbar appears,
     * so content like tab bars stay centered
     */
+	/*:global(html:not(.no-scrollbar-shift-fix)) {
 		padding-left: calc(100vw - 100%);
-	}
+	}*/
 </style>
