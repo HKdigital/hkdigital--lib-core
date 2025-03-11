@@ -10,7 +10,7 @@
   <h1>Examples</h1>
 
   {#each data.folders as folder}
-    <li class="list-none">
+    <li class="list-none text-nowrap">
       <a
         onclick={() => {}}
         href={folder.path}

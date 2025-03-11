@@ -68,7 +68,7 @@
 
   <!-- Content text samples -->
   <div class="mb-20p">
-    <p class="text-content-sm mb-10p">
+    <p class="text-base-sm mb-10p">
       Small content text - Lorem ipsum dolor sit amet, consectetur adipiscing
       elit.
     </p>
@@ -76,7 +76,7 @@
       Base content text - Lorem ipsum dolor sit amet, consectetur adipiscing
       elit.
     </p>
-    <p class="text-content-lg mb-20p">
+    <p class="text-base-lg mb-20p">
       Large content text - Lorem ipsum dolor sit amet, consectetur adipiscing
       elit.
     </p>

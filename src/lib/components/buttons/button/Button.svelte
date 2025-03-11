@@ -7,7 +7,7 @@
    *   bg?: string,
    *   classes?: string,
    *   type?: string,
-   *   role?: 'primary' | 'secondary',
+   *   role?: 'primary' | 'secondary' | 'tertiary' | 'custom',
    *   size?: 'sm' | 'md' | 'lg',
    *   variant?: string,
    *   active?: boolean,

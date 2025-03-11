@@ -6,4 +6,4 @@ export {
 
 export { default as HkAppLayout } from './HkAppLayout.svelte';
 
-export { default as HkGridLayers } from './HkGridLayers.svelte';
+export { default as GridLayersLayout } from './GridLayersLayout.svelte';
