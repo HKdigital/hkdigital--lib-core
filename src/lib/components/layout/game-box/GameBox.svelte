@@ -103,12 +103,11 @@
     // Select the appropriate design based on orientation
     const activeDesign = isLandscape ? designLandscape : designPortrait;
 
-    // Log to help debug
-    console.debug(
-      `GameBox scaling [${isLandscape ? 'landscape' : 'portrait'}]:`,
-      `game: ${gameWidth}x${gameHeight}`,
-      `design: ${activeDesign.width}x${activeDesign.height}`
-    );
+    // console.debug(
+    //   `GameBox scaling [${isLandscape ? 'landscape' : 'portrait'}]:`,
+    //   `game: ${gameWidth}x${gameHeight}`,
+    //   `design: ${activeDesign.width}x${activeDesign.height}`
+    // );
 
     // Apply scaling with the current design based on orientation
     return enableContainerScaling({
