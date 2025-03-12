@@ -1,6 +1,6 @@
 <!-- +page.svelte -->
 <script>
-  import { CompareLeftRight } from '$lib/components/widgets/compare-left-right/index.js';
+  import { CompareLeftRight } from '$lib/widgets/compare-left-right/index.js';
 
   // Raw images
 

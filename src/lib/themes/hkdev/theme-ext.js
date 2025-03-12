@@ -1,6 +1,6 @@
 import theme from '../hkdev/theme.js';
 
-import { theme as themeStore } from '@hkdigital/lib-sveltekit/stores/index.js';
+import { theme as themeStore } from '$lib/stores/index.js';
 
 /**
  * Set meta them color for the current theme
