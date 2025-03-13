@@ -26,6 +26,12 @@ import { HkPromise } from '$lib/classes/promise/index.js';
  * @property {() => void} cancel - Function to return to the previous slide
  */
 
+/**
+ * @typedef {Object} PresenterRef
+ * @property {(name: string) => void} gotoSlide - Navigate to a slide by name
+ * @property {() => string} getCurrentSlideName - Get the current slide name
+ */
+
 /* -------------------------------------------------------------- Constants */
 
 const Z_BACK = 0;
@@ -94,6 +100,19 @@ export class PresenterState {
     this.#setupStageTransitions();
     this.#setupTransitionTracking();
     this.#setupLoadingTransitions();
+  }
+
+  /**
+   * Returns a simplified presenter reference with essential methods
+   * for slide components to use
+   *
+   * @returns {PresenterRef} A reference object with presenter methods
+   */
+  getPresenterRef() {
+    return {
+      gotoSlide: (name) => this.gotoSlide(name),
+      getCurrentSlideName: () => this.currentSlideName
+    };
   }
 
   /**
@@ -358,27 +377,31 @@ export class PresenterState {
 
     // Add controller function to slide props if it has a component
     if (slide.data?.component) {
+      // Get a presenter reference to pass to the slide
+      const presenterRef = this.getPresenterRef();
+
       // Create a copy of the slide to avoid mutating the original
-      const slideWithController = {
+      const slideWithExtras = {
         ...slide,
         data: {
           ...slide.data,
           props: {
             ...(slide.data.props || {}),
-            getLoadingController: () => this.getLoadingController()
+            getLoadingController: () => this.getLoadingController(),
+            presenter: presenterRef // Add presenter reference to props
           }
         }
       };
 
-      // Add next slide to next layer with controller included
-      this.#updateSlide(this.nextLayerLabel, slideWithController);
+      // Add next slide to next layer with controller and presenter included
+      this.#updateSlide(this.nextLayerLabel, slideWithExtras);
 
       // If a timeout is configured, automatically finish loading after delay
       if (this.loadingTimeout > 0) {
         setTimeout(() => {
           // Only auto-finish if the controller wasn't requested
           if (!this.controllerRequested && this.isSlideLoading) {
-            // console.log(
+            // console.debug(
             //   `Slide '${slide.name}' didn't request loading controller, auto-finishing.`
             // );
             this.finishSlideLoading();

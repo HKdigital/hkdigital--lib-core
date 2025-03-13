@@ -1,19 +1,17 @@
 <script>
   import { TextButton } from '$lib/components/buttons/index.js';
 
-  import { createOrGetPresenterState } from '$lib/widgets/presenter/index.js';
   import { SLIDE_HELLO } from '../slides.js';
 
-  // Props passed from slide configuration
-  /** @type {{
-    title?: string,
-    subtitle?: string,
-    getLoadingController?: () => { loaded: () => void, cancel: () => void }
-  }} */
-  let { title, subtitle, getLoadingController } = $props();
-
-  // Get presenter state
-  const presenter = createOrGetPresenterState();
+  /**
+   * @type {{
+   *   title?: string,
+   *   subtitle?: string,
+   *   presenter?: { gotoSlide: (name: string) => void, getCurrentSlideName: () => string },
+   *   getLoadingController?: () => { loaded: () => void, cancel: () => void }
+   * }}
+   */
+  let { title, subtitle, presenter, getLoadingController } = $props();
 
   // Navigate to previous slide
   function goBack() {

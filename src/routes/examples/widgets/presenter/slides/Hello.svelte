@@ -1,19 +1,23 @@
 <script>
   import { TextButton } from '$lib/components/buttons/index.js';
 
-  import { createOrGetPresenterState } from '$lib/widgets/presenter/index.js';
   import { SLIDE_WORLD } from '../slides.js';
 
-  // Props passed from slide configuration
-  /** @type {{title?: string, subtitle?: string}} */
-  const { title, subtitle } = $props();
+  /**
+   * @type {{
+   *   title?: string,
+   *   subtitle?: string,
+   *   presenter?: { gotoSlide: (name: string) => void, getCurrentSlideName: () => string },
+   *   getLoadingController?: () => { loaded: () => void, cancel: () => void }
+   * }}
+   */
+  let { title, subtitle, presenter, getLoadingController } = $props();
 
-  // Get presenter state
-  const presenter = createOrGetPresenterState();
-
-  // Navigate to next slide
-  function goToNext() {
-    presenter.gotoSlide(SLIDE_WORLD);
+  // Navigation using the presenter reference
+  function goToNextSlide() {
+    if (presenter) {
+      presenter.gotoSlide(SLIDE_WORLD);
+    }
   }
 </script>
 
@@ -28,6 +32,6 @@
       Click the button below to continue to the next slide.
     </p>
 
-    <TextButton role="primary" onclick={goToNext}>Next</TextButton>
+    <TextButton role="primary" onclick={goToNextSlide}>Next</TextButton>
   </div>
 </div>
