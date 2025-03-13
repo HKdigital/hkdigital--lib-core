@@ -8,7 +8,7 @@ export async function load() {
   try {
     const folders = await scanRouteFolders({
       dirPath: import.meta.dirname,
-      maxDepth: 1
+      maxDepth: 2
     });
     return { folders };
   } catch (err) {

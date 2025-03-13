@@ -1,15 +1,15 @@
 <script>
 	import { onMount, untrack } from 'svelte';
 
-	import ArmyGreen from '../assets/images/army-green.jpg?preset=gradient';
+	import ArmyGreen from '../../assets/images/army-green.jpg?preset=gradient';
 
-	import ElectricBlue from '../assets/images/electric-blue.jpg?preset=gradient';
+	import ElectricBlue from '../../assets/images/electric-blue.jpg?preset=gradient';
 
-	import { TransparentLines } from '../assets/images.js';
+	import { TransparentLines } from '../../assets/images.js';
 
 	// console.log('ElectricBlue', ElectricBlue);
 
-	import ImageBox from '$lib/components/image/ImageBox.svelte';
+	import { ImageBox } from '$lib/widgets/index.js';
 </script>
 
 <!-- Example that fits in an outer-box -->

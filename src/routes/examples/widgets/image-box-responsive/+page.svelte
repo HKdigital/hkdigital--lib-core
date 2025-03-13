@@ -1,6 +1,6 @@
 <script>
-  import ArmyGreenResponsive from '../assets/images/army-green.jpg?preset=gradient&responsive';
-  import ImageBox from '$lib/components/image/ImageBox.svelte';
+  import ArmyGreenResponsive from '../../assets/images/army-green.jpg?preset=gradient&responsive';
+  import { ImageBox } from '$lib/widgets/index.js';
 
   /** @type {import('$lib/classes/svelte/network-loader/typedef.js').LoadingProgress} */
   let progress = $state({ bytesLoaded: 0, size: 0, loaded: false });

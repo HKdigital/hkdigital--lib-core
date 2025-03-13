@@ -1,9 +1,9 @@
 <script>
   import { onMount, untrack } from 'svelte';
 
-  import { ArmyGreen, ElectricBlue } from '../assets/images.js';
+  import { ArmyGreen, ElectricBlue } from '../../assets/images.js';
 
-  import ImageBox from '$lib/components/image/ImageBox.svelte';
+  import { ImageBox } from '$lib/widgets/index.js';
 
   import ImageScene from '$lib/classes/svelte/image/ImageScene.svelte';
 

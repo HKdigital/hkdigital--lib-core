@@ -48,6 +48,7 @@
 
   onMount(() => {
     // Initialize the design scaling system
+    // const cleanup = () => {};
     const cleanup = enableScalingUI(DESIGN, CLAMPING);
 
     // Update debug values initially

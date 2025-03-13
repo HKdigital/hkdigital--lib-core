@@ -3,7 +3,7 @@
 </script>
 
 <section class="m-40up">
-  <h3 class="text-heading-h3 font-heading mb-10up">Examples</h3>
+  <h3 class="text-heading-h3 font-heading mb-10up">Components</h3>
 
   {#each data.folders as folder}
     <li class="list-none text-nowrap">

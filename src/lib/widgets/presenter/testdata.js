@@ -2,9 +2,9 @@ import {
   TRANSITION_CSS,
   FADE_IN,
   FADE_OUT
-} from '$lib/components/presenter/index.js';
+} from '$lib/widgets/presenter/index.js';
 
-/** @typedef {import('$lib/components/presenter/index.js').Slide} Slide */
+/** @typedef {import('$lib/widgets/presenter/index.js').Slide} Slide */
 
 /** @type {Slide[]} */
 export let slides = [

@@ -1,5 +1,5 @@
 <script>
-  import { ImageBox } from '$lib/components/image/index.js';
+  import { ImageBox } from '$lib/widgets/index.js';
 
   const { ...attrs } = $props();
 
