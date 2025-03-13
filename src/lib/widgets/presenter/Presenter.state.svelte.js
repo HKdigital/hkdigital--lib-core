@@ -20,6 +20,12 @@ import { HkPromise } from '$lib/classes/promise/index.js';
  * @typedef {import("./typedef").Layer} Layer
  */
 
+/**
+ * @typedef {Object} LoadController
+ * @property {() => void} loaded - Function to call when loading is complete
+ * @property {() => void} cancel - Function to return to the previous slide
+ */
+
 /* -------------------------------------------------------------- Constants */
 
 const Z_BACK = 0;
@@ -56,6 +62,15 @@ export class PresenterState {
   transitionPromises = $state.raw([]);
 
   /** @type {boolean} */
+  isSlideLoading = $state(false);
+
+  /** @type {boolean} */
+  controllerRequested = $state(false);
+
+  /** @type {number} Loading timeout in milliseconds (0 = disabled) */
+  loadingTimeout = $state(1000);
+
+  /** @type {boolean} */
   busy = $derived.by(() => {
     const { layerA, layerB } = this;
     const layerAStable =
@@ -78,6 +93,7 @@ export class PresenterState {
   constructor() {
     this.#setupStageTransitions();
     this.#setupTransitionTracking();
+    this.#setupLoadingTransitions();
   }
 
   /**
@@ -143,6 +159,38 @@ export class PresenterState {
   }
 
   /**
+   * Set up reactivity to start transitions after component loading is complete
+   */
+  #setupLoadingTransitions() {
+    $effect(() => {
+      // Only start transitions when loading is complete and we have a next slide
+      if (!this.isSlideLoading && this.#getSlide(this.nextLayerLabel)) {
+        const currentSlide = this.#getSlide(this.currentLayerLabel);
+        const nextSlide = this.#getSlide(this.nextLayerLabel);
+
+        // Prepare the next layer for its entrance transition
+        this.#updateLayer(this.nextLayerLabel, {
+          z: Z_FRONT,
+          visible: true,
+          stageBeforeIn: true,
+          transitions: nextSlide?.intro ?? []
+        });
+
+        // Prepare the current layer for its exit transition
+        this.#updateLayer(this.currentLayerLabel, {
+          z: Z_BACK,
+          visible: true,
+          stageBeforeOut: true,
+          transitions: currentSlide?.outro ?? []
+        });
+
+        // Start transitions
+        this.#applyTransitions();
+      }
+    });
+  }
+
+  /**
    * Execute the transition by waiting for all promises and then
    * completing the transition
    *
@@ -196,6 +244,48 @@ export class PresenterState {
       this.currentLayerLabel = LABEL_A;
       this.nextLayerLabel = LABEL_B;
     }
+  }
+
+  /**
+   * Mark the slide as loaded, which triggers transitions to begin
+   */
+  finishSlideLoading() {
+    this.isSlideLoading = false;
+  }
+
+  /**
+   * Returns a controller object for managing manual loading
+   * Components can use this to signal when they're done loading
+   * or to cancel and go back to the previous slide
+   *
+   * @returns {LoadController} Object with loaded() and cancel() methods
+   */
+  getLoadingController() {
+    // Mark that the controller was requested
+    this.controllerRequested = true;
+
+    return {
+      /**
+       * Call when component has finished loading
+       */
+      loaded: () => {
+        this.finishSlideLoading();
+      },
+
+      /**
+       * Call to cancel loading and return to previous slide
+       */
+      cancel: () => {
+        // Return to previous slide if available
+        const currentSlideName = this.currentSlideName;
+        if (currentSlideName) {
+          this.gotoSlide(currentSlideName);
+        } else if (this.slides.length > 0) {
+          // Fallback to first slide if no current slide
+          this.gotoSlide(this.slides[0].name);
+        }
+      }
+    };
   }
 
   /**
@@ -260,30 +350,53 @@ export class PresenterState {
       throw new Error('Transition in progress');
     }
 
-    // Add next slide to next layer
-    this.#updateSlide(this.nextLayerLabel, slide);
+    // Reset controller requested flag
+    this.controllerRequested = false;
 
-    const currentSlide = this.#getSlide(this.currentLayerLabel);
-    const nextSlide = this.#getSlide(this.nextLayerLabel);
+    // Set loading state to true before starting transition
+    this.isSlideLoading = true;
 
-    // Make next layer visible, move to front, and prepare for transition in
+    // Add controller function to slide props if it has a component
+    if (slide.data?.component) {
+      // Create a copy of the slide to avoid mutating the original
+      const slideWithController = {
+        ...slide,
+        data: {
+          ...slide.data,
+          props: {
+            ...(slide.data.props || {}),
+            getLoadingController: () => this.getLoadingController()
+          }
+        }
+      };
+
+      // Add next slide to next layer with controller included
+      this.#updateSlide(this.nextLayerLabel, slideWithController);
+
+      // If a timeout is configured, automatically finish loading after delay
+      if (this.loadingTimeout > 0) {
+        setTimeout(() => {
+          // Only auto-finish if the controller wasn't requested
+          if (!this.controllerRequested && this.isSlideLoading) {
+            // console.log(
+            //   `Slide '${slide.name}' didn't request loading controller, auto-finishing.`
+            // );
+            this.finishSlideLoading();
+          }
+        }, this.loadingTimeout);
+      }
+    } else {
+      // No component, so just use the slide as is
+      this.#updateSlide(this.nextLayerLabel, slide);
+      // No component to load, so finish loading immediately
+      this.finishSlideLoading();
+    }
+
+    // Make next layer visible, move to front
     this.#updateLayer(this.nextLayerLabel, {
       z: Z_FRONT,
-      visible: true,
-      stageBeforeIn: true,
-      transitions: nextSlide?.intro ?? []
+      visible: true
     });
-
-    // Move current layer to back, keep visible, and prepare for transition out
-    this.#updateLayer(this.currentLayerLabel, {
-      z: Z_BACK,
-      visible: true,
-      stageBeforeOut: true,
-      transitions: currentSlide?.outro ?? []
-    });
-
-    // Start transitions
-    this.#applyTransitions();
   }
 
   /**
