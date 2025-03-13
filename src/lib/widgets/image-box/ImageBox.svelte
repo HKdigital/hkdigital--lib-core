@@ -14,7 +14,7 @@
 	 *   overflow?: string,
 	 *   fit?: 'contain' | 'cover' | 'fill',
 	 *   position?: string,
-	 *   imageMeta: import('$lib/config/typedef.js').ImageMeta | import('$lib/config/typedef.js').ImageMeta[],
+	 *   imageMeta?: import('$lib/config/typedef.js').ImageMeta | import('$lib/config/typedef.js').ImageMeta[],
 	 *   imageLoader?: import('$lib/classes/svelte/image/index.js').ImageLoader,
 	 *   alt?: string,
 	 *   onProgress?: (progress: import('$lib/classes/svelte/network-loader/typedef.js').LoadingProgress) => void,
@@ -49,9 +49,9 @@
 		...attrs
 	} = $props();
 
-	if (!imageMeta) {
-		throw new Error('Missing [imageMeta]');
-	}
+	// if (!imageMeta) {
+	// 	throw new Error('Missing [imageMeta]');
+	// }
 
 	/** @type {HTMLDivElement|undefined} */
 	let containerElem = $state();
