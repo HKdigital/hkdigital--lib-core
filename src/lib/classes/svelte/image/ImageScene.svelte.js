@@ -1,253 +1,120 @@
-/** @typedef {import('./typedef.js').ImageMeta} ImageMeta */
-
-import * as expect from '$lib/util/expect/index.js';
-
-import {
-  LoadingStateMachine,
-  STATE_INITIAL,
-  STATE_LOADING,
-  STATE_UNLOADING,
-  STATE_LOADED,
-  STATE_CANCELLED,
-  STATE_ERROR,
-  LOAD,
-  // CANCEL,
-  ERROR,
-  LOADED,
-  UNLOAD,
-  INITIAL
-} from '$lib/classes/svelte/loading-state-machine/index.js';
-
-import ImageLoader from '$lib/classes/svelte/image/ImageLoader.svelte.js';
-
 /**
- * @typedef {object} SourceConfig
- * // property ...
+ * A simple class to preload and manage images for a scene
+ *
+ * @typedef {import('$lib/config/typedef.js').ImageMeta} ImageMeta
  */
-
-/**
- * @typedef {object} ImageSource
- * @property {string} label
- * @property {ImageLoader} imageLoader
- * @property {ImageMeta} [imageMeta]
- */
+import { ImageLoader } from '$lib/classes/svelte/image/index.js';
 
 export default class ImageScene {
-  #state = new LoadingStateMachine();
+  /** @type {Map<string, ImageLoader>} */
+  #loaders = $state.raw(new Map());
 
-  // @note this exported state is set by $effect's
-  state = $state(STATE_INITIAL);
+  /** @type {boolean} */
+  #loading = $state(false);
 
-  // @note this exported state is set by $effect's
-  loaded = $derived.by(() => {
-    return this.state === STATE_LOADED;
-  });
+  /** @type {boolean} */
+  #loaded = $state(false);
 
-  /** @type {ImageSource[]} */
-  #imageSources = $state([]);
-
-  #progress = $derived.by(() => {
-    // console.log('update progress');
-
-    let totalSize = 0;
-    let totalBytesLoaded = 0;
-    let sourcesLoaded = 0;
-
-    const sources = this.#imageSources;
-    const numberOfSources = sources.length;
-
-    for (let j = 0; j < numberOfSources; j++) {
-      const source = sources[j];
-      const { imageLoader } = source;
-
-      const { bytesLoaded, size, loaded } = imageLoader.progress;
-
-      totalSize += size;
-      totalBytesLoaded += bytesLoaded;
-
-      if (loaded) {
-        sourcesLoaded++;
-      }
-    } // end for
-
-    return {
-      totalBytesLoaded,
-      totalSize,
-      sourcesLoaded,
-      numberOfSources
-    };
-  });
+  /** @type {{ bytesLoaded: number, size: number, loaded: boolean }} */
+  #progress = $state({ bytesLoaded: 0, size: 0, loaded: false });
 
   /**
-   * Construct ImageScene
-   */
-  constructor() {
-    const state = this.#state;
-
-    $effect(() => {
-      if (state.current === STATE_LOADING) {
-        // console.log(
-        //   'progress',
-        //   JSON.stringify($state.snapshot(this.#progress))
-        // );
-
-        const { sourcesLoaded, numberOfSources } = this.#progress;
-
-        if (sourcesLoaded === numberOfSources) {
-          // console.log(`All [${numberOfSources}] sources loaded`);
-          this.#state.send(LOADED);
-        }
-      }
-    });
-
-    $effect(() => {
-      switch (state.current) {
-        case STATE_LOADING:
-          {
-            // console.log('ImageScene:loading');
-            this.#startLoading();
-          }
-          break;
-
-        case STATE_UNLOADING:
-          {
-            // console.log('ImageScene:unloading');
-            // this.#startUnLoading();
-          }
-          break;
-
-        case STATE_LOADED:
-          {
-            // console.log('ImageScene:loaded');
-            // TODO
-            // this.#abortLoading = null;
-          }
-          break;
-
-        case STATE_CANCELLED:
-          {
-            // console.log('ImageScene:cancelled');
-            // TODO
-          }
-          break;
-
-        case STATE_ERROR:
-          {
-            console.log('ImageScene:error', state.error);
-          }
-          break;
-      } // end switch
-
-      this.state = state.current;
-    });
-  }
-
-  destroy() {
-    // TODO: disconnect all image sources?
-    // TODO: Unload ImageLoaders?
-  }
-
-  /**
-   * Add image source
-   * - Uses an ImageLoader instance to load image data from network
+   * Define an image to be managed by this scene
    *
-   * @param {object} _
-   * @param {string} _.label
-   * @param {ImageMeta|ImageMeta[]} _.imageMeta
+   * @param {object} params
+   * @param {string} params.label - Unique identifier for the image
+   * @param {ImageMeta|ImageMeta[]} params.imageMeta - Image metadata (single or variants)
    */
   defineImage({ label, imageMeta }) {
-    expect.notEmptyString(label);
-
-    // expect.notEmptyString(url);
-
-    const imageLoader = new ImageLoader({ imageMeta });
-
-    this.#imageSources.push({ label, imageLoader, imageMeta });
+    // Create loader for this image
+    const loader = new ImageLoader({ imageMeta });
+    this.#loaders.set(label, loader);
   }
 
   /**
-   * Start loading all image sources
+   * Start loading all defined images
    */
   load() {
-    this.#state.send(LOAD);
+    if (this.#loading || this.#loaded) return;
 
-    // FIXME: in unit test when moved to startloading it hangs!
+    this.#loading = true;
 
-    for (const { imageLoader } of this.#imageSources) {
-      imageLoader.load();
+    // Start loading all images
+    for (const loader of this.#loaders.values()) {
+      loader.load();
     }
-  }
 
-  async #startLoading() {
-    // console.log('#startLoading');
-    // FIXME: in unit test when moved to startloading it hangs!
-    // for (const { audioLoader } of this.#memorySources) {
-    //   audioLoader.load();
-    // }
-  }
+    // Track overall loading progress
+    $effect(() => {
+      if (this.#loaders.size === 0) return;
 
-  /**
-   * Get Image source
-   *
-   * @param {string} label
-   *
-   * @returns {ImageSource}
-   */
-  #getImageSource(label) {
-    for (const source of this.#imageSources) {
-      if (label === source.label) {
-        return source;
+      let totalBytesLoaded = 0;
+      let totalSize = 0;
+      let allLoaded = true;
+
+      for (const loader of this.#loaders.values()) {
+        const progress = loader.progress;
+
+        totalBytesLoaded += progress.bytesLoaded;
+        totalSize += progress.size || 0;
+
+        if (!progress.loaded) {
+          allLoaded = false;
+        }
       }
-    }
 
-    throw new Error(`Source [${label}] has not been defined`);
+      this.#progress = {
+        bytesLoaded: totalBytesLoaded,
+        size: totalSize,
+        loaded: allLoaded
+      };
+
+      if (allLoaded && this.#loading) {
+        this.#loaded = true;
+      }
+    });
   }
 
   /**
-   * Get image scene loading progress
+   * Unload all images and free resources
+   */
+  unload() {
+    for (const loader of this.#loaders.values()) {
+      loader.unload();
+    }
+
+    this.#loading = false;
+    this.#loaded = false;
+  }
+
+  /**
+   * Get the image loader for a specific label
+   *
+   * @param {string} label - Image identifier
+   * @returns {ImageLoader|null} The image loader or null if not found
+   */
+  getImageLoader(label) {
+    return this.#loaders.get(label) || null;
+  }
+
+  /**
+   * Check if the scene is currently loading
+   */
+  get loading() {
+    return this.#loading;
+  }
+
+  /**
+   * Check if all images in the scene are loaded
+   */
+  get loaded() {
+    return this.#loaded;
+  }
+
+  /**
+   * Get the current loading progress
    */
   get progress() {
     return this.#progress;
-  }
-
-  /**
-   * Get an image loader
-   *
-   * @param {string} label
-   *
-   * @returns {ImageLoader}
-   */
-  getImageLoader(label) {
-    const source = this.#getImageSource(label);
-
-    return source.imageLoader;
-  }
-
-  /**
-   * Get object URL that can be used as src parameter of an HTML image
-   *
-   * @param {string} label
-   *
-   * @returns {ImageMeta}
-   */
-  getImageMeta(label) {
-    const source = this.#getImageSource(label);
-
-    return source.imageMeta;
-  }
-
-  /**
-   * Get object URL that can be used as src parameter of an HTML image
-   *
-   * @param {string} label
-   *
-   * @note the objectURL should be revoked when no longer used
-   *
-   * @returns {string}
-   */
-  getObjectURL(label) {
-    const source = this.#getImageSource(label);
-
-    return source.imageLoader.getObjectURL();
   }
 }

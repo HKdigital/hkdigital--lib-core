@@ -1,11 +1,7 @@
 /** @typedef {import('./typedef.js').ImageMeta} ImageMeta */
 
-// import * as expect from '$lib/util/expect/index.js';
-
 import { calculateEffectiveWidth } from '$lib/util/image/index.js';
-
 import { untrack } from 'svelte';
-
 import ImageLoader from './ImageLoader.svelte.js';
 
 export default class ImageVariantsLoader {
@@ -21,22 +17,32 @@ export default class ImageVariantsLoader {
   /** @type {ImageLoader|null} */
   #imageLoader = $state(null);
 
-  #progress = $derived.by(() => {
-    if (this.#imageLoader) {
-      return this.#imageLoader.progress;
-    } else {
-      return { bytesLoaded: 0, size: 0, loaded: false };
-    }
-  });
+  /** @type {boolean} */
+  #isObjectUrlCreated = $state(false);
 
-  #loaded = $derived.by(() => this.#progress?.loaded || false);
+  /** @type {boolean} */
+  #variantLoaded = $state(false);
 
-  /**
-   * @param {ImageMeta[]} imagesMeta
-   */
+  /** @type {Object} */
+  #baseProgress = $state({ bytesLoaded: 0, size: 0, loaded: false });
+
   constructor(imagesMeta, { devicePixelRatio = 1 } = {}) {
     this.#devicePixelRatio = devicePixelRatio ?? 1;
     this.#imagesMeta = [...imagesMeta].sort((a, b) => a.width - b.width);
+
+    // Track the imageLoader's progress
+    $effect(() => {
+      if (this.#imageLoader) {
+        // Store the base progress from the loader
+        this.#baseProgress = this.#imageLoader.progress;
+
+        // When the base image is loaded, we can say variant is loaded
+        // if an object URL has been created
+        if (this.#baseProgress.loaded && this.#isObjectUrlCreated) {
+          this.#variantLoaded = true;
+        }
+      }
+    });
   }
 
   /**
@@ -67,7 +73,11 @@ export default class ImageVariantsLoader {
     ) {
       this.#imageVariant = newVariant;
 
-      // Create and start loader here directly when variant changes
+      // Reset our loaded flags when changing variants
+      this.#isObjectUrlCreated = false;
+      this.#variantLoaded = false;
+
+      // Clean up and create a new loader
       if (this.#imageLoader?.initial) {
         this.#imageLoader.unload();
       }
@@ -81,7 +91,7 @@ export default class ImageVariantsLoader {
   }
 
   get loaded() {
-    return this.#loaded;
+    return this.#variantLoaded;
   }
 
   get variant() {
@@ -96,31 +106,38 @@ export default class ImageVariantsLoader {
    * @returns {string|null}
    */
   getObjectURL() {
-    // Example usage:
-    //
-    // $effect(() => {
-    //   if (variantsLoader.loaded) {
-    //     // @ts-ignore
-    //     imageUrl = variantsLoader.getObjectURL();
-    //   }
+    if (!this.#imageLoader) {
+      return null;
+    }
 
-    //   return () => {
-    //     if (imageUrl) {
-    //       URL.revokeObjectURL(imageUrl);
-    //       imageUrl = null;
-    //     }
-    //   };
-    // });
+    const blob = this.#imageLoader.getBlob();
 
-    const blob = this.#imageLoader?.getBlob();
+    if (!blob) {
+      return null;
+    }
 
-    const url = blob ? URL.createObjectURL(blob) : null;
+    // Get the URL
+    const url = URL.createObjectURL(blob);
+
+    // Mark that we've successfully created an object URL
+    this.#isObjectUrlCreated = true;
+
+    // If the underlying loader is also loaded, we can consider
+    // the whole variant loaded
+    if (this.#baseProgress.loaded) {
+      this.#variantLoaded = true;
+    }
 
     return url;
   }
 
   get progress() {
-    return this.#progress;
+    // Only return loaded:true in the progress when we're fully loaded
+    return {
+      bytesLoaded: this.#baseProgress.bytesLoaded,
+      size: this.#baseProgress.size,
+      loaded: this.#variantLoaded
+    };
   }
 
   /**
@@ -141,7 +158,6 @@ export default class ImageVariantsLoader {
     const imagesMeta = this.#imagesMeta;
 
     // Find the smallest image that's larger than our required width
-
     const optimal = imagesMeta.find(
       (current) => current.width >= requiredWidth
     );
@@ -149,4 +165,4 @@ export default class ImageVariantsLoader {
     // Fall back to the largest image if nothing is big enough
     return optimal || imagesMeta[imagesMeta.length - 1];
   }
-} // end class
+}
