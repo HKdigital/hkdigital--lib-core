@@ -1,100 +1,111 @@
 <script>
-  import { onMount, onDestroy } from 'svelte';
-  import { ImageBox } from '$lib/widgets/index.js';
+  import { onMount, untrack } from 'svelte';
+
   import { ArmyGreen, ElectricBlue } from '../../assets/images.js';
+
+  import { ImageBox } from '$lib/widgets/index.js';
+
   import ImageScene from '$lib/classes/svelte/image/ImageScene.svelte';
 
-  // Image labels as constants for better maintainability
   const ARMY_GREEN = 'army-green';
   const ELECTRIC_BLUE = 'electric-blue';
 
-  // Create and configure the image scene
-  let imageScene = $state(new ImageScene());
+  /** @type {ImageScene|null} */
+  let imageScene = $state(null);
 
-  // Loading state
-  let loadingProgress = $state(0);
+  onMount(async () => {
+    console.log('ArmyGreen', ArmyGreen);
+    console.log('ElectricBlue', ElectricBlue);
 
-  // Set up the scene when component mounts
-  onMount(() => {
-    // Define images that will be used in the scene
-    imageScene.defineImage({ label: ARMY_GREEN, imageMeta: ArmyGreen });
-    imageScene.defineImage({ label: ELECTRIC_BLUE, imageMeta: ElectricBlue });
+    //
+    // Create image scene, define images and start loading
+    //
+    if (!imageScene) {
+      imageScene = new ImageScene();
 
-    // Start loading all images
-    imageScene.load();
-  });
+      // Define image sources
 
-  // Clean up when component is destroyed
-  onDestroy(() => {
-    if (imageScene) {
-      imageScene.unload();
+      imageScene.defineImage({ label: ARMY_GREEN, imageMeta: ArmyGreen });
+
+      imageScene.defineImage({ label: ELECTRIC_BLUE, imageMeta: ElectricBlue });
+
+      imageScene.load();
     }
   });
 
-  // Track loading progress
   $effect(() => {
-    if (imageScene?.progress) {
-      const { bytesLoaded, size } = imageScene.progress;
-      if (size > 0) {
-        loadingProgress = Math.round((bytesLoaded / size) * 100);
-      }
+    //
+    // Debug: image scene loaded
+    //
+    if (imageScene?.loaded) {
+      console.log('Scene loaded!');
     }
+  });
+
+  $effect(() => {
+    //
+    // Debug image scene progress
+    //
+    if (imageScene?.progress) {
+      console.log('Progress', imageScene?.progress);
+    }
+  });
+
+  // svelte-ignore non_reactive_update
+  let armyGreenUrl;
+
+  // svelte-ignore non_reactive_update
+  let electricBlueUrl;
+
+  $effect(() => {
+    //
+    // Update and destroy object url's in test width plain IMG elements
+    //
+    if (imageScene?.loaded) {
+      armyGreenUrl = imageScene.getObjectURL(ARMY_GREEN);
+      electricBlueUrl = imageScene.getObjectURL(ELECTRIC_BLUE);
+    }
+
+    return () => {
+      if (armyGreenUrl) {
+        URL.revokeObjectURL(armyGreenUrl);
+        armyGreenUrl = undefined;
+      }
+
+      if (electricBlueUrl) {
+        URL.revokeObjectURL(electricBlueUrl);
+        electricBlueUrl = undefined;
+      }
+    };
   });
 </script>
 
-<!-- Loading indicator shown while images are being loaded -->
-{#if !imageScene.loaded}
-  <div
-    class="fixed inset-0 flex items-center justify-center bg-surface-950/80 z-50 text-white"
-  >
-    <div class="bg-surface-800 p-20up rounded-md text-center">
-      <h2 class="text-heading-h2 font-heading mb-8ht">Loading Images</h2>
-      <div
-        class="w-[200px] h-[10px] bg-surface-600 rounded-full overflow-hidden mb-8bt"
-      >
-        <div
-          class="h-full bg-primary-500 transition-all duration-200"
-          style:width="{loadingProgress}%"
-        ></div>
-      </div>
-      <p class="text-base-md">{loadingProgress}%</p>
-    </div>
-  </div>
+{#if imageScene}
+  <ImageBox
+    imageLoader={imageScene.getImageLoader(ARMY_GREEN)}
+    fit="contain"
+    position="center center"
+    width="w-[200px]"
+    height="h-[200px]"
+    classes="border-8 border-green-500"
+  />
+
+  <ImageBox
+    imageLoader={imageScene.getImageLoader(ELECTRIC_BLUE)}
+    fit="contain"
+    position="center center"
+    width="w-[200px]"
+    height="h-[200px]"
+    classes="border-8 border-green-500"
+  />
 {/if}
-
-<!-- Main content shown when images are loaded -->
-<div
-  class="{imageScene.loaded
-    ? 'opacity-100'
-    : 'opacity-0'} transition-opacity duration-500"
->
-  <div class="p-20up flex flex-col md:flex-row gap-20up">
-    <!-- First image -->
-    <div class="w-full md:w-1/2">
-      <h3 class="text-heading-h3 font-heading mb-8ht">Army Green</h3>
-      {#if imageScene.loaded}
-        <ImageBox
-          imageLoader={imageScene.getImageLoader(ARMY_GREEN)}
-          fit="cover"
-          position="center center"
-          height="h-[300px]"
-          classes="border-4 border-green-500"
-        />
-      {/if}
-    </div>
-
-    <!-- Second image -->
-    <div class="w-full md:w-1/2">
-      <h3 class="text-heading-h3 font-heading mb-8ht">Electric Blue</h3>
-      {#if imageScene.loaded}
-        <ImageBox
-          imageLoader={imageScene.getImageLoader(ELECTRIC_BLUE)}
-          fit="cover"
-          position="center center"
-          height="h-[300px]"
-          classes="border-4 border-blue-500"
-        />
-      {/if}
-    </div>
-  </div>
-</div>
+{#if imageScene?.loaded}
+  {#if armyGreenUrl}
+    <!-- svelte-ignore a11y_missing_attribute -->
+    <img src={armyGreenUrl} width="200px" />
+  {/if}
+  {#if electricBlueUrl}
+    <!-- svelte-ignore a11y_missing_attribute -->
+    <img src={electricBlueUrl} width="200px" />
+  {/if}
+{/if}
