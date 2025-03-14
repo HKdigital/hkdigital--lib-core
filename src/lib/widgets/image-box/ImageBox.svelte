@@ -17,8 +17,7 @@
 	 *   imageMeta?: import('$lib/config/typedef.js').ImageMeta | import('$lib/config/typedef.js').ImageMeta[],
 	 *   imageLoader?: import('$lib/classes/svelte/image/index.js').ImageLoader,
 	 *   alt?: string,
-	 *   id?: string | Symbol,
-	 *   onProgress?: (progress: import('$lib/classes/svelte/network-loader/typedef.js').LoadingProgress, id?: string | Symbol) => void,
+	 *   onProgress?: (progress: import('$lib/classes/svelte/network-loader/typedef.js').LoadingProgress) => void,
 	 *   [attr: string]: any
 	 * }}
 	 */
@@ -43,9 +42,6 @@
 		// Accessibility
 		alt = '',
 
-		// Component identification
-		id = Symbol('ImageBox'),
-
 		// Events
 		onProgress,
 
@@ -54,7 +50,7 @@
 	} = $props();
 
 	// if (!imageMeta) {
-	//  throw new Error('Missing [imageMeta]');
+	// 	throw new Error('Missing [imageMeta]');
 	// }
 
 	/** @type {HTMLDivElement|undefined} */
@@ -91,11 +87,11 @@
 
 		// Report progress from variants loader
 		if (variantsLoader) {
-			onProgress(variantsLoader.progress, id);
+			onProgress(variantsLoader.progress);
 		}
 		// Report progress from single image loader
 		else if (imageLoader_) {
-			onProgress(imageLoader_.progress, id);
+			onProgress(imageLoader_.progress);
 		}
 	});
 
