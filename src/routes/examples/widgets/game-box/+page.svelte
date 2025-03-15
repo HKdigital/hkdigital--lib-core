@@ -5,7 +5,11 @@
 </script>
 
 <GameBox
-  classes="border-4 border-red-500"
+  classes="border-4 border-red-500 ml-[20px] mt-[20px]"
+  marginLeft={20}
+  marginRight={20}
+  marginTop={20}
+  marginBottom={20}
   aspectOnLandscape={16 / 9}
   aspectOnPortrait={1 / 1}
   designLandscape={DESIGN}

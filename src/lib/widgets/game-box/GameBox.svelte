@@ -39,6 +39,12 @@
     aspectOnLandscape,
     aspectOnPortrait,
 
+    marginLeft = 0,
+    marginRight = 0,
+
+    marginTop = 0,
+    marginBottom = 0,
+
     // > Scaling options
     enableScaling = false,
     designLandscape = { width: 1920, height: 1080 },
@@ -69,19 +75,22 @@
   $effect(() => {
     if (!windowWidth || !windowHeight) return;
 
+    const availWidth = windowWidth - marginLeft - marginRight;
+    const availHeight = windowHeight - marginTop - marginBottom;
+
     let gameAspect;
 
-    if (windowWidth > windowHeight) {
+    if (availWidth > availHeight) {
       gameWidth = getGameWidthOnLandscape({
-        windowWidth,
-        windowHeight,
+        windowWidth: availWidth,
+        windowHeight: availHeight,
         aspectOnLandscape
       });
       gameAspect = aspectOnLandscape;
     } else {
       gameWidth = getGameWidthOnPortrait({
-        windowWidth,
-        windowHeight,
+        windowWidth: availWidth,
+        windowHeight: availHeight,
         aspectOnPortrait
       });
       gameAspect = aspectOnPortrait;
@@ -90,7 +99,7 @@
     if (gameAspect) {
       gameHeight = gameWidth / gameAspect;
     } else {
-      gameHeight = windowHeight;
+      gameHeight = availHeight;
     }
   });
 
