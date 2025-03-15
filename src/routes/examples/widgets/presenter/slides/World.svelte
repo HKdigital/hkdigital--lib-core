@@ -51,7 +51,7 @@
   async function progressListener(progress, id) {
     // console.log('loadingProgress', { ...progress, id });
     if (progress.loaded && !show) {
-      await delay(500);
+      await delay(1500);
       show = true;
       console.log('controller', controller);
       controller?.loaded();

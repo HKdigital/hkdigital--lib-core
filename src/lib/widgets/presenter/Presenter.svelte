@@ -50,8 +50,6 @@
 
   // > Create presenter state object and register using setContext
 
-  console.log('checkpoint 1');
-
   // FIXME: Using getPresenterState to force creation of presenter outside
   //        the component. Otherwise transitions doe not work somehow..
   presenter = getPresenterState(instanceKey);
@@ -135,7 +133,7 @@
     </div>
   </div>
 
-  {#if loadingSnippet && presenter.isSlideLoading}
+  {#if loadingSnippet && presenter.loadingSpinner}
     <div class="h-full w-full" style="z-index:20;">
       {@render loadingSnippet()}
     </div>

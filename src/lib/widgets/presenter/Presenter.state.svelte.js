@@ -76,6 +76,9 @@ export class PresenterState {
   isSlideLoading = $state(false);
 
   /** @type {boolean} */
+  loadingSpinner = $state(false);
+
+  /** @type {boolean} */
   busy = $derived.by(() => {
     const { layerA, layerB, isSlideLoading } = this;
 
@@ -98,7 +101,26 @@ export class PresenterState {
    */
   constructor() {
     this.#setupStageTransitions();
-    // this.#setupTransitionTracking();
+
+    let timeout;
+
+    $effect((slideLoadingPromise) => {
+      if (this.isSlideLoading) {
+        // Enable spinner after a short delay
+        clearTimeout(timeout);
+        setTimeout(() => {
+          untrack(() => {
+            if (this.isSlideLoading) {
+              this.loadingSpinner = true;
+            } else {
+              this.loadingSpinner = false;
+            }
+          });
+        }, 500);
+      } else {
+        this.loadingSpinner = false;
+      }
+    });
   }
 
   /**

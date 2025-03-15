@@ -8,6 +8,7 @@
 
   import { slides } from './config/slides.js';
   import { SLIDE_HELLO, SLIDE_WORLD } from './config/labels.js';
+  import { fade } from 'svelte/transition';
 
   // @note due to an issue; create the presenter state outside of the component
   //       or transitions dont work...
@@ -40,7 +41,18 @@
   {/snippet}
 
   {#snippet loadingSnippet()}
-    <div class="absolute inset-0">Loading...</div>
+    <div
+      class="absolute inset-0 bg-white opacity-50 grid"
+      transition:fade={{ duration: 500 }}
+    >
+      <div
+        class="justify-self-center self-center inline-block h-50up w-50up animate-spin rounded-full border-width-thick border-solid border-black border-t-transparent"
+        role="status"
+        aria-label="Laden"
+      >
+        <span class="sr-only">Laden...</span>
+      </div>
+    </div>
   {/snippet}
 </Presenter>
 

@@ -7,7 +7,15 @@ import {
 /** @typedef {import('$lib/widgets/presenter/typedef.js').Transition} Transition */
 
 /** @type {Transition[]} */
-export const DEFAULT_INTRO = [
+export const INTRO_FADE_IN = [
+  {
+    type: FADE_IN,
+    duration: 1000
+  }
+];
+
+/** @type {Transition[]} */
+export const INTRO_FADE_IN_SLIDE_UP = [
   {
     type: FADE_IN,
     duration: 1000
@@ -23,7 +31,7 @@ export const DEFAULT_INTRO = [
 ];
 
 /** @type {Transition[]} */
-export const DEFAULT_OUTRO = [
+export const OUTRO_FADE_OUT = [
   {
     type: FADE_OUT,
     duration: 1000

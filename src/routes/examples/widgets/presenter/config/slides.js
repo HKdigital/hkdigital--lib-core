@@ -2,7 +2,11 @@ import Hello from '../slides/Hello.svelte';
 import World from '../slides/World.svelte';
 
 import { SLIDE_HELLO, SLIDE_WORLD } from './labels.js';
-import { DEFAULT_INTRO, DEFAULT_OUTRO } from './transitions.js';
+import {
+  INTRO_FADE_IN,
+  INTRO_FADE_IN_SLIDE_UP,
+  OUTRO_FADE_OUT
+} from './transitions.js';
 
 /** @typedef {import('$lib/widgets/presenter/index.js').Slide} Slide */
 
@@ -17,8 +21,8 @@ export let slides = [
         subtitle: 'Welcome to this presentation'
       }
     },
-    intro: DEFAULT_INTRO,
-    outro: DEFAULT_OUTRO
+    intro: INTRO_FADE_IN_SLIDE_UP,
+    outro: OUTRO_FADE_OUT
   },
   {
     name: SLIDE_WORLD,
@@ -29,7 +33,7 @@ export let slides = [
         subtitle: 'The journey continues...'
       }
     },
-    intro: DEFAULT_INTRO,
-    outro: DEFAULT_OUTRO
+    intro: INTRO_FADE_IN,
+    outro: OUTRO_FADE_OUT
   }
 ];
