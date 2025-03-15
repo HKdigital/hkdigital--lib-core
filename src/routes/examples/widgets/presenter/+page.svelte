@@ -5,18 +5,20 @@
     Presenter,
     createOrGetPresenterState
   } from '$lib/widgets/presenter/index.js';
-  import { slides } from './slides.js';
+
+  import { slides } from './config/slides.js';
+  import { SLIDE_HELLO, SLIDE_WORLD } from './config/labels.js';
 
   // Get a reference to the presenter state
   const presenter = createOrGetPresenterState();
 
   // Navigation functions
   function goToHello() {
-    presenter.gotoSlide('hello');
+    presenter.gotoSlide(SLIDE_HELLO);
   }
 
   function goToWorld() {
-    presenter.gotoSlide('world');
+    presenter.gotoSlide(SLIDE_WORLD);
   }
 </script>
 

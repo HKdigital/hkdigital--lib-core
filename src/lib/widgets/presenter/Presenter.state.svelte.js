@@ -79,8 +79,10 @@ export class PresenterState {
   /** @type {boolean} */
   busy = $derived.by(() => {
     const { layerA, layerB } = this;
+
     const layerAStable =
       layerA.stageShow || layerA.stageAfter || layerA.stageIdle;
+
     const layerBStable =
       layerB.stageShow || layerB.stageAfter || layerB.stageIdle;
 
@@ -252,6 +254,61 @@ export class PresenterState {
     this.#swapLayers();
   }
 
+  // /**
+  //  * Complete the transition by updating layers and swapping them
+  //  * Ensures proper cleanup of all stage states
+  //  */
+  // #completeTransition() {
+  //   // Update current layer: hide it and set to AFTER state
+  //   this.#updateLayer(this.currentLayerLabel, {
+  //     z: Z_BACK,
+  //     visible: false,
+  //     stageIdle: false,
+  //     stageBeforeIn: false,
+  //     stageIn: false,
+  //     stageBeforeOut: false,
+  //     stageOut: false,
+  //     stageShow: false,
+  //     stageAfter: true
+  //   });
+
+  //   // Update next layer: show it and set to SHOW state
+  //   this.#updateLayer(this.nextLayerLabel, {
+  //     z: Z_FRONT,
+  //     visible: true,
+  //     stageIdle: false,
+  //     stageBeforeIn: false,
+  //     stageIn: false,
+  //     stageBeforeOut: false,
+  //     stageOut: false,
+  //     stageAfter: false,
+  //     stageShow: true
+  //   });
+
+  //   // Remove slide from current layer
+  //   this.#updateSlide(this.currentLayerLabel, null);
+
+  //   // Swap current and next layer labels
+  //   this.#swapLayers();
+
+  //   // Reset layer states after swap - crucial for next transition cycle
+  //   // Reset former next layer (now current) to idle after showing
+  //   setTimeout(() => {
+  //     this.#updateLayer(this.currentLayerLabel, {
+  //       stageShow: false,
+  //       stageIdle: true,
+  //       transitions: [] // Clear any lingering transitions
+  //     });
+
+  //     // Reset former current layer (now next) to idle after being hidden
+  //     this.#updateLayer(this.nextLayerLabel, {
+  //       stageAfter: false,
+  //       stageIdle: true,
+  //       transitions: [] // Clear any lingering transitions
+  //     });
+  //   }, 50); // Small delay to ensure DOM updates have completed
+  // }
+
   /**
    * Swap the current and next layer labels
    */
@@ -283,12 +340,15 @@ export class PresenterState {
     // Mark that the controller was requested
     this.controllerRequested = true;
 
+    console.debug('controllerRequested');
+
     return {
       /**
        * Call when component has finished loading
        */
       loaded: () => {
         this.finishSlideLoading();
+        console.debug('finishSlideLoading');
       },
 
       /**

@@ -1,33 +1,10 @@
-/** @typedef {import('$lib/widgets/presenter/typedef.js').Transition} Transition */
-import {
-  TRANSITION_CSS,
-  FADE_IN,
-  FADE_OUT
-} from '$lib/widgets/presenter/index.js';
+import Hello from '../slides/Hello.svelte';
+import World from '../slides/World.svelte';
 
-import Hello from './slides/Hello.svelte';
-import World from './slides/World.svelte';
+import { SLIDE_HELLO, SLIDE_WORLD } from './labels.js';
+import { DEFAULT_INTRO, DEFAULT_OUTRO } from './transitions.js';
 
 /** @typedef {import('$lib/widgets/presenter/index.js').Slide} Slide */
-
-export const SLIDE_HELLO = 'hello';
-export const SLIDE_WORLD = 'world';
-
-/** @type {Transition[]} */
-const DEFAULT_INTRO = [
-  {
-    type: FADE_IN,
-    duration: 500
-  }
-];
-
-/** @type {Transition[]} */
-const DEFAULT_OUTRO = [
-  {
-    type: FADE_OUT,
-    duration: 1000
-  }
-];
 
 /** @type {Slide[]} */
 export let slides = [
