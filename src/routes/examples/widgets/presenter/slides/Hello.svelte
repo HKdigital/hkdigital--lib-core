@@ -17,28 +17,60 @@
    *   getLoadingController?: () => { loaded: () => void, cancel: () => void }
    * }}
    */
-  let { title = 'Title', subtitle = 'Subtitle', presenter } = $props();
+  let {
+    title = 'Title',
+    subtitle = 'Subtitle',
+    presenter,
+    getLoadingController
+  } = $props();
 
   function goToNextSlide() {
     if (presenter) {
       presenter.gotoSlide(SLIDE_WORLD);
     }
   }
+
+  //
+  // Using the loading controller is optional,
+  // disabled for this slide by
+  // - not calling getLoadingController
+  // - setting show=true
+  // - empty progressListener
+  //
+  let show = $state(true);
+
+  // const controller = getLoadingController?.();
+
+  function progressListener(progress, id) {
+    // console.log('loadingProgress', { ...progress, id });
+    // if (progress.loaded) {
+    //   show = true;
+    //   controller?.loaded();
+    //   console.log('Show');
+    // }
+  }
 </script>
 
 <div class="absolute inset-0">
-  <ImageBox imageMeta={ElectricBlue} fit="cover" position="center center" />
+  <ImageBox
+    imageMeta={ElectricBlue}
+    fit="cover"
+    position="center center"
+    onProgress={progressListener}
+  />
 </div>
 
-<div class="absolute inset-0">
-  <div class="p-40up">
-    <h3 class="text-heading-h3 font-heading mb-16ht">{title}</h3>
-    <p class="text-base-md font-base mb-8bt">{subtitle}</p>
+{#if show}
+  <div class="absolute inset-0">
+    <div class="p-40up">
+      <h3 class="text-heading-h3 font-heading mb-16ht">{title}</h3>
+      <p class="text-base-md font-base mb-8bt">{subtitle}</p>
 
-    <p class="text-base-md font-base mb-30up">
-      Click the button below to continue to the next slide.
-    </p>
+      <p class="text-base-md font-base mb-30up">
+        Click the button below to continue to the next slide.
+      </p>
 
-    <TextButton role="primary" onclick={goToNextSlide}>Next</TextButton>
+      <TextButton role="primary" onclick={goToNextSlide}>Next</TextButton>
+    </div>
   </div>
-</div>
+{/if}

@@ -107,7 +107,7 @@
     inert={presenter.busy}
     class="justify-self-stretch self-stretch overflow-hidden"
   >
-    <div class={classesA} style={stylesA}>
+    <div class="{classesA} h-full w-full" style={stylesA}>
       {@render layoutSnippet(presenter.slideA, presenter.layerA)}
     </div>
   </div>
@@ -118,7 +118,7 @@
     inert={presenter.busy}
     class="justify-self-stretch self-stretch overflow-hidden"
   >
-    <div class={classesB} style={stylesB}>
+    <div class="{classesB} h-full w-full" style={stylesB}>
       {@render layoutSnippet(presenter.slideB, presenter.layerB)}
     </div>
   </div>

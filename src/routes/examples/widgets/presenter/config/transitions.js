@@ -10,7 +10,7 @@ import {
 export const DEFAULT_INTRO = [
   {
     type: FADE_IN,
-    duration: 1000
+    duration: 500
   },
   {
     type: TRANSITION_CSS,
@@ -18,7 +18,7 @@ export const DEFAULT_INTRO = [
     from: 'translateY(3vw)',
     to: 'translateY(0vw)',
     duration: 1000,
-    delay: 1000
+    delay: 500
   }
 ];
 
@@ -27,13 +27,5 @@ export const DEFAULT_OUTRO = [
   {
     type: FADE_OUT,
     duration: 1000
-  },
-  {
-    type: TRANSITION_CSS,
-    property: 'transform',
-    from: 'translateY(0vw)',
-    to: 'translateY(3vw)',
-    duration: 1000,
-    delay: 1000
   }
 ];

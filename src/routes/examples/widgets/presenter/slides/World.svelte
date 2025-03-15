@@ -1,4 +1,6 @@
 <script>
+  import { onMount } from 'svelte';
+
   import ElectricBlue from '../../../assets/images/electric-blue.jpg?preset=gradient&responsive';
 
   import { ImageBox } from '$lib/widgets/index.js';
@@ -35,48 +37,30 @@
     return new Promise((resolve) => setTimeout(resolve, ms));
   }
 
-  // // Handle loading process
-  // async function handleLoading() {
-  //   if (getLoadingController) {
-  //     const controller = getLoadingController();
+  console.debug('Contructor World');
 
-  //     try {
-  //       // Simulate loading process
-  //       await delay(500);
+  let show = $state(false);
 
-  //       // Update local loading state
-  //       isLoading = false;
+  let controller;
 
-  //       // Signal to the presenter that loading is complete
-  //       controller.loaded();
-  //     } catch (error) {
-  //       console.error('Failed to load slide content', error);
-  //       controller.cancel(); // Return to previous slide on error
-  //     }
-  //   } else {
-  //     // If no controller is available, just update local state
-  //     isLoading = false;
-  //   }
-  // }
+  onMount(() => {
+    console.debug('World Mounted');
+    controller = getLoadingController?.();
+  });
 
-  // // Start loading process immediately
-  // handleLoading();
-
-  let show = $state(true);
-
-  // const controller = getLoadingController?.();
-
-  function progressListener(progress, id) {
-    // console.log({ ...progress, id });
-    // if (progress.loaded) {
-    //   show = true;
-    //   controller?.loaded();
-    //   console.log('Show');
-    // }
+  async function progressListener(progress, id) {
+    // console.log('loadingProgress', { ...progress, id });
+    if (progress.loaded && !show) {
+      await delay(1000);
+      show = true;
+      console.log('controller', controller);
+      controller?.loaded();
+      console.log('show');
+    }
   }
 </script>
 
-<div class="absolute inset-0" class:invisible={!show}>
+<div class="absolute inset-0 border-8 border-red-500" class:invisible={!show}>
   <ImageBox
     imageMeta={ElectricBlue}
     fit="cover"

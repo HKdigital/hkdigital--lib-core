@@ -1,3 +1,5 @@
+import { tick } from 'svelte';
+
 import { defineStateContext } from '$lib/util/svelte/state-context/index.js';
 
 import { findFirst } from '$lib/util/array/index.js';
@@ -67,14 +69,11 @@ export class PresenterState {
   /** @type {HkPromise[]} */
   transitionPromises = $state.raw([]);
 
+  /** @type {HkPromise} */
+  slideLoadingPromise = null;
+
   /** @type {boolean} */
   isSlideLoading = $state(false);
-
-  /** @type {boolean} */
-  controllerRequested = $state(false);
-
-  /** @type {number} Loading timeout in milliseconds (0 = disabled) */
-  loadingTimeout = $state(1000);
 
   /** @type {boolean} */
   busy = $derived.by(() => {
@@ -82,7 +81,6 @@ export class PresenterState {
 
     const layerAStable =
       layerA.stageShow || layerA.stageAfter || layerA.stageIdle;
-
     const layerBStable =
       layerB.stageShow || layerB.stageAfter || layerB.stageIdle;
 
@@ -100,21 +98,7 @@ export class PresenterState {
    */
   constructor() {
     this.#setupStageTransitions();
-    this.#setupTransitionTracking();
-    this.#setupLoadingTransitions();
-  }
-
-  /**
-   * Returns a simplified presenter reference with essential methods
-   * for slide components to use
-   *
-   * @returns {PresenterRef} A reference object with presenter methods
-   */
-  getPresenterRef() {
-    return {
-      gotoSlide: (name) => this.gotoSlide(name),
-      getCurrentSlideName: () => this.currentSlideName
-    };
+    // this.#setupTransitionTracking();
   }
 
   /**
@@ -157,59 +141,27 @@ export class PresenterState {
     return updatedLayer;
   }
 
-  /**
-   * Set up reactivity for tracking transition promises
-   * This handles the completion of animations and layer swapping
-   */
-  #setupTransitionTracking() {
-    $effect(() => {
-      const promises = this.transitionPromises;
+  // /**
+  //  * Set up reactivity for tracking transition promises
+  //  * This handles the completion of animations and layer swapping
+  //  */
+  // #setupTransitionTracking() {
+  //   $effect(() => {
+  //     const promises = this.transitionPromises;
 
-      if (promises.length > 0) {
-        const nextSlide = this.#getSlide(this.nextLayerLabel);
+  //     if (promises.length > 0) {
+  //       const nextSlide = this.#getSlide(this.nextLayerLabel);
 
-        if (!nextSlide) {
-          return;
-        }
+  //       if (!nextSlide) {
+  //         return;
+  //       }
 
-        untrack(() => {
-          this.#executeTransition(promises);
-        });
-      }
-    });
-  }
-
-  /**
-   * Set up reactivity to start transitions after component loading is complete
-   */
-  #setupLoadingTransitions() {
-    $effect(() => {
-      // Only start transitions when loading is complete and we have a next slide
-      if (!this.isSlideLoading && this.#getSlide(this.nextLayerLabel)) {
-        const currentSlide = this.#getSlide(this.currentLayerLabel);
-        const nextSlide = this.#getSlide(this.nextLayerLabel);
-
-        // Prepare the next layer for its entrance transition
-        this.#updateLayer(this.nextLayerLabel, {
-          z: Z_FRONT,
-          visible: true,
-          stageBeforeIn: true,
-          transitions: nextSlide?.intro ?? []
-        });
-
-        // Prepare the current layer for its exit transition
-        this.#updateLayer(this.currentLayerLabel, {
-          z: Z_BACK,
-          visible: true,
-          stageBeforeOut: true,
-          transitions: currentSlide?.outro ?? []
-        });
-
-        // Start transitions
-        this.#applyTransitions();
-      }
-    });
-  }
+  //       untrack(() => {
+  //         this.#executeTransition(promises);
+  //       });
+  //     }
+  //   });
+  // }
 
   /**
    * Execute the transition by waiting for all promises and then
@@ -219,6 +171,8 @@ export class PresenterState {
    */
   async #executeTransition(promises) {
     try {
+      console.debug('executeTransition');
+
       await Promise.allSettled(promises);
 
       untrack(() => {
@@ -254,61 +208,6 @@ export class PresenterState {
     this.#swapLayers();
   }
 
-  // /**
-  //  * Complete the transition by updating layers and swapping them
-  //  * Ensures proper cleanup of all stage states
-  //  */
-  // #completeTransition() {
-  //   // Update current layer: hide it and set to AFTER state
-  //   this.#updateLayer(this.currentLayerLabel, {
-  //     z: Z_BACK,
-  //     visible: false,
-  //     stageIdle: false,
-  //     stageBeforeIn: false,
-  //     stageIn: false,
-  //     stageBeforeOut: false,
-  //     stageOut: false,
-  //     stageShow: false,
-  //     stageAfter: true
-  //   });
-
-  //   // Update next layer: show it and set to SHOW state
-  //   this.#updateLayer(this.nextLayerLabel, {
-  //     z: Z_FRONT,
-  //     visible: true,
-  //     stageIdle: false,
-  //     stageBeforeIn: false,
-  //     stageIn: false,
-  //     stageBeforeOut: false,
-  //     stageOut: false,
-  //     stageAfter: false,
-  //     stageShow: true
-  //   });
-
-  //   // Remove slide from current layer
-  //   this.#updateSlide(this.currentLayerLabel, null);
-
-  //   // Swap current and next layer labels
-  //   this.#swapLayers();
-
-  //   // Reset layer states after swap - crucial for next transition cycle
-  //   // Reset former next layer (now current) to idle after showing
-  //   setTimeout(() => {
-  //     this.#updateLayer(this.currentLayerLabel, {
-  //       stageShow: false,
-  //       stageIdle: true,
-  //       transitions: [] // Clear any lingering transitions
-  //     });
-
-  //     // Reset former current layer (now next) to idle after being hidden
-  //     this.#updateLayer(this.nextLayerLabel, {
-  //       stageAfter: false,
-  //       stageIdle: true,
-  //       transitions: [] // Clear any lingering transitions
-  //     });
-  //   }, 50); // Small delay to ensure DOM updates have completed
-  // }
-
   /**
    * Swap the current and next layer labels
    */
@@ -320,51 +219,6 @@ export class PresenterState {
       this.currentLayerLabel = LABEL_A;
       this.nextLayerLabel = LABEL_B;
     }
-  }
-
-  /**
-   * Mark the slide as loaded, which triggers transitions to begin
-   */
-  finishSlideLoading() {
-    this.isSlideLoading = false;
-  }
-
-  /**
-   * Returns a controller object for managing manual loading
-   * Components can use this to signal when they're done loading
-   * or to cancel and go back to the previous slide
-   *
-   * @returns {LoadController} Object with loaded() and cancel() methods
-   */
-  getLoadingController() {
-    // Mark that the controller was requested
-    this.controllerRequested = true;
-
-    console.debug('controllerRequested');
-
-    return {
-      /**
-       * Call when component has finished loading
-       */
-      loaded: () => {
-        this.finishSlideLoading();
-        console.debug('finishSlideLoading');
-      },
-
-      /**
-       * Call to cancel loading and return to previous slide
-       */
-      cancel: () => {
-        // Return to previous slide if available
-        const currentSlideName = this.currentSlideName;
-        if (currentSlideName) {
-          this.gotoSlide(currentSlideName);
-        } else if (this.slides.length > 0) {
-          // Fallback to first slide if no current slide
-          this.gotoSlide(this.slides[0].name);
-        }
-      }
-    };
   }
 
   /**
@@ -429,57 +283,77 @@ export class PresenterState {
       throw new Error('Transition in progress');
     }
 
-    // Reset controller requested flag
-    this.controllerRequested = false;
+    this.slideLoadingPromise = null;
 
-    // Set loading state to true before starting transition
-    this.isSlideLoading = true;
+    // Get a presenter reference to pass to the slide
+    const presenterRef = this.#getPresenterRef();
 
-    // Add controller function to slide props if it has a component
-    if (slide.data?.component) {
-      // Get a presenter reference to pass to the slide
-      const presenterRef = this.getPresenterRef();
+    // Create a copy of the slide to avoid mutating the original
+    const slideWithProps = {
+      ...slide,
+      data: {
+        ...slide.data,
+        props: {
+          ...(slide.data.props || {}),
+          getLoadingController: () => {
+            this.slideLoadingPromise = new HkPromise(() => {});
 
-      // Create a copy of the slide to avoid mutating the original
-      const slideWithExtras = {
-        ...slide,
-        data: {
-          ...slide.data,
-          props: {
-            ...(slide.data.props || {}),
-            getLoadingController: () => this.getLoadingController(),
-            presenter: presenterRef // Add presenter reference to props
-          }
+            return this.#getLoadingController();
+            // this.slideLoadingPromise should be a HkPromise now
+            // console.log('slideLoadingPromise', this.slideLoadingPromise);
+          },
+          presenter: presenterRef // Add presenter reference to props
         }
-      };
-
-      // Add next slide to next layer with controller and presenter included
-      this.#updateSlide(this.nextLayerLabel, slideWithExtras);
-
-      // If a timeout is configured, automatically finish loading after delay
-      if (this.loadingTimeout > 0) {
-        setTimeout(() => {
-          // Only auto-finish if the controller wasn't requested
-          if (!this.controllerRequested && this.isSlideLoading) {
-            // console.debug(
-            //   `Slide '${slide.name}' didn't request loading controller, auto-finishing.`
-            // );
-            this.finishSlideLoading();
-          }
-        }, this.loadingTimeout);
       }
-    } else {
-      // No component, so just use the slide as is
-      this.#updateSlide(this.nextLayerLabel, slide);
-      // No component to load, so finish loading immediately
-      this.finishSlideLoading();
+    };
+
+    console.debug('Checkpoint 1');
+
+    // Add next slide to next layer
+    this.#updateSlide(this.nextLayerLabel, slideWithProps);
+
+    console.debug('Checkpoint 2');
+
+    await tick();
+
+    console.debug('Checkpoint 3');
+
+    if (this.slideLoadingPromise) {
+      console.debug('Waiting for slide to load');
+      // @ts-ignore
+      await this.slideLoadingPromise;
+      console.debug('Done waiting for slide loading');
     }
 
-    // Make next layer visible, move to front
+    const currentSlide = this.#getSlide(this.currentLayerLabel);
+    const nextSlide = this.#getSlide(this.nextLayerLabel);
+
+    console.debug('Checkpoint 4');
+
+    // Make next layer visible, move to front, and prepare for
+    // transition in
     this.#updateLayer(this.nextLayerLabel, {
       z: Z_FRONT,
-      visible: true
+      visible: true,
+      stageBeforeIn: true,
+      transitions: nextSlide?.intro ?? []
     });
+
+    // Move current layer to back, keep visible, and prepare for
+    // transition out
+    this.#updateLayer(this.currentLayerLabel, {
+      z: Z_BACK,
+      visible: true,
+      stageBeforeOut: true,
+      transitions: currentSlide?.outro ?? []
+    });
+
+    console.debug('Checkpoint 5');
+
+    // Start transitions
+    this.#applyTransitions();
+
+    await this.#executeTransition(this.transitionPromises);
   }
 
   /**
@@ -604,6 +478,49 @@ export class PresenterState {
     }
 
     throw new Error(`Missing slide [${label}]`);
+  }
+
+  /**
+   * Returns a simplified presenter reference with essential methods
+   * for slide components to use
+   *
+   * @returns {PresenterRef} A reference object with presenter methods
+   */
+  #getPresenterRef() {
+    return {
+      gotoSlide: (name) => this.gotoSlide(name),
+      getCurrentSlideName: () => this.currentSlideName
+    };
+  }
+
+  /**
+   * Returns a controller object for managing manual loading
+   * Components can use this to signal when they're done loading
+   * or to cancel and go back to the previous slide
+   *
+   * @returns {LoadController}
+   *  Object with loaded() and cancel() methods
+   */
+  #getLoadingController() {
+    console.debug('getLoadingController was called');
+
+    return {
+      /**
+       * Call when component has finished loading
+       */
+      loaded: () => {
+        console.debug('Slide said loading has completed');
+        this.slideLoadingPromise?.tryResolve();
+      },
+
+      /**
+       * Call to cancel loading and return to previous slide
+       */
+      cancel: () => {
+        console.debug('Slide said loading has cancelled');
+        this.slideLoadingPromise?.tryReject();
+      }
+    };
   }
 }
 
