@@ -9,11 +9,13 @@
   import { slides } from './config/slides.js';
   import { SLIDE_HELLO, SLIDE_WORLD } from './config/labels.js';
 
-  // Get a reference to the presenter state
+  // @note due to an issue; create the presenter state outside of the component
+  //       or transitions dont work...
   const presenter = createOrGetPresenterState();
 
   // Navigation functions
   function goToHello() {
+    console.log(presenter);
     presenter.gotoSlide(SLIDE_HELLO);
   }
 
@@ -35,6 +37,10 @@
         </div>
       {/if}
     {/if}
+  {/snippet}
+
+  {#snippet loadingSnippet()}
+    <div class="absolute inset-0">Loading...</div>
   {/snippet}
 </Presenter>
 

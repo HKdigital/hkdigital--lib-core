@@ -10,7 +10,7 @@ import {
 export const DEFAULT_INTRO = [
   {
     type: FADE_IN,
-    duration: 500
+    duration: 1000
   },
   {
     type: TRANSITION_CSS,

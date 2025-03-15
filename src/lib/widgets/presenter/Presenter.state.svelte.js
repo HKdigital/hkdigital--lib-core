@@ -77,14 +77,14 @@ export class PresenterState {
 
   /** @type {boolean} */
   busy = $derived.by(() => {
-    const { layerA, layerB } = this;
+    const { layerA, layerB, isSlideLoading } = this;
 
     const layerAStable =
       layerA.stageShow || layerA.stageAfter || layerA.stageIdle;
     const layerBStable =
       layerB.stageShow || layerB.stageAfter || layerB.stageIdle;
 
-    return !(layerAStable && layerBStable);
+    return !(layerAStable && layerBStable) || isSlideLoading;
   });
 
   /** @type {string} */
@@ -171,7 +171,7 @@ export class PresenterState {
    */
   async #executeTransition(promises) {
     try {
-      console.debug('executeTransition');
+      // console.debug('executeTransition');
 
       await Promise.allSettled(promises);
 
@@ -296,6 +296,7 @@ export class PresenterState {
         props: {
           ...(slide.data.props || {}),
           getLoadingController: () => {
+            this.isSlideLoading = true;
             this.slideLoadingPromise = new HkPromise(() => {});
 
             return this.#getLoadingController();
@@ -307,28 +308,29 @@ export class PresenterState {
       }
     };
 
-    console.debug('Checkpoint 1');
+    // console.debug('Checkpoint 1');
 
     // Add next slide to next layer
     this.#updateSlide(this.nextLayerLabel, slideWithProps);
 
-    console.debug('Checkpoint 2');
+    // console.debug('Checkpoint 2');
 
     await tick();
 
-    console.debug('Checkpoint 3');
+    // console.debug('Checkpoint 3');
 
     if (this.slideLoadingPromise) {
-      console.debug('Waiting for slide to load');
+      // console.debug('Waiting for slide to load');
       // @ts-ignore
       await this.slideLoadingPromise;
-      console.debug('Done waiting for slide loading');
+      this.isSlideLoading = false;
+      // console.debug('Done waiting for slide loading');
     }
 
     const currentSlide = this.#getSlide(this.currentLayerLabel);
     const nextSlide = this.#getSlide(this.nextLayerLabel);
 
-    console.debug('Checkpoint 4');
+    // console.debug('Checkpoint 4');
 
     // Make next layer visible, move to front, and prepare for
     // transition in
@@ -348,7 +350,7 @@ export class PresenterState {
       transitions: currentSlide?.outro ?? []
     });
 
-    console.debug('Checkpoint 5');
+    // console.debug('Checkpoint 5');
 
     // Start transitions
     this.#applyTransitions();
@@ -502,14 +504,14 @@ export class PresenterState {
    *  Object with loaded() and cancel() methods
    */
   #getLoadingController() {
-    console.debug('getLoadingController was called');
+    // console.debug('getLoadingController was called');
 
     return {
       /**
        * Call when component has finished loading
        */
       loaded: () => {
-        console.debug('Slide said loading has completed');
+        // console.debug('Slide said loading has completed');
         this.slideLoadingPromise?.tryResolve();
       },
 
@@ -517,7 +519,7 @@ export class PresenterState {
        * Call to cancel loading and return to previous slide
        */
       cancel: () => {
-        console.debug('Slide said loading has cancelled');
+        // console.debug('Slide said loading has cancelled');
         this.slideLoadingPromise?.tryReject();
       }
     };

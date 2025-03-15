@@ -51,7 +51,7 @@
   async function progressListener(progress, id) {
     // console.log('loadingProgress', { ...progress, id });
     if (progress.loaded && !show) {
-      await delay(1000);
+      await delay(500);
       show = true;
       console.log('controller', controller);
       controller?.loaded();
@@ -60,7 +60,7 @@
   }
 </script>
 
-<div class="absolute inset-0 border-8 border-red-500" class:invisible={!show}>
+<div class="absolute inset-0" class:invisible={!show}>
   <ImageBox
     imageMeta={ElectricBlue}
     fit="cover"

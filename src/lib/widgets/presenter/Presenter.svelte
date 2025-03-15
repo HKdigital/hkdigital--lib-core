@@ -3,7 +3,8 @@
 
   import { GridLayers } from '$lib/components/layout/index.js';
 
-  import { createOrGetPresenterState } from './index.js';
+  import { PresenterState } from './Presenter.state.svelte.js';
+  import { getPresenterState } from './index.js';
   import { cssBefore, cssDuring } from './util.js';
 
   /* ------------------------------------------------------------------ Props */
@@ -23,7 +24,9 @@
    *   autostart?: boolean,
    *   startSlide?: string,
    *   instanceKey?: Symbol | string,
-   *   layoutSnippet: import('svelte').Snippet<[Slide|null, Layer]>
+   *   presenter?: import('./Presenter.state.svelte.js').PresenterState,
+   *   layoutSnippet: import('svelte').Snippet<[Slide|null, Layer]>,
+   *   loadingSnippet?: import('svelte').Snippet,
    * }}
    */
   let {
@@ -38,13 +41,22 @@
     // State
     instanceKey,
 
+    presenter = $bindable(new PresenterState()),
+
     // Snippets
-    layoutSnippet
+    layoutSnippet,
+    loadingSnippet
   } = $props();
 
-  /* ------------------------------------------------------------------ State */
+  // > Create presenter state object and register using setContext
 
-  const presenter = createOrGetPresenterState(instanceKey);
+  console.log('checkpoint 1');
+
+  // FIXME: Using getPresenterState to force creation of presenter outside
+  //        the component. Otherwise transitions doe not work somehow..
+  presenter = getPresenterState(instanceKey);
+
+  // > State
 
   $effect.pre(() => {
     // Configure presenter with slides if provided
@@ -122,4 +134,10 @@
       {@render layoutSnippet(presenter.slideB, presenter.layerB)}
     </div>
   </div>
+
+  {#if loadingSnippet && presenter.isSlideLoading}
+    <div class="h-full w-full" style="z-index:20;">
+      {@render loadingSnippet()}
+    </div>
+  {/if}
 </GridLayers>
