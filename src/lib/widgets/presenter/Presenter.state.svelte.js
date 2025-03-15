@@ -96,6 +96,9 @@ export class PresenterState {
     return currentSlide?.name || '';
   });
 
+  /** @type {string} */
+  pendingSlideName;
+
   /**
    * Initialize the presenter state and set up reactivity
    */
@@ -302,7 +305,8 @@ export class PresenterState {
    */
   async #gotoSlide(slide) {
     if (this.busy) {
-      throw new Error('Transition in progress');
+      this.pendingSlideName = slide.name;
+      return;
     }
 
     this.slideLoadingPromise = null;
@@ -378,6 +382,19 @@ export class PresenterState {
     this.#applyTransitions();
 
     await this.#executeTransition(this.transitionPromises);
+
+    // Check if there's a pending slide transition
+    if (this.pendingSlideName) {
+      const pendingName = this.pendingSlideName;
+
+      this.pendingSlideName = null;
+
+      untrack(() => {
+        if (pendingName !== this.currentSlideName) {
+          this.gotoSlide(pendingName);
+        }
+      });
+    }
   }
 
   /**

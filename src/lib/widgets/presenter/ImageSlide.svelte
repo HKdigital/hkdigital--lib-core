@@ -1,13 +1,37 @@
 <script>
   import { ImageBox } from '$lib/widgets/index.js';
 
-  const { ...attrs } = $props();
+  /**
+   * @type {{
+   *   imageMeta?: import('@hkdigital/lib-sveltekit/config/typedef.js').ImageMeta | import('@hkdigital/lib-sveltekit/config/typedef.js').ImageMeta[],
+   *   presenter?: { gotoSlide: (name: string) => void, getCurrentSlideName: () => string },
+   *   getLoadingController?: () => { loaded: () => void, cancel: () => void }
+   *   [attr: string]: any
+   * }}
+   */
+  let { imageMeta, presenter, getLoadingController, ...attrs } = $props();
 
-  // console.log('attrs:', attrs.imageMeta);
+  let show = $state(false);
 
-  if (!attrs.imageMeta) {
-    throw new Error('Missing property [imageMeta]');
+  let controller = getLoadingController();
+
+  async function progressListener(progress, id) {
+    // console.log('loadingProgress', { ...progress, id });
+    if (progress.loaded && !show) {
+      setTimeout(() => {
+        show = true;
+        controller.loaded();
+      }, 0);
+    }
   }
 </script>
 
-<ImageBox {...attrs} />
+<div class="absolute inset-0" class:invisible={!show}>
+  <ImageBox
+    {imageMeta}
+    fit="cover"
+    position="center center"
+    onProgress={progressListener}
+    {...attrs}
+  />
+</div>
