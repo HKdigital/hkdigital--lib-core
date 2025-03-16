@@ -166,28 +166,6 @@ export class PresenterState {
     return updatedLayer;
   }
 
-  // /**
-  //  * Set up reactivity for tracking transition promises
-  //  * This handles the completion of animations and layer swapping
-  //  */
-  // #setupTransitionTracking() {
-  //   $effect(() => {
-  //     const promises = this.transitionPromises;
-
-  //     if (promises.length > 0) {
-  //       const nextSlide = this.#getSlide(this.nextLayerLabel);
-
-  //       if (!nextSlide) {
-  //         return;
-  //       }
-
-  //       untrack(() => {
-  //         this.#executeTransition(promises);
-  //       });
-  //     }
-  //   });
-  // }
-
   /**
    * Execute the transition by waiting for all promises and then
    * completing the transition
@@ -334,16 +312,16 @@ export class PresenterState {
       }
     };
 
-    // console.debug('Checkpoint 1');
+    console.debug('Checkpoint 1');
 
     // Add next slide to next layer
     this.#updateSlide(this.nextLayerLabel, slideWithProps);
 
-    // console.debug('Checkpoint 2');
+    console.debug('Checkpoint 2');
 
     await tick();
 
-    // console.debug('Checkpoint 3');
+    console.debug('Checkpoint 3');
 
     if (this.slideLoadingPromise) {
       // console.debug('Waiting for slide to load');
@@ -356,7 +334,7 @@ export class PresenterState {
     const currentSlide = this.#getSlide(this.currentLayerLabel);
     const nextSlide = this.#getSlide(this.nextLayerLabel);
 
-    // console.debug('Checkpoint 4');
+    console.debug('Checkpoint 4');
 
     // Make next layer visible, move to front, and prepare for
     // transition in
@@ -376,10 +354,12 @@ export class PresenterState {
       transitions: currentSlide?.outro ?? []
     });
 
-    // console.debug('Checkpoint 5');
+    console.debug('Checkpoint 5');
 
     // Start transitions
     this.#applyTransitions();
+
+    // FIXME: wait?
 
     await this.#executeTransition(this.transitionPromises);
 

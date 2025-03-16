@@ -5,7 +5,7 @@
 
   import { PresenterState } from './Presenter.state.svelte.js';
   import { getPresenterState } from './index.js';
-  import { cssBefore, cssDuring } from './util.js';
+  import { cssBefore, cssDuring, waitForRender } from './util.js';
 
   /* ------------------------------------------------------------------ Props */
 
@@ -41,7 +41,7 @@
     // State
     instanceKey,
 
-    presenter = $bindable(new PresenterState()),
+    // presenter = $bindable(),
 
     // Snippets
     layoutSnippet,
@@ -52,7 +52,7 @@
 
   // FIXME: Using getPresenterState to force creation of presenter outside
   //        the component. Otherwise transitions doe not work somehow..
-  presenter = getPresenterState(instanceKey);
+  const presenter = getPresenterState(instanceKey);
 
   // > State
 
@@ -79,7 +79,7 @@
       if (stageBeforeIn || stageBeforeOut) {
         ({ style: stylesA, classes: classesA } = cssBefore(transitions));
       } else if (stageIn || stageOut) {
-        setTimeout(() => {
+        waitForRender(() => {
           ({ style: stylesA, classes: classesA } = cssDuring(transitions));
         });
       }
@@ -99,7 +99,7 @@
       if (stageBeforeIn || stageBeforeOut) {
         ({ style: stylesB, classes: classesB } = cssBefore(transitions));
       } else if (stageIn || stageOut) {
-        setTimeout(() => {
+        waitForRender(() => {
           ({ style: stylesB, classes: classesB } = cssDuring(transitions));
         });
       }

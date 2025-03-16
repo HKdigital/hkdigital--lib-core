@@ -1,3 +1,5 @@
+import { tick } from 'svelte';
+
 import * as expect from '$lib/util/expect/index.js';
 
 import { pushNotEmpty } from '$lib/util/array/index.js';
@@ -8,9 +10,27 @@ import { TRANSITION_CSS, FADE_IN, FADE_OUT } from './constants.js';
  * @typedef {import("./typedef").Transition} Transition
  */
 
-/** ----------------------------------------------------------------- Exports */
+/**
+ * Ensures DOM is updated by Svelte and then painted by the browser
+ * before executing the callback function.
+ *
+ * @param {Function} callback - Function to execute after DOM update and paint
+ * @returns {Promise<void>} - Promise that resolves after the callback is executed
+ */
+export function waitForRender(callback) {
+  return tick().then(() => {
+    return new Promise((resolve) => {
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          callback();
+          resolve();
+        });
+      });
+    });
+  });
+}
 
-/** ----------------------------------- Generate CSS for lists of transitions */
+/** === Generate CSS for lists of transitions */
 
 /**
  * Generates style and class names to be used before the transitions
@@ -79,7 +99,7 @@ export function cssDuring(transitions) {
   return { style, classes: classesArr.join() };
 }
 
-/** ------------------------------------- Generate CSS for single transitions */
+/** === Generate CSS for single transitions */
 
 /**
  * Generates style and class names for specified transition for
