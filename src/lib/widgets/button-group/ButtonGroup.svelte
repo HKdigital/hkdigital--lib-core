@@ -45,7 +45,7 @@
   data-component="button-group"
   class="{base} {bg} {classes} flex"
   role="group"
-  aria-label="Button Group"
+  aria-label="Button group"
   {...attrs}
 >
   {#each buttons as button, index}

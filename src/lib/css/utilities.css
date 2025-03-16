@@ -9,10 +9,11 @@
   .g-no-select {
     user-select: none;
     -webkit-user-select: none; /* ios safari */
+    -webkit-tap-highlight-color: transparent;
   }
 
-  input[type=text].g-no-select, textarea.g-no-select
-  {
+  input[type='text'].g-no-select,
+  textarea.g-no-select {
     user-select: text !important;
     cursor: text;
   }
@@ -22,10 +23,9 @@
     touch-action: manipulation;
   }
 
-  .g-no-pinch-zoom
-  {
+  .g-no-pinch-zoom {
     touch-action: pan-x pan-y; /* no pinch zoom, but allow scroll  */
-  }  
+  }
 
   .g-no-highlights {
     -webkit-tap-highlight-color: transparent;
