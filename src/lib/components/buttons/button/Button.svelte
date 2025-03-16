@@ -10,6 +10,7 @@
    *   role?: 'primary' | 'secondary' | 'tertiary' | 'custom',
    *   size?: 'sm' | 'md' | 'lg',
    *   variant?: string,
+   *   mode?: 'light'|'dark'
    *   active?: boolean,
    *   selected?: boolean,
    *   loading?: boolean,
@@ -31,6 +32,7 @@
     role = 'primary',
     size = 'md',
     variant = '',
+    mode = 'light',
 
     // States
     active = $bindable(false),
@@ -59,6 +61,7 @@
   data-role={role}
   data-size={size}
   data-variant={variant}
+  data-mode={mode}
   type="button"
   class="{base} {bg} {classes} {stateClasses}"
   disabled={disabled || loading}
