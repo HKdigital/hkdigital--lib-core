@@ -6,24 +6,21 @@
    */
   let { color } = $props();
 
-  import {
-    Presenter,
-    createOrGetPresenterState
-  } from '$lib/widgets/presenter/index.js';
+  import { Presenter } from '$lib/widgets/presenter/index.js';
 
   import { slides } from './config/slides.js';
   import { fade } from 'svelte/transition';
 
-  // @note due to an issue; create the presenter state outside of the component
-  //       or transitions dont work...
-  const presenter = createOrGetPresenterState();
-
   $effect(() => {
-    presenter.gotoSlide(color);
+    if (presenterRef) {
+      presenterRef.gotoSlide(color);
+    }
   });
+
+  let presenterRef = $state();
 </script>
 
-<Presenter {slides} classes="w-full h-full overflow-hidden">
+<Presenter bind:presenterRef {slides} classes="w-full h-full overflow-hidden">
   {#snippet layoutSnippet(slide, layer)}
     {#if slide && slide.data}
       {#if slide.data.component}

@@ -1,14 +1,10 @@
 import { tick } from 'svelte';
 
-import { defineStateContext } from '$lib/util/svelte/state-context/index.js';
-
 import { findFirst } from '$lib/util/array/index.js';
 
 import { untrack } from 'svelte';
 
 import { HkPromise } from '$lib/classes/promise/index.js';
-
-/* ----------------------------------------------------------------- typedefs */
 
 /**
  * @typedef {import("./typedef").Slide} Slide
@@ -34,15 +30,11 @@ import { HkPromise } from '$lib/classes/promise/index.js';
  * @property {() => string} getCurrentSlideName - Get the current slide name
  */
 
-/* -------------------------------------------------------------- Constants */
-
 const Z_BACK = 0;
 const Z_FRONT = 10;
 
 const LABEL_A = 'A';
 const LABEL_B = 'B';
-
-/* ------------------------------------------------------- Define state class */
 
 export class PresenterState {
   /** @type {Slide[]} */
@@ -99,11 +91,14 @@ export class PresenterState {
   /** @type {string} */
   pendingSlideName;
 
+  /** @type {boolean} */
+  configured = false;
+
   /**
    * Initialize the presenter state and set up reactivity
    */
   constructor() {
-    this.#setupStageTransitions();
+    // this.#setupStageTransitions();
 
     let timeout;
 
@@ -130,21 +125,21 @@ export class PresenterState {
    * Set up reactivity for stage transitions between the before/after states
    * This handles the animation timing for both layers
    */
-  #setupStageTransitions() {
-    // Handle layer A stage transitions
-    $effect(() => {
-      if (this.layerA.stageBeforeIn || this.layerA.stageBeforeOut) {
-        this.layerA = this.#processStageTransition(this.layerA);
-      }
-    });
+  // #setupStageTransitions() {
+  //   // Handle layer A stage transitions
+  //   $effect(() => {
+  //     if (this.layerA.stageBeforeIn || this.layerA.stageBeforeOut) {
+  //       this.layerA = this.#processStageTransition(this.layerA);
+  //     }
+  //   });
 
-    // Handle layer B stage transitions
-    $effect(() => {
-      if (this.layerB.stageBeforeIn || this.layerB.stageBeforeOut) {
-        this.layerB = this.#processStageTransition(this.layerB);
-      }
-    });
-  }
+  //   // Handle layer B stage transitions
+  //   $effect(() => {
+  //     if (this.layerB.stageBeforeIn || this.layerB.stageBeforeOut) {
+  //       this.layerB = this.#processStageTransition(this.layerB);
+  //     }
+  //   });
+  // }
 
   /**
    * Process a single stage transition for a layer
@@ -167,16 +162,20 @@ export class PresenterState {
   }
 
   /**
-   * Execute the transition by waiting for all promises and then
-   * completing the transition
+   * Waiting for all transition timing promises to finish,
+   * this should be the same amount of time as it takes for the real
+   * transitions to finish
    *
-   * @param {HkPromise[]} promises - Array of transition promises to wait for
+   * @param {HkPromise[]} promises
+   *   Array of transition promises to wait for
    */
-  async #executeTransition(promises) {
+  async #waitForTransitionPromises(promises) {
     try {
-      // console.debug('executeTransition');
+      // console.debug('waitForTransitionPromises', promises);
 
       await Promise.allSettled(promises);
+
+      // console.debug('waitForTransitionPromises:done', promises);
 
       untrack(() => {
         this.#completeTransition();
@@ -228,25 +227,15 @@ export class PresenterState {
    * Configure the presentation
    *
    * @param {object} _
-   * @param {boolean} [_.autostart=false] - Whether to start automatically
-   * @param {string} [_.startSlide] - Name of the slide to start with
    * @param {Slide[]} [_.slides] - Array of slides for the presentation
    */
-  configure({ slides, autostart = true, startSlide }) {
-    untrack(() => {
-      if (slides) {
-        // Only update slides if provided
-        this.slides = slides;
-      }
+  configure({ slides }) {
+    this.configured = true;
 
-      if ((autostart || startSlide) && this.slides?.length) {
-        if (startSlide) {
-          this.gotoSlide(startSlide);
-        } else {
-          this.#gotoSlide(this.slides[0]);
-        }
-      }
-    });
+    if (slides) {
+      // Only update slides if provided
+      this.slides = slides;
+    }
   }
 
   /**
@@ -264,6 +253,8 @@ export class PresenterState {
    * @param {string} name - Name of the slide to transition to
    */
   async gotoSlide(name) {
+    // throw new Error('gotoSlide');
+
     untrack(() => {
       const slide = findFirst(this.slides, { name });
 
@@ -282,6 +273,10 @@ export class PresenterState {
    * @param {Slide} slide - The slide to transition to
    */
   async #gotoSlide(slide) {
+    if (!this.configured) {
+      throw new Error('Not configured yet');
+    }
+
     if (this.busy) {
       this.pendingSlideName = slide.name;
       return;
@@ -290,7 +285,7 @@ export class PresenterState {
     this.slideLoadingPromise = null;
 
     // Get a presenter reference to pass to the slide
-    const presenterRef = this.#getPresenterRef();
+    const presenterRef = this.getPresenterRef();
 
     // Create a copy of the slide to avoid mutating the original
     const slideWithProps = {
@@ -312,16 +307,16 @@ export class PresenterState {
       }
     };
 
-    console.debug('Checkpoint 1');
+    // console.debug('Checkpoint 1');
 
     // Add next slide to next layer
     this.#updateSlide(this.nextLayerLabel, slideWithProps);
 
-    console.debug('Checkpoint 2');
+    // console.debug('Checkpoint 2');
 
     await tick();
 
-    console.debug('Checkpoint 3');
+    // console.debug('Checkpoint 3');
 
     if (this.slideLoadingPromise) {
       // console.debug('Waiting for slide to load');
@@ -334,7 +329,7 @@ export class PresenterState {
     const currentSlide = this.#getSlide(this.currentLayerLabel);
     const nextSlide = this.#getSlide(this.nextLayerLabel);
 
-    console.debug('Checkpoint 4');
+    // console.debug('Checkpoint 4', currentSlide, nextSlide);
 
     // Make next layer visible, move to front, and prepare for
     // transition in
@@ -354,14 +349,44 @@ export class PresenterState {
       transitions: currentSlide?.outro ?? []
     });
 
-    console.debug('Checkpoint 5');
+    // console.debug('Checkpoint 5');
+
+    // Wait briefly to ensure the stageBeforeIn/stageBeforeOut states are rendered
+    await tick();
+
+    // Now manually process the transitions for both layers
+    const layerA = this.layerA;
+    const layerB = this.layerB;
+
+    // Process stageBeforeIn transition for both layers
+    if (layerA.stageBeforeIn) {
+      this.layerA = this.#processStageTransition(layerA);
+    }
+
+    if (layerB.stageBeforeIn) {
+      this.layerB = this.#processStageTransition(layerB);
+    }
+
+    // Wait for another tick to ensure the stageIn states are rendered
+    await tick();
+
+    // Process stageBeforeOut transition for both layers
+    if (layerA.stageBeforeOut) {
+      this.layerA = this.#processStageTransition(layerA);
+    }
+
+    if (layerB.stageBeforeOut) {
+      this.layerB = this.#processStageTransition(layerB);
+    }
+
+    // console.debug('Checkpoint 7');
 
     // Start transitions
-    this.#applyTransitions();
+    this.#createTransitionPromises();
 
-    // FIXME: wait?
+    // console.debug('Checkpoint 8');
 
-    await this.#executeTransition(this.transitionPromises);
+    await this.#waitForTransitionPromises(this.transitionPromises);
 
     // Check if there's a pending slide transition
     if (this.pendingSlideName) {
@@ -378,9 +403,10 @@ export class PresenterState {
   }
 
   /**
-   * Apply transitions between current and next slide
+   * Create transition promises that can be used to determine the timing
+   * of the transitions between current and next slide
    */
-  #applyTransitions() {
+  #createTransitionPromises() {
     // Cancel existing transitions
     let transitionPromises = this.transitionPromises;
 
@@ -397,9 +423,11 @@ export class PresenterState {
     // Apply transitions `out` from currentslide
     const transitionsOut = currentSlide?.outro;
 
+    // console.log('transitionsOut', transitionsOut);
+
     if (transitionsOut) {
       for (const transition of transitionsOut) {
-        const promise = this.#applyTransition(transition);
+        const promise = this.#createTransitionPromise(transition);
         transitionPromises.push(promise);
       }
     }
@@ -407,9 +435,11 @@ export class PresenterState {
     // Apply transitions `in` from next slide
     const transitionsIn = nextSlide?.intro;
 
+    // console.log('transitionsIn', transitionsIn);
+
     if (transitionsIn) {
       for (const transition of transitionsIn) {
-        const promise = this.#applyTransition(transition);
+        const promise = this.#createTransitionPromise(transition);
         transitionPromises.push(promise);
       }
     }
@@ -418,12 +448,16 @@ export class PresenterState {
   }
 
   /**
-   * Apply a transition and return a transition promise
+   * Create a transition promise for the specified transition
+   *
    *
    * @param {Transition} transition - The transition to apply
-   * @returns {HkPromise} Promise that resolves when transition completes
+   *
+   * @returns {HkPromise}
+   *   Promise that resolves after the same amount of time that it
+   *   takes for the transition to finish
    */
-  #applyTransition(transition) {
+  #createTransitionPromise(transition) {
     const delay = (transition.delay ?? 0) + (transition.duration ?? 0);
 
     if (0 === delay) {
@@ -507,7 +541,7 @@ export class PresenterState {
    *
    * @returns {PresenterRef} A reference object with presenter methods
    */
-  #getPresenterRef() {
+  getPresenterRef() {
     return {
       gotoSlide: (name) => this.gotoSlide(name),
       getCurrentSlideName: () => this.currentSlideName
@@ -544,8 +578,3 @@ export class PresenterState {
     };
   }
 }
-
-/* -------------------------------------- Export create & get state functions */
-
-export const [createOrGetState, createState, getState] =
-  defineStateContext(PresenterState);

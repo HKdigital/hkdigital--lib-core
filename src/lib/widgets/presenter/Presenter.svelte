@@ -1,13 +1,10 @@
 <script>
-  /* ---------------------------------------------------------------- Imports */
+  import { onMount } from 'svelte';
 
   import { GridLayers } from '$lib/components/layout/index.js';
 
   import { PresenterState } from './Presenter.state.svelte.js';
-  import { getPresenterState } from './index.js';
   import { cssBefore, cssDuring, waitForRender } from './util.js';
-
-  /* ------------------------------------------------------------------ Props */
 
   /**
    * @typedef {import("./typedef.js").Slide} Slide
@@ -21,10 +18,7 @@
    * @type {{
    *   classes?: string,
    *   slides?: import("./typedef.js").Slide[],
-   *   autostart?: boolean,
-   *   startSlide?: string,
-   *   instanceKey?: Symbol | string,
-   *   presenter?: import('./Presenter.state.svelte.js').PresenterState,
+   *   presenterRef?: import('./Presenter.state.svelte.js').PresenterRef,
    *   layoutSnippet: import('svelte').Snippet<[Slide|null, Layer]>,
    *   loadingSnippet?: import('svelte').Snippet,
    * }}
@@ -35,31 +29,22 @@
 
     // > Functional
     slides,
-    autostart = false,
-    startSlide,
-
-    // State
-    instanceKey,
-
-    // presenter = $bindable(),
+    presenterRef = $bindable(),
 
     // Snippets
     layoutSnippet,
     loadingSnippet
   } = $props();
 
-  // > Create presenter state object and register using setContext
+  const presenter = new PresenterState();
 
-  // FIXME: Using getPresenterState to force creation of presenter outside
-  //        the component. Otherwise transitions doe not work somehow..
-  const presenter = getPresenterState(instanceKey);
+  onMount(() => {
+    // Configure presenter with slides if provided
+    presenter.configure({ slides });
+    presenterRef = presenter.getPresenterRef();
+  });
 
   // > State
-
-  $effect.pre(() => {
-    // Configure presenter with slides if provided
-    presenter.configure({ slides, autostart, startSlide });
-  });
 
   let classesA = $state('');
   let classesB = $state('');
@@ -75,7 +60,14 @@
     const { stageBeforeIn, stageIn, stageBeforeOut, stageOut, transitions } =
       presenter.layerA;
 
-    if (transitions && transitions.length) {
+    if (transitions?.length) {
+      // console.debug('layerA:transitions', transitions, {
+      //   stageBeforeIn,
+      //   stageIn,
+      //   stageBeforeOut,
+      //   stageOut
+      // });
+
       if (stageBeforeIn || stageBeforeOut) {
         ({ style: stylesA, classes: classesA } = cssBefore(transitions));
       } else if (stageIn || stageOut) {
@@ -95,7 +87,14 @@
     const { stageBeforeIn, stageIn, stageBeforeOut, stageOut, transitions } =
       presenter.layerB;
 
-    if (transitions) {
+    if (transitions?.length) {
+      // console.debug('layerB:transitions', transitions, {
+      //   stageBeforeIn,
+      //   stageIn,
+      //   stageBeforeOut,
+      //   stageOut
+      // });
+
       if (stageBeforeIn || stageBeforeOut) {
         ({ style: stylesB, classes: classesB } = cssBefore(transitions));
       } else if (stageIn || stageOut) {
