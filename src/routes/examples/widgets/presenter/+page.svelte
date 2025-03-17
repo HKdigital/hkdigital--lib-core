@@ -1,33 +1,27 @@
 <script>
   import { TextButton } from '$lib/components/buttons/index.js';
 
-  import {
-    Presenter,
-    createOrGetPresenterState
-  } from '$lib/widgets/presenter/index.js';
+  import { Presenter } from '$lib/widgets/presenter/index.js';
 
   import { slides } from './config/slides.js';
   import { SLIDE_HELLO, SLIDE_WORLD } from './config/labels.js';
   import { fade } from 'svelte/transition';
 
-  // @note due to an issue; create the presenter state outside of the component
-  //       or transitions dont work...
-  const presenter = createOrGetPresenterState();
+  let presenterRef = $state();
 
   // Navigation functions
   function goToHello() {
-    console.log(presenter);
-    presenter.gotoSlide(SLIDE_HELLO);
+    presenterRef.gotoSlide(SLIDE_HELLO);
   }
 
   function goToWorld() {
-    presenter.gotoSlide(SLIDE_WORLD);
+    presenterRef.gotoSlide(SLIDE_WORLD);
   }
 </script>
 
 <Presenter
   {slides}
-  startSlide="hello"
+  bind:presenterRef
   classes="h-[500px] border overflow-hidden"
 >
   {#snippet layoutSnippet(slide, layer)}
