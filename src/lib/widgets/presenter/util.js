@@ -22,8 +22,10 @@ export function waitForRender(callback) {
     return new Promise((resolve) => {
       requestAnimationFrame(() => {
         requestAnimationFrame(() => {
-          callback();
-          resolve();
+          setTimeout(() => {
+            callback();
+            resolve();
+          }, 50);
         });
       });
     });
