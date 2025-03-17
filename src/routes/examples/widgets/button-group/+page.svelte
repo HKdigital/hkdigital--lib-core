@@ -3,10 +3,13 @@
 
   import { TextButton } from '$lib/components/buttons/index.js';
 
-  /** @type {{text: string, disabled?: boolean, props?: Object}} */
+  /** @typedef {{text?: string, value?: any, props?: Object}} ButtonDef */
+
+  /** @type {ButtonDef} */
   let selected = $state(null);
 
   // Button definitions
+  /** @type {ButtonDef[]} */
   const buttons = [
     {
       text: 'One',
@@ -18,8 +21,7 @@
     },
     {
       text: 'Three',
-      disabled: true,
-      props: { role: 'primary' }
+      props: { role: 'primary', disabled: true }
     }
   ];
 </script>

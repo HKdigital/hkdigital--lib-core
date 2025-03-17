@@ -5,7 +5,7 @@
    * a time.
    */
 
-  /** @typedef {{text: string, disabled?: boolean, props?: Object}} ButtonDef */
+  /** @typedef {{text?: string, value?: any, props?: Object}} ButtonDef */
 
   /**
    * @type {{
@@ -34,7 +34,7 @@
    * Handle button selection
    */
   function handleSelect(index) {
-    if (!buttons[index].disabled) {
+    if (!buttons[index].props?.disabled) {
       selectedIndex = index;
       selected = buttons[selectedIndex] ?? null;
     }
@@ -53,8 +53,7 @@
       text: button.text,
       props: {
         ...(button.props || {}),
-        disabled: button.disabled,
-        active: index === selectedIndex,
+        selected: index === selectedIndex,
         onclick: () => handleSelect(index)
       }
     })}
