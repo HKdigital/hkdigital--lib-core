@@ -11,13 +11,23 @@
   import { slides } from './config/slides.js';
   import { fade } from 'svelte/transition';
 
+  let presenterRef = $state();
+
   $effect(() => {
     if (presenterRef) {
       presenterRef.gotoSlide(color);
     }
   });
 
-  let presenterRef = $state();
+  function presenterUpdated() {
+    console.debug('presenterUpdated', presenterRef.getCurrentSlideName());
+  }
+
+  $effect(() => {
+    if (presenterRef) {
+      return presenterRef.onUpdate(presenterUpdated);
+    }
+  });
 </script>
 
 <Presenter bind:presenterRef {slides} classes="w-full h-full overflow-hidden">

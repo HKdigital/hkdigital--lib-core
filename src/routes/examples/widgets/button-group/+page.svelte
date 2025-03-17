@@ -3,24 +3,30 @@
 
   import { TextButton } from '$lib/components/buttons/index.js';
 
-  /** @typedef {{text?: string, value?: any, props?: Object}} ButtonDef */
+  /** @typedef {{text?: string, value?: any, label?: string, props?: Object}} ButtonDef */
 
   /** @type {ButtonDef} */
   let selected = $state(null);
+
+  /* @type {( label:string ) => void } */
+  let select = $state();
 
   // Button definitions
   /** @type {ButtonDef[]} */
   const buttons = [
     {
       text: 'One',
+      label: 'one',
       props: { role: 'primary' }
     },
     {
       text: 'Two',
+      label: 'two',
       props: { role: 'primary' }
     },
     {
       text: 'Three',
+      label: 'three',
       props: { role: 'primary', disabled: true }
     }
   ];
@@ -33,9 +39,15 @@
     Selected button {selected?.text ?? 'none'}
   </p>
 
-  <ButtonGroup {buttons} bind:selected classes="gap-4up">
+  <ButtonGroup {buttons} bind:selected bind:select classes="gap-4up">
     {#snippet buttonSnippet(button)}
       <TextButton {...button.props}>{button.text}</TextButton>
     {/snippet}
   </ButtonGroup>
+  <br />
+  <TextButton
+    onclick={() => {
+      select?.('one');
+    }}>Select one</TextButton
+  >
 </div>

@@ -28,6 +28,7 @@ import { HkPromise } from '$lib/classes/promise/index.js';
  * @typedef {Object} PresenterRef
  * @property {(name: string) => void} gotoSlide - Navigate to a slide by name
  * @property {() => string} getCurrentSlideName - Get the current slide name
+ * @property {(callback)=>Function} onUpdate
  */
 
 const Z_BACK = 0;
@@ -93,6 +94,9 @@ export class PresenterState {
 
   /** @type {boolean} */
   configured = false;
+
+  /** @type {Map<Symbol, () => void>} */
+  onUpdateListeners = new Map();
 
   /**
    * Initialize the presenter state and set up reactivity
@@ -400,6 +404,14 @@ export class PresenterState {
         }
       });
     }
+
+    this.#CallUpdateListeners();
+  }
+
+  #CallUpdateListeners() {
+    for (const fn of this.onUpdateListeners.values()) {
+      fn();
+    }
   }
 
   /**
@@ -544,7 +556,15 @@ export class PresenterState {
   getPresenterRef() {
     return {
       gotoSlide: (name) => this.gotoSlide(name),
-      getCurrentSlideName: () => this.currentSlideName
+      getCurrentSlideName: () => this.currentSlideName,
+      onUpdate: (callback) => {
+        const key = Symbol();
+        this.onUpdateListeners.set(key, callback);
+
+        return () => {
+          this.onUpdateListeners.delete(key);
+        };
+      }
     };
   }
 

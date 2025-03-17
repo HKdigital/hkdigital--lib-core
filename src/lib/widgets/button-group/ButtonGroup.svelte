@@ -5,7 +5,10 @@
    * a time.
    */
 
-  /** @typedef {{text?: string, value?: any, props?: Object}} ButtonDef */
+  import { onMount } from 'svelte';
+  import { findFirst } from '$lib/util/array/index.js';
+
+  /** @typedef {{text?: string, value?: any, label?: string, props?: Object}} ButtonDef */
 
   /**
    * @type {{
@@ -13,7 +16,8 @@
    *   bg?: string,
    *   classes?: string,
    *   buttons: Array<ButtonDef>,
-   *   selected?: (ButtonDef|null)
+   *   selected?: (ButtonDef|null),
+   *   select?: ( label:string ) => void,
    *   buttonSnippet: import('svelte').Snippet<[{text: string, props: Object}]>,
    *   [attr: string]: any
    * }}
@@ -24,6 +28,7 @@
     classes = '',
     buttons = [],
     selected = $bindable(null),
+    select = $bindable(),
     buttonSnippet,
     ...attrs
   } = $props();
@@ -39,6 +44,20 @@
       selected = buttons[selectedIndex] ?? null;
     }
   }
+
+  function handleSelectByLabel(label) {
+    for (let j = 0; j < buttons.length; j = j + 1) {
+      if (buttons[j].label === label) {
+        selectedIndex = j;
+        selected = buttons[j] ?? null;
+        break;
+      }
+    }
+  }
+
+  onMount(() => {
+    select = handleSelectByLabel;
+  });
 </script>
 
 <div
