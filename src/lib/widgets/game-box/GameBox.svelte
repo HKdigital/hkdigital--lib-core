@@ -153,6 +153,10 @@
     style:height="{gameHeight}px"
     style:--game-width={gameWidth}
     style:--game-height={gameHeight}
+    style:margin-left={marginLeft}
+    style:margin-right={marginRight}
+    style:margin-top={marginTop}
+    style:margin-bottom={marginBottom}
     {style}
   >
     {#if isLandscape}
