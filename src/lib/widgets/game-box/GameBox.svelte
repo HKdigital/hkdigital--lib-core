@@ -78,12 +78,12 @@
     const availWidth = windowWidth - marginLeft - marginRight;
     const availHeight = windowHeight - marginTop - marginBottom;
 
-    console.log('GameBox margins:', {
-      marginLeft,
-      marginRight,
-      marginTop,
-      marginBottom
-    });
+    // console.debug('GameBox margins:', {
+    //   marginLeft,
+    //   marginRight,
+    //   marginTop,
+    //   marginBottom
+    // });
 
     let gameAspect;
 
