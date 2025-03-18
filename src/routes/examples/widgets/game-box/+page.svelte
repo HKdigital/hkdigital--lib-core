@@ -5,8 +5,8 @@
 </script>
 
 <GameBox
-  classes="border-4 border-red-500 ml-[20px] mt-[20px]"
-  marginLeft={20}
+  classes="border-4 border-red-500"
+  marginLeft={40}
   marginRight={20}
   marginTop={20}
   marginBottom={20}
