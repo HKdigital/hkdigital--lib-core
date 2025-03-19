@@ -40,7 +40,7 @@
     if (show && nextSlideLabel && !timer) {
       timer = setTimeout(() => {
         presenter.gotoSlide(nextSlideLabel);
-      });
+      }, slideDuration);
     }
 
     return () => {
