@@ -20,3 +20,4 @@ export { default as VirtualViewport } from './virtual-viewport/VirtualViewport.s
 // > Types
 
 export * from './button-group/typedef.js';
+export * from './presenter/typedef.js';
