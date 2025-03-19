@@ -13,7 +13,7 @@
    */
   let {
     imageMeta,
-    slideDuration = 5000,
+    slideDuration = 1000,
     nextSlideLabel,
     presenter,
     getLoadingController,
