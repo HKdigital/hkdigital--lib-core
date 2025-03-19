@@ -3,17 +3,15 @@
 
   import { TextButton } from '$lib/components/buttons/index.js';
 
-  /** @typedef {{text?: string, value?: any, label?: string, props?: Object}} ButtonDef */
-
-  /** @type {ButtonDef} */
+  /** @type {import('$lib/widgets/index.js').ButtonDef} */
   let selected = $state(null);
 
   /* @type {( label:string ) => void } */
   let select = $state();
 
   // Button definitions
-  /** @type {ButtonDef[]} */
-  const buttons = [
+  /** @type {import('$lib/widgets/index.js').ButtonDef[]} */
+  const buttons = $state([
     {
       text: 'One',
       label: 'one',
@@ -29,7 +27,12 @@
       label: 'three',
       props: { role: 'primary', disabled: true }
     }
-  ];
+  ]);
+
+  setTimeout(() => {
+    // Hide button 3 that was disabled anyway...
+    buttons[2].hide = true;
+  }, 3000);
 </script>
 
 <div class="p-20up">

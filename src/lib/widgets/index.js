@@ -16,3 +16,7 @@ export { default as Presenter } from './presenter/Presenter.svelte';
 export { default as ImageSlide } from './presenter/ImageSlide.svelte';
 
 export { default as VirtualViewport } from './virtual-viewport/VirtualViewport.svelte';
+
+// > Types
+
+export * from './button-group/typedef.js';

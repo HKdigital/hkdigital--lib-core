@@ -8,15 +8,13 @@
   import { onMount } from 'svelte';
   import { findFirst } from '$lib/util/array/index.js';
 
-  /** @typedef {{text?: string, value?: any, label?: string, props?: Object}} ButtonDef */
-
   /**
    * @type {{
    *   base?: string,
    *   bg?: string,
    *   classes?: string,
-   *   buttons: Array<ButtonDef>,
-   *   selected?: (ButtonDef|null),
+   *   buttons: Array<import('./typedef.js').ButtonDef>,
+   *   selected?: (import('./typedef.js').ButtonDef|null),
    *   select?: ( label:string ) => void,
    *   buttonSnippet: import('svelte').Snippet<[{text: string, props: Object}]>,
    *   [attr: string]: any
@@ -68,13 +66,15 @@
   {...attrs}
 >
   {#each buttons as button, index}
-    {@render buttonSnippet?.({
-      text: button.text,
-      props: {
-        ...(button.props || {}),
-        selected: index === selectedIndex,
-        onclick: () => handleSelect(index)
-      }
-    })}
+    {#if !button.hide}
+      {@render buttonSnippet?.({
+        text: button.text,
+        props: {
+          ...(button.props || {}),
+          selected: index === selectedIndex,
+          onclick: () => handleSelect(index)
+        }
+      })}
+    {/if}
   {/each}
 </div>
