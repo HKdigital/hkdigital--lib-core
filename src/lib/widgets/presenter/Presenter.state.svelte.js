@@ -6,6 +6,8 @@ import { untrack } from 'svelte';
 
 import { HkPromise } from '$lib/classes/promise/index.js';
 
+import { STAGE_BEFORE, STAGE_SHOW } from './constants.js';
+
 /**
  * @typedef {import("./typedef").Slide} Slide
  */
@@ -19,16 +21,11 @@ import { HkPromise } from '$lib/classes/promise/index.js';
  */
 
 /**
- * @typedef {Object} LoadController
- * @property {() => void} loaded - Function to call when loading is complete
- * @property {() => void} cancel - Function to return to the previous slide
+ * @typedef {import("./typedef").Layer} PresenterRef
  */
 
 /**
- * @typedef {Object} PresenterRef
- * @property {(name: string) => void} gotoSlide - Navigate to a slide by name
- * @property {() => string} getCurrentSlideName - Get the current slide name
- * @property {(callback)=>Function} onUpdate
+ * @typedef {import("./typedef").Layer} LoadController
  */
 
 const Z_BACK = 0;
@@ -90,13 +87,19 @@ export class PresenterState {
   });
 
   /** @type {string} */
+  nextSlideName;
+
+  /** @type {string} */
   pendingSlideName;
 
   /** @type {boolean} */
   configured = false;
 
-  /** @type {Map<Symbol, () => void>} */
-  onUpdateListeners = new Map();
+  /** @type {Map<Symbol, ( params: ListenerParams ) => void>} */
+  onBeforeListeners = new Map();
+
+  /** @type {Map<Symbol, ( params: ListenerParams ) => void>} */
+  onShowListeners = new Map();
 
   /**
    * Initialize the presenter state and set up reactivity
@@ -281,10 +284,18 @@ export class PresenterState {
       throw new Error('Not configured yet');
     }
 
+    if (slide.name === this.currentSlideName) {
+      throw new Error(`gotoSlide cannot transition to current slide`);
+    }
+
+    this.nextSlideName = slide.name;
+
     if (this.busy) {
       this.pendingSlideName = slide.name;
       return;
     }
+
+    this.#callOnBeforeListeners();
 
     this.slideLoadingPromise = null;
 
@@ -396,6 +407,7 @@ export class PresenterState {
     if (this.pendingSlideName) {
       const pendingName = this.pendingSlideName;
 
+      this.nextSlideName = pendingName;
       this.pendingSlideName = null;
 
       untrack(() => {
@@ -403,14 +415,26 @@ export class PresenterState {
           this.gotoSlide(pendingName);
         }
       });
+    } else {
+      this.nextSlideName = null;
     }
 
-    this.#CallUpdateListeners();
+    this.#callOnShowListeners();
   }
 
-  #CallUpdateListeners() {
-    for (const fn of this.onUpdateListeners.values()) {
-      fn();
+  #callOnBeforeListeners() {
+    let nextSlideName = this.nextSlideName;
+
+    for (const fn of this.onBeforeListeners.values()) {
+      fn({ stage: STAGE_BEFORE, slideName: nextSlideName });
+    }
+  }
+
+  #callOnShowListeners() {
+    let currentSlideName = this.currentSlideName;
+
+    for (const fn of this.onShowListeners.values()) {
+      fn({ stage: STAGE_SHOW, slideName: currentSlideName });
     }
   }
 
@@ -557,12 +581,20 @@ export class PresenterState {
     return {
       gotoSlide: (name) => this.gotoSlide(name),
       getCurrentSlideName: () => this.currentSlideName,
-      onUpdate: (callback) => {
+      onBefore: (callback) => {
         const key = Symbol();
-        this.onUpdateListeners.set(key, callback);
+        this.onBeforeListeners.set(key, callback);
 
         return () => {
-          this.onUpdateListeners.delete(key);
+          this.onBeforeListeners.delete(key);
+        };
+      },
+      onAfter: (callback) => {
+        const key = Symbol();
+        this.onShowListeners.set(key, callback);
+
+        return () => {
+          this.onShowListeners.delete(key);
         };
       }
     };

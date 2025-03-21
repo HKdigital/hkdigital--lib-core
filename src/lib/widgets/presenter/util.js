@@ -25,7 +25,7 @@ export function waitForRender(callback) {
           setTimeout(() => {
             callback();
             resolve();
-          }, 50);
+          }, 20);
         });
       });
     });

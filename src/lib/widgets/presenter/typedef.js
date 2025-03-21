@@ -33,6 +33,26 @@
  */
 
 /**
+ * @typedef {{
+ *   stage: string,
+ *   slideName: string
+ * }} ListenerParams
+ */
+
+/**
+ * @typedef {Object} LoadController
+ * @property {() => void} loaded - Function to call when loading is complete
+ * @property {() => void} cancel - Function to return to the previous slide
+ */
+
+/**
+ * @typedef {Object} PresenterRef
+ * @property {(name: string) => void} gotoSlide - Navigate to a slide by name
+ * @property {() => string} getCurrentSlideName - Get the current slide name
+ * @property {(callback)=>Function} onUpdate
+ */
+
+/**
  * @typedef {CssTransition|FadeInTransition|FadeOutTransition} Transition
  */
 

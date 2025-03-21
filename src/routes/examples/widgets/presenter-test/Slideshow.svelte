@@ -13,19 +13,29 @@
 
   let presenterRef = $state();
 
-  $effect(() => {
-    if (presenterRef) {
-      presenterRef.gotoSlide(color);
-    }
-  });
+  function onBefore(params) {
+    console.debug('onBeforeUpdate', params);
+  }
 
-  function presenterUpdated() {
-    console.debug('presenterUpdated', presenterRef.getCurrentSlideName());
+  function onShow(params) {
+    console.debug('onShowUpdate', params);
   }
 
   $effect(() => {
     if (presenterRef) {
-      return presenterRef.onUpdate(presenterUpdated);
+      return presenterRef.onBefore(onBefore);
+    }
+  });
+
+  $effect(() => {
+    if (presenterRef) {
+      return presenterRef.onAfter(onShow);
+    }
+  });
+
+  $effect(() => {
+    if (presenterRef) {
+      presenterRef.gotoSlide(color);
     }
   });
 </script>
