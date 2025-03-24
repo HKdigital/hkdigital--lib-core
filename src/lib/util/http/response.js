@@ -2,7 +2,10 @@ import { ResponseError } from '$lib/constants/errors/index.js';
 import * as expect from '$lib/util/expect/index.js';
 import { toURL } from '$lib/util/http/url.js';
 
-import { WWW_AUTHENTICATE, CONTENT_LENGTH } from '$lib/constants/http/headers.js';
+import {
+	WWW_AUTHENTICATE,
+	CONTENT_LENGTH
+} from '$lib/constants/http/headers.js';
 
 import { href } from './url.js';
 
@@ -69,7 +72,8 @@ export async function expectResponseOk(response, url) {
 	const error = await getErrorFromResponse(response);
 
 	throw new ResponseError(
-		`Server returned - ${response.status} ${response.statusText} ` + `[url=${href(url)}]`,
+		`Server returned - ${response.status} ${response.statusText} ` +
+			`[url=${href(url)}]`,
 		{ cause: error }
 	);
 }
@@ -120,9 +124,12 @@ export async function waitForAndCheckResponse(responsePromise, url) {
 		}
 	} catch (e) {
 		if (e instanceof TypeError || response?.ok === false) {
-			throw new ResponseError(`A network error occurred for request [${href(url)}]`, {
-				cause: e
-			});
+			throw new ResponseError(
+				`A network error occurred for request [${href(url)}]`,
+				{
+					cause: e
+				}
+			);
 		} else {
 			throw e;
 		}
@@ -148,7 +155,7 @@ export function loadResponseBuffer(response, onProgress) {
 
 	let bytesLoaded = 0;
 
-	if (onProgress && size) {
+	if (onProgress /*&& size*/) {
 		onProgress({ bytesLoaded, size });
 	}
 
@@ -182,12 +189,14 @@ export function loadResponseBuffer(response, onProgress) {
 				// console.log({ size, bytesLoaded, value });
 
 				if (size && bytesLoaded > size) {
-					throw new Error(`Received more bytes that specified by header content-length`);
+					throw new Error(
+						`Received more bytes that specified by header content-length`
+					);
 				}
 
 				chunks.push(value);
 
-				if (onProgress && size) {
+				if (onProgress /*&& size*/) {
 					onProgress({ bytesLoaded, size });
 				}
 			}
@@ -199,7 +208,9 @@ export function loadResponseBuffer(response, onProgress) {
 		} // end while
 
 		if (size && bytesLoaded !== size) {
-			throw new Error(`Received [${bytesLoaded}], but expected [${size}] bytes`);
+			throw new Error(
+				`Received [${bytesLoaded}], but expected [${size}] bytes`
+			);
 		}
 
 		// Concat the chinks into a single array
