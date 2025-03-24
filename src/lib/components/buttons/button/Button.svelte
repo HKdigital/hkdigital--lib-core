@@ -11,6 +11,7 @@
    *   size?: 'sm' | 'md' | 'lg',
    *   variant?: string,
    *   mode?: 'light'|'dark'
+   *   buttonType?: 'button' | 'submit' | 'reset',
    *   active?: boolean,
    *   selected?: boolean,
    *   loading?: boolean,
@@ -33,6 +34,8 @@
     size = 'md',
     variant = '',
     mode = 'light',
+
+    buttonType = 'button',
 
     // States
     active = $bindable(false),
@@ -62,7 +65,7 @@
   data-size={size}
   data-variant={variant}
   data-mode={mode}
-  type="button"
+  type={buttonType}
   class="{base} {bg} {classes} {stateClasses}"
   disabled={disabled || loading}
   aria-busy={loading}
