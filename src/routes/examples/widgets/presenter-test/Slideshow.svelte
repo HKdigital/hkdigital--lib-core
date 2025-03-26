@@ -29,7 +29,7 @@
 
   $effect(() => {
     if (presenterRef) {
-      return presenterRef.onAfter(onShow);
+      return presenterRef.onShow(onShow);
     }
   });
 

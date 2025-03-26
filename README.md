@@ -11,6 +11,10 @@ It contains common code and components that we use to create our projects.
 This package is incomplete and not fully tested.
 Do not use in production environments yet.
 
+### TODO
+
+Add information about Skeleton, theming and imagetools
+
 ## A note about tailwindcss
 
 Components in this package use [tailwindcss](https://tailwindcss.com/).
@@ -46,7 +50,7 @@ We use a wildcard to upgrade all installed `node_modules` in the scope `@hkdigit
 You can also add this command to your project. To do so, add the lines to the bottom of the `scripts` section of your `package.json`.
 
 ```bash
-"upgrade:hklib": "ncu '@hkdigital/*' -u && pnpm install",
+"upgrade:hk": "ncu --dep dev,optional,peer,prod '@hkdigital/*' -u && pnpm install",
 "upgrade:all": "ncu -u && pnpm install"
 ```
 
@@ -83,13 +87,15 @@ export default {
     './src/**/*.{html,js,svelte,ts}',
 ```
 
-## Building the showcase app
+## Building the library
 
 To build your library:
 
 ```bash
 npm run package
 ```
+
+## Building the showcase app
 
 To create a production version of your showcase app:
 

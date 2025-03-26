@@ -21,11 +21,11 @@ import { STAGE_BEFORE, STAGE_SHOW } from './constants.js';
  */
 
 /**
- * @typedef {import("./typedef").Layer} PresenterRef
+ * @typedef {import("./typedef").PresenterRef} PresenterRef
  */
 
 /**
- * @typedef {import("./typedef").Layer} LoadController
+ * @typedef {import("./typedef").LoadController} LoadController
  */
 
 const Z_BACK = 0;
@@ -589,7 +589,7 @@ export class PresenterState {
           this.onBeforeListeners.delete(key);
         };
       },
-      onAfter: (callback) => {
+      onShow: (callback) => {
         const key = Symbol();
         this.onShowListeners.set(key, callback);
 
