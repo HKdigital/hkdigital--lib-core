@@ -9,9 +9,10 @@
   } from '$lib/util/design-system/index.js';
 
   /**
-   * @type {{ children: import('svelte').Snippet }}
+   * @type {{ children: import('svelte').Snippet,
+   *          data: { scalingEnabled: boolean} }}
    */
-  let { children } = $props();
+  let { children, data } = $props();
 
   /**
    * Holds the current scaling values for the debug panel
@@ -29,8 +30,15 @@
 
   onMount(() => {
     // Initialize the design scaling system
-    //const cleanup = () => {};
-    const cleanup = enableScalingUI(DESIGN, CLAMPING);
+    console.log({ scalingEnabled: data.scalingEnabled });
+
+    let cleanup;
+
+    if (data?.scalingEnabled) {
+      cleanup = enableScalingUI(DESIGN, CLAMPING);
+    } else {
+      cleanup = () => {};
+    }
 
     // Return combined cleanup function
     return () => {
