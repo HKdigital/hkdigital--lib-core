@@ -28,6 +28,10 @@ import { STAGE_BEFORE, STAGE_SHOW } from './constants.js';
  * @typedef {import("./typedef").LoadController} LoadController
  */
 
+/**
+ * @typedef {import("./typedef").ListenerParams} ListenerParams
+ */
+
 const Z_BACK = 0;
 const Z_FRONT = 10;
 
