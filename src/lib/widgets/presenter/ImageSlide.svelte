@@ -8,6 +8,8 @@
    *   nextSlideLabel?: string,
    *   presenter?: { gotoSlide: (name: string) => void, getCurrentSlideName: () => string },
    *   getLoadingController?: () => { loaded: () => void, cancel: () => void }
+   *   fit?: string,
+   *   position?: string,
    *   [attr: string]: any
    * }}
    */
@@ -17,6 +19,8 @@
     nextSlideLabel,
     presenter,
     getLoadingController,
+    fit = 'cover',
+    position = 'center center',
     ...attrs
   } = $props();
 
@@ -52,8 +56,8 @@
 <div class="absolute inset-0" class:invisible={!show}>
   <ImageBox
     {imageMeta}
-    fit="cover"
-    position="center center"
+    {fit}
+    {position}
     onProgress={progressListener}
     {...attrs}
   />
