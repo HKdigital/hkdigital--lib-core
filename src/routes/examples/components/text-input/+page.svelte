@@ -4,6 +4,8 @@
 
   let nameValue = $state('');
   let nameHasFocus = $state(false);
+  let nameIsValid = $state(false);
+  let nameIsPristine = $state(false);
 
   let emailValue = $state('');
   let emailHasFocus = $state(false);
@@ -39,6 +41,8 @@
 <div class="container p-20p w-[400px] bg-white">
   <TextInput
     bind:value={nameValue}
+    bind:isValid={nameIsValid}
+    bind:isPristine={nameIsPristine}
     bind:hasFocus={nameHasFocus}
     type="text"
     required
@@ -59,4 +63,9 @@
 </div>
 
 <p>Name: {nameValue}</p>
+<p>
+  valid: {nameIsValid}<br />
+  pristine: {nameIsPristine}<br />
+  focus: {nameHasFocus}<br />
+</p>
 <p>Email: {emailValue}</p>

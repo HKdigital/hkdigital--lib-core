@@ -49,10 +49,6 @@
     isPristine = $bindable(true),
     hasFocus = $bindable(false),
 
-    ...otherProps
-  } = $props();
-
-  let {
     // Fieldset
     base = 'px-10p pb-10p',
     borderShape = 'border-1p rounded-xs',
@@ -90,7 +86,7 @@
     validate,
 
     ...attrs
-  } = otherProps;
+  } = $props();
 
   let inputRef = $state();
   let validationMessage = $state('');
