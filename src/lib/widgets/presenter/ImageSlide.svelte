@@ -8,7 +8,7 @@
    *   nextSlideLabel?: string,
    *   presenter?: { gotoSlide: (name: string) => void, getCurrentSlideName: () => string },
    *   getLoadingController?: () => { loaded: () => void, cancel: () => void }
-   *   fit?: string,
+   *   fit?: 'contain' | 'cover' | 'fill',
    *   position?: string,
    *   [attr: string]: any
    * }}

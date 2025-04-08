@@ -185,7 +185,7 @@
       {type}
       {required}
       {disabled}
-      {value}
+      bind:value
       {placeholder}
       class="{inputBase} {inputClasses}"
       aria-invalid={!isValid}
