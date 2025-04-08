@@ -43,6 +43,7 @@
    * } & { [attr: string]: any }}
    */
   let {
+    initialValue,
     value = $bindable(''),
 
     isValid = $bindable(true),
@@ -90,12 +91,12 @@
 
   let inputRef = $state();
   let validationMessage = $state('');
-  let initialValue = $state('');
+  // let initialValue = $state('');
 
   $effect(() => {
     if (!inputRef) return;
-    initialValue = value;
-    validateInput(inputRef, value);
+    validateInput(inputRef, initialValue);
+    value = initialValue;
   });
 
   function validateInput(input, currentValue) {

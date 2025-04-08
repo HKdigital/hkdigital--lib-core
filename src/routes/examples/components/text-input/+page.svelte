@@ -40,6 +40,7 @@
 
 <div class="container p-20p w-[400px] bg-white">
   <TextInput
+    initialValue="test"
     bind:value={nameValue}
     bind:isValid={nameIsValid}
     bind:isPristine={nameIsPristine}
