@@ -190,7 +190,7 @@ export function loadResponseBuffer(response, onProgress) {
 
 				if (size && bytesLoaded > size) {
 					throw new Error(
-						`Received more bytes that specified by header content-length`
+						`Received more bytes [${bytesLoaded}] than specified by header content-length [${size}]`
 					);
 				}
 
