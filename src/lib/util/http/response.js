@@ -188,11 +188,12 @@ export function loadResponseBuffer(response, onProgress) {
 
 				// console.log({ size, bytesLoaded, value });
 
-				if (size && bytesLoaded > size) {
-					throw new Error(
-						`Received more bytes [${bytesLoaded}] than specified by header content-length [${size}]`
-					);
-				}
+				// if (size && bytesLoaded > size) {
+				// 	console.error();
+				// 	throw new Error(
+				// 		`Received more bytes [${bytesLoaded}] than specified by header content-length [${size}]`
+				// 	);
+				// }
 
 				chunks.push(value);
 
@@ -208,9 +209,10 @@ export function loadResponseBuffer(response, onProgress) {
 		} // end while
 
 		if (size && bytesLoaded !== size) {
-			throw new Error(
-				`Received [${bytesLoaded}], but expected [${size}] bytes`
-			);
+			console.error(`Received [${bytesLoaded}], but expected [${size}] bytes`);
+			// throw new Error(
+			// 	`Received [${bytesLoaded}], but expected [${size}] bytes`
+			// );
 		}
 
 		// Concat the chinks into a single array
