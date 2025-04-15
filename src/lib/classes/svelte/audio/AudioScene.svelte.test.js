@@ -46,10 +46,10 @@ describe('AudioScene', () => {
 
 			// expect(AudioScene.loaded).toEqual(false);
 
-			const audioContext = new AudioContext();
+			// const audioContext = new AudioContext();
 
 			// @ts-ignore
-			audioScene.load(audioContext);
+			audioScene.load();
 		});
 
 		await waitForState(() => {

@@ -9,7 +9,7 @@
 
   import { SLIDE_HELLO } from '../config/labels.js';
 
-  import GridLayers from '$lib/components/layout/grid-layers/GridLayers.svelte';
+  // import GridLayers from '$lib/components/layout/grid-layers/GridLayers.svelte';
 
   /**
    * @type {{

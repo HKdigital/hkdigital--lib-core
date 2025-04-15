@@ -81,9 +81,6 @@ export default class AudioScene {
 
 	/**
 	 * Construct AudioScene
-	 *
-	 * @param {object} _
-	 * @param {AudioContext} _.audioContext
 	 */
 	constructor() {
 		const state = this.#state;
@@ -175,9 +172,13 @@ export default class AudioScene {
 	 *
 	 * @param {AudioContext} audioContext
 	 */
-	load(audioContext) {
-		this.#audioContext = audioContext;
-		// console.log(123);
+	load( audioContext ) {
+
+		if( audioContext && !this.#audioContext )
+		{
+			this.#audioContext = audioContext;
+		}
+
 		this.#state.send(LOAD);
 
 		// FIXME: in unit test when moved to startloading it hangs!
@@ -186,6 +187,8 @@ export default class AudioScene {
 			audioLoader.load();
 		}
 	}
+
+	// setAudioContext
 
 	async #startLoading() {
 		console.log('#startLoading');
@@ -212,12 +215,11 @@ export default class AudioScene {
 		}
 
 		const sourceNode = await audioLoader.getAudioBufferSourceNode(
-			// @ts-ignore
-			this.#audioContext
+			this.#getAudioContext()
 		);
 
 		// @ts-ignore
-		sourceNode.connect(this.#audioContext.destination);
+		sourceNode.connect(this.#getAudioContext().destination);
 
 		// Clean up
 		sourceNode.onended = () => {
@@ -226,6 +228,16 @@ export default class AudioScene {
 		};
 
 		return sourceNode;
+	}
+
+	#getAudioContext()
+	{
+		if( !this.#audioContext )
+		{
+			this.#audioContext = new AudioContext();
+		}
+
+		return this.#audioContext;
 	}
 
 	/**
