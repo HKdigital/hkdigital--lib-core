@@ -70,7 +70,7 @@ export default {
   ]
 };
 
-// console.log('tailwind > theme > extend', {
+// console.log('tailwind > theme > extend', JSON.stringify({
 //   spacing,
 //   fontSize,
 //   borderRadius,
@@ -78,4 +78,4 @@ export default {
 //   strokeWidth,
 //   outlineWidth,
 //   outlineOffset
-// });
+// }, null, 2));

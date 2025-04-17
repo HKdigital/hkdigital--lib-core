@@ -169,16 +169,8 @@ export default class AudioScene {
 
 	/**
 	 * Start loading all audio sources
-	 *
-	 * @param {AudioContext} audioContext
 	 */
-	load( audioContext ) {
-
-		if( audioContext && !this.#audioContext )
-		{
-			this.#audioContext = audioContext;
-		}
-
+	load() {
 		this.#state.send(LOAD);
 
 		// FIXME: in unit test when moved to startloading it hangs!
@@ -188,7 +180,14 @@ export default class AudioScene {
 		}
 	}
 
-	// setAudioContext
+	/**
+ 	 * Set an audio context to use
+ 	 *
+	 * @param {AudioContext} [audioContext]
+	 */
+	setAudioContext( audioContext ) {
+		this.#audioContext = audioContext;
+	}
 
 	async #startLoading() {
 		console.log('#startLoading');
@@ -203,6 +202,8 @@ export default class AudioScene {
 	 * Get a source that can be used to play the audio once
 	 *
 	 * @param {string} label
+	 *
+	 * @returns {Promise<AudioBufferSourceNode>}
 	 */
 	async getSourceNode(label) {
 		// @note Gain setup
