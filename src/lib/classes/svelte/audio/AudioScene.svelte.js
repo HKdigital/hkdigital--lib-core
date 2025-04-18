@@ -95,7 +95,7 @@ export default class AudioScene {
 				const { sourcesLoaded, numberOfSources } = this.#progress;
 
 				if (sourcesLoaded === numberOfSources) {
-					console.log(`All [${numberOfSources}] sources loaded`);
+					// console.debug(`AudioScene: ${numberOfSources} sources loaded`);
 					this.#state.send(LOADED);
 				}
 			}
@@ -105,7 +105,7 @@ export default class AudioScene {
 			switch (state.current) {
 				case STATE_LOADING:
 					{
-						console.log('AudioScene:loading');
+						// console.log('AudioScene:loading');
 						this.#startLoading();
 					}
 					break;
@@ -119,7 +119,7 @@ export default class AudioScene {
 
 				case STATE_LOADED:
 					{
-						console.log('AudioScene:loaded');
+						// console.log('AudioScene:loaded');
 
 						// tODO
 						// this.#abortLoading = null;
@@ -135,7 +135,7 @@ export default class AudioScene {
 
 				case STATE_ERROR:
 					{
-						console.log('AudioScene:error', state.error);
+						console.error('AudioScene:error', state.error);
 					}
 					break;
 			} // end switch
@@ -190,7 +190,7 @@ export default class AudioScene {
 	}
 
 	async #startLoading() {
-		console.log('#startLoading');
+		// console.log('#startLoading');
 
 		// FIXME: in unit test when moved to startloading it hangs!
 		// for (const { audioLoader } of this.#memorySources) {
