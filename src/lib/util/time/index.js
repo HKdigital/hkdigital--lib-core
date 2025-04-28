@@ -214,52 +214,60 @@ export function getWeekNumber(dateOrTimestamp) {
 
 /**
  * Get the name of the month
- * - Returns the English name of the month
+ * - Returns the month name using Intl.DateTimeFormat
+ * - By default uses English locale, but locale can be specified
  *
- * - Use the output as label in combination with the functions
- *   text() and translate() for international month names
+ * @param {Date|number} dateOrTimestamp - Date object or timestamp
+ * @param {string} [locale='nl-NL'] - The locale to use for the month name
  *
- * e.g.
+ * @param {Object} [options]
+ * @param {'numeric'|'2-digit'|'narrow'|'short'|'long'} [options.month='long']
+ * @param {string} [options.timeZone] - Optional timezone
  *
- * setTranslations()
- * ...
- *
- * text( getMonthName( new Date() ) );
- *
- * --
- *
- * @param {Date|number} dateOrTimestamp
- *
- * @returns {string} name of the month (English)
+ * @returns {string} name of the month in the specified locale
  */
-export function getMonthName(dateOrTimestamp) {
-	throw new Error('Not implemented yet');
-	// return MONTH_NAME_LABELS_EN[toDate(dateOrTimestamp).getMonth()];
+export function getMonthName(dateOrTimestamp, locale = 'nl-NL',
+    options = { month: 'long' }) {
+
+  const date = toDate(dateOrTimestamp);
+
+  // Create formatter with provided locale and options
+  // @ts-ignore - TypeScript kan hier strikter zijn dan nodig met de options
+  const formatter = new Intl.DateTimeFormat(locale, {
+    month: options?.month || 'long',
+    ...(options?.timeZone ? { timeZone: options.timeZone } : {})
+  });
+
+  return formatter.format(date);
 }
 
 /**
- * Get the name of the day
- * - Returns the English name of the day
+ * Get the name of the day of the week
+ * - Returns the day name using Intl.DateTimeFormat
+ * - By default uses English locale, but locale can be specified
  *
- * - Use the output as label in combination with the functions
- *   text() and translate() for international day names
+ * @param {Date|number} dateOrTimestamp - Date object or timestamp
+ * @param {string} [locale='nl-NL'] - The locale to use for the day name
  *
- * e.g.
+ * @param {Object} [options]
+ * @param {'narrow'|'short'|'long'} [options.weekday='long']
+ * @param {string} [options.timeZone] - Optional timezone
  *
- * setTranslations()
- * ...
- *
- * text( getDayName( new Date() ) );
- *
- * --
- *
- * @param {Date|number} [dateOrTimestamp]
- *
- * @returns {string} name of the day (English)
+ * @returns {string} name of the day in the specified locale
  */
-export function getDayName(dateOrTimestamp) {
-	throw new Error('Not implemented yet');
-	// return DAY_NAME_LABELS_EN[toDate(dateOrTimestamp).getDay()];
+export function getDayName(dateOrTimestamp, locale = 'nl-NL',
+    options = { weekday: 'long' }) {
+
+  const date = toDate(dateOrTimestamp);
+
+  // Create formatter with provided locale and options
+  // @ts-ignore - TypeScript kan hier strikter zijn dan nodig met de options
+  const formatter = new Intl.DateTimeFormat(locale, {
+    weekday: options?.weekday || 'long',
+    ...(options?.timeZone ? { timeZone: options.timeZone } : {})
+  });
+
+  return formatter.format(date);
 }
 
 /**

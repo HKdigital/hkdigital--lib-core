@@ -14,6 +14,8 @@ import {
   timeToString,
   toDate,
   getWeekNumber,
+  getMonthName,
+  getDayName,
   getTimeAtStartOfDay,
   getTimeAtEndOfDay
 } from './index.js';
@@ -198,7 +200,10 @@ describe('toDate', () => {
   });
 
   it('should throw error for invalid input', () => {
+    // @ts-ignore
     expect(() => toDate()).toThrow('Missing or invalid parameter [dateOrTimestamp]');
+
+    // @ts-ignore
     expect(() => toDate('2025-01-01')).toThrow('Missing or invalid parameter [dateOrTimestamp]');
     expect(() => toDate(null)).toThrow('Missing or invalid parameter [dateOrTimestamp]');
   });
@@ -229,6 +234,98 @@ describe('getWeekNumber', () => {
   it('should handle timestamps as input', () => {
     const timestamp = new Date('2025-01-01').getTime();
     expect(getWeekNumber(timestamp)).toBe(1);
+  });
+});
+
+describe('getMonthName', () => {
+  it('should be a function', () => {
+    expect(typeof getMonthName).toBe('function');
+  });
+
+  it('should return correct month name in Dutch by default', () => {
+    // Januari
+    expect(getMonthName(new Date(2025, 0, 15))).toBe('januari');
+
+    // Juli
+    expect(getMonthName(new Date(2025, 6, 15))).toBe('juli');
+
+    // December
+    expect(getMonthName(new Date(2025, 11, 15))).toBe('december');
+  });
+
+  it('should support English locale when specified', () => {
+    // January
+    expect(getMonthName(new Date(2025, 0, 15), 'en-US')).toBe('January');
+
+    // July
+    expect(getMonthName(new Date(2025, 6, 15), 'en-US')).toBe('July');
+  });
+
+  it('should accept timestamps as input', () => {
+    const date = new Date(2025, 3, 15); // April
+    expect(getMonthName(date.getTime())).toBe('april');
+  });
+
+  it('should support different locales', () => {
+    const date = new Date(2025, 0, 15); // January
+
+    expect(getMonthName(date, 'nl-NL')).toBe('januari');
+    expect(getMonthName(date, 'es-ES')).toBe('enero');
+    expect(getMonthName(date, 'fr-FR')).toBe('janvier');
+  });
+
+  it('should support different month format options', () => {
+    const date = new Date(2025, 0, 15); // January
+
+    expect(getMonthName(date, 'nl-NL', { month: 'short' })).toBe('jan');
+    expect(getMonthName(date, 'nl-NL', { month: 'narrow' })).toBe('J');
+    expect(getMonthName(date, 'nl-NL', { month: 'numeric' })).toBe('1');
+    expect(getMonthName(date, 'nl-NL', { month: '2-digit' })).toBe('01');
+  });
+});
+
+describe('getDayName', () => {
+  it('should be a function', () => {
+    expect(typeof getDayName).toBe('function');
+  });
+
+  it('should return correct day name in Dutch by default', () => {
+    // Woensdag (January 15, 2025 is a Wednesday)
+    expect(getDayName(new Date(2025, 0, 15))).toBe('woensdag');
+
+    // Zondag
+    expect(getDayName(new Date(2025, 0, 19))).toBe('zondag');
+
+    // Maandag
+    expect(getDayName(new Date(2025, 0, 20))).toBe('maandag');
+  });
+
+  it('should support English locale when specified', () => {
+    // Wednesday
+    expect(getDayName(new Date(2025, 0, 15), 'en-US')).toBe('Wednesday');
+
+    // Sunday
+    expect(getDayName(new Date(2025, 0, 19), 'en-US')).toBe('Sunday');
+  });
+
+  it('should accept timestamps as input', () => {
+    const date = new Date(2025, 0, 15); // Wednesday
+    expect(getDayName(date.getTime())).toBe('woensdag');
+  });
+
+  it('should support different locales', () => {
+    const date = new Date(2025, 0, 15); // Wednesday
+
+    expect(getDayName(date, 'nl-NL')).toBe('woensdag');
+    expect(getDayName(date, 'es-ES')).toBe('miércoles');
+    expect(getDayName(date, 'fr-FR')).toBe('mercredi');
+  });
+
+  it('should support different weekday format options', () => {
+    const date = new Date(2025, 0, 15); // Wednesday
+
+    expect(getDayName(date, 'nl-NL', { weekday: 'short' })).toBe('wo');
+    expect(getDayName(date, 'nl-NL', { weekday: 'narrow' })).toBe('W');
   });
 });
 
