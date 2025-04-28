@@ -50,7 +50,7 @@ import { HkPromise } from '$lib/classes/promise/index.js';
  *   resolves. If this parameter is set, the delay will be chosen randomly
  *   between the values [delayOrMinDelayMs, maxDelayMs]
  *
- * @returns {Promise} promise that resolves after a specified timeout
+ * @returns {HkPromise} promise that resolves after a specified timeout
  */
 export function delay(delayOrMinDelayMs, maxDelayMs) {
 	expect.number(delayOrMinDelayMs);
@@ -132,7 +132,7 @@ export function timeToString(timeMs) {
 
 	str += `${minutes.toString().padStart(2, '0')}:`;
 	str += `${seconds.toString().padStart(2, '0')}.`;
-	str += `${restMs.toString().padEnd(3, '0')}`;
+	str += `${restMs.toString().padStart(3, '0')}`;
 
 	return str;
 }
@@ -209,7 +209,7 @@ export function getWeekNumber(dateOrTimestamp) {
 	// of the year and the Thursday in the target week
 	// (604800000 = 7 * 24 * 3600 * 1000)
 	//
-	return 1 + Math.ceil((firstThursday - target) / 604800000);
+	return 1 + Math.ceil((firstThursday - target.getTime()) / 604800000);
 }
 
 /**
@@ -253,7 +253,7 @@ export function getMonthName(dateOrTimestamp) {
  *
  * --
  *
- * @param {Date|number} dateOrTimestamp
+ * @param {Date|number} [dateOrTimestamp]
  *
  * @returns {string} name of the day (English)
  */
@@ -266,7 +266,7 @@ export function getDayName(dateOrTimestamp) {
  * Return the timestamp of the start of the day
  * - Midnight
  *
- * @param {Date|number} dateOrTimestamp
+ * @param {Date|number} [dateOrTimestamp]
  *
  * @returns {number} timestamp of start of the day (00:00:00:0000)
  */
@@ -292,7 +292,7 @@ export function getTimeAtStartOfDay(dateOrTimestamp) {
  * Return the timestamp of the end of the day
  * - Midnight - 1 millisecond
  *
- * @param {Date|number} dateOrTimestamp
+ * @param {Date|number} [dateOrTimestamp]
  *
  * @returns {number} timestamp of start of the day
  */
