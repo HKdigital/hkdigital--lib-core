@@ -13,9 +13,10 @@ import { waitForAndCheckResponse } from './response.js';
 
 /**
  * @callback requestHandler
- * @param {AbortController} controller
- * @param {( reason?: Error ) => void} abort
- * @param {( delayMs: number) => void} timeout
+ * @param {Object} _
+ * @param {AbortController} _.controller
+ * @param {( reason?: Error ) => void} _.abort
+ * @param {( delayMs: number) => void} _.timeout
  */
 
 /**
@@ -41,7 +42,13 @@ import { waitForAndCheckResponse } from './response.js';
  *
  * @returns {Promise<Response>} responsePromise
  */
-export async function httpGet({ url, urlSearchParams, headers, requestHandler, timeoutMs }) {
+export async function httpGet({
+	url,
+	urlSearchParams,
+	headers,
+	requestHandler,
+	timeoutMs
+}) {
 	const responsePromise = httpRequest({
 		method: METHOD_GET,
 		url,
@@ -76,7 +83,13 @@ export async function httpGet({ url, urlSearchParams, headers, requestHandler, t
  *
  * @returns {Promise<Response>} responsePromise
  */
-export async function httpPost({ url, body = null, headers, requestHandler, timeoutMs }) {
+export async function httpPost({
+	url,
+	body = null,
+	headers,
+	requestHandler,
+	timeoutMs
+}) {
 	const responsePromise = httpRequest({
 		method: METHOD_POST,
 		url,
@@ -142,7 +155,10 @@ export async function httpRequest({
 	if (headers) {
 		setRequestHeaders(requestHeaders, headers);
 
-		if (headers[CONTENT_TYPE] === APPLICATION_JSON && typeof body !== 'string') {
+		if (
+			headers[CONTENT_TYPE] === APPLICATION_JSON &&
+			typeof body !== 'string'
+		) {
 			throw new Error(
 				`Trying to send request with [content-type:${APPLICATION_JSON}], ` +
 					'but body is not a (JSON encoded) string.'
@@ -151,6 +167,7 @@ export async function httpRequest({
 		// IDEA: try to decode the body to catch errors on client side
 	}
 
+	/** @type {RequestInit} */
 	const init = {
 		mode: 'cors',
 		cache: 'no-cache',
@@ -165,7 +182,8 @@ export async function httpRequest({
 	if (urlSearchParams) {
 		if (!(urlSearchParams instanceof URLSearchParams)) {
 			throw new Error(
-				'Invalid parameter [urlSearchParams] ' + '(expected instanceof URLSearchParams)'
+				'Invalid parameter [urlSearchParams] ' +
+					'(expected instanceof URLSearchParams)'
 			);
 		}
 
@@ -174,7 +192,8 @@ export async function httpRequest({
 		for (const [name, value] of urlSearchParams.entries()) {
 			if (existingParams.has(name)) {
 				throw new Error(
-					`Cannot set URL search parameter [${name}] ` + `in url [${url.href}] (already set)`
+					`Cannot set URL search parameter [${name}] ` +
+						`in url [${url.href}] (already set)`
 				);
 			}
 
@@ -246,10 +265,12 @@ export async function httpRequest({
 		 * @param {number} delayMs
 		 */
 		const timeout = (delayMs = 10000) => {
-			expect.positiveNumber(delayMs, 'Invalid value for [delayMs]');
+			expect.positiveNumber(delayMs);
 
 			const timerId = setTimeout(() => {
-				controller.abort(new TimeoutError(`Request [${url.href}] timed out [${delayMs}]`));
+				controller.abort(
+					new TimeoutError(`Request [${url.href}] timed out [${delayMs}]`)
+				);
 			}, delayMs);
 
 			promise.finally(() => {
@@ -262,7 +283,7 @@ export async function httpRequest({
 		}
 
 		if (requestHandler) {
-			expect.function(requestHandler, 'Invalid parameter [requestHandler]');
+			expect.function(requestHandler);
 
 			requestHandler({ controller, abort, timeout });
 		}

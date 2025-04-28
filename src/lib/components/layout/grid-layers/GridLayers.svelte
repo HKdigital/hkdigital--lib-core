@@ -143,7 +143,7 @@
 	{...attrs}
 >
 	<div
-		data-section="layer"
+		data-section="grid"
 		class="absolute inset-0 grid {cellBase} {cellBg} {cellPadding} {cellMargin} {cellClasses}"
 		style={cellStyle}
 	>
@@ -154,12 +154,12 @@
 <style>
 	/* All children of the layer share the same grid area
 	   but aren't absolutely positioned */
-	[data-section='layer'] {
+	[data-section='grid'] {
 		grid-template-columns: 1fr;
 		grid-template-rows: 1fr;
 	}
 
-	[data-section='layer'] > :global(*) {
+	[data-section='grid'] > :global(*) {
 		grid-column: 1;
 		grid-row: 1;
 		z-index: 0; /* Base z-index to allow explicit stacking order */

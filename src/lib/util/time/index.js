@@ -28,23 +28,15 @@
  *   }).format(d);
  */
 
-/* ------------------------------------------------------------------ Imports */
+import {
+	SECOND_MS,
+	MINUTE_MS,
+	HOUR_MS,
+	DAY_MS,
+	TIME_2025_01_01 } from '$lib/constants/time.js';
 
-import * as expect from '../expect/index.js';
-import { HkPromise } from '../../classes/promise/index.js';
-
-/* ---------------------------------------------------------------- Internals */
-
-/* ------------------------------------------------------------------ Exports */
-
-export const SECOND_MS = 1000;
-export const MINUTE_MS = 60 * SECOND_MS;
-export const HOUR_MS = 60 * MINUTE_MS;
-export const DAY_MS = 24 * HOUR_MS;
-export const WEEK_MS = 7 * DAY_MS;
-
-export const TIME_2020_01_01 = 1577836800000; // 2020-01-01T00:00:00.000Z
-export const TIME_2100_01_01 = 4102444800000; // 2100-01-01T00:00:00.000Z
+import * as expect from '$lib/util/expect';
+import { HkPromise } from '$lib/classes/promise/index.js';
 
 /**
  * Returns a promise that resolves after a specified timeout
@@ -58,7 +50,7 @@ export const TIME_2100_01_01 = 4102444800000; // 2100-01-01T00:00:00.000Z
  *   resolves. If this parameter is set, the delay will be chosen randomly
  *   between the values [delayOrMinDelayMs, maxDelayMs]
  *
- * @returns {Promise} promise that resolves after a specified timeout
+ * @returns {HkPromise} promise that resolves after a specified timeout
  */
 export function delay(delayOrMinDelayMs, maxDelayMs) {
 	expect.number(delayOrMinDelayMs);
@@ -92,21 +84,17 @@ export function delay(delayOrMinDelayMs, maxDelayMs) {
 	return promise;
 }
 
-// -----------------------------------------------------------------------------
-
 /**
  * Get the number of milliseconds since the specified time stamp of the default
- * reference time stamp TIME_2020_01_01
+ * reference time stamp TIME_2025_01_01
  *
- * @param {number} [sinceMs=TIME_2020_01_01]
+ * @param {number} [sinceMs=TIME_2025_01_01]
  *
  * @returns {number} number of milliseconds since the specified time
  */
-export function sinceMs(sinceMs = TIME_2020_01_01) {
+export function sinceMs(sinceMs = TIME_2025_01_01) {
 	return Date.now() - sinceMs;
 }
-
-// -----------------------------------------------------------------------------
 
 /**
  * Get a string that represents the time in a readable
@@ -144,12 +132,10 @@ export function timeToString(timeMs) {
 
 	str += `${minutes.toString().padStart(2, '0')}:`;
 	str += `${seconds.toString().padStart(2, '0')}.`;
-	str += `${restMs.toString().padEnd(3, '0')}`;
+	str += `${restMs.toString().padStart(3, '0')}`;
 
 	return str;
 }
-
-// -----------------------------------------------------------------------------
 
 /**
  * Returns a Date object
@@ -170,8 +156,6 @@ export function toDate(dateOrTimestamp) {
 
 	throw new Error('Missing or invalid parameter [dateOrTimestamp]');
 }
-
-// -----------------------------------------------------------------------------
 
 /**
  * Get the ISO 8601 week number of the specified date
@@ -225,70 +209,72 @@ export function getWeekNumber(dateOrTimestamp) {
 	// of the year and the Thursday in the target week
 	// (604800000 = 7 * 24 * 3600 * 1000)
 	//
-	return 1 + Math.ceil((firstThursday - target) / 604800000);
+	return 1 + Math.ceil((firstThursday - target.getTime()) / 604800000);
 }
-
-// -----------------------------------------------------------------------------
 
 /**
  * Get the name of the month
- * - Returns the English name of the month
+ * - Returns the month name using Intl.DateTimeFormat
+ * - By default uses English locale, but locale can be specified
  *
- * - Use the output as label in combination with the functions
- *   text() and translate() for international month names
+ * @param {Date|number} dateOrTimestamp - Date object or timestamp
+ * @param {string} [locale='nl-NL'] - The locale to use for the month name
  *
- * e.g.
+ * @param {Object} [options]
+ * @param {'numeric'|'2-digit'|'narrow'|'short'|'long'} [options.month='long']
+ * @param {string} [options.timeZone] - Optional timezone
  *
- * setTranslations()
- * ...
- *
- * text( getMonthName( new Date() ) );
- *
- * --
- *
- * @param {Date|number} dateOrTimestamp
- *
- * @returns {string} name of the month (English)
+ * @returns {string} name of the month in the specified locale
  */
-export function getMonthName(dateOrTimestamp) {
-	throw new Error('Not implemented yet');
-	// return MONTH_NAME_LABELS_EN[toDate(dateOrTimestamp).getMonth()];
-}
+export function getMonthName(dateOrTimestamp, locale = 'nl-NL',
+    options = { month: 'long' }) {
 
-// -----------------------------------------------------------------------------
+  const date = toDate(dateOrTimestamp);
+
+  // Create formatter with provided locale and options
+  // @ts-ignore - TypeScript kan hier strikter zijn dan nodig met de options
+  const formatter = new Intl.DateTimeFormat(locale, {
+    month: options?.month || 'long',
+    ...(options?.timeZone ? { timeZone: options.timeZone } : {})
+  });
+
+  return formatter.format(date);
+}
 
 /**
- * Get the name of the day
- * - Returns the English name of the day
+ * Get the name of the day of the week
+ * - Returns the day name using Intl.DateTimeFormat
+ * - By default uses English locale, but locale can be specified
  *
- * - Use the output as label in combination with the functions
- *   text() and translate() for international day names
+ * @param {Date|number} dateOrTimestamp - Date object or timestamp
+ * @param {string} [locale='nl-NL'] - The locale to use for the day name
  *
- * e.g.
+ * @param {Object} [options]
+ * @param {'narrow'|'short'|'long'} [options.weekday='long']
+ * @param {string} [options.timeZone] - Optional timezone
  *
- * setTranslations()
- * ...
- *
- * text( getDayName( new Date() ) );
- *
- * --
- *
- * @param {Date|number} dateOrTimestamp
- *
- * @returns {string} name of the day (English)
+ * @returns {string} name of the day in the specified locale
  */
-export function getDayName(dateOrTimestamp) {
-	throw new Error('Not implemented yet');
-	// return DAY_NAME_LABELS_EN[toDate(dateOrTimestamp).getDay()];
-}
+export function getDayName(dateOrTimestamp, locale = 'nl-NL',
+    options = { weekday: 'long' }) {
 
-// -----------------------------------------------------------------------------
+  const date = toDate(dateOrTimestamp);
+
+  // Create formatter with provided locale and options
+  // @ts-ignore - TypeScript kan hier strikter zijn dan nodig met de options
+  const formatter = new Intl.DateTimeFormat(locale, {
+    weekday: options?.weekday || 'long',
+    ...(options?.timeZone ? { timeZone: options.timeZone } : {})
+  });
+
+  return formatter.format(date);
+}
 
 /**
  * Return the timestamp of the start of the day
  * - Midnight
  *
- * @param {Date|number} dateOrTimestamp
+ * @param {Date|number} [dateOrTimestamp]
  *
  * @returns {number} timestamp of start of the day (00:00:00:0000)
  */
@@ -310,13 +296,11 @@ export function getTimeAtStartOfDay(dateOrTimestamp) {
 	return d.getTime();
 }
 
-// -----------------------------------------------------------------------------
-
 /**
  * Return the timestamp of the end of the day
  * - Midnight - 1 millisecond
  *
- * @param {Date|number} dateOrTimestamp
+ * @param {Date|number} [dateOrTimestamp]
  *
  * @returns {number} timestamp of start of the day
  */

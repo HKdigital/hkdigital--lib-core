@@ -81,9 +81,6 @@ export default class AudioScene {
 
 	/**
 	 * Construct AudioScene
-	 *
-	 * @param {object} _
-	 * @param {AudioContext} _.audioContext
 	 */
 	constructor() {
 		const state = this.#state;
@@ -98,7 +95,7 @@ export default class AudioScene {
 				const { sourcesLoaded, numberOfSources } = this.#progress;
 
 				if (sourcesLoaded === numberOfSources) {
-					console.log(`All [${numberOfSources}] sources loaded`);
+					// console.debug(`AudioScene: ${numberOfSources} sources loaded`);
 					this.#state.send(LOADED);
 				}
 			}
@@ -108,7 +105,7 @@ export default class AudioScene {
 			switch (state.current) {
 				case STATE_LOADING:
 					{
-						console.log('AudioScene:loading');
+						// console.log('AudioScene:loading');
 						this.#startLoading();
 					}
 					break;
@@ -122,7 +119,7 @@ export default class AudioScene {
 
 				case STATE_LOADED:
 					{
-						console.log('AudioScene:loaded');
+						// console.log('AudioScene:loaded');
 
 						// tODO
 						// this.#abortLoading = null;
@@ -138,7 +135,7 @@ export default class AudioScene {
 
 				case STATE_ERROR:
 					{
-						console.log('AudioScene:error', state.error);
+						console.error('AudioScene:error', state.error);
 					}
 					break;
 			} // end switch
@@ -172,12 +169,8 @@ export default class AudioScene {
 
 	/**
 	 * Start loading all audio sources
-	 *
-	 * @param {AudioContext} audioContext
 	 */
-	load(audioContext) {
-		this.#audioContext = audioContext;
-		// console.log(123);
+	load() {
 		this.#state.send(LOAD);
 
 		// FIXME: in unit test when moved to startloading it hangs!
@@ -187,8 +180,17 @@ export default class AudioScene {
 		}
 	}
 
+	/**
+ 	 * Set an audio context to use
+ 	 *
+	 * @param {AudioContext} [audioContext]
+	 */
+	setAudioContext( audioContext ) {
+		this.#audioContext = audioContext;
+	}
+
 	async #startLoading() {
-		console.log('#startLoading');
+		// console.log('#startLoading');
 
 		// FIXME: in unit test when moved to startloading it hangs!
 		// for (const { audioLoader } of this.#memorySources) {
@@ -200,6 +202,8 @@ export default class AudioScene {
 	 * Get a source that can be used to play the audio once
 	 *
 	 * @param {string} label
+	 *
+	 * @returns {Promise<AudioBufferSourceNode>}
 	 */
 	async getSourceNode(label) {
 		// @note Gain setup
@@ -212,12 +216,11 @@ export default class AudioScene {
 		}
 
 		const sourceNode = await audioLoader.getAudioBufferSourceNode(
-			// @ts-ignore
-			this.#audioContext
+			this.#getAudioContext()
 		);
 
 		// @ts-ignore
-		sourceNode.connect(this.#audioContext.destination);
+		sourceNode.connect(this.#getAudioContext().destination);
 
 		// Clean up
 		sourceNode.onended = () => {
@@ -226,6 +229,16 @@ export default class AudioScene {
 		};
 
 		return sourceNode;
+	}
+
+	#getAudioContext()
+	{
+		if( !this.#audioContext )
+		{
+			this.#audioContext = new AudioContext();
+		}
+
+		return this.#audioContext;
 	}
 
 	/**

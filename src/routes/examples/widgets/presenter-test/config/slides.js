@@ -42,7 +42,10 @@ export let slides = [
     data: {
       component: ImageSlide,
       props: {
-        imageMeta: ArmyGreen
+        imageMeta: ArmyGreen,
+        fit: 'contain',
+        position: 'right bottom',
+        classes: 'border-8'
       }
     },
     intro: INTRO_FADE_IN_SLIDE_UP,

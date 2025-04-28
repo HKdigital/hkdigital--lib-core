@@ -43,16 +43,13 @@
    * } & { [attr: string]: any }}
    */
   let {
+    initialValue,
     value = $bindable(''),
 
     isValid = $bindable(true),
     isPristine = $bindable(true),
     hasFocus = $bindable(false),
 
-    ...otherProps
-  } = $props();
-
-  let {
     // Fieldset
     base = 'px-10p pb-10p',
     borderShape = 'border-1p rounded-xs',
@@ -90,16 +87,16 @@
     validate,
 
     ...attrs
-  } = otherProps;
+  } = $props();
 
   let inputRef = $state();
   let validationMessage = $state('');
-  let initialValue = $state('');
+  // let initialValue = $state('');
 
   $effect(() => {
     if (!inputRef) return;
-    initialValue = value;
-    validateInput(inputRef, value);
+    validateInput(inputRef, initialValue);
+    value = initialValue;
   });
 
   function validateInput(input, currentValue) {
@@ -185,7 +182,7 @@
       {type}
       {required}
       {disabled}
-      {value}
+      bind:value
       {placeholder}
       class="{inputBase} {inputClasses}"
       aria-invalid={!isValid}

@@ -33,6 +33,12 @@
  */
 
 /**
+ * @typedef {Object} LoadController
+ * @property {() => void} loaded - Function to call when loading is complete
+ * @property {() => void} cancel - Function to return to the previous slide
+ */
+
+/**
  * @typedef {{
  *   stage: string,
  *   slideName: string
@@ -40,16 +46,21 @@
  */
 
 /**
- * @typedef {Object} LoadController
- * @property {() => void} loaded - Function to call when loading is complete
- * @property {() => void} cancel - Function to return to the previous slide
+ * @typedef {( params: ListenerParams) => () => void } ListenerCallback
+ */
+
+/**
+ * @typedef {() => void } UnregisterFn
  */
 
 /**
  * @typedef {Object} PresenterRef
  * @property {(name: string) => void} gotoSlide - Navigate to a slide by name
  * @property {() => string} getCurrentSlideName - Get the current slide name
- * @property {(callback)=>Function} onUpdate
+ * @property {( callback: ListenerCallback ) => UnregisterFn} onBefore
+ *   Register listener that is called when a slide enters state 'before'
+ * @property {( callback: ListenerCallback ) => UnregisterFn} onShow
+ *   Register listener that is called when a slide enters state 'show'
  */
 
 /**

@@ -2,7 +2,7 @@ import {
   TRANSITION_CSS,
   FADE_IN,
   FADE_OUT
-} from '$lib/widgets/presenter/index.js';
+} from '$lib/widgets/presenter/constants.js';
 
 /** @typedef {import('$lib/widgets/presenter/index.js').Slide} Slide */
 

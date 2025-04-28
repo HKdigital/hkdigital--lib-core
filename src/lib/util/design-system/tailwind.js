@@ -94,11 +94,18 @@ export function generateViewportBasedSpacing(values) {
 }
 
 /**
+ * @typedef {{
+ *   size?: number,
+ *   lineHeight?: number|string
+ *  }} TextStyleSizes
+ */
+
+/**
  * Generates semantic text style definitions for a specific text category
  * (base, UI, or heading). Each style includes a scaled font size and
  * line height.
  *
- * @param {{[key: string]: {size: number, lineHeight?: number}}} sizes
+ * @param {{[key: string]: TextStyleSizes}} configs
  *   Set of text sizes to generate styles for
  *
  * @param {'base' | 'ui' | 'heading'} category
@@ -112,7 +119,7 @@ export function generateViewportBasedSpacing(values) {
  * @example
  * const TEXT_BASE_SIZES = {
  *   sm: { size: 16, lineHeight: 1.5 },
- *   base: { size: 20, lineHeight: 1.5 },
+ *   md: { size: 20, lineHeight: 1.5 },
  *   lg: { size: 24, lineHeight: 1.4 }
  * };
  *
@@ -121,7 +128,7 @@ export function generateViewportBasedSpacing(values) {
  * // {
  * //   'base-sm':
  * //     ['calc(16px * var(--scale-text-base))', { lineHeight: 1.5 }],
- * //   'base-base':
+ * //   'base-md':
  * //     ['calc(20px * var(--scale-text-base))', { lineHeight: 1.5 }],
  * //   'base-lg':
  * //     ['calc(24px * var(--scale-text-base))', { lineHeight: 1.4 }]
@@ -129,7 +136,7 @@ export function generateViewportBasedSpacing(values) {
  */
 export function generateTextStyles(sizes, category) {
   if (!sizes || typeof sizes !== 'object') {
-    throw new Error('sizes must be an object');
+    throw new Error('configs must be an object');
   }
 
   if (!['base', 'ui', 'heading'].includes(category)) {
@@ -150,20 +157,12 @@ export function generateTextStyles(sizes, category) {
       );
     }
 
-    if (
-      config.lineHeight !== undefined &&
-      typeof config.lineHeight !== 'number'
-    ) {
-      throw new Error(
-        `Invalid lineHeight for "${category}-${variant}": must be a number`
-      );
-    }
-
-    const { size, lineHeight = 1.5 } = config;
+    const extraProps = { ...config };
+    delete extraProps.size;
 
     result[`${category}-${variant}`] = [
-      `calc(${size}px * var(--scale-text-${category}))`,
-      { lineHeight }
+      `calc(${config.size}px * var(--scale-text-${category}))`,
+      extraProps
     ];
 
     return result;
