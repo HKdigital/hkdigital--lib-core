@@ -28,23 +28,15 @@
  *   }).format(d);
  */
 
-/* ------------------------------------------------------------------ Imports */
+import {
+	SECOND_MS,
+	MINUTE_MS,
+	HOUR_MS,
+	DAY_MS,
+	TIME_2025_01_01 } from '$lib/constants/time.js';
 
-import * as expect from '../expect/index.js';
-import { HkPromise } from '../../classes/promise/index.js';
-
-/* ---------------------------------------------------------------- Internals */
-
-/* ------------------------------------------------------------------ Exports */
-
-export const SECOND_MS = 1000;
-export const MINUTE_MS = 60 * SECOND_MS;
-export const HOUR_MS = 60 * MINUTE_MS;
-export const DAY_MS = 24 * HOUR_MS;
-export const WEEK_MS = 7 * DAY_MS;
-
-export const TIME_2020_01_01 = 1577836800000; // 2020-01-01T00:00:00.000Z
-export const TIME_2100_01_01 = 4102444800000; // 2100-01-01T00:00:00.000Z
+import * as expect from '$lib/util/expect';
+import { HkPromise } from '$lib/classes/promise/index.js';
 
 /**
  * Returns a promise that resolves after a specified timeout
@@ -92,21 +84,17 @@ export function delay(delayOrMinDelayMs, maxDelayMs) {
 	return promise;
 }
 
-// -----------------------------------------------------------------------------
-
 /**
  * Get the number of milliseconds since the specified time stamp of the default
- * reference time stamp TIME_2020_01_01
+ * reference time stamp TIME_2025_01_01
  *
- * @param {number} [sinceMs=TIME_2020_01_01]
+ * @param {number} [sinceMs=TIME_2025_01_01]
  *
  * @returns {number} number of milliseconds since the specified time
  */
-export function sinceMs(sinceMs = TIME_2020_01_01) {
+export function sinceMs(sinceMs = TIME_2025_01_01) {
 	return Date.now() - sinceMs;
 }
-
-// -----------------------------------------------------------------------------
 
 /**
  * Get a string that represents the time in a readable
@@ -149,8 +137,6 @@ export function timeToString(timeMs) {
 	return str;
 }
 
-// -----------------------------------------------------------------------------
-
 /**
  * Returns a Date object
  * - The input can be a Date object or a numeric timestamp
@@ -170,8 +156,6 @@ export function toDate(dateOrTimestamp) {
 
 	throw new Error('Missing or invalid parameter [dateOrTimestamp]');
 }
-
-// -----------------------------------------------------------------------------
 
 /**
  * Get the ISO 8601 week number of the specified date
@@ -228,8 +212,6 @@ export function getWeekNumber(dateOrTimestamp) {
 	return 1 + Math.ceil((firstThursday - target) / 604800000);
 }
 
-// -----------------------------------------------------------------------------
-
 /**
  * Get the name of the month
  * - Returns the English name of the month
@@ -254,8 +236,6 @@ export function getMonthName(dateOrTimestamp) {
 	throw new Error('Not implemented yet');
 	// return MONTH_NAME_LABELS_EN[toDate(dateOrTimestamp).getMonth()];
 }
-
-// -----------------------------------------------------------------------------
 
 /**
  * Get the name of the day
@@ -282,8 +262,6 @@ export function getDayName(dateOrTimestamp) {
 	// return DAY_NAME_LABELS_EN[toDate(dateOrTimestamp).getDay()];
 }
 
-// -----------------------------------------------------------------------------
-
 /**
  * Return the timestamp of the start of the day
  * - Midnight
@@ -309,8 +287,6 @@ export function getTimeAtStartOfDay(dateOrTimestamp) {
 
 	return d.getTime();
 }
-
-// -----------------------------------------------------------------------------
 
 /**
  * Return the timestamp of the end of the day
