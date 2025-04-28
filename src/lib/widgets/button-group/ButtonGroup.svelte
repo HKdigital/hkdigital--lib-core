@@ -16,7 +16,7 @@
    *   buttons: Array<import('./typedef.js').ButtonDef>,
    *   selected?: (import('./typedef.js').ButtonDef|null),
    *   select?: ( label:string ) => void,
-   *   buttonSnippet: import('svelte').Snippet<[{text: string, props: Object}]>,
+   *   buttonSnippet: import('svelte').Snippet<[{text: string, value: string, label: string, props: Object}]>,
    *   [attr: string]: any
    * }}
    */
@@ -69,6 +69,8 @@
     {#if !button.hide}
       {@render buttonSnippet?.({
         text: button.text,
+        value: button.value,
+        label: button.label,
         props: {
           ...(button.props || {}),
           selected: index === selectedIndex,
