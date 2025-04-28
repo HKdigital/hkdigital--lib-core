@@ -1,10 +1,29 @@
 <script>
   import { onMount } from 'svelte';
+
   import {
     getGameWidthOnLandscape,
     getGameWidthOnPortrait
   } from './gamebox.util.js';
+
   import { enableContainerScaling } from '$lib/util/design-system/index.js';
+
+  /**
+   * @typedef {{
+   *   isMobile:boolean,
+   *   device:string,
+   *   isFullscreen:boolean,
+   *   isDevMode:boolean,
+   *   requestDevmode:function,
+   *   requestFullscreen:function,
+   *   gameWidth: number,
+   *   gameHeight: number
+   * }} SnippetParams
+   */
+
+  /**
+   * @typedef {import('svelte').Snippet<[SnippetParams]>} GameBoxSnippet
+   */
 
   /**
    * @type {{
@@ -14,6 +33,11 @@
    *   style?: string,
    *   aspectOnLandscape?: number,
    *   aspectOnPortrait?: number,
+   *   marginLeft?: number,
+   *   marginRight?: number,
+   *   marginTop?: number,
+   *   marginBottom?: number,
+   *   center?: boolean,
    *   enableScaling?: boolean,
    *   designLandscape?: {width: number, height: number},
    *   designPortrait?: {width: number, height: number},
@@ -23,8 +47,10 @@
    *     textHeading: {min: number, max: number},
    *     textUi: {min: number, max: number}
    *   },
-   *   snippetLandscape?: import('svelte').Snippet,
-   *   snippetPortrait?: import('svelte').Snippet,
+   *   snippetLandscape?:GameBoxSnippet,
+   *   snippetPortrait?: GameBoxSnippet,
+   *   snippetRequireFullscreen?: GameBoxSnippet,
+   *   snippetInstallOnHomeScreen?: GameBoxSnippet,
    *   [attr: string]: any
    * }}
    */
@@ -45,10 +71,12 @@
     marginTop = 0,
     marginBottom = 0,
 
+    center,
+
     // > Scaling options
     enableScaling = false,
     designLandscape = { width: 1920, height: 1080 },
-    designPortrait = { width: 1080, height: 1920 },
+    designPortrait = { width: 1920, height: 1080 },
     clamping = {
       ui: { min: 0.3, max: 2 },
       textBase: { min: 0.75, max: 1.5 },
@@ -58,25 +86,55 @@
 
     // > Snippets
     snippetLandscape,
-    snippetPortrait
+    snippetPortrait,
+    snippetRequireFullscreen,
+    snippetInstallOnHomeScreen
   } = $props();
 
   // > Game dimensions and state
   let windowWidth = $state();
   let windowHeight = $state();
+
   let gameWidth = $state();
   let gameHeight = $state();
-  let isLandscape = $derived(windowWidth > windowHeight);
+
+  let isAppleMobile = getIsAppleMobile();
+
+  let isPwa = $state(false);
+
+  let device = $state();
+
+  let iosWindowWidth = $state();
+  let iosWindowHeight = $state();
+
+  function getIsLandscape() {
+    if (isPwa && isAppleMobile) {
+      return iosWindowWidth > iosWindowHeight;
+    } else {
+      return windowWidth > windowHeight;
+    }
+  }
+
+  let isLandscape = $state();
+
+  // $derived.by(getIsLandscape);
+
+  $effect(() => {
+    isLandscape = getIsLandscape();
+  });
 
   // Game container reference
   let gameContainer = $state();
 
   // Update game dimensions based on window size and orientation
   $effect(() => {
-    if (!windowWidth || !windowHeight) return;
+    const width = iosWindowWidth ?? windowWidth;
+    const height = iosWindowHeight ?? windowHeight;
 
-    const availWidth = windowWidth - marginLeft - marginRight;
-    const availHeight = windowHeight - marginTop - marginBottom;
+    if (!width || !height) return;
+
+    const availWidth = width - marginLeft - marginRight;
+    const availHeight = height - marginTop - marginBottom;
 
     // console.debug('GameBox margins:', {
     //   marginLeft,
@@ -137,6 +195,92 @@
     });
   });
 
+  let show = $state(false);
+
+  let isMobile = $state(false);
+
+  let isDevMode = $state(false);
+
+  // Check: always true for home app?
+  let isFullscreen = $state(false);
+
+  let supportsFullscreen = $state(false);
+
+  onMount(() => {
+    supportsFullscreen = document.fullscreenEnabled;
+
+    isMobile = getIsMobile();
+
+    device = whatDevice();
+
+    // Run before show
+    isFullscreen = !!document.fullscreenElement;
+
+    isPwa = window.matchMedia(
+      '(display-mode: fullscreen) or (display-mode: standalone)'
+    ).matches;
+
+    isLandscape = getIsLandscape();
+
+    show = true;
+
+    function updateIosWidthHeight() {
+      // const isPwa = window.matchMedia(
+      //   '(display-mode: fullscreen) or (display-mode: standalone)'
+      // ).matches;
+
+      if (isPwa && isAppleMobile) {
+        const angle = screen.orientation.angle;
+
+        if (angle === 90 || angle === 270) {
+          iosWindowWidth = screen.height;
+          iosWindowHeight = screen.width;
+        } else {
+          iosWindowWidth = screen.width;
+          iosWindowHeight = screen.height;
+        }
+        // console.debug( { iosWindowWidth, iosWindowHeight } );
+      }
+    }
+
+    updateIosWidthHeight();
+
+    function updateOrientation(event) {
+      // console.debug('updateOrientation');
+      const type = event.target.type;
+      const angle = event.target.angle;
+
+      // isPwa = window.matchMedia(
+      //   '(display-mode: fullscreen) or (display-mode: standalone)'
+      // ).matches;
+
+      updateIosWidthHeight();
+
+      console.debug(
+        `ScreenOrientation change: ${type}, ${angle} degrees.`,
+        isPwa,
+        windowWidth,
+        windowHeight,
+        screen.width,
+        screen.height,
+        iosWindowWidth,
+        iosWindowHeight
+      );
+
+      // if( angle
+    }
+
+    $effect(() => {
+      screen.orientation.addEventListener('change', updateOrientation);
+
+      return () => {
+        screen.orientation.removeEventListener('change', updateOrientation);
+      };
+    });
+
+    //
+  });
+
   onMount(() => {
     const gameBoxNoScroll = 'game-box-no-scroll';
     const html = document.documentElement;
@@ -146,35 +290,285 @@
       html.classList.remove(gameBoxNoScroll);
     };
   });
+
+  function getIsAppleMobile() {
+    return /iPhone|iPod/.test(navigator.userAgent);
+  }
+
+  function whatDevice() {
+    if (isAppleMobile) {
+      return 'IOS';
+    } else if (/Android/.test(navigator.userAgent)) {
+      return 'Android';
+    }
+  }
+
+  /**
+   * Returns true if a device is a mobile phone (or similar)
+   */
+  function getIsMobile() {
+    // @ts-ignore
+    if (navigator?.userAgentData?.mobile !== undefined) {
+      // Supports for mobile flag
+      // @ts-ignore
+      return navigator.userAgentData.mobile;
+    } else if (isAppleMobile) {
+      return true;
+    } else if (/Android/.test(navigator.userAgent)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Returns true if the window is in full screen
+   * - Checks if CSS thinks we're in fullscreen mode
+   * - Checks if there is a fullscreen element (for safari)
+   */
+  function getIsFullscreen() {
+    if (
+      window.matchMedia(
+        '(display-mode: fullscreen) or (display-mode: standalone)'
+      ).matches
+    ) {
+      return true;
+    } else if (document.fullscreenElement) {
+      // Safari
+      return true;
+    }
+
+    return false;
+  }
+
+  async function requestFullscreen() {
+    console.debug('Request full screen');
+    show = false;
+
+    await document.documentElement.requestFullscreen();
+    isFullscreen = true;
+
+    setTimeout(() => {
+      show = true;
+    }, 1000);
+  }
+
+  // async function exitFullscreen() {
+  //   console.debug('Exit full screen');
+  //   show = false;
+
+  //   await document.exitFullscreen();
+  //   isFullscreen = false;
+
+  //   setTimeout( () => { show = true; }, 1000 );
+  // }
+
+  $effect(() => {
+    // Update isFullscreen if window width or height changes
+
+    windowWidth;
+    windowHeight;
+
+    isFullscreen = getIsFullscreen();
+
+    // if( !isFullscreen )
+    // {
+    //   show = false;
+    //   setTimeout( () => { show = true; }, 1000 );
+    // }
+
+    // console.debug('isFullscreen', isFullscreen);
+  });
+
+  isDevMode = false;
+
+  function requestDevmode() {
+    isDevMode = true;
+    console.debug(isDevMode);
+  }
+
+  $effect(() => {
+    if (location.hostname === 'localhost') {
+      isDevMode = true;
+    }
+  });
+
+  $effect(() => {
+    if (isFullscreen) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('preset', 'cinema');
+      window.history.pushState({}, '', url);
+    }
+  });
 </script>
 
 <svelte:window bind:innerWidth={windowWidth} bind:innerHeight={windowHeight} />
 
 {#if gameHeight}
-  <div
-    data-component="game-box"
-    data-orientation={isLandscape ? 'landscape' : 'portrait'}
-    bind:this={gameContainer}
-    class="{base} {bg} {classes}"
-    style:width="{gameWidth}px"
-    style:height="{gameHeight}px"
-    style:--game-width={gameWidth}
-    style:--game-height={gameHeight}
-    style:margin-left="{marginLeft}px"
-    style:margin-right="{marginRight}px"
-    style:margin-top="{marginTop}px"
-    style:margin-bottom="{marginBottom}px"
-    {style}
-  >
-    {#if isLandscape}
-      {@render snippetLandscape()}
-    {:else}
-      {@render snippetPortrait()}
-    {/if}
+  <div class:center>
+    <div
+      data-component="game-box"
+      data-orientation={isLandscape ? 'landscape' : 'portrait'}
+      bind:this={gameContainer}
+      class="{base} {bg} {classes}"
+      class:isMobile
+      style:width="{gameWidth}px"
+      style:height="{gameHeight}px"
+      style:--game-width={gameWidth}
+      style:--game-height={gameHeight}
+      style:margin-left="{marginLeft}px"
+      style:margin-right="{marginRight}px"
+      style:margin-top="{marginTop}px"
+      style:margin-bottom="{marginBottom}px"
+      {style}
+    >
+      {#if show}
+        {#if isLandscape}
+          <!-- Landscape -->
+          {#if snippetRequireFullscreen}
+            <!-- Require fullscreen -->
+            {#if isFullscreen && !isDevMode}
+              {@render snippetLandscape({
+                isMobile,
+                device,
+                isFullscreen,
+                isDevMode,
+                requestDevmode,
+                requestFullscreen,
+                gameWidth,
+                gameHeight
+              })}
+            {:else if supportsFullscreen && !isDevMode}
+              <!-- Require fullscreen (on landscape) -->
+              {@render snippetRequireFullscreen({
+                isMobile,
+                device,
+                isFullscreen,
+                isDevMode,
+                requestDevmode,
+                requestFullscreen,
+                gameWidth,
+                gameHeight
+              })}
+            {:else if isMobile && snippetInstallOnHomeScreen && !isDevMode}
+              <!-- Require install on home screen on mobile -->
+              {@render snippetInstallOnHomeScreen({
+                isMobile,
+                device,
+                isFullscreen,
+                isDevMode,
+                requestDevmode,
+                requestFullscreen,
+                gameWidth,
+                gameHeight
+              })}
+            {:else}
+              {@render snippetLandscape({
+                isMobile,
+                device,
+                isFullscreen,
+                isDevMode,
+                requestDevmode,
+                requestFullscreen,
+                gameWidth,
+                gameHeight
+              })}
+            {/if}
+          {:else}
+            <!-- Do not require fullscreen -->
+            <!-- *we do not try install home app -->
+            {@render snippetLandscape({
+              isMobile,
+              device,
+              isFullscreen,
+              isDevMode,
+              requestDevmode,
+              requestFullscreen,
+              gameWidth,
+              gameHeight
+            })}
+          {/if}
+        {:else}
+          <!-- Portrait -->
+          {#if snippetRequireFullscreen}
+            <!-- Require fullscreen -->
+            {#if isFullscreen && !isDevMode}
+              {@render snippetPortrait({
+                isMobile,
+                device,
+                isFullscreen,
+                isDevMode,
+                requestDevmode,
+                requestFullscreen,
+                gameWidth,
+                gameHeight
+              })}
+            {:else if supportsFullscreen && !isDevMode}
+              <!-- Require fullscreen (on landscape) -->
+              {@render snippetRequireFullscreen({
+                isMobile,
+                device,
+                isFullscreen,
+                isDevMode,
+                requestDevmode,
+                requestFullscreen,
+                gameWidth,
+                gameHeight
+              })}
+            {:else if isMobile && snippetInstallOnHomeScreen && !isDevMode}
+              <!-- Require install on home screen on mobile -->
+              {@render snippetInstallOnHomeScreen({
+                isMobile,
+                device,
+                isFullscreen,
+                isDevMode,
+                requestDevmode,
+                requestFullscreen,
+                gameWidth,
+                gameHeight
+              })}
+            {:else}
+              {@render snippetPortrait({
+                isMobile,
+                device,
+                isFullscreen,
+                isDevMode,
+                requestDevmode,
+                requestFullscreen,
+                gameWidth,
+                gameHeight
+              })}
+            {/if}
+          {:else}
+            <!-- Do not require fullscreen -->
+            <!-- *we do not try install home app -->
+            {@render snippetPortrait({
+              isMobile,
+              device,
+              isFullscreen,
+              isDevMode,
+              requestDevmode,
+              requestFullscreen,
+              gameWidth,
+              gameHeight
+            })}
+          {/if}
+        {/if}
+      {/if}
+    </div>
   </div>
 {/if}
 
 <style>
+  .center {
+    display: grid;
+    height: 100lvh;
+    display: grid;
+    justify-items: center;
+    align-items: center;
+    /* border: solid 1px red;*/
+  }
+
   :global(html.game-box-no-scroll) {
     overflow: clip;
     scrollbar-width: none; /* Firefox */
