@@ -27,7 +27,6 @@
     buttons = [],
     selected = $bindable(null),
     select = $bindable(),
-    busy
     buttonSnippet,
     ...attrs
   } = $props();
