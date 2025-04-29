@@ -276,6 +276,11 @@ export default class AudioScene {
 	}
 
 	unmute() {
+		if( !this.muted )
+		{
+			return;
+		}
+
 		this.setTargetGain(this.#unmutedTargetGain);
 	}
 
@@ -284,7 +289,10 @@ export default class AudioScene {
 	{
 		if( !this.#targetGainNode )
 		{
-			this.#targetGainNode = this.#getAudioContext().createGain();
+			const audioContext = this.#getAudioContext();
+
+			this.#targetGainNode = audioContext.createGain();
+			this.#targetGainNode.connect(audioContext.destination);
 			this.setTargetGain(this.#targetGain);
 		}
 
@@ -317,39 +325,4 @@ export default class AudioScene {
 
 		throw new Error(`Source [${label}] has not been defined`);
 	}
-
-	// connect
-	// play
-
-	// source.connect(audioContext.destination);
-	// source.loop = true;
-	// source.start();
-
-	// /**
-	//  * Get the source identified by the specified label
-	//  *
-	//  * @param {string} label
-	//  */
-	// async getBufferSourceNode(label) {
-	//   // expect.notEmptyString( label );
-
-	//   for (const source of this.#memorySources) {
-	//     if (label === source.label) {
-	//       if (!source.bufferSourceNode) {
-	//         source.bufferSourceNode =
-	//           await source.AudioLoader.transferToBufferSource(this.#audioContext);
-	//       }
-
-	//       return source.bufferSourceNode;
-	//     }
-	//   }
-	// }
-
-	// async connectSourceToDestination(label) {
-	//   const source = await this.getBufferSourceNode(label);
-
-	//   if (source) {
-	//     source.connect(this.#audioContext.destination);
-	//   }
-	// }
 }

@@ -27,6 +27,7 @@
    *   legendBase?: string,
    *   legendClasses?: string,
    *   iconClasses?: string,
+   *   initialValue?: string,
    *   value?: string,
    *   type?: 'text' | 'url' | 'email' | 'number',
    *   pattern?: string,
@@ -43,7 +44,7 @@
    * } & { [attr: string]: any }}
    */
   let {
-    initialValue,
+    initialValue = '',
     value = $bindable(''),
 
     isValid = $bindable(true),
@@ -91,7 +92,6 @@
 
   let inputRef = $state();
   let validationMessage = $state('');
-  // let initialValue = $state('');
 
   $effect(() => {
     if (!inputRef) return;
