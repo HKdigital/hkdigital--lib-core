@@ -41,8 +41,19 @@ export default class AudioScene {
 		return this.state === STATE_LOADED;
 	});
 
+	#targetGain = $state(1);
+
+	#unmutedTargetGain = 1;
+
+	muted = $derived( this.#targetGain === 0 );
+
+	targetGain = $derived( this.#targetGain );
+
 	/** @type {AudioContext|null} */
 	#audioContext = null;
+
+	/** {GainNode} */
+	#targetGainNode = null;
 
 	/** @type {MemorySource[]} */
 	#memorySources = $state([]);
@@ -220,7 +231,8 @@ export default class AudioScene {
 		);
 
 		// @ts-ignore
-		sourceNode.connect(this.#getAudioContext().destination);
+		sourceNode.connect(this.#getGainNode());
+		// sourceNode.connect(this.#getAudioContext().destination);
 
 		// Clean up
 		sourceNode.onended = () => {
@@ -229,6 +241,54 @@ export default class AudioScene {
 		};
 
 		return sourceNode;
+	}
+
+	/**
+	 * Set target gain
+	 *
+	 * @param {number} value
+	 */
+	setTargetGain( value ) {
+		this.#targetGain = value;
+
+		// Set immediate
+		this.#getGainNode().gain.value = value;
+	}
+
+	/**
+	 * Get the scene gain
+	 *
+	 * @returns {number} value
+	 */
+	getTargetGain()
+	{
+		return this.#targetGain;
+	}
+
+	mute() {
+		if( this.muted )
+		{
+			return;
+		}
+
+		this.#unmutedTargetGain = this.#targetGain;
+		this.setTargetGain(0);
+	}
+
+	unmute() {
+		this.setTargetGain(this.#unmutedTargetGain);
+	}
+
+
+	#getGainNode()
+	{
+		if( !this.#targetGainNode )
+		{
+			this.#targetGainNode = this.#getAudioContext().createGain();
+			this.setTargetGain(this.#targetGain);
+		}
+
+		return this.#targetGainNode;
 	}
 
 	#getAudioContext()

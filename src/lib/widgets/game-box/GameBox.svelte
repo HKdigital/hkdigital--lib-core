@@ -6,12 +6,13 @@
     getGameWidthOnPortrait
   } from './gamebox.util.js';
 
-  import { enableContainerScaling } from '$lib/util/design-system/index.js';
+  //import { enableContainerScaling } from '$lib/util/design-system/index.js';
+  import { enableContainerScaling } from '@hkdigital/lib-sveltekit/util/design-system/index.js';
 
   /**
    * @typedef {{
    *   isMobile:boolean,
-   *   device:string,
+   *   os:'Android'|'iOS',
    *   isFullscreen:boolean,
    *   isDevMode:boolean,
    *   requestDevmode:function,
@@ -97,12 +98,6 @@
 
   let gameWidth = $state();
   let gameHeight = $state();
-
-  let isAppleMobile = getIsAppleMobile();
-
-  let isPwa = $state(false);
-
-  let device = $state();
 
   let iosWindowWidth = $state();
   let iosWindowHeight = $state();
@@ -197,6 +192,12 @@
 
   let show = $state(false);
 
+  const isAppleMobile = /iPhone|iPod/.test(navigator.userAgent);
+
+  let isPwa = $state(false);
+
+  let os = $state();
+
   let isMobile = $state(false);
 
   let isDevMode = $state(false);
@@ -211,7 +212,7 @@
 
     isMobile = getIsMobile();
 
-    device = whatDevice();
+    os = getOS();
 
     // Run before show
     isFullscreen = !!document.fullscreenElement;
@@ -291,13 +292,9 @@
     };
   });
 
-  function getIsAppleMobile() {
-    return /iPhone|iPod/.test(navigator.userAgent);
-  }
-
-  function whatDevice() {
+  function getOS() {
     if (isAppleMobile) {
-      return 'IOS';
+      return 'iOS';
     } else if (/Android/.test(navigator.userAgent)) {
       return 'Android';
     }
@@ -430,7 +427,7 @@
             {#if isFullscreen && !isDevMode}
               {@render snippetLandscape({
                 isMobile,
-                device,
+                os,
                 isFullscreen,
                 isDevMode,
                 requestDevmode,
@@ -442,7 +439,7 @@
               <!-- Require fullscreen (on landscape) -->
               {@render snippetRequireFullscreen({
                 isMobile,
-                device,
+                os,
                 isFullscreen,
                 isDevMode,
                 requestDevmode,
@@ -454,7 +451,7 @@
               <!-- Require install on home screen on mobile -->
               {@render snippetInstallOnHomeScreen({
                 isMobile,
-                device,
+                os,
                 isFullscreen,
                 isDevMode,
                 requestDevmode,
@@ -465,7 +462,7 @@
             {:else}
               {@render snippetLandscape({
                 isMobile,
-                device,
+                os,
                 isFullscreen,
                 isDevMode,
                 requestDevmode,
@@ -479,7 +476,7 @@
             <!-- *we do not try install home app -->
             {@render snippetLandscape({
               isMobile,
-              device,
+              os,
               isFullscreen,
               isDevMode,
               requestDevmode,
@@ -495,7 +492,7 @@
             {#if isFullscreen && !isDevMode}
               {@render snippetPortrait({
                 isMobile,
-                device,
+                os,
                 isFullscreen,
                 isDevMode,
                 requestDevmode,
@@ -507,7 +504,7 @@
               <!-- Require fullscreen (on landscape) -->
               {@render snippetRequireFullscreen({
                 isMobile,
-                device,
+                os,
                 isFullscreen,
                 isDevMode,
                 requestDevmode,
@@ -519,7 +516,7 @@
               <!-- Require install on home screen on mobile -->
               {@render snippetInstallOnHomeScreen({
                 isMobile,
-                device,
+                os,
                 isFullscreen,
                 isDevMode,
                 requestDevmode,
@@ -530,7 +527,7 @@
             {:else}
               {@render snippetPortrait({
                 isMobile,
-                device,
+                os,
                 isFullscreen,
                 isDevMode,
                 requestDevmode,
@@ -544,7 +541,7 @@
             <!-- *we do not try install home app -->
             {@render snippetPortrait({
               isMobile,
-              device,
+              os,
               isFullscreen,
               isDevMode,
               requestDevmode,
