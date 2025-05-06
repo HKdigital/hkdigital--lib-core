@@ -34,6 +34,8 @@ import { waitForAndCheckResponse } from './response.js';
  *
  *   e.g. options.headers = { "content-type": "application/json" }
  *
+ * @param {boolean} [_.withCredentials=false]
+ *
  * @param {requestHandler} [_.requestHandler]
  *
  * @param {number} [_.timeoutMs]
@@ -46,6 +48,7 @@ export async function httpGet({
 	url,
 	urlSearchParams,
 	headers,
+	withCredentials,
 	requestHandler,
 	timeoutMs
 }) {
@@ -75,6 +78,8 @@ export async function httpGet({
  *
  *   e.g. options.headers = { "content-type": "application/json" }
  *
+ * @param {boolean} [_.withCredentials=false]
+ *
  * @param {requestHandler} [_.requestHandler]
  *
  * @param {number} [_.timeoutMs]
@@ -87,6 +92,7 @@ export async function httpPost({
 	url,
 	body = null,
 	headers,
+	withCredentials,
 	requestHandler,
 	timeoutMs
 }) {
@@ -95,6 +101,7 @@ export async function httpPost({
 		url,
 		body,
 		headers,
+		withCredentials,
 		requestHandler,
 		timeoutMs
 	});
@@ -124,6 +131,11 @@ export async function httpPost({
  *
  *   e.g. options.headers = { "content-type": "application/json" }
  *
+  * @param {boolean} [_.withCredentials=false]
+ *   Whether to include credentials (cookies, HTTP authentication, and client
+ *   SSL certificates) with cross-origin requests. When true, sets fetch
+ *   credentials to 'include', otherwise to 'omit'.
+ *
  * @param {requestHandler} [_.requestHandler]
  *
  * @param {number} [_.timeoutMs]
@@ -143,6 +155,7 @@ export async function httpRequest({
 	urlSearchParams = null,
 	body = null,
 	headers,
+	withCredentials,
 	requestHandler,
 	timeoutMs
 }) {
@@ -171,7 +184,7 @@ export async function httpRequest({
 	const init = {
 		mode: 'cors',
 		cache: 'no-cache',
-		credentials: 'omit',
+		credentials: withCredentials ? 'include': 'omit',
 		redirect: 'follow',
 		referrerPolicy: 'no-referrer',
 		headers: requestHeaders

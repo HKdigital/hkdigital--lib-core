@@ -27,12 +27,19 @@ const ACCEPT = 'accept';
  *   the header name and the header value.
  *   E.g. [ "content-type", "application/json" ]
  *
+ * @param {boolean} [_.withCredentials=false]
+ *
  * @throws ResponseError
  *   If a network error occurred or the response was not ok
  *
  * @returns {Promise<any>} parsed JSON data
  */
-export async function jsonGet({ url, urlSearchParams, headers }) {
+export async function jsonGet({
+	url,
+	urlSearchParams,
+	headers,
+	withCredentials
+}) {
 	url = toURL(url);
 
 	if (!headers) {
@@ -45,7 +52,8 @@ export async function jsonGet({ url, urlSearchParams, headers }) {
 		method: METHOD_GET,
 		url,
 		urlSearchParams,
-		headers
+		headers,
+		withCredentials
 	});
 
 	const response = await waitForAndCheckResponse(responsePromise, url);
@@ -60,13 +68,18 @@ export async function jsonGet({ url, urlSearchParams, headers }) {
 		//
 		parsedResponse = await response.json();
 	} catch (e) {
-		throw new ResponseError(`Failed to JSON decode server response from [${decodeURI(url.href)}]`, {
-			cause: e
-		});
+		throw new ResponseError(
+			`Failed to JSON decode server response from [${decodeURI(url.href)}]`,
+			{
+				cause: e
+			}
+		);
 	}
 
 	if (parsedResponse.error) {
-		throw new ResponseError(`Server returned response error message [${parsedResponse.error}]`);
+		throw new ResponseError(
+			`Server returned response error message [${parsedResponse.error}]`
+		);
 	}
 
 	return parsedResponse;
@@ -94,12 +107,20 @@ export async function jsonGet({ url, urlSearchParams, headers }) {
  *   the header name and the header value.
  *   E.g. [ "content-type", "application/json" ]
  *
+ * @param {boolean} [_.withCredentials=false]
+ *
  * @throws ResponseError
  *   If a network error occurred or the response was not ok
  *
  * @returns {Promise<any>} parsed JSON data
  */
-export async function jsonPost({ url, body, urlSearchParams, headers }) {
+export async function jsonPost({
+	url,
+	body,
+	urlSearchParams,
+	headers,
+	withCredentials
+}) {
 	url = toURL(url);
 
 	if (!headers) {
@@ -113,7 +134,13 @@ export async function jsonPost({ url, body, urlSearchParams, headers }) {
 	headers[ACCEPT] = APPLICATION_JSON;
 	headers[CONTENT_TYPE] = APPLICATION_JSON;
 
-	const responsePromise = httpRequest({ method: METHOD_POST, url, body, urlSearchParams, headers });
+	const responsePromise = httpRequest({
+		method: METHOD_POST,
+		url,
+		body,
+		urlSearchParams,
+		headers
+	});
 
 	const response = await waitForAndCheckResponse(responsePromise, url);
 
@@ -128,7 +155,9 @@ export async function jsonPost({ url, body, urlSearchParams, headers }) {
 		parsedResponse = await response.json();
 	} catch (e) {
 		// console.log( response );
-		throw new ResponseError(`Failed to JSON decode server response from [${decodeURI(url.href)}]`);
+		throw new ResponseError(
+			`Failed to JSON decode server response from [${decodeURI(url.href)}]`
+		);
 	}
 
 	if (parsedResponse.error) {
@@ -136,7 +165,9 @@ export async function jsonPost({ url, body, urlSearchParams, headers }) {
 		// @note this is API specific, but it's quite logical
 		//
 		//
-		throw new ResponseError(`Server returned response error message [${parsedResponse.error}]`);
+		throw new ResponseError(
+			`Server returned response error message [${parsedResponse.error}]`
+		);
 	}
 
 	return parsedResponse;
