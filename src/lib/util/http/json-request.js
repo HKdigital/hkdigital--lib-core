@@ -14,161 +14,211 @@ const ACCEPT = 'accept';
 
 /**
  * Make a GET request to fetch JSON encoded data
- * - Expect JSON response from server
  *
- * @param {object} _
- * @param {string|URL} _.url - Url string or URL object
+ * This function performs a GET request and expects a JSON response from the server.
+ * It handles common error cases and parses the JSON response.
  *
- * @param {object} [_.urlSearchParams]
- *   Parameters that should be added to the request url
+ * @param {import('./typedef').JsonGetOptions} options
+ *   Request configuration options
  *
- * @param {[string, string][]} [_.headers]
- *   List of custom headers. Each header is an array that contains
- *   the header name and the header value.
- *   E.g. [ "content-type", "application/json" ]
+ * @returns {Promise<any>} Parsed JSON data
  *
- * @param {boolean} [_.withCredentials=false]
+ * @example
+ * // Basic JSON GET request
+ * try {
+ *   const data = await jsonGet({
+ *     url: 'https://api.example.com/users/123'
+ *   });
+ *   console.log(data); // { id: 123, name: "John Doe", ... }
+ * } catch (error) {
+ *   console.error('Failed to fetch user data:', error.message);
+ * }
  *
- * @throws ResponseError
- *   If a network error occurred or the response was not ok
+ * @example
+ * // JSON GET request with parameters
+ * const data = await jsonGet({
+ *   url: 'https://api.example.com/search',
+ *   urlSearchParams: new URLSearchParams({ q: 'search term' }),
+ *   withCredentials: true
+ * });
  *
- * @returns {Promise<any>} parsed JSON data
+ * @example
+ * // Using advanced options
+ * const data = await jsonGet({
+ *   url: 'https://api.example.com/data',
+ *   timeoutMs: 5000,
+ *   requestHandler: ({ abort }) => {
+ *     // Store abort function
+ *     window.abortDataRequest = abort;
+ *   }
+ * });
  */
-export async function jsonGet({
-	url,
-	urlSearchParams,
-	headers,
-	withCredentials
-}) {
-	url = toURL(url);
+export async function jsonGet(options) {
+  // Extract specific parameters needed for this function
+  const {
+    url: rawUrl,
+    urlSearchParams,
+    headers,
+    withCredentials,
+    ...otherOptions
+  } = options;
 
-	if (!headers) {
-		headers = [];
-	}
+  const url = toURL(rawUrl);
 
-	headers[ACCEPT] = APPLICATION_JSON;
+  // Apply JSON-specific defaults
+  const jsonHeaders = headers || {};
+  jsonHeaders[ACCEPT] = APPLICATION_JSON;
 
-	const responsePromise = httpRequest({
-		method: METHOD_GET,
-		url,
-		urlSearchParams,
-		headers,
-		withCredentials
-	});
+  // Create request with all options
+  const responsePromise = httpRequest({
+    method: METHOD_GET,
+    url,
+    urlSearchParams,
+    headers: jsonHeaders,
+    withCredentials,
+    ...otherOptions // Pass through any other options
+  });
 
-	const response = await waitForAndCheckResponse(responsePromise, url);
+  const response = await waitForAndCheckResponse(responsePromise, url);
 
-	let parsedResponse;
+  let parsedResponse;
 
-	try {
-		//
-		// @note when security on the client side fails, an `opaque` response
-		//       is returned by the browser (empty body) -> parsing fails
-		//       (use CORS to fix this)
-		//
-		parsedResponse = await response.json();
-	} catch (e) {
-		throw new ResponseError(
-			`Failed to JSON decode server response from [${decodeURI(url.href)}]`,
-			{
-				cause: e
-			}
-		);
-	}
+  try {
+    //
+    // @note when security on the client side fails, an `opaque` response
+    //       is returned by the browser (empty body) -> parsing fails
+    //       (use CORS to fix this)
+    //
+    parsedResponse = await response.json();
+  } catch (e) {
+    throw new ResponseError(
+      `Failed to JSON decode server response from [${decodeURI(url.href)}]`,
+      {
+        cause: e
+      }
+    );
+  }
 
-	if (parsedResponse.error) {
-		throw new ResponseError(
-			`Server returned response error message [${parsedResponse.error}]`
-		);
-	}
+  if (parsedResponse.error) {
+    throw new ResponseError(
+      `Server returned response error message [${parsedResponse.error}]`
+    );
+  }
 
-	return parsedResponse;
+  return parsedResponse;
 }
 
 /**
  * Make a POST request to fetch JSON encoded data
- * - Expect JSON response from server
  *
- * @param {object} _
- * @param {string|URL} _.url - Url string or URL object
+ * This function performs a POST request with JSON data and expects a JSON
+ * response from the server. It handles common error cases and parses the JSON response.
  *
- * @param {any} _.body
- *   Data that will be converted to a JSON encoded string and send to the server
+ * @param {import('./typedef').JsonPostOptions} options
+ *   Request configuration options
  *
- * @param {object} [_.urlSearchParams]
- *   Parameters that should be added to the request url.
+ * @returns {Promise<any>} Parsed JSON data
  *
- *   - Be careful when using urlSearchParams in POST requests, it can be
- *     confusing since the parameters usually go in the body part of
- *     the request.
+ * @example
+ * // Basic JSON POST request
+ * try {
+ *   const newUser = {
+ *     name: "Jane Smith",
+ *     email: "jane@example.com"
+ *   };
  *
- * @param {[string, string][]} [_.headers]
- *   List of custom headers. Each header is an array that contains
- *   the header name and the header value.
- *   E.g. [ "content-type", "application/json" ]
+ *   const data = await jsonPost({
+ *     url: 'https://api.example.com/users',
+ *     body: JSON.stringify(newUser)
+ *   });
  *
- * @param {boolean} [_.withCredentials=false]
+ *   console.log('Created user with ID:', data.id);
+ * } catch (error) {
+ *   console.error('Failed to create user:', error.message);
+ * }
  *
- * @throws ResponseError
- *   If a network error occurred or the response was not ok
- *
- * @returns {Promise<any>} parsed JSON data
+ * @example
+ * // JSON POST with authentication and timeout
+ * const data = await jsonPost({
+ *   url: 'https://api.example.com/protected/resource',
+ *   body: JSON.stringify({ action: 'update' }),
+ *   headers: {
+ *     'authorization': 'Bearer ' + token
+ *   },
+ *   withCredentials: true,
+ *   timeoutMs: 5000
+ * });
  */
-export async function jsonPost({
-	url,
-	body,
-	urlSearchParams,
-	headers,
-	withCredentials
-}) {
-	url = toURL(url);
+export async function jsonPost(options) {
+  // Extract specific parameters needed for this function
+  const {
+    url: rawUrl,
+    body,
+    urlSearchParams,
+    headers,
+    withCredentials,
+    ...otherOptions
+  } = options;
 
-	if (!headers) {
-		headers = [];
-	} else {
-		expect.object(headers);
-	}
+  const url = toURL(rawUrl);
 
-	expect.defined(body);
+  // Apply JSON-specific defaults and validation
+  expect.defined(body);
 
-	headers[ACCEPT] = APPLICATION_JSON;
-	headers[CONTENT_TYPE] = APPLICATION_JSON;
+  const jsonHeaders = headers || {};
+  jsonHeaders[ACCEPT] = APPLICATION_JSON;
+  jsonHeaders[CONTENT_TYPE] = APPLICATION_JSON;
 
-	const responsePromise = httpRequest({
-		method: METHOD_POST,
-		url,
-		body,
-		urlSearchParams,
-		headers
-	});
+  // Check if body is a string when using application/json
+  if (
+    jsonHeaders[CONTENT_TYPE] === APPLICATION_JSON &&
+    typeof body !== 'string'
+  ) {
+    throw new Error(
+      `Trying to send request with [content-type:${APPLICATION_JSON}], ` +
+        'but body is not a (JSON encoded) string.'
+    );
+  }
 
-	const response = await waitForAndCheckResponse(responsePromise, url);
+  // Create request with all options
+  const responsePromise = httpRequest({
+    method: METHOD_POST,
+    url,
+    body,
+    urlSearchParams,
+    headers: jsonHeaders,
+    withCredentials,
+    ...otherOptions // Pass through any other options
+  });
 
-	let parsedResponse;
+  const response = await waitForAndCheckResponse(responsePromise, url);
 
-	try {
-		//
-		// @note when security on the client side fails, an `opaque` response
-		//       is returned by the browser (empty body) -> parsing fails
-		//       (use CORS to fix this)
-		//
-		parsedResponse = await response.json();
-	} catch (e) {
-		// console.log( response );
-		throw new ResponseError(
-			`Failed to JSON decode server response from [${decodeURI(url.href)}]`
-		);
-	}
+  let parsedResponse;
 
-	if (parsedResponse.error) {
-		//
-		// @note this is API specific, but it's quite logical
-		//
-		//
-		throw new ResponseError(
-			`Server returned response error message [${parsedResponse.error}]`
-		);
-	}
+  try {
+    //
+    // @note when security on the client side fails, an `opaque` response
+    //       is returned by the browser (empty body) -> parsing fails
+    //       (use CORS to fix this)
+    //
+    parsedResponse = await response.json();
+  } catch (e) {
+    throw new ResponseError(
+      `Failed to JSON decode server response from [${decodeURI(url.href)}]`,
+      {
+        cause: e
+      }
+    );
+  }
 
-	return parsedResponse;
+  if (parsedResponse.error) {
+    //
+    // @note this is API specific, but it's quite logical
+    //
+    throw new ResponseError(
+      `Server returned response error message [${parsedResponse.error}]`
+    );
+  }
+
+  return parsedResponse;
 }

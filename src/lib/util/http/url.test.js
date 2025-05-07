@@ -5,6 +5,7 @@ import { toURL, hasProtocol, href } from './index.js';
 // > Mocks
 
 beforeEach(() => {
+	// @ts-ignore
 	global.location = { origin: 'http://test:1234' };
 });
 

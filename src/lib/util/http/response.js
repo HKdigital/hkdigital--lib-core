@@ -3,8 +3,8 @@ import * as expect from '$lib/util/expect/index.js';
 import { toURL } from '$lib/util/http/url.js';
 
 import {
-	WWW_AUTHENTICATE,
-	CONTENT_LENGTH
+  WWW_AUTHENTICATE,
+  CONTENT_LENGTH
 } from '$lib/constants/http/headers.js';
 
 import { href } from './url.js';
@@ -14,228 +14,281 @@ import { getErrorFromResponse } from './errors.js';
 // > Types
 
 /**
+ * Callback function that reports progress of data loading
+ *
  * @callback progressCallback
+ *
  * @param {object} _
- * @param {number} _.bytesLoaded
- * @param {number} _.size
+ * @param {number} _.bytesLoaded - Number of bytes loaded so far
+ * @param {number} _.size - Total size of the response in bytes (0 if unknown)
  */
 
 // > Exports
 
 /**
- * Check if the response status is ok
+ * Check if the response status is ok (in 200-299 range)
+ * This function examines HTTP status codes and throws appropriate errors for
+ * non-successful responses, with special handling for 401 Unauthorized.
  *
- * @param {object} response
- * @param {string} url - used to produce useful error messages
+ * @param {object} response - Fetch Response object to check
  *
- * @throws {Error} not found
- * @throws {Error} internal server error
+ * @param {string} url - The URL used for the request (for error messages)
+ *
+ * @throws {Error} When response has 401 status with authorization details
+ * @throws {ResponseError} When response has other non-successful status codes
+ *
+ * @example
+ * // Check if response was successful
+ * try {
+ *   await expectResponseOk(response, 'https://api.example.com/data');
+ *   // Process successful response here
+ * } catch (error) {
+ *   // Handle specific error types
+ *   if (error.message.includes('401')) {
+ *     // Handle unauthorized error
+ *   }
+ * }
  */
 export async function expectResponseOk(response, url) {
-	expect.object(response);
+  expect.object(response);
 
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200
-	// https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/201
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/200
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/201
 
-	if (200 === response.status || 201 === response.status) {
-		if (!response.ok) {
-			throw new ResponseError(
-				`Server returned - ${response.status} ${response.statusText} ` +
-					`[response.ok=false] [url=${href(url)}]`
-			);
-		}
+  if (200 === response.status || 201 === response.status) {
+    if (!response.ok) {
+      throw new ResponseError(
+        `Server returned - ${response.status} ${response.statusText} ` +
+          `[response.ok=false] [url=${href(url)}]`
+      );
+    }
 
-		// All ok
-		return;
-	}
+    // All ok
+    return;
+  }
 
-	// > Handle 401 Unauthorized
+  // > Handle 401 Unauthorized
 
-	if (401 === response.status) {
-		let errorMessage = 'Server returned [401] Unauthorized';
+  if (401 === response.status) {
+    let errorMessage = 'Server returned [401] Unauthorized';
 
-		const authValue = response.headers.get(WWW_AUTHENTICATE);
+    const authValue = response.headers.get(WWW_AUTHENTICATE);
 
-		if (authValue) {
-			// Add WWW_AUTHENTICATE response to error message
+    if (authValue) {
+      // Add WWW_AUTHENTICATE response to error message
+      errorMessage += ` (${authValue})`;
+    }
 
-			errorMessage += ` (${authValue})`;
-		}
+    errorMessage += ` [url=${href(url)}]`;
 
-		errorMessage += ` [url=${href(url)}]`;
+    throw new Error(errorMessage);
+  }
 
-		throw new Error(errorMessage);
-	}
+  // > Handle all other error responses
 
-	// > Handle all other error responses
+  const error = await getErrorFromResponse(response);
 
-	const error = await getErrorFromResponse(response);
-
-	throw new ResponseError(
-		`Server returned - ${response.status} ${response.statusText} ` +
-			`[url=${href(url)}]`,
-		{ cause: error }
-	);
+  throw new ResponseError(
+    `Server returned - ${response.status} ${response.statusText} ` +
+      `[url=${href(url)}]`,
+    { cause: error }
+  );
 }
 
 /**
  * Get the response size from the content-length response header
  *
- * @param {Response} response
+ * @param {Response} response - Fetch Response object
  *
- * @returns {number} response size or 0 if unknown
+ * @returns {number} Response size in bytes, or 0 if content-length is not set
+ *
+ * @example
+ * const response = await fetch('https://example.com/large-file.zip');
+ * const size = getResponseSize(response);
+ * console.log(`Download size: ${size} bytes`);
  */
 export function getResponseSize(response) {
-	const sizeStr = response.headers.get(CONTENT_LENGTH);
+  const sizeStr = response.headers.get(CONTENT_LENGTH);
 
-	if (!sizeStr) {
-		return 0;
-	}
+  if (!sizeStr) {
+    return 0;
+  }
 
-	return parseInt(sizeStr, 10);
+  return parseInt(sizeStr, 10);
 }
 
 /**
  * Wait for a response and check if the response is ok
+ * This function awaits a response promise and performs error checking,
+ * wrapping network errors in a standardized ResponseError format.
+ *
+ * @param {Promise<Response>} responsePromise - Promise that resolves to a Response
+ *
+ * @param {string|URL} url - URL used for the request (for error messages)
+ *
+ * @throws {ResponseError} When a network error occurs or response is not ok
+ *
+ * @returns {Promise<Response>} The response if successful
  *
  * @example
- *   const response = await waitForAndCheckResponse( responsePromise );
- *
- * @param {Promise<Response>} responsePromise
- * @param {string|URL} url - An url that is used for error messages
- *
- * @throws ResponseError - A response error if something went wrong
- *
- * @returns {Promise<Response>} response
+ * // Handle a fetch promise with proper error handling
+ * const responsePromise = fetch('https://api.example.com/data');
+ * try {
+ *   const response = await waitForAndCheckResponse(
+ *     responsePromise,
+ *     'https://api.example.com/data'
+ *   );
+ *   // Process response
+ * } catch (error) {
+ *   // Handle standardized ResponseError
+ *   console.error(error.message);
+ * }
  */
 export async function waitForAndCheckResponse(responsePromise, url) {
-	expect.promise(responsePromise);
+  expect.promise(responsePromise);
 
-	url = toURL(url);
+  url = toURL(url);
 
-	let response;
+  let response;
 
-	try {
-		response = await responsePromise;
+  try {
+    response = await responsePromise;
 
-		if (response && false === response.ok) {
-			// if response.ok is false, it also indicates a network error
-			throw new Error(`Response failed [response.ok=false]`);
-		}
-	} catch (e) {
-		if (e instanceof TypeError || response?.ok === false) {
-			throw new ResponseError(
-				`A network error occurred for request [${href(url)}]`,
-				{
-					cause: e
-				}
-			);
-		} else {
-			throw e;
-		}
-	}
+    if (response && false === response.ok) {
+      // if response.ok is false, it also indicates a network error
+      throw new Error(`Response failed [response.ok=false]`);
+    }
+  } catch (e) {
+    if (e instanceof TypeError || response?.ok === false) {
+      throw new ResponseError(
+        `A network error occurred for request [${href(url)}]`,
+        {
+          cause: e
+        }
+      );
+    } else {
+      throw e;
+    }
+  }
 
-	return response;
+  return response;
 }
 
 /**
- * Load response body as ArrayBuffer
- * - Progress can be monitored by suppying an onProgress callback
- * - Loading can be aborted by calling the returned abort function
+ * Load response body as ArrayBuffer with progress monitoring and abort capability
  *
- * @param {Response} response - Fetch response
- * @param {progressCallback} onProgress
+ * This function reads a response body stream chunk by chunk, with optional
+ * progress reporting. It provides an abort mechanism to cancel an in-progress
+ * download.
  *
- * @returns {{ bufferPromise: Promise<ArrayBuffer>, abort: () => void }}
+ * @param {Response} response - Fetch Response object to read
+ *
+ * @param {progressCallback} [onProgress] - Optional callback for progress updates
+ *
+ * @returns {{
+ *   bufferPromise: Promise<ArrayBuffer>,
+ *   abort: () => void
+ * }} Object containing the buffer promise and abort function
+ *
+ * @example
+ * // Download a file with progress monitoring and abort capability
+ * const response = await fetch('https://example.com/large-file.zip');
+ *
+ * const { bufferPromise, abort } = loadResponseBuffer(
+ *   response,
+ *   ({ bytesLoaded, size }) => {
+ *     // Update progress UI
+ *     const percent = size ? Math.round((bytesLoaded / size) * 100) : 0;
+ *     console.log(`Downloaded ${bytesLoaded} bytes (${percent}%)`);
+ *   }
+ * );
+ *
+ * // To abort the download:
+ * // abort();
+ *
+ * try {
+ *   const buffer = await bufferPromise;
+ *   // Process the complete buffer
+ * } catch (error) {
+ *   console.error('Download failed or was aborted', error);
+ * }
  */
 export function loadResponseBuffer(response, onProgress) {
-	// @note size might be 0
-	// @note might not be send by server in dev mode
-	const size = getResponseSize(response);
+  // @note size might be 0
+  // @note might not be send by server in dev mode
+  const size = getResponseSize(response);
 
-	let bytesLoaded = 0;
+  let bytesLoaded = 0;
 
-	if (onProgress /*&& size*/) {
-		onProgress({ bytesLoaded, size });
-	}
+  if (onProgress /*&& size*/) {
+    onProgress({ bytesLoaded, size });
+  }
 
-	if (!response.body) {
-		throw new Error('Missing [response.body]');
-	}
+  if (!response.body) {
+    throw new Error('Missing [response.body]');
+  }
 
-	const reader = response.body.getReader();
+  let reader;
+  let aborted = false;
 
-	let aborted = false;
+  /**
+   * Read chunks from response body using reader
+   *
+   * @returns {Promise<ArrayBuffer>}
+   */
+  async function read() {
+    reader = response.body.getReader();
+    let chunks = [];
 
-	/**
-	 * Read chunks from response body using reader
-	 *
-	 * @returns {Promise<ArrayBuffer>}
-	 */
-	async function read() {
-		let chunks = [];
+    for (;;) {
+      const { done, value } = await reader.read();
 
-		// - Use flag 'loading'
-		// - Check if #abortLoading still exists
-		for (;;) {
-			const { done, value } = await reader.read();
+      if (value) {
+        // @note value is an ArrayBuffer
+        bytesLoaded += value.byteLength;
 
-			if (value) {
-				// @note value is an ArrayBuffer
-				bytesLoaded += value.byteLength;
+        chunks.push(value);
 
-				// console.log({ done, value, byteLength: value.byteLength, bytesLoaded });
+        if (onProgress /*&& size*/) {
+          onProgress({ bytesLoaded, size });
+        }
+      }
 
-				// console.log({ size, bytesLoaded, value });
+      if (done || aborted) {
+        // Loading complete or aborted by user
+        break;
+      }
+    } // end for
 
-				// if (size && bytesLoaded > size) {
-				// 	console.error();
-				// 	throw new Error(
-				// 		`Received more bytes [${bytesLoaded}] than specified by header content-length [${size}]`
-				// 	);
-				// }
+    if (size && bytesLoaded !== size) {
+      console.error(`Received [${bytesLoaded}], but expected [${size}] bytes`);
+    }
 
-				chunks.push(value);
+    // Concat the chunks into a single array
+    let buffer = new ArrayBuffer(bytesLoaded);
+    let body = new Uint8Array(buffer);
 
-				if (onProgress /*&& size*/) {
-					onProgress({ bytesLoaded, size });
-				}
-			}
+    let offset = 0;
 
-			if (done || aborted) {
-				// Loading complete or aborted by user
-				break;
-			}
-		} // end while
+    // Place the chunks in the buffer
+    for (let chunk of chunks) {
+      body.set(chunk, offset);
+      offset += chunk.byteLength;
+    } // end for
 
-		if (size && bytesLoaded !== size) {
-			console.error(`Received [${bytesLoaded}], but expected [${size}] bytes`);
-			// throw new Error(
-			// 	`Received [${bytesLoaded}], but expected [${size}] bytes`
-			// );
-		}
+    return buffer;
+  }
 
-		// Concat the chinks into a single array
-		let buffer = new ArrayBuffer(bytesLoaded);
-		let body = new Uint8Array(buffer);
+  const bufferPromise = read();
 
-		let offset = 0;
+  return {
+    bufferPromise,
+    abort: () => {
+      aborted = true;
 
-		// Place the chunks in the buffer
-		for (let chunk of chunks) {
-			body.set(chunk, offset);
-			offset += chunk.byteLength;
-		} // end for
-
-		return buffer;
-	}
-
-	const bufferPromise = read();
-
-	return {
-		bufferPromise,
-		abort: () => {
-			aborted = true;
-		}
-	};
+      if (reader) {
+        reader.cancel('Aborted by user');
+      }
+    }
+  };
 } // end fn
