@@ -105,7 +105,7 @@ export function generateViewportBasedSpacing(values) {
  * (base, UI, or heading). Each style includes a scaled font size and
  * line height.
  *
- * @param {{[key: string]: TextStyleSizes}} configs
+ * @param {{[key: string]: TextStyleSizes}} sizes
  *   Set of text sizes to generate styles for
  *
  * @param {'base' | 'ui' | 'heading'} category

@@ -479,33 +479,36 @@ export default class IndexedDbCache {
       const db = await this.dbPromise;
       let removedCount = 0;
 
-      // Step 1: Remove expired entries first
-      const expiredRemoved = await this._removeExpiredEntries(
-        this.cleanupBatchSize / 2
-      );
-      removedCount += expiredRemoved;
+      //
+      // DISABLE UNTIL FIXED!!!
+      //
+      // // Step 1: Remove expired entries first
+      // const expiredRemoved = await this._removeExpiredEntries(
+      //   this.cleanupBatchSize / 2
+      // );
+      // removedCount += expiredRemoved;
 
-      // If we have a lot of expired entries, focus on those first
-      if (expiredRemoved >= this.cleanupBatchSize / 2) {
-        this.cleanupState.inProgress = false;
-        this.cleanupState.lastRun = now;
-        this.cleanupState.totalRemoved += removedCount;
+      // // If we have a lot of expired entries, focus on those first
+      // if (expiredRemoved >= this.cleanupBatchSize / 2) {
+      //   this.cleanupState.inProgress = false;
+      //   this.cleanupState.lastRun = now;
+      //   this.cleanupState.totalRemoved += removedCount;
 
-        // Schedule next cleanup step immediately
-        this._scheduleCleanup();
-        return;
-      }
+      //   // Schedule next cleanup step immediately
+      //   this._scheduleCleanup();
+      //   return;
+      // }
 
-      // Step 2: Remove old entries if we're over size/age limits
-      const remainingBatch = this.cleanupBatchSize - expiredRemoved;
-      if (remainingBatch > 0) {
-        const oldRemoved = await this._removeOldEntries(remainingBatch);
-        removedCount += oldRemoved;
-      }
+      // // Step 2: Remove old entries if we're over size/age limits
+      // const remainingBatch = this.cleanupBatchSize - expiredRemoved;
+      // if (remainingBatch > 0) {
+      //   const oldRemoved = await this._removeOldEntries(remainingBatch);
+      //   removedCount += oldRemoved;
+      // }
 
-      // Update cleanup state
-      this.cleanupState.lastRun = now;
-      this.cleanupState.totalRemoved += removedCount;
+      // // Update cleanup state
+      // this.cleanupState.lastRun = now;
+      // this.cleanupState.totalRemoved += removedCount;
 
       // If we removed entries in this batch, schedule another cleanup
       if (removedCount > 0) {
