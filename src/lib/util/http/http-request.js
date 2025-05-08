@@ -13,6 +13,8 @@ import { waitForAndCheckResponse } from './response.js';
 
 import { getCachedResponse, storeResponseInCache } from './caching.js';
 
+import { isTestMode } from '$lib/util/env';
+
 /**
  * Default configuration for HTTP requests
  *
@@ -169,7 +171,7 @@ export async function httpRequest(options) {
 
   const url = toURL(rawUrl);
 
-  console.debug(`httpRequest:load [${url.pathname}]`);
+  // console.debug(`http:load [${url.pathname}]`);
 
   // Only consider caching for GET requests
   const shouldAttemptCache = cacheEnabled && method === METHOD_GET;
@@ -179,12 +181,15 @@ export async function httpRequest(options) {
     const cacheKeyParams = { url, ...headers };
     const cachedResponse = await getCachedResponse(cacheKeyParams);
 
-    if (cachedResponse) {
-      console.debug(`httpRequest:cache-hit [${url.pathname}]`);
-      return cachedResponse;
-    }
-    else {
-      console.debug(`httpRequest:cache-miss [${url.pathname}]`);
+    if( !isTestMode )
+    {
+      if (cachedResponse) {
+        console.debug(`http:cache-hit [${url.pathname}]`);
+        return cachedResponse;
+      }
+      else {
+        console.debug(`http:cache-miss [${url.pathname}]`);
+      }
     }
   }
 

@@ -1,7 +1,9 @@
 import {
   MemoryResponseCache,
-  PersistentResponseCache
+  IndexedDbCache
 } from '$lib/classes/cache';
+
+import { browser } from '$app/environment';
 
 let defaultCacheStorage = null;
 
@@ -9,10 +11,17 @@ function getCacheStorage()
 {
   if( !defaultCacheStorage )
   {
-    defaultCacheStorage =
-      createCacheStorage(
-        process.env.NODE_ENV === 'test' ? 'memory' : 'persistent'
-      );
+    let type;
+
+    if( !browser || process.env.NODE_ENV === 'test' )
+    {
+      type = 'memory';
+    }
+    else {
+      type = 'indexed-db';
+    }
+
+    defaultCacheStorage = createCacheStorage( type);
   }
 
   return defaultCacheStorage
@@ -123,18 +132,19 @@ export async function getCachedResponse(cacheKeyParams) {
 
 /**
  * Create a cache storage adapter
- * @param {string} type Type of storage ('persistent', 'memory')
+ * @param {string} type Type of storage ('indexed-db', 'memory')
  * @param {Object} options Options for the storage adapter
  *
  * @returns {import('$lib/classes/cache').CacheStorage}
  */
-function createCacheStorage(type = 'persistent', options = {}) {
+function createCacheStorage(type = 'indexed-db', options = {}) {
   switch (type) {
-    case 'persistent':
-      return new PersistentResponseCache(
-        options.dbName || 'http-cache',
-        options.storeName || 'responses'
-      );
+    case 'indexed-db':
+      return new IndexedDbCache(
+        {
+          dbName: 'http-cache',
+          storeName: 'responses'
+        } );
 
     case 'memory':
       return new MemoryResponseCache();
