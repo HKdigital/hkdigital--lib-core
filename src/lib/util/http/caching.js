@@ -3,10 +3,20 @@ import {
   PersistentResponseCache
 } from '$lib/classes/cache';
 
-// Create the default cache storage
-export const defaultCacheStorage = createCacheStorage(
-  process.env.NODE_ENV === 'test' ? 'memory' : 'persistent'
-);
+let defaultCacheStorage = null;
+
+function getCacheStorage()
+{
+  if( !defaultCacheStorage )
+  {
+    defaultCacheStorage =
+      createCacheStorage(
+        process.env.NODE_ENV === 'test' ? 'memory' : 'persistent'
+      );
+  }
+
+  return defaultCacheStorage
+}
 
 /**
  * Store a response in the cache
@@ -50,7 +60,7 @@ export async function storeResponseInCache(cacheKeyParams, response, metadata) {
     };
 
     // Store in cache
-    await defaultCacheStorage.set(cacheKey, response, enhancedMetadata);
+    await getCacheStorage().set(cacheKey, response, enhancedMetadata);
   } catch (error) {
     console.error('Cache storage error:', error);
   }
@@ -75,7 +85,7 @@ export async function getCachedResponse(cacheKeyParams) {
     const cacheKey = generateCacheKey(url, headers);
 
     // Get cached entry
-    const cachedEntry = await defaultCacheStorage.get(cacheKey);
+    const cachedEntry = await getCacheStorage().get(cacheKey);
 
     if (!cachedEntry) {
       return null;

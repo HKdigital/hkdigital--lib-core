@@ -169,6 +169,8 @@ export async function httpRequest(options) {
 
   const url = toURL(rawUrl);
 
+  console.debug(`httpRequest:load [${url.pathname}]`);
+
   // Only consider caching for GET requests
   const shouldAttemptCache = cacheEnabled && method === METHOD_GET;
 
@@ -178,8 +180,11 @@ export async function httpRequest(options) {
     const cachedResponse = await getCachedResponse(cacheKeyParams);
 
     if (cachedResponse) {
-      console.debug(`Cache hit [${url.pathname}]`);
+      console.debug(`httpRequest:cache-hit [${url.pathname}]`);
       return cachedResponse;
+    }
+    else {
+      console.debug(`httpRequest:cache-miss [${url.pathname}]`);
     }
   }
 
