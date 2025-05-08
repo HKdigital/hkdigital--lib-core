@@ -13,7 +13,7 @@ import { waitForAndCheckResponse } from './response.js';
 
 import { getCachedResponse, storeResponseInCache } from './caching.js';
 
-import { isTestMode } from '$lib/util/env';
+import { isTestEnv } from '$lib/util/env';
 
 /**
  * Default configuration for HTTP requests
@@ -181,7 +181,7 @@ export async function httpRequest(options) {
     const cacheKeyParams = { url, ...headers };
     const cachedResponse = await getCachedResponse(cacheKeyParams);
 
-    if( !isTestMode )
+    if( !isTestEnv )
     {
       if (cachedResponse) {
         console.debug(`http:cache-hit [${url.pathname}]`);

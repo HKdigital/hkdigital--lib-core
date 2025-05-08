@@ -5,6 +5,8 @@ import {
 
 import { browser } from '$app/environment';
 
+import { isTestEnv } from '$lib/util/env';
+
 let defaultCacheStorage = null;
 
 function getCacheStorage()
@@ -13,7 +15,7 @@ function getCacheStorage()
   {
     let type;
 
-    if( !browser || process.env.NODE_ENV === 'test' )
+    if( !browser || isTestEnv )
     {
       type = 'memory';
     }
