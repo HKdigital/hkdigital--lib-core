@@ -38,6 +38,16 @@
 
 /** @typedef {import('./typedef').IDBVersionChangeEvent} IDBVersionChangeEvent */
 
+const DEFAULT_DB_NAME ='http-cache';
+const DEFAULT_STORE_NAME ='responses';
+const DEFAULT_MAX_SIZE = 50 * 1024 * 1024;         // 50 MB
+const DEFAULT_MAX_AGE = 90 * 24 * 60 * 60 * 1000;  // 90 days
+
+const DEFAULT_CLEANUP_BATCH_SIZE = 100;
+const DEFAULT_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes;
+
+const DEFAULT_CLEANUP_POSTPONE_MS = 5000; // 5 seconds
+
 /**
  * IndexedDbCache with automatic background cleanup
  */
@@ -56,13 +66,16 @@ export default class IndexedDbCache {
    * @param {string} [options.cacheVersion='1.0.0'] - Cache version, used for cache invalidation
    */
   constructor(options = {}) {
-    this.dbName = options.dbName || 'http-cache';
-    this.storeName = options.storeName || 'responses';
-    this.maxSize = options.maxSize || 50 * 1024 * 1024; // 50MB
-    this.maxAge = options.maxAge || 7 * 24 * 60 * 60 * 1000; // 7 days
-    this.cleanupBatchSize = options.cleanupBatchSize || 100;
-    this.cleanupInterval = options.cleanupInterval || 5 * 60 * 1000; // 5 minutes
-    this.cleanupPostponeTimeout = options.cleanupPostponeTimeout || 5000; // 5 seconds
+    this.dbName = options.dbName || DEFAULT_DB_NAME;
+    this.storeName = options.storeName || DEFAULT_STORE_NAME;
+
+    this.maxSize = options.maxSize || DEFAULT_MAX_SIZE;
+    this.maxAge = options.maxAge || DEFAULT_MAX_AGE;
+
+    this.cleanupBatchSize = options.cleanupBatchSize || DEFAULT_CLEANUP_BATCH_SIZE;
+    this.cleanupInterval = options.cleanupInterval || DEFAULT_CLEANUP_INTERVAL;
+
+    this.cleanupPostponeTimeout = options.cleanupPostponeTimeout || DEFAULT_CLEANUP_POSTPONE_MS;
     this.cacheVersion = options.cacheVersion || '1.0.0';
 
     // Define index names as constants to ensure consistency
