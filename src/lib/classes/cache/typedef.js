@@ -1,13 +1,14 @@
 
 /**
  * @typedef {Object} CacheEntry
- * @property {Response} response The cached response
- * @property {Object} metadata Cache metadata including expiration
- * @property {string} url The request URL
- * @property {number} timestamp When the entry was cached
- * @property {number|null} expires When the entry expires
- * @property {string|null} etag ETag for conditional requests
- * @property {string|null} lastModified Last-Modified for conditional requests
+ * @property {Response} response - Cached Response object
+ * @property {Object} metadata - Cache entry metadata
+ * @property {string} url - Original URL
+ * @property {number} timestamp - When the entry was cached
+ * @property {number|null} expires - Expiration timestamp (null if no expiration)
+ * @property {string|null} etag - ETag header if present
+ * @property {string|null} lastModified - Last-Modified header if present
+ * @property {string|null} cacheVersion
  */
 
 /**
@@ -21,5 +22,20 @@
  * @property {function(): Promise<void>} clear
  *   Clear all cached responses
  */
+
+// > IndexedDB
+
+/**
+ * @typedef {Object} IDBRequestEvent
+ * @property {IDBRequest} target - The request that generated the event
+ */
+
+/**
+ * @typedef {Object} IDBVersionChangeEvent
+ * @property {IDBOpenDBRequest} target - The request that generated the event
+ * @property {IDBTransaction} [target.transaction] - The transaction for database upgrade
+ */
+
+// > Export default
 
 export default {};

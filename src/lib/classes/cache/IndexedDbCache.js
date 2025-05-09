@@ -1,27 +1,28 @@
 /**
- * @fileoverview IndexedDbCache provides efficient persistent caching with 
+ * @fileoverview IndexedDbCache provides efficient persistent caching with
  * automatic, non-blocking background cleanup.
- * 
+ *
  * This cache automatically manages storage limits and entry expiration
  * in the background using requestIdleCallback to avoid impacting application
  * performance. It supports incremental cleanup, storage monitoring, and
  * graceful degradation on older browsers.
- * 
+ *
  * @example
  * // Create a cache instance
  * const cache = new IndexedDbCache({
  *   dbName: 'app-cache',
  *   storeName: 'http-responses',
  *   maxSize: 100 * 1024 * 1024, // 100MB
- *   maxAge: 30 * 24 * 60 * 60 * 1000 // 30 days
+ *   maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+ *   cacheVersion: '1.0.0' // For cache invalidation
  * });
- * 
+ *
  * // Store a response
  * const response = await fetch('https://api.example.com/data');
- * await cache.set('api-data', response, { 
+ * await cache.set('api-data', response, {
  *   expiresIn: 3600000 // 1 hour
  * });
- * 
+ *
  * // Retrieve cached response
  * const cached = await cache.get('api-data');
  * if (cached) {
@@ -31,16 +32,11 @@
  * }
  */
 
-/**
- * @typedef {Object} CacheEntry
- * @property {Response} response - Cached Response object
- * @property {Object} metadata - Cache entry metadata
- * @property {string} url - Original URL
- * @property {number} timestamp - When the entry was cached
- * @property {number|null} expires - Expiration timestamp (null if no expiration)
- * @property {string|null} etag - ETag header if present
- * @property {string|null} lastModified - Last-Modified header if present
- */
+/** @typedef {import('./typedef').CacheEntry} CacheEntry */
+
+/** @typedef {import('./typedef').IDBRequestEvent} IDBRequestEvent */
+
+/** @typedef {import('./typedef').IDBVersionChangeEvent} IDBVersionChangeEvent */
 
 /**
  * IndexedDbCache with automatic background cleanup
@@ -48,7 +44,7 @@
 export default class IndexedDbCache {
   /**
    * Create a new IndexedDB cache storage
-   * 
+   *
    * @param {Object} [options] - Cache options
    * @param {string} [options.dbName='http-cache'] - Database name
    * @param {string} [options.storeName='responses'] - Store name
@@ -56,6 +52,8 @@ export default class IndexedDbCache {
    * @param {number} [options.maxAge=604800000] - Max age in ms (7 days)
    * @param {number} [options.cleanupBatchSize=100] - Items per cleanup batch
    * @param {number} [options.cleanupInterval=300000] - Time between cleanup attempts (5min)
+   * @param {number} [options.cleanupPostponeTimeout=5000] - Time to postpone cleanup after store (5sec)
+   * @param {string} [options.cacheVersion='1.0.0'] - Cache version, used for cache invalidation
    */
   constructor(options = {}) {
     this.dbName = options.dbName || 'http-cache';
@@ -64,14 +62,25 @@ export default class IndexedDbCache {
     this.maxAge = options.maxAge || 7 * 24 * 60 * 60 * 1000; // 7 days
     this.cleanupBatchSize = options.cleanupBatchSize || 100;
     this.cleanupInterval = options.cleanupInterval || 5 * 60 * 1000; // 5 minutes
-    
+    this.cleanupPostponeTimeout = options.cleanupPostponeTimeout || 5000; // 5 seconds
+    this.cacheVersion = options.cacheVersion || '1.0.0';
+
+    // Define index names as constants to ensure consistency
+    this.EXPIRES_INDEX = 'expires';
+    this.TIMESTAMP_INDEX = 'timestamp';
+    this.SIZE_INDEX = 'size';
+    this.CACHE_VERSION_INDEX = 'cacheVersion';
+
+    // Current schema version - CRITICAL: Increment this when schema changes
+    this.SCHEMA_VERSION = 2;
+
     /**
      * Database connection promise
      * @type {Promise<IDBDatabase>}
      * @private
      */
-    this.dbPromise = this._openDatabase();
-    
+    this.dbPromise = null;
+
     /**
      * Cleanup state tracker
      * @type {Object}
@@ -80,135 +89,324 @@ export default class IndexedDbCache {
     this.cleanupState = {
       inProgress: false,
       lastRun: 0,
-      lastCursor: null,
       totalRemoved: 0,
-      nextScheduled: false
+      nextScheduled: false,
+      postponeUntil: 0
     };
-    
-    // Schedule initial cleanup
-    this._scheduleCleanup();
+
+    // Cleanup postponer timer handle
+    this.postponeCleanupTimer = null;
+
+    // Initialize the database and schedule cleanup only after it's ready
+    this._initDatabase();
   }
-  
+
   /**
-   * Open the IndexedDB database
-   * 
+   * Initialize the database connection
+   *
+   * @private
+   */
+  async _initDatabase() {
+    try {
+      this.dbPromise = this._openDatabase();
+      await this.dbPromise; // Wait for connection to be established
+
+      // Only schedule cleanup after database is ready
+      this._scheduleCleanup();
+    } catch (err) {
+      console.error('Failed to initialize IndexedDB cache:', err);
+    }
+  }
+
+  /**
+   * Open the IndexedDB database with proper schema versioning
+   *
    * @private
    * @returns {Promise<IDBDatabase>}
    */
   async _openDatabase() {
     return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, 1);
-      
-      request.onerror = () => reject(request.error);
-      request.onsuccess = () => resolve(request.result);
-      
-      request.onupgradeneeded = (event) => {
-        const db = event.target.result;
-        if (!db.objectStoreNames.contains(this.storeName)) {
-          // Create object store with indexes to help with cleanup
-          const store = db.createObjectStore(this.storeName, { keyPath: 'key' });
-          
-          // Index for expiration-based cleanup
-          store.createIndex('expires', 'expires', { unique: false });
-          
-          // Index for age-based cleanup
-          store.createIndex('timestamp', 'timestamp', { unique: false });
-          
-          // Index for size-based estimate (rough approximation)
-          store.createIndex('size', 'size', { unique: false });
-        }
-      };
+      try {
+        // Open with current schema version
+        const request = indexedDB.open(this.dbName, this.SCHEMA_VERSION);
+
+        request.onerror = (event) => {
+          const target = /** @type {IDBRequest} */ (event.target);
+
+          console.error('IndexedDB open error:', target.error);
+          reject(target.error);
+        };
+
+        request.onsuccess = (event) => {
+          const db = /** @type {IDBRequest} */ (event.target).result;
+
+          // Listen for connection errors
+          db.onerror = (event) => {
+            console.error(
+              'IndexedDB error:',
+              /** @type {IDBRequest} */ (event.target).error
+            );
+          };
+
+          resolve(db);
+        };
+
+        // This runs when database is created or version is upgraded
+        request.onupgradeneeded = (event) => {
+          // console.log(
+          //   `Upgrading database schema to version ${this.SCHEMA_VERSION}`
+          // );
+
+          const target = /** @type {IDBRequest} */ (event.target);
+          const db = target.result;
+
+          // Create or update the object store
+          let store;
+
+          if (!db.objectStoreNames.contains(this.storeName)) {
+            store = db.createObjectStore(this.storeName, { keyPath: 'key' });
+            // console.log(`Created object store: ${this.storeName}`);
+          } else {
+            // Get existing store for updating
+            const transaction = target.transaction;
+            store = transaction.objectStore(this.storeName);
+            // console.log(`Using existing object store: ${this.storeName}`);
+          }
+
+          // Add indexes if they don't exist
+          this._ensureIndexExists(store, this.EXPIRES_INDEX, 'expires', {
+            unique: false
+          });
+          this._ensureIndexExists(store, this.TIMESTAMP_INDEX, 'timestamp', {
+            unique: false
+          });
+          this._ensureIndexExists(store, this.SIZE_INDEX, 'size', {
+            unique: false
+          });
+          this._ensureIndexExists(
+            store,
+            this.CACHE_VERSION_INDEX,
+            'cacheVersion',
+            { unique: false }
+          );
+        };
+      } catch (err) {
+        console.error('Error opening IndexedDB:', err);
+        reject(err);
+      }
     });
   }
-  
+
+  /**
+   * Ensure an index exists in a store, create if missing
+   *
+   * @private
+   * @param {IDBObjectStore} store - The object store
+   * @param {string} indexName - Name of the index
+   * @param {string} keyPath - Key path for the index
+   * @param {Object} options - Index options (e.g. unique)
+   */
+  _ensureIndexExists(store, indexName, keyPath, options) {
+    if (!store.indexNames.contains(indexName)) {
+      store.createIndex(indexName, keyPath, options);
+      // console.log(`Created index: ${indexName}`);
+    }
+    // else {
+    //   console.log(`Index already exists: ${indexName}`);
+    // }
+  }
+
+  /**
+   * Check if all required indexes exist in the database
+   *
+   * @private
+   * @returns {Promise<boolean>}
+   */
+  async _validateSchema() {
+    try {
+      const db = await this.dbPromise;
+
+      // Verify the object store exists
+      if (!db.objectStoreNames.contains(this.storeName)) {
+        console.error(`Object store ${this.storeName} does not exist`);
+        return false;
+      }
+
+      // We need to start a transaction to access the store
+      const transaction = db.transaction(this.storeName, 'readonly');
+      const store = transaction.objectStore(this.storeName);
+
+      // Check that all required indexes exist
+      const requiredIndexes = [
+        this.EXPIRES_INDEX,
+        this.TIMESTAMP_INDEX,
+        this.SIZE_INDEX,
+        this.CACHE_VERSION_INDEX
+      ];
+
+      for (const indexName of requiredIndexes) {
+        if (!store.indexNames.contains(indexName)) {
+          console.error(`Required index ${indexName} does not exist`);
+          return false;
+        }
+      }
+
+      return true;
+    } catch (err) {
+      console.error('Error validating schema:', err);
+      return false;
+    }
+  }
+
+  /**
+   * Postpone cleanup for the specified duration
+   * Resets the postpone timer if called again before timeout
+   *
+   * @private
+   */
+  _postponeCleanup() {
+    // Set the postpone timestamp
+    this.cleanupState.postponeUntil = Date.now() + this.cleanupPostponeTimeout;
+
+    // Clear any existing timer
+    if (this.postponeCleanupTimer) {
+      clearTimeout(this.postponeCleanupTimer);
+    }
+
+    // Set a new timer to reset the postpone flag
+    this.postponeCleanupTimer = setTimeout(() => {
+      // Only reset if another postpone hasn't happened
+      if (Date.now() >= this.cleanupState.postponeUntil) {
+        this.cleanupState.postponeUntil = 0;
+
+        // Reschedule cleanup if it was waiting
+        if (!this.cleanupState.inProgress && !this.cleanupState.nextScheduled) {
+          this._scheduleCleanup();
+        }
+      }
+    }, this.cleanupPostponeTimeout);
+  }
+
+  /**
+   * Check if cleanup is postponed
+   *
+   * @private
+   * @returns {boolean}
+   */
+  _isCleanupPostponed() {
+    return Date.now() < this.cleanupState.postponeUntil;
+  }
+
   /**
    * Get a cached response
-   * 
+   * Supports retrieving older cache versions and migrating them
+   *
    * @param {string} key - Cache key
    * @returns {Promise<CacheEntry|null>} Cache entry or null if not found/expired
    */
   async get(key) {
     try {
       const db = await this.dbPromise;
-      
+
       return new Promise((resolve, reject) => {
-        const transaction = db.transaction(this.storeName, 'readonly');
-        const store = transaction.objectStore(this.storeName);
-        const request = store.get(key);
-        
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => {
-          const entry = request.result;
-          
-          if (!entry) {
-            resolve(null);
-            return;
-          }
-          
-          // Check if expired
-          if (entry.expires && Date.now() > entry.expires) {
-            // Delete expired entry
-            this._deleteEntry(key).catch(console.error);
-            resolve(null);
-            return;
-          }
-          
-          // Update access timestamp (but don't block)
-          this._updateAccessTime(key).catch(console.error);
-          
-          // Deserialize the response
-          try {
-            // Create headers safely
-            let responseHeaders;
-            try {
-              responseHeaders = new Headers(entry.headers);
-            } catch (err) {
-              // Fallback for environments without Headers support
-              responseHeaders = {
-                get: (name) => {
-                  const header = entry.headers?.find(h => h[0].toLowerCase() === name.toLowerCase());
-                  return header ? header[1] : null;
-                }
-              };
+        try {
+          const transaction = db.transaction(this.storeName, 'readonly');
+          const store = transaction.objectStore(this.storeName);
+          const request = store.get(key);
+
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => {
+            const entry = request.result;
+
+            if (!entry) {
+              resolve(null);
+              return;
             }
 
-            // Create Response safely
-            let response;
+            // Check if expired
+            if (entry.expires && Date.now() > entry.expires) {
+              // Delete expired entry (but don't block)
+              this._deleteEntry(key).catch((err) => {
+                console.error('Failed to delete expired entry:', err);
+              });
+              resolve(null);
+              return;
+            }
+
+            // Update access timestamp (but don't block)
+            this._updateAccessTime(key).catch((err) => {
+              console.error('Failed to update access time:', err);
+            });
+
+            // Check if from a different cache version
+            if (entry.cacheVersion !== this.cacheVersion) {
+              // console.log(
+              //   `Migrating entry ${key} from version ${entry.cacheVersion} to ${this.cacheVersion}`
+              // );
+
+              // Clone the entry for migration
+              const migratedEntry = {
+                ...entry,
+                cacheVersion: this.cacheVersion
+              };
+
+              // Store the migrated entry (don't block)
+              this._updateEntry(migratedEntry).catch((err) => {
+                console.error(
+                  'Failed to migrate entry to current cache version:',
+                  err
+                );
+              });
+            }
+
+            // Deserialize the response
             try {
-              response = new Response(entry.body, {
-                status: entry.status,
-                statusText: entry.statusText,
-                headers: responseHeaders
+              let responseHeaders = new Headers(entry.headers);
+
+              // Create Response safely
+              let response;
+              try {
+                response = new Response(entry.body, {
+                  status: entry.status,
+                  statusText: entry.statusText,
+                  headers: responseHeaders
+                });
+              } catch (err) {
+                // Simplified mock response for test environments
+                response = /** @type {Response} */ ({
+                  status: entry.status,
+                  statusText: entry.statusText,
+                  headers: responseHeaders,
+                  body: entry.body,
+                  url: entry.url,
+                  clone() {
+                    return this;
+                  }
+                });
+              }
+
+              resolve({
+                response,
+                metadata: entry.metadata,
+                url: entry.url,
+                timestamp: entry.timestamp,
+                expires: entry.expires,
+                etag: entry.etag,
+                lastModified: entry.lastModified,
+                cacheVersion: entry.cacheVersion
               });
             } catch (err) {
-              // Simplified mock response for test environments
-              response = {
-                status: entry.status,
-                statusText: entry.statusText,
-                headers: responseHeaders,
-                body: entry.body,
-                url: entry.url,
-                clone() { return this; }
-              };
+              console.error('Failed to deserialize cached response:', err);
+
+              // Delete corrupted entry
+              this._deleteEntry(key).catch(console.error);
+              resolve(null);
             }
-
-            resolve({
-              response,
-              metadata: entry.metadata,
-              url: entry.url,
-              timestamp: entry.timestamp,
-              expires: entry.expires,
-              etag: entry.etag,
-              lastModified: entry.lastModified
-            });
-          } catch (err) {
-            console.error('Failed to deserialize cached response:', err);
-
-            // Delete corrupted entry
-            this._deleteEntry(key).catch(console.error);
-            resolve(null);
-          }
-        };
+          };
+        } catch (err) {
+          console.error('Error in get transaction:', err);
+          resolve(null);
+        }
       });
     } catch (err) {
       console.error('Cache get error:', err);
@@ -226,6 +424,9 @@ export default class IndexedDbCache {
    */
   async set(key, response, metadata = {}) {
     try {
+      // Postpone cleanup when storing items
+      this._postponeCleanup();
+
       const db = await this.dbPromise;
 
       // Clone the response to avoid consuming it
@@ -238,9 +439,11 @@ export default class IndexedDbCache {
         body = await clonedResponse.blob();
       } catch (err) {
         // Fallback for test environment
-        if (typeof clonedResponse.body === 'string' ||
-            clonedResponse.body instanceof ArrayBuffer ||
-            clonedResponse.body instanceof Uint8Array) {
+        if (
+          typeof clonedResponse.body === 'string' ||
+          clonedResponse.body instanceof ArrayBuffer ||
+          clonedResponse.body instanceof Uint8Array
+        ) {
           body = new Blob([clonedResponse.body]);
         } else {
           // Last resort - store as-is and hope it's serializable
@@ -248,20 +451,33 @@ export default class IndexedDbCache {
         }
       }
 
-      // Extract headers safely
+      // Extract headers
+
       let headers = [];
+
       try {
         headers = Array.from(clonedResponse.headers.entries());
       } catch (err) {
-        // Fallback for test environment - extract headers if available
-        if (clonedResponse._headers && typeof clonedResponse._headers.entries === 'function') {
-          headers = Array.from(clonedResponse._headers.entries());
-        }
+        // Handle the error case
+        console.error('Failed to extract headers:', err);
+        headers = [];
       }
+
+      // let headers = [];
+      // try {
+      //   headers = Array.from(clonedResponse.headers.entries());
+      // } catch (err) {
+      //   // Fallback for test environment - extract headers if available
+      //   if (clonedResponse._headers &&
+      //       typeof clonedResponse._headers.entries === 'function') {
+      //     headers = Array.from(clonedResponse._headers.entries());
+      //   }
+      // }
 
       // Calculate rough size estimate
       const headerSize = JSON.stringify(headers).length * 2;
-      const size = (body.size || 0) + headerSize + key.length * 2;
+      const size =
+        /** @type {Blob} */ ((body).size || 0) + headerSize + key.length * 2;
 
       const entry = {
         key,
@@ -273,28 +489,67 @@ export default class IndexedDbCache {
         metadata,
         timestamp: Date.now(),
         lastAccessed: Date.now(),
-        expires: metadata.expires || (metadata.expiresIn ? Date.now() + metadata.expiresIn : null),
+        expires:
+          metadata.expires ||
+          (metadata.expiresIn ? Date.now() + metadata.expiresIn : null),
         etag: clonedResponse.headers?.get?.('ETag') || null,
         lastModified: clonedResponse.headers?.get?.('Last-Modified') || null,
+        cacheVersion: this.cacheVersion, // Store current cache version
         size // Store estimated size for cleanup
       };
 
       return new Promise((resolve, reject) => {
-        const transaction = db.transaction(this.storeName, 'readwrite');
-        const store = transaction.objectStore(this.storeName);
-        const request = store.put(entry);
+        try {
+          const transaction = db.transaction(this.storeName, 'readwrite');
+          const store = transaction.objectStore(this.storeName);
+          const request = store.put(entry);
 
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => {
-          resolve();
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => {
+            resolve();
 
-          // Check if we need cleanup after adding new entries
-          this._checkAndScheduleCleanup();
-        };
+            // Check if we need cleanup after adding new entries
+            // Don't await to avoid blocking
+            this._checkAndScheduleCleanup();
+          };
+        } catch (err) {
+          console.error('Error in set transaction:', err);
+          reject(err);
+        }
       });
     } catch (err) {
       console.error('Cache set error:', err);
       throw err;
+    }
+  }
+
+  /**
+   * Update an existing entry in the cache
+   *
+   * @private
+   * @param {Object} entry - The entry to update
+   * @returns {Promise<boolean>}
+   */
+  async _updateEntry(entry) {
+    try {
+      const db = await this.dbPromise;
+
+      return new Promise((resolve, reject) => {
+        try {
+          const transaction = db.transaction(this.storeName, 'readwrite');
+          const store = transaction.objectStore(this.storeName);
+          const request = store.put(entry);
+
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => resolve(true);
+        } catch (err) {
+          console.error('Error in update transaction:', err);
+          resolve(false);
+        }
+      });
+    } catch (err) {
+      console.error('Cache update error:', err);
+      return false;
     }
   }
 
@@ -306,26 +561,36 @@ export default class IndexedDbCache {
    * @returns {Promise<void>}
    */
   async _updateAccessTime(key) {
-    const db = await this.dbPromise;
+    try {
+      const db = await this.dbPromise;
 
-    return new Promise((resolve) => {
-      const transaction = db.transaction(this.storeName, 'readwrite');
-      const store = transaction.objectStore(this.storeName);
-      const request = store.get(key);
+      return new Promise((resolve) => {
+        try {
+          const transaction = db.transaction(this.storeName, 'readwrite');
+          const store = transaction.objectStore(this.storeName);
+          const request = store.get(key);
 
-      request.onerror = () => resolve(); // Don't block on errors
+          request.onerror = () => resolve(); // Don't block on errors
 
-      request.onsuccess = () => {
-        const entry = request.result;
-        if (!entry) return resolve();
+          request.onsuccess = () => {
+            const entry = request.result;
+            if (!entry) return resolve();
 
-        entry.lastAccessed = Date.now();
+            entry.lastAccessed = Date.now();
 
-        const updateRequest = store.put(entry);
-        updateRequest.onerror = () => resolve(); // Don't block
-        updateRequest.onsuccess = () => resolve();
-      };
-    });
+            const updateRequest = store.put(entry);
+            updateRequest.onerror = () => resolve(); // Don't block
+            updateRequest.onsuccess = () => resolve();
+          };
+        } catch (err) {
+          console.error('Error in _updateAccessTime:', err);
+          resolve(); // Don't block on errors
+        }
+      });
+    } catch (err) {
+      console.error('Failed to update access time:', err);
+      // Don't rethrow to avoid blocking
+    }
   }
 
   /**
@@ -350,12 +615,17 @@ export default class IndexedDbCache {
       const db = await this.dbPromise;
 
       return new Promise((resolve, reject) => {
-        const transaction = db.transaction(this.storeName, 'readwrite');
-        const store = transaction.objectStore(this.storeName);
-        const request = store.delete(key);
+        try {
+          const transaction = db.transaction(this.storeName, 'readwrite');
+          const store = transaction.objectStore(this.storeName);
+          const request = store.delete(key);
 
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => resolve(true);
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => resolve(true);
+        } catch (err) {
+          console.error('Error in delete transaction:', err);
+          resolve(false);
+        }
       });
     } catch (err) {
       console.error('Cache delete error:', err);
@@ -373,16 +643,20 @@ export default class IndexedDbCache {
       const db = await this.dbPromise;
 
       return new Promise((resolve, reject) => {
-        const transaction = db.transaction(this.storeName, 'readwrite');
-        const store = transaction.objectStore(this.storeName);
-        const request = store.clear();
+        try {
+          const transaction = db.transaction(this.storeName, 'readwrite');
+          const store = transaction.objectStore(this.storeName);
+          const request = store.clear();
 
-        request.onerror = () => reject(request.error);
-        request.onsuccess = () => {
-          this.cleanupState.lastCursor = null;
-          this.cleanupState.totalRemoved = 0;
-          resolve();
-        };
+          request.onerror = () => reject(request.error);
+          request.onsuccess = () => {
+            this.cleanupState.totalRemoved = 0;
+            resolve();
+          };
+        } catch (err) {
+          console.error('Error in clear transaction:', err);
+          reject(err);
+        }
       });
     } catch (err) {
       console.error('Cache clear error:', err);
@@ -396,6 +670,11 @@ export default class IndexedDbCache {
    * @private
    */
   async _checkAndScheduleCleanup() {
+    // Skip if cleanup is postponed
+    if (this._isCleanupPostponed()) {
+      return;
+    }
+
     // Avoid multiple concurrent checks
     if (this.cleanupState.inProgress || this.cleanupState.nextScheduled) {
       return;
@@ -408,9 +687,11 @@ export default class IndexedDbCache {
     }
 
     // Use storage estimate API if available in browser environment
-    if (typeof navigator !== 'undefined' &&
-        navigator.storage &&
-        typeof navigator.storage.estimate === 'function') {
+    if (
+      typeof navigator !== 'undefined' &&
+      navigator.storage &&
+      typeof navigator.storage.estimate === 'function'
+    ) {
       try {
         const estimate = await navigator.storage.estimate();
         const usageRatio = estimate.usage / estimate.quota;
@@ -422,7 +703,7 @@ export default class IndexedDbCache {
         }
       } catch (err) {
         // Fall back to regular scheduling if estimate fails
-        console.error('Storage estimate error:', err);
+        console.warn('Storage estimate error:', err);
       }
     }
 
@@ -437,6 +718,11 @@ export default class IndexedDbCache {
    * @param {boolean} [urgent=false] - If true, clean up sooner
    */
   _scheduleCleanup(urgent = false) {
+    // Skip if cleanup is postponed
+    if (this._isCleanupPostponed()) {
+      return;
+    }
+
     if (this.cleanupState.nextScheduled) {
       return;
     }
@@ -444,22 +730,49 @@ export default class IndexedDbCache {
     this.cleanupState.nextScheduled = true;
 
     // Check if we're in a browser environment with requestIdleCallback
-    if (typeof window !== 'undefined' &&
-        typeof window.requestIdleCallback === 'function') {
+    if (
+      typeof window !== 'undefined' &&
+      typeof window.requestIdleCallback === 'function'
+    ) {
       window.requestIdleCallback(
         () => {
           this.cleanupState.nextScheduled = false;
-          this._performCleanupStep();
+          // Check again if postponed before actually running
+          if (!this._isCleanupPostponed()) {
+            this._performCleanupStep();
+          }
         },
         { timeout: urgent ? 1000 : 10000 }
       );
     } else {
       // Fallback for Node.js or browsers without requestIdleCallback
-      setTimeout(() => {
-        this.cleanupState.nextScheduled = false;
-        this._performCleanupStep();
-      }, urgent ? 100 : 1000);
+      setTimeout(
+        () => {
+          this.cleanupState.nextScheduled = false;
+          // Check again if postponed before actually running
+          if (!this._isCleanupPostponed()) {
+            this._performCleanupStep();
+          }
+        },
+        urgent ? 100 : 1000
+      );
     }
+  }
+
+  /**
+   * Get a random expiration time between 30 minutes and 90 minutes
+   *
+   * @private
+   * @returns {number} Expiration time in milliseconds
+   */
+  _getRandomExpiration() {
+    // Base time: 60 minutes (3,600,000 ms)
+    const baseTime = 3600000;
+
+    // Random factor: +/- 30 minutes (1,800,000 ms)
+    const randomFactor = Math.random() * 1800000 - 900000;
+
+    return Date.now() + baseTime + randomFactor;
   }
 
   /**
@@ -468,55 +781,91 @@ export default class IndexedDbCache {
    * @private
    */
   async _performCleanupStep() {
-    if (this.cleanupState.inProgress) {
+    // Skip if already in progress or postponed
+    if (this.cleanupState.inProgress || this._isCleanupPostponed()) {
       return;
     }
 
     this.cleanupState.inProgress = true;
 
     try {
+      // First, validate the database schema
+      const schemaValid = await this._validateSchema();
+
+      // If schema is invalid, skip cleanup
+      if (!schemaValid) {
+        console.warn('Skipping cleanup due to invalid schema');
+        this.cleanupState.inProgress = false;
+        return;
+      }
+
       const now = Date.now();
-      const db = await this.dbPromise;
       let removedCount = 0;
 
-      //
-      // DISABLE UNTIL FIXED!!!
-      //
-      // // Step 1: Remove expired entries first
-      // const expiredRemoved = await this._removeExpiredEntries(
-      //   this.cleanupBatchSize / 2
-      // );
-      // removedCount += expiredRemoved;
+      // Step 1: Remove expired entries first
+      try {
+        const expiredRemoved = await this._removeExpiredEntries(
+          this.cleanupBatchSize / 2
+        );
+        removedCount += expiredRemoved;
 
-      // // If we have a lot of expired entries, focus on those first
-      // if (expiredRemoved >= this.cleanupBatchSize / 2) {
-      //   this.cleanupState.inProgress = false;
-      //   this.cleanupState.lastRun = now;
-      //   this.cleanupState.totalRemoved += removedCount;
+        // If we have a lot of expired entries, focus on those first
+        if (expiredRemoved >= this.cleanupBatchSize / 2) {
+          this.cleanupState.lastRun = now;
+          this.cleanupState.totalRemoved += removedCount;
+          this.cleanupState.inProgress = false;
 
-      //   // Schedule next cleanup step immediately
-      //   this._scheduleCleanup();
-      //   return;
-      // }
+          // Schedule next cleanup step immediately if not postponed
+          if (!this._isCleanupPostponed()) {
+            this._scheduleCleanup();
+          }
+          return;
+        }
+      } catch (err) {
+        console.error('Error removing expired entries:', err);
+        // Continue to try the next cleanup step
+      }
 
-      // // Step 2: Remove old entries if we're over size/age limits
-      // const remainingBatch = this.cleanupBatchSize - expiredRemoved;
-      // if (remainingBatch > 0) {
-      //   const oldRemoved = await this._removeOldEntries(remainingBatch);
-      //   removedCount += oldRemoved;
-      // }
+      // Check again if cleanup has been postponed during the operation
+      if (this._isCleanupPostponed()) {
+        this.cleanupState.inProgress = false;
+        return;
+      }
 
-      // // Update cleanup state
-      // this.cleanupState.lastRun = now;
-      // this.cleanupState.totalRemoved += removedCount;
+      // Step 2: Mark entries from different cache versions for expiration
+      try {
+        const markedCount = await this._markOldCacheVersionsForExpiration(
+          this.cleanupBatchSize / 4
+        );
 
-      // If we removed entries in this batch, schedule another cleanup
-      if (removedCount > 0) {
+        // if (markedCount > 0) {
+        //   console.log(
+        //     `Marked ${markedCount} entries from different cache versions for expiration`
+        //   );
+        // }
+      } catch (err) {
+        console.error('Error marking old cache versions for expiration:', err);
+      }
+
+      // Step 3: Remove old entries if we're over size/age limits
+      try {
+        const remainingBatch = this.cleanupBatchSize - removedCount;
+        if (remainingBatch > 0) {
+          const oldRemoved = await this._removeOldEntries(remainingBatch);
+          removedCount += oldRemoved;
+        }
+      } catch (err) {
+        console.error('Error removing old entries:', err);
+      }
+
+      // Update cleanup state
+      this.cleanupState.lastRun = now;
+      this.cleanupState.totalRemoved += removedCount;
+
+      // If we removed entries in this batch and not postponed, schedule another cleanup
+      if (removedCount > 0 && !this._isCleanupPostponed()) {
         this._scheduleCleanup();
-      } else {
-        // Reset cursor if we didn't find anything to clean
-        this.cleanupState.lastCursor = null;
-
+      } else if (!this._isCleanupPostponed()) {
         // Schedule a check later
         setTimeout(() => {
           this._checkAndScheduleCleanup();
@@ -537,41 +886,242 @@ export default class IndexedDbCache {
    * @returns {Promise<number>} Number of entries removed
    */
   async _removeExpiredEntries(limit) {
-    const now = Date.now();
-    const db = await this.dbPromise;
-    let removed = 0;
+    try {
+      const now = Date.now();
+      const db = await this.dbPromise;
+      let removed = 0;
 
-    return new Promise((resolve) => {
-      const transaction = db.transaction(this.storeName, 'readwrite');
-      const store = transaction.objectStore(this.storeName);
-      const index = store.index('expires');
+      return new Promise((resolve, reject) => {
+        try {
+          const transaction = db.transaction(this.storeName, 'readwrite');
+          const store = transaction.objectStore(this.storeName);
 
-      // Create range for all entries with expiration before now
-      const range = IDBKeyRange.upperBound(now);
+          // Check if the index exists before using it
+          if (!store.indexNames.contains(this.EXPIRES_INDEX)) {
+            console.error(`Required index ${this.EXPIRES_INDEX} not found`);
+            resolve(0);
+            return;
+          }
 
-      // Skip non-expiring entries (null expiration)
-      const request = index.openCursor(range);
+          const index = store.index(this.EXPIRES_INDEX);
 
-      request.onerror = () => resolve(removed);
+          // Create range for all entries with expiration before now
+          const range = IDBKeyRange.upperBound(now);
 
-      request.onsuccess = (event) => {
-        const cursor = event.target.result;
+          // Skip non-expiring entries (null expiration)
+          const request = index.openCursor(range);
 
-        if (!cursor || removed >= limit) {
-          resolve(removed);
-          return;
+          request.onerror = (event) => {
+            console.error(
+              'Cursor error in _removeExpiredEntries:',
+              /** @type {IDBRequest} */ (event.target).error
+            );
+            reject(/** @type {IDBRequest} */ (event.target).error);
+          };
+
+          // Handle cursor results
+          request.onsuccess = (event) => {
+            const cursor = /** @type {IDBRequest} */ (event.target).result;
+
+            if (!cursor || removed >= limit) {
+              resolve(removed);
+              return;
+            }
+
+            try {
+              // Delete the expired entry
+              const deleteRequest = cursor.delete();
+
+              deleteRequest.onsuccess = () => {
+                removed++;
+
+                // Move to next entry
+                try {
+                  cursor.continue();
+                } catch (err) {
+                  console.error(
+                    'Error continuing cursor in _removeExpiredEntries:',
+                    err
+                  );
+                  resolve(removed);
+                }
+              };
+
+              deleteRequest.onerror = (event) => {
+                console.error(
+                  'Delete error in _removeExpiredEntries:',
+                  event.target.error
+                );
+                // Try to continue anyway
+                try {
+                  cursor.continue();
+                } catch (err) {
+                  console.error(
+                    'Error continuing cursor after delete error:',
+                    err
+                  );
+                  resolve(removed);
+                }
+              };
+            } catch (err) {
+              console.error(
+                'Error deleting entry in _removeExpiredEntries:',
+                err
+              );
+              resolve(removed);
+            }
+          };
+        } catch (err) {
+          console.error(
+            'Error creating transaction in _removeExpiredEntries:',
+            err
+          );
+          resolve(0);
         }
+      });
+    } catch (err) {
+      console.error('_removeExpiredEntries error:', err);
+      return 0;
+    }
+  }
 
-        // Delete the expired entry
-        const deleteRequest = cursor.delete();
-        deleteRequest.onsuccess = () => {
-          removed++;
-        };
+  /**
+   * Mark entries from old cache versions for gradual expiration
+   *
+   * @private
+   * @param {number} limit - Maximum number of entries to mark
+   * @returns {Promise<number>} Number of entries marked
+   */
+  async _markOldCacheVersionsForExpiration(limit) {
+    try {
+      const db = await this.dbPromise;
+      let marked = 0;
 
-        // Move to next entry
-        cursor.continue();
-      };
-    });
+      return new Promise((resolve, reject) => {
+        try {
+          const transaction = db.transaction(this.storeName, 'readwrite');
+          const store = transaction.objectStore(this.storeName);
+
+          // Check if the index exists before using it
+          if (!store.indexNames.contains(this.CACHE_VERSION_INDEX)) {
+            console.error(
+              `Required index ${this.CACHE_VERSION_INDEX} not found`
+            );
+            resolve(0);
+            return;
+          }
+
+          // Get all entries not matching the current cache version
+          const index = store.index(this.CACHE_VERSION_INDEX);
+
+          // We need to use openCursor since we can't directly query for "not equals"
+          const request = index.openCursor();
+
+          request.onerror = (event) => {
+            console.error(
+              'Cursor error in _markOldCacheVersionsForExpiration:',
+              /** @type {IDBRequest} */ (event.target).error
+            );
+            reject(/** @type {IDBRequest} */ (event.target).error);
+          };
+
+          request.onsuccess = (event) => {
+            const cursor = /** @type {IDBRequest} */ (event.target).result;
+
+            if (!cursor || marked >= limit) {
+              resolve(marked);
+              return;
+            }
+
+            try {
+              const entry = cursor.value;
+
+              // Only process entries from different cache versions
+              if (entry.cacheVersion !== this.cacheVersion) {
+                // Set a randomized expiration time if not already set
+                if (
+                  !entry.expires ||
+                  entry.expires > this._getRandomExpiration()
+                ) {
+                  entry.expires = this._getRandomExpiration();
+
+                  const updateRequest = cursor.update(entry);
+
+                  updateRequest.onsuccess = () => {
+                    marked++;
+
+                    // Continue to next entry
+                    try {
+                      cursor.continue();
+                    } catch (err) {
+                      console.error(
+                        'Error continuing cursor after update:',
+                        err
+                      );
+                      resolve(marked);
+                    }
+                  };
+
+                  updateRequest.onerror = (event) => {
+                    console.error(
+                      'Update error in _markOldCacheVersionsForExpiration:',
+                      event.target.error
+                    );
+                    // Try to continue anyway
+                    try {
+                      cursor.continue();
+                    } catch (err) {
+                      console.error(
+                        'Error continuing cursor after update error:',
+                        err
+                      );
+                      resolve(marked);
+                    }
+                  };
+                } else {
+                  // Entry already has an expiration set, continue to next
+                  try {
+                    cursor.continue();
+                  } catch (err) {
+                    console.error(
+                      'Error continuing cursor for entry with expiration:',
+                      err
+                    );
+                    resolve(marked);
+                  }
+                }
+              } else {
+                // Skip entries from current cache version
+                try {
+                  cursor.continue();
+                } catch (err) {
+                  console.error(
+                    'Error continuing cursor for current version entry:',
+                    err
+                  );
+                  resolve(marked);
+                }
+              }
+            } catch (err) {
+              console.error(
+                'Error processing entry in _markOldCacheVersionsForExpiration:',
+                err
+              );
+              resolve(marked);
+            }
+          };
+        } catch (err) {
+          console.error(
+            'Error creating transaction in _markOldCacheVersionsForExpiration:',
+            err
+          );
+          resolve(0);
+        }
+      });
+    } catch (err) {
+      console.error('_markOldCacheVersionsForExpiration error:', err);
+      return 0;
+    }
   }
 
   /**
@@ -582,51 +1132,124 @@ export default class IndexedDbCache {
    * @returns {Promise<number>} Number of entries removed
    */
   async _removeOldEntries(limit) {
-    const db = await this.dbPromise;
-    let removed = 0;
+    try {
+      const db = await this.dbPromise;
+      let removed = 0;
 
-    // Get total cache size estimate (rough)
-    const sizeEstimate = await this._getCacheSizeEstimate();
+      // Get total cache size estimate (rough)
+      const sizeEstimate = await this._getCacheSizeEstimate();
 
-    // If we're under limits, don't remove anything
-    if (sizeEstimate < this.maxSize) {
+      // If we're under limits, don't remove anything
+      if (sizeEstimate < this.maxSize) {
+        return 0;
+      }
+
+      return new Promise((resolve, reject) => {
+        try {
+          const transaction = db.transaction(this.storeName, 'readwrite');
+          const store = transaction.objectStore(this.storeName);
+
+          // Check if the index exists before using it
+          if (!store.indexNames.contains(this.TIMESTAMP_INDEX)) {
+            console.error(`Required index ${this.TIMESTAMP_INDEX} not found`);
+            resolve(0);
+            return;
+          }
+
+          const index = store.index(this.TIMESTAMP_INDEX);
+          const now = Date.now();
+
+          // Start from the oldest entries
+          const request = index.openCursor();
+
+          request.onerror = (event) => {
+            console.error(
+              'Cursor error in _removeOldEntries:',
+              /** @type {IDBRequest} */ (event.target).error
+            );
+            reject(/** @type {IDBRequest} */ (event.target).error);
+          };
+
+          // Process cursor results
+          request.onsuccess = (event) => {
+            const cursor = /** @type {IDBRequest} */ (event.target).result;
+
+            if (!cursor || removed >= limit) {
+              resolve(removed);
+              return;
+            }
+
+            try {
+              const entry = cursor.value;
+              const age = now - entry.timestamp;
+
+              // Delete if older than max age
+              if (age > this.maxAge) {
+                const deleteRequest = cursor.delete();
+
+                deleteRequest.onsuccess = () => {
+                  removed++;
+
+                  // Move to next entry
+                  try {
+                    cursor.continue();
+                  } catch (err) {
+                    console.error(
+                      'Error continuing cursor in _removeOldEntries:',
+                      err
+                    );
+                    resolve(removed);
+                  }
+                };
+
+                deleteRequest.onerror = (event) => {
+                  console.error(
+                    'Delete error in _removeOldEntries:',
+                    event.target.error
+                  );
+                  // Try to continue anyway
+                  try {
+                    cursor.continue();
+                  } catch (err) {
+                    console.error(
+                      'Error continuing cursor after delete error:',
+                      err
+                    );
+                    resolve(removed);
+                  }
+                };
+              } else {
+                // Entry is not old enough, continue to next
+                try {
+                  cursor.continue();
+                } catch (err) {
+                  console.error(
+                    'Error continuing cursor for entry not deleted:',
+                    err
+                  );
+                  resolve(removed);
+                }
+              }
+            } catch (err) {
+              console.error(
+                'Error processing entry in _removeOldEntries:',
+                err
+              );
+              resolve(removed);
+            }
+          };
+        } catch (err) {
+          console.error(
+            'Error creating transaction in _removeOldEntries:',
+            err
+          );
+          resolve(0);
+        }
+      });
+    } catch (err) {
+      console.error('_removeOldEntries error:', err);
       return 0;
     }
-
-    return new Promise((resolve) => {
-      const transaction = db.transaction(this.storeName, 'readwrite');
-      const store = transaction.objectStore(this.storeName);
-      const index = store.index('timestamp');
-
-      // Start from the oldest entries
-      const request = index.openCursor();
-
-      request.onerror = () => resolve(removed);
-
-      request.onsuccess = (event) => {
-        const cursor = event.target.result;
-
-        if (!cursor || removed >= limit) {
-          resolve(removed);
-          return;
-        }
-
-        const entry = cursor.value;
-        const now = Date.now();
-        const age = now - entry.timestamp;
-
-        // Delete if older than max age
-        if (age > this.maxAge) {
-          const deleteRequest = cursor.delete();
-          deleteRequest.onsuccess = () => {
-            removed++;
-          };
-        }
-
-        // Move to next entry
-        cursor.continue();
-      };
-    });
   }
 
   /**
@@ -636,41 +1259,106 @@ export default class IndexedDbCache {
    * @returns {Promise<number>} Size estimate in bytes
    */
   async _getCacheSizeEstimate() {
-    const db = await this.dbPromise;
-
-    return new Promise((resolve) => {
-      const transaction = db.transaction(this.storeName, 'readonly');
-      const store = transaction.objectStore(this.storeName);
-      const index = store.index('size');
-
-      // Get the sum of all entry sizes
-      const request = index.openCursor();
+    try {
+      const db = await this.dbPromise;
       let totalSize = 0;
 
-      request.onerror = () => resolve(totalSize);
+      return new Promise((resolve, reject) => {
+        try {
+          const transaction = db.transaction(this.storeName, 'readonly');
+          const store = transaction.objectStore(this.storeName);
 
-      request.onsuccess = (event) => {
-        const cursor = event.target.result;
+          // Check if the index exists before using it
+          if (!store.indexNames.contains(this.SIZE_INDEX)) {
+            console.error(`Required index ${this.SIZE_INDEX} not found`);
+            resolve(0);
+            return;
+          }
 
-        if (!cursor) {
-          resolve(totalSize);
-          return;
+          const index = store.index(this.SIZE_INDEX);
+
+          // Get the sum of all entry sizes
+          const request = index.openCursor();
+
+          request.onerror = (event) => {
+            console.error(
+              'Cursor error in _getCacheSizeEstimate:',
+              /** @type {IDBRequest} */ (event.target).error
+            );
+            resolve(totalSize); // Resolve with what we have so far
+          };
+
+          request.onsuccess = (event) => {
+            const cursor = /** @type {IDBRequest} */ (event.target).result;
+
+            if (!cursor) {
+              resolve(totalSize);
+              return;
+            }
+
+            try {
+              const entry = cursor.value;
+              totalSize += entry.size || 0;
+
+              // Continue to next entry
+              cursor.continue();
+            } catch (err) {
+              console.error(
+                'Error processing cursor in _getCacheSizeEstimate:',
+                err
+              );
+              resolve(totalSize); // Resolve with what we have so far
+            }
+          };
+        } catch (err) {
+          console.error('Error in _getCacheSizeEstimate transaction:', err);
+          resolve(0);
         }
-
-        const entry = cursor.value;
-        totalSize += entry.size || 0;
-
-        cursor.continue();
-      };
-    });
+      });
+    } catch (err) {
+      console.error('_getCacheSizeEstimate error:', err);
+      return 0;
+    }
   }
 
   /**
    * Close the database connection
    */
-  close() {
-    this.dbPromise.then(db => {
-      db.close();
-    }).catch(console.error);
+  async close() {
+    try {
+      // Wait for any in-progress operations to complete
+      if (this.cleanupState.inProgress) {
+        await new Promise((resolve) => {
+          const checkInterval = setInterval(() => {
+            if (!this.cleanupState.inProgress) {
+              clearInterval(checkInterval);
+              resolve();
+            }
+          }, 50); // Check every 50ms
+
+          // Safety timeout after 2 seconds
+          setTimeout(() => {
+            clearInterval(checkInterval);
+            resolve();
+          }, 2000);
+        });
+      }
+
+      // Clear any pending cleanup timer
+      if (this.postponeCleanupTimer) {
+        clearTimeout(this.postponeCleanupTimer);
+        this.postponeCleanupTimer = null;
+      }
+
+      // Close the database
+      const db = await this.dbPromise;
+      if (db) {
+        db.close();
+      }
+
+      // console.log('IndexedDB cache closed successfully');
+    } catch (err) {
+      console.error('Error closing IndexedDB cache:', err);
+    }
   }
 }
