@@ -289,7 +289,9 @@ export class PresenterState {
     }
 
     if (slide.name === this.currentSlideName) {
-      throw new Error(`gotoSlide cannot transition to current slide`);
+      //throw new Error(`gotoSlide cannot transition to current slide`);
+      console.error(`gotoSlide cannot transition to current slide`);
+      return;
     }
 
     this.nextSlideName = slide.name;
