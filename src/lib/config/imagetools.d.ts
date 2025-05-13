@@ -1,4 +1,5 @@
-type ImageMeta = import('./typedef.js').ImageMeta;
+type ImageMeta = import('$lib/typedef').ImageMeta;
+type ImageSource = import('$lib/typedef').ImageSource;
 
 declare module '*?responsive' {
   const out: ImageMeta[];
@@ -11,61 +12,61 @@ declare module '*&responsive' {
 }
 
 declare module '*?preset=photo' {
-  const out: ImageMeta | ImageMeta[];
+  const out: ImageSource;
   export default out;
 }
 
 declare module '*&preset=photo' {
-  const out: ImageMeta | ImageMeta[];
+  const out: ImageSource;
   export default out;
 }
 
 declare module '*?preset=render' {
-  const out: ImageMeta | ImageMeta[];
+  const out: ImageSource;
   export default out;
 }
 
 declare module '*&preset=render' {
-  const out: ImageMeta | ImageMeta[];
+  const out: ImageSource;
   export default out;
 }
 
 declare module '*?preset=gradient' {
-  const out: ImageMeta | ImageMeta[];
+  const out: ImageSource;
   export default out;
 }
 
 declare module '*&preset=gradient' {
-  const out: ImageMeta | ImageMeta[];
+  const out: ImageSource;
   export default out;
 }
 
 declare module '*?preset=drawing' {
-  const out: ImageMeta | ImageMeta[];
+  const out: ImageSource;
   export default out;
 }
 
 declare module '*&preset=drawing' {
-  const out: ImageMeta | ImageMeta[];
+  const out: ImageSource;
   export default out;
 }
 
 declare module '*?preset=savedata' {
-  const out: ImageMeta | ImageMeta[];
+  const out: ImageSource;
   export default out;
 }
 
 declare module '*&preset=savedata' {
-  const out: ImageMeta | ImageMeta[];
+  const out: IImageSource;
   export default out;
 }
 
 declare module '*?preset=blur' {
-  const out: ImageMeta | ImageMeta[];
+  const out: ImageSource;
   export default out;
 }
 
 declare module '*&preset=blur' {
-  const out: ImageMeta | ImageMeta[];
+  const out: ImageSource;
   export default out;
 }

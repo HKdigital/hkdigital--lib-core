@@ -5,4 +5,10 @@
  * @property {number} height
  */
 
+/**
+ * @typedef {ImageMeta | ImageMeta[]} ImageSource
+ * Single ImageMeta object or array of ImageMeta objects
+ */
+
+
 export default {};

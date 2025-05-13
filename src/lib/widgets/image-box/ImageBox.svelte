@@ -14,7 +14,7 @@
 	 *   overflow?: string,
 	 *   fit?: 'contain' | 'cover' | 'fill',
 	 *   position?: string,
-	 *   imageMeta?: import('$lib/config/typedef.js').ImageMeta | import('$lib/config/typedef.js').ImageMeta[],
+	 *   imageMeta?: import('$lib/typedef').ImageSource,
 	 *   imageLoader?: import('$lib/classes/svelte/image/index.js').ImageLoader,
 	 *   alt?: string,
 	 *   id?: string|Symbol
