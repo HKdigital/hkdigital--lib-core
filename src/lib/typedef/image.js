@@ -10,5 +10,4 @@
  * Single ImageMeta object or array of ImageMeta objects
  */
 
-
 export default {};

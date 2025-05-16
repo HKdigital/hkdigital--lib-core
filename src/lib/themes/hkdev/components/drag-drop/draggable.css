@@ -1,0 +1,51 @@
+@define-mixin component-draggable {
+  [data-component='draggable'] {
+    cursor: move;
+    user-select: none;
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  /* State-based styling using state classes */
+  [data-component='draggable'].state-idle {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  [data-component='draggable'].state-dragging {
+    opacity: 0.5;
+    transform: scale(0.95);
+  }
+
+  [data-component='draggable'].state-drag-preview {
+    transform: scale(0.98);
+    filter: brightness(0.95);
+  }
+
+  [data-component='draggable'].state-dropping {
+    animation: drop-finish 0.2s ease-out;
+  }
+
+  [data-component='draggable'].state-drag-disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    filter: grayscale(0.5);
+  }
+
+  /* Animations */
+  @keyframes drop-finish {
+    0% {
+      transform: scale(0.95);
+      opacity: 0.8;
+    }
+    50% {
+      transform: scale(1.05);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+}
