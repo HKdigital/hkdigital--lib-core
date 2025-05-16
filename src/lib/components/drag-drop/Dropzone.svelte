@@ -95,7 +95,11 @@
   } = $props();
 
   let currentState = $state(READY);
-  let dragCounter = 0;
+  let dropzoneElement; // Reference to the dropzone DOM element
+
+  // We'll use a flag to track if we're currently in the dropzone
+  // without relying on a counter approach
+  let isCurrentlyOver = $state(false);
 
   // Cleanup function
   let cleanup;
@@ -103,7 +107,7 @@
   onMount(() => {
     // Global dragend listener to ensure state cleanup
     const handleGlobalDragEnd = () => {
-      dragCounter = 0;
+      isCurrentlyOver = false;
       currentState = READY;
     };
 
@@ -157,26 +161,33 @@
   }
 
   /**
-   * Handle drag enter
+   * Handle drag enter with improved DOM traversal check
    * @param {DragEvent} event
    */
   function handleDragEnter(event) {
+    // Prevent default to allow drop
     event.preventDefault();
-    dragCounter++;
 
-    if (dragCounter === 1) {
-      const dragData = dragState.current;
+    // If we're already in a drag-over state, don't reset anything
+    if (isCurrentlyOver) return;
 
-      if (dragData) {
-        currentState = canAcceptDrop(dragData)
-          ? CAN_DROP
-          : CANNOT_DROP;
-      } else {
-        currentState = DRAG_OVER;
-      }
+    // Now we're over this dropzone
+    isCurrentlyOver = true;
 
-      onDragEnter?.({ event, zone, canDrop: currentState === CAN_DROP });
+    // Get the current drag data
+    const dragData = dragState.current;
+
+    // Update state based on acceptance
+    if (dragData) {
+      currentState = canAcceptDrop(dragData)
+        ? CAN_DROP
+        : CANNOT_DROP;
+    } else {
+      currentState = DRAG_OVER;
     }
+
+    // Notify listeners
+    onDragEnter?.({ event, zone, canDrop: currentState === CAN_DROP });
   }
 
   /**
@@ -184,39 +195,55 @@
    * @param {DragEvent} event
    */
   function handleDragOver(event) {
+    // Prevent default to allow drop
     event.preventDefault();
 
-    // Re-evaluate on each dragover in case state changed
+    // If we're not currently over this dropzone (despite dragover firing),
+    // treat it as an enter event
+    if (!isCurrentlyOver) {
+      handleDragEnter(event);
+      return;
+    }
+
+    // Re-evaluate acceptance on each dragover in case state changed
     const dragData = dragState.current;
 
-    if (dragData && currentState === DRAG_OVER) {
+    if (dragData && [DRAG_OVER, CAN_DROP, CANNOT_DROP].includes(currentState)) {
       currentState = canAcceptDrop(dragData)
         ? CAN_DROP
         : CANNOT_DROP;
     }
 
+    // Set visual feedback based on drop acceptance
     if (currentState === CAN_DROP) {
       event.dataTransfer.dropEffect = 'move';
     } else if (currentState === CANNOT_DROP) {
       event.dataTransfer.dropEffect = 'none';
     }
 
+    // Notify listeners
     onDragOver?.({ event, zone });
   }
 
   /**
-   * Handle drag leave
+   * Handle drag leave with improved DOM traversal check
    * @param {DragEvent} event
    */
   function handleDragLeave(event) {
-    if (!event.currentTarget.contains(event.relatedTarget)) {
-      dragCounter--;
+    // We need to check if we're actually leaving the dropzone or just
+    // entering a child element within the dropzone
 
-      if (dragCounter <= 0) {
-        dragCounter = 0;
-        currentState = READY;
-        onDragLeave?.({ event, zone });
-      }
+    // relatedTarget is the element we're moving to
+    const relatedTarget = event.relatedTarget;
+
+    // If relatedTarget is null or outside our dropzone, we're truly leaving
+    const isActuallyLeaving = !relatedTarget ||
+                             !dropzoneElement.contains(relatedTarget);
+
+    if (isActuallyLeaving) {
+      isCurrentlyOver = false;
+      currentState = READY;
+      onDragLeave?.({ event, zone });
     }
   }
 
@@ -225,16 +252,23 @@
    * @param {DragEvent} event
    */
   function handleDrop(event) {
+    // Prevent default browser actions
     event.preventDefault();
-    dragCounter = 0;
+
+    // Reset our tracking state
+    isCurrentlyOver = false;
 
     try {
+      // Parse the JSON data from the dataTransfer object
       const data = JSON.parse(event.dataTransfer.getData('application/json'));
 
+      // Check if we can accept this drop
       if (canAcceptDrop(data)) {
+        // Update state and notify listeners
         currentState = ACTIVE_DROP;
         onDropStart?.({ event, zone, data });
 
+        // Call the onDrop handler and handle Promise resolution
         const dropResult = onDrop?.({
           event,
           zone,
@@ -243,6 +277,7 @@
           metadata: data.metadata
         });
 
+        // Handle async or sync results
         Promise.resolve(dropResult).then(() => {
           currentState = READY;
           onDropEnd?.({ event, zone, data, success: true });
@@ -251,9 +286,11 @@
           onDropEnd?.({ event, zone, data, success: false, error });
         });
       } else {
+        // Not a valid drop, reset state
         currentState = READY;
       }
     } catch (error) {
+      // Handle parsing errors
       console.error('Drop error:', error);
       currentState = READY;
     }
@@ -262,6 +299,7 @@
 
 <div
   data-component="dropzone"
+  bind:this={dropzoneElement}
   ondragenter={handleDragEnter}
   ondragover={handleDragOver}
   ondragleave={handleDragLeave}
