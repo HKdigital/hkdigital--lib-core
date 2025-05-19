@@ -32,13 +32,19 @@
           {item}
           source="available"
           bind:isDragging={isDraggingTask}
-          onDragStart={({ item }) =>
+          onDragStart={({ item, getPreviewController }) => {
             console.log(
               'Started dragging:',
               item.name,
               'priority:',
               item.priority
-            )}
+            );
+
+              const controller = getPreviewController();
+              controller.grabPreviewImage();
+              console.debug('Grabbed custom preview image');
+            }
+          }
         >
           <div class="task-content">
             <span>{item.name}</span>

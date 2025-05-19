@@ -3,6 +3,8 @@
 
   import { createOrGetDragState } from './drag-state.svelte.js';
 
+  import { PreviewController } from './PreviewController.js';
+
   import { generateLocalId } from '$lib/util/unique';
 
   import {
@@ -31,7 +33,8 @@
    *     event: DragEvent,
    *     item: any,
    *     source: string,
-   *     group: string
+   *     group: string,
+   *     getPreviewController: () => PreviewController
    *   }) => void,
    *   onDragging?: (detail: {
    *     event: DragEvent,
@@ -143,24 +146,21 @@
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('application/json', JSON.stringify(dragData));
 
-    // Set custom drag image if needed
-    if (event.dataTransfer.setDragImage) {
-      // Custom drag image
-      const dragEl = /** @type {HTMLElement} */ (event.currentTarget);
+    // Create the preview controller with natural offsets already calculated
+    const previewController = new PreviewController(event);
 
+    // Function to get the preview controller
+    const getPreviewController = () => previewController;
 
-      // Get the bounding rectangle of the element
-      const rect = dragEl.getBoundingClientRect();
+    // Call onDragStart with the getPreviewController function
+    onDragStart?.({ event, item, source, group, getPreviewController });
 
-      // Calculate offsets relative to the element's top-left corner
-      const offsetX = event.clientX - rect.left;
-      const offsetY = event.clientY - rect.top;
-
-      // Use the element as drag image with calculated offsets
-      event.dataTransfer.setDragImage(dragEl, offsetX, offsetY);
+    // Apply default preview if no custom one was set
+    if (!previewController.hasCustomPreview()) {
+      previewController.applyDefaultPreview();
     }
 
-    onDragStart?.({ event, item, source, group });
+    // Additional handlers can be left unchanged
   }
 
   /**
@@ -173,33 +173,33 @@
     }
   }
 
-/**
- * Handle drag end
- * @param {DragEvent} event
- */
-function handleDragEnd(event) {
-  clearTimeout(dragTimeout);
+  /**
+   * Handle drag end
+   * @param {DragEvent} event
+   */
+  function handleDragEnd(event) {
+    clearTimeout(dragTimeout);
 
-  // Clear global drag state
-  dragState.end(draggableId);
+    // Clear global drag state
+    dragState.end(draggableId);
 
-  // Check if drop was successful
-  const wasDropped = event.dataTransfer.dropEffect !== 'none';
+    // Check if drop was successful
+    const wasDropped = event.dataTransfer.dropEffect !== 'none';
 
-  if (wasDropped) {
-    currentState = DROPPING;
-    onDrop?.({ event, item, wasDropped: true });
+    if (wasDropped) {
+      currentState = DROPPING;
+      onDrop?.({ event, item, wasDropped: true });
 
-    // Brief dropping state before returning to idle
-    setTimeout(() => {
+      // Brief dropping state before returning to idle
+      setTimeout(() => {
+        currentState = IDLE;
+      }, 100);
+    } else {
       currentState = IDLE;
-    }, 100);
-  } else {
-    currentState = IDLE;
-  }
+    }
 
-  onDragEnd?.({ event, item, wasDropped });
-}
+    onDragEnd?.({ event, item, wasDropped });
+  }
 
   /**
    * Handle mouse down for drag delay
