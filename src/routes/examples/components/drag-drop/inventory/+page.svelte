@@ -1,5 +1,5 @@
 <script>
-  import { Draggable, DropZone } from '$lib/components/drag-drop';
+  import { Draggable, DropZone, createDragState } from '$lib/components/drag-drop';
   import { GridLayers } from '$lib/components/layout/index.js';
 
   /**
@@ -21,6 +21,10 @@
    * @property {string[]} acceptTypes - Item types this dropTarget accepts
    * @property {string} [description] - Optional description
    */
+
+  const dragContextKey = Symbol('game');
+
+  createDragState(dragContextKey);
 
   // Player's inventory items
   let inventoryItems = $state([
@@ -45,8 +49,8 @@
     {
       id: 2,
       name: 'Shield Slot',
-      x: 10,
-      y: 1000,
+      x: 400,
+      y: 10,
       width: 120,
       height: 150,
       acceptTypes: ['armor']
@@ -152,11 +156,10 @@
       <div class="p-4 grid grid-cols-2 gap-2">
         {#each inventoryItems as item (item.id)}
           <Draggable
+            contextKey={dragContextKey}
             {item}
             source="inventory"
-            bind:isDragging={isDraggingItem}
             onDragStart={({ item }) => {
-              currentDragItem = item;
               console.log('Started dragging:', item.name);
             }}
             base="cursor-grab active:cursor-grabbing"
@@ -192,12 +195,13 @@
         <div data-layer>
           <div
             class="absolute"
-            style:margin-top={"calc("+dropTarget.y + "px * var(--scale-ui))"}
-            style:margin-left={"calc("+dropTarget.x + "px * var(--scale-ui))"}
-            style:height={"calc("+dropTarget.height + "px * var(--scale-ui))"}
-            style:width={"calc("+dropTarget.width + "px * var(--scale-ui))"}>
+            style:margin-top="calc({dropTarget.y}px * var(--scale-ui))"
+            style:margin-left="calc({dropTarget.x}px * var(--scale-ui))"
+            style:height="calc({dropTarget.height}px * var(--scale-ui))"
+            style:width="calc({dropTarget.width}px * var(--scale-ui))">
 
             <DropZone
+              contextKey={dragContextKey}
               zone={`dropTarget-${dropTarget.id}`}
               accepts={(item) => dropTargetAcceptsItem(item, dropTarget)}
               maxItems={1}

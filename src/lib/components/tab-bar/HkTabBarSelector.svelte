@@ -17,7 +17,7 @@
    *   boxMargin?: string,
    *   boxClasses?: string,
    *   boxAttrs?: { [attr: string]: * },
-   *   instanceKey?: Symbol | string
+   *   contextKey?: Symbol | string
    * } & { [attr: string]: any }}
    */
   let {
@@ -30,10 +30,10 @@
     boxClasses,
 
     // State
-    instanceKey
+    contextKey
   } = $props();
 
-  const selectorState = createOrGetState(instanceKey);
+  const selectorState = createOrGetState(contextKey);
 </script>
 
 <div

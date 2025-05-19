@@ -1,7 +1,8 @@
 <script>
   import { onMount, onDestroy } from 'svelte';
   import { toStateClasses } from '$lib/util/design-system/index.js';
-  import { useDragState } from './drag-state.svelte.js';
+
+  import { createOrGetDragState } from './drag-state.svelte.js';
 
   import {
     READY,
@@ -11,8 +12,6 @@
     DROP_DISABLED,
     ACTIVE_DROP
   } from '$lib/constants/state-labels/drop-states.js';
-
-  const dragState = useDragState();
 
   /**
    * @type {{
@@ -24,6 +23,7 @@
    *   base?: string,
    *   classes?: string,
    *   children?: import('svelte').Snippet,
+   *   contextKey?: import('$lib/typedef').ContextKey,
    *   empty?: import('svelte').Snippet,
    *   preview?: import('svelte').Snippet<[{
    *     item: any,
@@ -79,6 +79,7 @@
     base = '',
     classes = '',
     children,
+    contextKey,
     empty,
     preview,
     isDragOver = $bindable(false),
@@ -93,6 +94,10 @@
     onDropEnd,
     ...attrs
   } = $props();
+
+  const dragState = createOrGetDragState(contextKey);
+
+  // console.debug('DropZone contextKey:', contextKey);
 
   let currentState = $state(READY);
   let dropzoneElement; // Reference to the dropzone DOM element
@@ -148,10 +153,14 @@
 
   /**
    * Check if we can accept the dragged item
+   *
    * @param {Object} data
+   *
    * @returns {boolean}
    */
   function canAcceptDrop(data) {
+    // console.debug('canAcceptDrop', data, {group});
+
     if (disabled) return false;
     if (!data) return false;
     if (data.group !== group) return false;
@@ -165,6 +174,8 @@
    * @param {DragEvent} event
    */
   function handleDragEnter(event) {
+    // console.debug('dragEnter fired', { zone, group });
+
     // Prevent default to allow drop
     event.preventDefault();
 
@@ -176,6 +187,8 @@
 
     // Get the current drag data
     const dragData = dragState.current;
+
+    // console.debug('dragData in handleDragEnter', dragData, dragState);
 
     // Update state based on acceptance
     if (dragData) {
@@ -195,6 +208,8 @@
    * @param {DragEvent} event
    */
   function handleDragOver(event) {
+    // console.debug('dragOver fired', { zone, group });
+
     // Prevent default to allow drop
     event.preventDefault();
 

@@ -6,3 +6,6 @@
  * @property {string} [route]
  * @property {string} [routePrefix]
  */
+
+
+export default {};

@@ -1,5 +1,7 @@
 import { setContext, getContext, hasContext } from 'svelte';
 
+export const DEFAULT_CONTEXT_KEY = 'default';
+
 /* ----------------------------------------------------------- Create and Get */
 
 /**
@@ -19,26 +21,58 @@ import { setContext, getContext, hasContext } from 'svelte';
  * ]}
  */
 export function defineStateContext(State) {
-  const description = State.name;
+  const stateName = State.name;
 
-  const sharedKey = Symbol(description);
+  const sharedKey = Symbol(stateName);
+
+  // console.debug(`Creating state context for ${stateName}`, { sharedKey });
+
+  /**
+   * Internal function to get the supplied key or the shared key
+   *
+   * @param {import('$lib/typedef').ContextKey} contextKey
+   *
+   * @returns {Symbol} key
+   */
+  function getKey(contextKey) {
+    if (typeof contextKey === 'symbol') {
+      return contextKey;
+    }
+
+    if (
+      contextKey === undefined ||
+      contextKey === null ||
+      contextKey === DEFAULT_CONTEXT_KEY
+    ) {
+      return sharedKey;
+    }
+
+    throw new Error(
+      `Invalid contextKey (use a Symbol or DEFAULT_CONTEXT_KEY)`
+    );
+  }
 
   /**
    * Create component state
    *
-   * @param {string|Symbol} [instanceKey]
+   * @param {import('$lib/typedef').ContextKey} contextKey
    *
    * @returns {T} state
    */
-  function createState(instanceKey) {
-    const key = instanceKey ?? sharedKey;
+  function createState(contextKey) {
+    const key = getKey(contextKey);
 
     // console.log('Create state', key);
+    // console.debug(`Creating new state for ${stateName}`, {
+    //   key,
+    //   contextKey,
+    //   isDefaultKey: key === sharedKey
+    // });
 
     const state = new State();
 
     // @ts-ignore
-    state._instanceKey = instanceKey;
+    state._contextKey = contextKey;
 
     return setContext(key, state);
   }
@@ -46,12 +80,12 @@ export function defineStateContext(State) {
   /**
    * Get component state or create a new state if it does not yet exist
    *
-   * @param {string|Symbol} [instanceKey]
+   * @param {import('$lib/typedef').ContextKey} contextKey
    *
    * @returns {T} state
    */
-  function createOrGetState(instanceKey) {
-    let key = instanceKey ?? sharedKey;
+  function createOrGetState(contextKey) {
+    let key = getKey(contextKey);
 
     if (!hasContext(key)) {
       return createState(key);
@@ -65,12 +99,12 @@ export function defineStateContext(State) {
    *
    * @throws Will throw an error if the state-context does not exist
    *
-   * @param {string|Symbol} [instanceKey]
+   * @param {import('$lib/typedef').ContextKey} contextKey
    *
    * @returns {T} state
    */
-  function getState(instanceKey) {
-    let key = instanceKey ?? sharedKey;
+  function getState(contextKey) {
+    let key = getKey(contextKey);
 
     if (!hasContext(key)) {
       throw new Error(`No state context found. Create one first`);

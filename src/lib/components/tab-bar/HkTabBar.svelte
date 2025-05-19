@@ -19,7 +19,7 @@
 	 *   margin?: string,
 	 *   classes?: string,
 	 *   style?: string,
-	 *   instanceKey?: Symbol | string,
+	 *   contextKey?: Symbol | string,
 	 *   children: import('svelte').Snippet,
 	 *   onmount?: function,
 	 *   domElem?: HTMLElement
@@ -39,7 +39,7 @@
 		style,
 
 		// State
-		instanceKey,
+		contextKey,
 
 		// Snippets
 		children,
@@ -54,7 +54,7 @@
 		...attrs
 	} = $props();
 
-	createOrGetState(instanceKey);
+	createOrGetState(contextKey);
 
 	//grid-cols-[repeat({cols},minmax(0,auto))]
 </script>

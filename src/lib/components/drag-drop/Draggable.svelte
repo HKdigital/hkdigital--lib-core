@@ -1,6 +1,7 @@
 <script>
   import { toStateClasses } from '$lib/util/design-system/index.js';
-  import { useDragState } from './drag-state.svelte.js';
+
+  import { createOrGetDragState } from './drag-state.svelte.js';
 
   import {
     IDLE,
@@ -9,8 +10,6 @@
     DROPPING,
     DRAG_DISABLED
   } from '$lib/constants/state-labels/drag-states.js';
-
-  const dragState = useDragState();
 
   /**
    * @type {{
@@ -22,6 +21,7 @@
    *   base?: string,
    *   classes?: string,
    *   children: import('svelte').Snippet,
+   *   contextKey?: import('$lib/typedef').ContextKey,
    *   isDragging?: boolean,
    *   isDropping?: boolean,
    *   isDragPreview?: boolean,
@@ -58,6 +58,7 @@
     base = '',
     classes = '',
     children,
+    contextKey,
     isDragging = $bindable(false),
     isDropping = $bindable(false),
     isDragPreview = $bindable(false),
@@ -68,6 +69,10 @@
     canDrag = () => true,
     ...attrs
   } = $props();
+
+  const dragState = createOrGetDragState(contextKey);
+
+  // console.debug('Draggable contextKey:', contextKey);
 
   let dragTimeout = null;
   let currentState = $state(IDLE);
@@ -128,8 +133,8 @@
       metadata: { timestamp: Date.now() }
     };
 
-    // Set global drag state
-    dragState.start(item, source, group);
+    // Set shared drag state
+    dragState.start(dragData);
 
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('application/json', JSON.stringify(dragData));
