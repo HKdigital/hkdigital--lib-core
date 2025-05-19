@@ -50,6 +50,20 @@
             <span>{item.name}</span>
             <span class="priority-badge {item.priority}">{item.priority}</span>
           </div>
+
+<!-- {#snippet previewSnippet({ element, rect })}
+    <div class="preview-card"
+         style="background: white; padding: 8px; border-radius: 4px;"
+         style:width="{rect.width * 0.8}px">
+      <div class="preview-name" style="font-weight: bold; font-size: 14px; margin-top: 4px;">
+        {item.name}
+      </div>
+
+      <div class="preview-label" style="font-size: 12px; color: #666; margin-top: 2px;">
+        Dragging...
+      </div>
+    </div>
+  {/snippet} -->
         </Draggable>
       {/each}
     </div>
