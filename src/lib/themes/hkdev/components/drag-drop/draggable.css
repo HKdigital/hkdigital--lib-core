@@ -1,11 +1,19 @@
 @define-mixin component-draggable {
   [data-component='draggable'] {
-    cursor: move;
     user-select: none;
     transition:
       opacity 0.2s ease,
       transform 0.2s ease;
   }
+
+  [data-component='draggable']:not(.state-dragging):not(.state-drag-disabled) {
+    cursor: grab;  /* Open hand when hovering draggable items */
+  }
+
+
+  /*[data-component='draggable']:active {
+    cursor: grabbing;
+  }*/
 
   /* State-based styling using state classes */
   [data-component='draggable'].state-idle {
@@ -16,6 +24,7 @@
   [data-component='draggable'].state-dragging {
     opacity: 0.5;
     transform: scale(0.95);
+    cursor: grabbing;
   }
 
   [data-component='draggable'].state-drag-preview {

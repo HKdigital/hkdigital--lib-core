@@ -145,7 +145,19 @@
 
     // Set custom drag image if needed
     if (event.dataTransfer.setDragImage) {
-      // Could set custom drag image here
+      // Custom drag image
+      const dragEl = /** @type {HTMLElement} */ (event.currentTarget);
+
+
+      // Get the bounding rectangle of the element
+      const rect = dragEl.getBoundingClientRect();
+
+      // Calculate offsets relative to the element's top-left corner
+      const offsetX = event.clientX - rect.left;
+      const offsetY = event.clientY - rect.top;
+
+      // Use the element as drag image with calculated offsets
+      event.dataTransfer.setDragImage(dragEl, offsetX, offsetY);
     }
 
     onDragStart?.({ event, item, source, group });
@@ -161,33 +173,33 @@
     }
   }
 
-  /**
-   * Handle drag end
-   * @param {DragEvent} event
-   */
-  function handleDragEnd(event) {
-    clearTimeout(dragTimeout);
+/**
+ * Handle drag end
+ * @param {DragEvent} event
+ */
+function handleDragEnd(event) {
+  clearTimeout(dragTimeout);
 
-    // Clear global drag state
-    dragState.end( draggableId );
+  // Clear global drag state
+  dragState.end(draggableId);
 
-    // Check if drop was successful
-    const wasDropped = event.dataTransfer.dropEffect !== 'none';
+  // Check if drop was successful
+  const wasDropped = event.dataTransfer.dropEffect !== 'none';
 
-    if (wasDropped) {
-      currentState = DROPPING;
-      onDrop?.({ event, item, wasDropped: true });
+  if (wasDropped) {
+    currentState = DROPPING;
+    onDrop?.({ event, item, wasDropped: true });
 
-      // Brief dropping state before returning to idle
-      setTimeout(() => {
-        currentState = IDLE;
-      }, 100);
-    } else {
+    // Brief dropping state before returning to idle
+    setTimeout(() => {
       currentState = IDLE;
-    }
-
-    onDragEnd?.({ event, item, wasDropped });
+    }, 100);
+  } else {
+    currentState = IDLE;
   }
+
+  onDragEnd?.({ event, item, wasDropped });
+}
 
   /**
    * Handle mouse down for drag delay
