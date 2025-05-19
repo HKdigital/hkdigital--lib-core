@@ -3,6 +3,8 @@
 
   import { createOrGetDragState } from './drag-state.svelte.js';
 
+  import { generateLocalId } from '$lib/util/unique';
+
   import {
     IDLE,
     DRAGGING,
@@ -72,6 +74,8 @@
 
   const dragState = createOrGetDragState(contextKey);
 
+  const draggableId = generateLocalId();
+
   // console.debug('Draggable contextKey:', contextKey);
 
   let dragTimeout = null;
@@ -134,7 +138,7 @@
     };
 
     // Set shared drag state
-    dragState.start(dragData);
+    dragState.start(draggableId, dragData);
 
     event.dataTransfer.effectAllowed = 'move';
     event.dataTransfer.setData('application/json', JSON.stringify(dragData));
@@ -165,7 +169,7 @@
     clearTimeout(dragTimeout);
 
     // Clear global drag state
-    dragState.end();
+    dragState.end( draggableId );
 
     // Check if drop was successful
     const wasDropped = event.dataTransfer.dropEffect !== 'none';
@@ -209,6 +213,7 @@
 
 <div
   data-component="draggable"
+  data-id={draggableId}
   draggable={!disabled && canDrag(item)}
   ondragstart={handleDragStart}
   ondrag={handleDrag}

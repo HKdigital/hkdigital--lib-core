@@ -1,27 +1,48 @@
 // drag-state.svelte.js
 import { defineStateContext } from '$lib/util/svelte/state-context/index.js';
 
-export class DragState {
-  current = $state(null);
-
-  // constructor() {
-  //   console.debug('Create DragState');
-  // }
+class DragState {
+  // Replace the single 'current' with a Map of draggable IDs
+  draggables = $state(new Map());
 
   /**
+   * @param {string} draggableId
    * @param {import('$lib/typedef/drag.js').DragData} dragData
    */
-  start(dragData) {
-    // console.debug('DragState:start', dragData);
-    this.current = dragData;
+  start(draggableId, dragData) {
+    this.draggables.set(draggableId, dragData);
   }
 
-  end() {
-    this.current = null;
+  /**
+   * @param {string} draggableId
+   */
+  end(draggableId) {
+    this.draggables.delete(draggableId);
   }
 
+  /**
+   * @param {string} draggableId
+   * @returns {import('$lib/typedef/drag.js').DragData|undefined}
+   */
+  getDraggable(draggableId) {
+    return this.draggables.get(draggableId);
+  }
+
+  /**
+   * Get the most recently started drag operation (convenience method)
+   * @returns {import('$lib/typedef/drag.js').DragData|undefined}
+   */
+  get current() {
+    // For backward compatibility with existing code
+    const entries = Array.from(this.draggables.entries());
+    return entries.length > 0 ? entries[entries.length - 1][1] : undefined;
+  }
+
+  /**
+   * @returns {boolean}
+   */
   isDragging() {
-    return this.current !== null;
+    return this.draggables.size > 0;
   }
 }
 
