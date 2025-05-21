@@ -1,167 +1,186 @@
 <script>
-	/**
-	 * Grid Layers Component
-	 *
-	 * A component that creates a single-cell grid where all children exist
-	 * in the same grid cell, allowing them to be positioned independently
-	 * and stacked on top of each other. Perfect for complex layouts like
-	 * overlaying text on images, card stacks, positioning UI elements, etc.
-	 *
-	 * Each child can use grid positioning properties (justify-self-*, self-*)
-	 * for precise placement. Children can control stacking order with z-index.
-	 *
-	 * @example Basic usage with 9-position grid
-	 * ```html
-	 * <GridLayers classes="border w-[500px] h-[500px]">
-	 *   <!-- Top Row -->
-	 *   <div class="justify-self-start self-start">
-	 *     <div class="bg-blue-500 w-[100px] h-[100px]">
-	 *       Top Left
-	 *     </div>
-	 *   </div>
-	 *   <div class="justify-self-center self-start">
-	 *     <div class="bg-blue-300 w-[100px] h-[100px]">
-	 *       Top Center
-	 *     </div>
-	 *   </div>
-	 *   <div class="justify-self-end self-start">
-	 *     <div class="bg-blue-500 w-[100px] h-[100px]">
-	 *       Top Right
-	 *     </div>
-	 *   </div>
-	 *
-	 *   <!-- Middle Row -->
-	 *   <div class="justify-self-start self-center">
-	 *     <div class="bg-green-500 w-[100px] h-[100px]">
-	 *       Middle Left
-	 *     </div>
-	 *   </div>
-	 *   <div class="justify-self-center self-center">
-	 *     <div class="bg-green-300 w-[100px] h-[100px]">
-	 *       Middle Center
-	 *     </div>
-	 *   </div>
-	 *   <div class="justify-self-end self-center">
-	 *     <div class="bg-green-500 w-[100px] h-[100px]">
-	 *       Middle Right
-	 *     </div>
-	 *   </div>
-	 *
-	 *   <!-- Bottom Row -->
-	 *   <div class="justify-self-start self-end">
-	 *     <div class="bg-red-500 w-[100px] h-[100px]">
-	 *       Bottom Left
-	 *     </div>
-	 *   </div>
-	 *   <div class="justify-self-center self-end">
-	 *     <div class="bg-red-300 w-[100px] h-[100px]">
-	 *       Bottom Center
-	 *     </div>
-	 *   </div>
-	 *   <div class="justify-self-end self-end">
-	 *     <div class="bg-red-500 w-[100px] h-[100px]">
-	 *       Bottom Right
-	 *     </div>
-	 *   </div>
-	 * </GridLayers>
-	 * ```
-	 *
-	 * @example Text over image
-	 * ```html
-	 * <GridLayers classes="w-full h-[300px]">
-	 *   <!-- Background image layer -->
-	 *   <div class="justify-self-stretch self-stretch z-0">
-	 *     <img
-	 *       src="/images/landscape.jpg"
-	 *       alt="Landscape"
-	 *       class="w-full h-full object-cover"
-	 *     />
-	 *   </div>
-	 *
-	 *   <!-- Text overlay layer -->
-	 *   <div class="justify-self-center self-center z-10">
-	 *     <div class="bg-black/50 p-16up text-white
-	 *                 font-ui rounded-md">
-	 *       <h2 class="text-2xl">Explore Nature</h2>
-	 *       <p>Discover the beauty of the outdoors</p>
-	 *     </div>
-	 *   </div>
-	 * </GridLayers>
-	 * ```
-	 */
+  import { onMount, onDestroy } from 'svelte';
+  import { setupLayerObserver, measureTargetLayer } from './util.js';
 
-	/**
-	 * @type {{
-	 *   base?: string,
-	 *   bg?: string,
-	 *   padding?: string,
-	 *   margin?: string,
-	 *   height?: string,
-	 *   classes?: string,
-	 *   style?: string,
-	 *   cellBase?: string,
-	 *   cellBg?: string,
-	 *   cellPadding?: string,
-	 *   cellMargin?: string,
-	 *   cellClasses?: string,
-	 *   cellStyle?: string,
-	 *   children: import('svelte').Snippet,
-	 *   cellAttrs?: { [attr: string]: * },
-	 *   [attr: string]: any
-	 * }}
-	 */
-	const {
-		// Style
-		base,
-		bg,
-		padding,
-		margin,
-		height,
-		classes,
-		style,
-		cellBase,
-		cellBg,
-		cellPadding,
-		cellMargin,
-		cellClasses,
-		cellStyle,
+  /**
+   * @type {{
+   *   base?: string,
+   *   bg?: string,
+   *   padding?: string,
+   *   margin?: string,
+   *   height?: string,
+   *   classes?: string,
+   *   style?: string,
+   *   cellBase?: string,
+   *   cellBg?: string,
+   *   cellPadding?: string,
+   *   cellMargin?: string,
+   *   cellClasses?: string,
+   *   cellStyle?: string,
+   *   heightFrom?: string|null,
+   *   children: import('svelte').Snippet,
+   *   cellAttrs?: { [attr: string]: any },
+   *   [attr: string]: any
+   * }}
+   */
+  const {
+    // Style
+    base = '',
+    bg = '',
+    padding = '',
+    margin = '',
+    height = '',
+    classes = '',
+    style = '',
+    cellBase = '',
+    cellBg = '',
+    cellPadding = '',
+    cellMargin = '',
+    cellClasses = '',
+    cellStyle = '',
 
-		cellAttrs,
+    // Behavior
+    heightFrom = null,
 
-		// Snippets
-		children,
+    // Props
+    cellAttrs = {},
+    children,
 
-		// Attributes
-		...attrs
-	} = $props();
+    // Attributes
+    ...attrs
+  } = $props();
+
+  // Component state
+  let gridContainer = $state(null);
+  let gridContent = $state(null);
+  let calculatedHeight = $state(0);
+  let observer = $state(null);
+  let targetLayer = $state(null);
+  let isFirstRender = $state(heightFrom !== null); // Start with true if heightFrom is provided
+  let preCalculatedHeight = $state(0);
+
+  // Derived container style that updates reactively when dependencies change
+  let containerStyle = $derived.by(() => {
+    const styles = [];
+
+    if (style) {
+      styles.push(style);
+    }
+
+    if (heightFrom && calculatedHeight > 0) {
+      styles.push(`height: ${calculatedHeight}px;`);
+    }
+
+    return styles.join(' ');
+  });
+
+  /**
+   * Handler for height changes detected by the observer
+   * @param {number} newHeight - The new calculated height
+   */
+  function handleHeightChange(newHeight) {
+    calculatedHeight = newHeight;
+  }
+
+  /**
+   * Initialize height measurement and observation
+   */
+  function initializeHeightTracking() {
+    if (!heightFrom || !gridContent) return;
+
+    // Measure the layer initially
+    const { element, height } = measureTargetLayer(gridContent, heightFrom);
+
+    if (element) {
+      targetLayer = element;
+      calculatedHeight = height;
+
+      // Setup observer for future changes
+      observer = setupLayerObserver(element, handleHeightChange);
+    }
+  }
+
+  // Initialize on mount with the two-pass rendering approach
+  onMount(() => {
+    if (heightFrom) {
+      // First render: measure invisibly
+      requestAnimationFrame(() => {
+        if (gridContent) {
+          const { element, height } = measureTargetLayer(gridContent, heightFrom);
+
+          if (element) {
+            targetLayer = element;
+            preCalculatedHeight = height;
+
+            // Second render: show with correct height
+            requestAnimationFrame(() => {
+              calculatedHeight = preCalculatedHeight;
+              isFirstRender = false;
+
+              // Setup observer for future changes
+              observer = setupLayerObserver(element, handleHeightChange);
+            });
+          } else {
+            // No target layer found, just show the component
+            isFirstRender = false;
+          }
+        } else {
+          // No grid content, just show the component
+          isFirstRender = false;
+        }
+      });
+    } else {
+      // No heightFrom, no need for measurement
+      isFirstRender = false;
+    }
+  });
+
+  // Effect to re-setup observer when either the target layer or heightFrom changes
+  $effect(() => {
+    // Only handle changes after initial setup
+    if (!isFirstRender && heightFrom && gridContent && !observer) {
+      initializeHeightTracking();
+    }
+  });
+
+  // Clean up on destroy
+  onDestroy(() => {
+    if (observer) {
+      observer.disconnect();
+      observer = null;
+    }
+  });
 </script>
 
 <div
-	data-component="grid-layers"
-	class="relative {base} {bg} {height} {classes} {margin} {padding}"
-	{style}
-	{...attrs}
+  data-component="grid-layers"
+  bind:this={gridContainer}
+  class="relative {isFirstRender ? 'invisible' : ''} {base} {bg} {!heightFrom ? height : ''} {classes} {margin} {padding}"
+  style={containerStyle}
+  {...attrs}
 >
-	<div
-		data-section="grid"
-		class="absolute inset-0 grid {cellBase} {cellBg} {cellPadding} {cellMargin} {cellClasses}"
-		style={cellStyle}
-	>
-		{@render children()}
-	</div>
+  <div
+    data-section="grid"
+    bind:this={gridContent}
+    class="absolute inset-0 grid {cellBase} {cellBg} {cellPadding} {cellMargin} {cellClasses}"
+    style={cellStyle}
+    {...cellAttrs}
+  >
+    {@render children()}
+  </div>
 </div>
 
 <style>
-	/* All children of the layer share the same grid area
-	   but aren't absolutely positioned */
-	[data-section='grid'] {
-		grid-template-columns: 1fr;
-		grid-template-rows: 1fr;
-	}
+  /* All children of the layer share the same grid area
+     but aren't absolutely positioned */
+  [data-section='grid'] {
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+  }
 
-	[data-section='grid'] > :global(*) {
-		grid-column: 1;
-		grid-row: 1;
-		z-index: 0; /* Base z-index to allow explicit stacking order */
-	}
+  [data-section='grid'] > :global(*) {
+    grid-column: 1;
+    grid-row: 1;
+    z-index: 0; /* Base z-index to allow explicit stacking order */
+  }
 </style>

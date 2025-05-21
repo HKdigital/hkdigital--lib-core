@@ -1,7 +1,8 @@
 /**
- * Controller for customizing drag preview images
+ * Controller for customizing drag
+ * E.g. set a custom preview image
  */
-export class PreviewController {
+export class DragController {
   /**
    * @param {DragEvent} event - The drag event
    */

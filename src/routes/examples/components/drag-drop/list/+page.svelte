@@ -5,19 +5,19 @@
     DragDropContext
   } from '$lib/components/drag-drop';
 
-
+  // Available tasks in the source list
   let items = $state([
     { id: 1, name: 'Task 1', type: 'task', priority: 'high' },
     { id: 2, name: 'Task 2', type: 'task', priority: 'medium' },
     { id: 3, name: 'Task 3', type: 'task', priority: 'low' }
   ]);
 
+  // Tasks in the destination lists
   let todoItems = $state([]);
   let doneItems = $state([]);
 
-  // Bindable states
+  // Bindable states for dropzone interactions
   let isDraggingTask = $state(false);
-  let canDropInDone = $state(false);
   let todoCanDrop = $state(false);
   let doneCanDrop = $state(false);
 </script>
@@ -32,7 +32,7 @@
           {item}
           source="available"
           bind:isDragging={isDraggingTask}
-          onDragStart={({ item, getPreviewController }) => {
+          onDragStart={({ item, getController }) => {
             console.log(
               'Started dragging:',
               item.name,
@@ -40,97 +40,125 @@
               item.priority
             );
 
-              const controller = getPreviewController();
-              controller.grabPreviewImage();
-              console.debug('Grabbed custom preview image');
-            }
-          }
+            const controller = getController();
+            controller.grabPreviewImage();
+          }}
         >
           <div class="task-content">
             <span>{item.name}</span>
             <span class="priority-badge {item.priority}">{item.priority}</span>
           </div>
-
-<!-- {#snippet previewSnippet({ element, rect })}
-    <div class="preview-card"
-         style="background: white; padding: 8px; border-radius: 4px;"
-         style:width="{rect.width * 0.8}px">
-      <div class="preview-name" style="font-weight: bold; font-size: 14px; margin-top: 4px;">
-        {item.name}
-      </div>
-
-      <div class="preview-label" style="font-size: 12px; color: #666; margin-top: 2px;">
-        Dragging...
-      </div>
-    </div>
-  {/snippet} -->
         </Draggable>
       {/each}
+
+      {#if items.length === 0}
+        <div class="empty-source">All tasks have been assigned</div>
+      {/if}
     </div>
 
     <!-- Todo zone -->
     <DropZone
+      autoHeight={true}
       zone="todo"
       accepts={(item) => item.type === 'task'}
-      bind:itemCount={todoItems.length}
       bind:canDrop={todoCanDrop}
-      onDrop={({ item }) => {
-        console.log('Dropping to TODO:', item.name, 'priority:', item.priority);
+      onDrop={({ item, source }) => {
+        console.log('Dropping to TODO:', item.name, 'priority:', item.priority, 'from:', source);
+
+        // Remove from source list
+        if (source === 'available') {
+          items = items.filter((i) => i.id !== item.id);
+        } else if (source === 'done') {
+          doneItems = doneItems.filter((i) => i.id !== item.id);
+        }
+
+        // Add to todo list
         todoItems = [...todoItems, item];
-        items = items.filter((i) => i.id !== item.id);
       }}
     >
-      <h3>To Do (accepts all)</h3>
-      <div class="state-info">Can Drop: {todoCanDrop}</div>
-      {#each todoItems as item (item.id)}
-        <div class="task-card">{item.name} ({item.priority})</div>
-      {/each}
+      <div data-layer="content">
+        <h3>To Do (accepts all)</h3>
+        <div class="state-info">Can Drop: {todoCanDrop}</div>
 
-      {#snippet empty()}
-        <p>No tasks yet</p>
-      {/snippet}
+        {#if todoItems.length === 0}
+          <div class="empty-state">
+            <p>No tasks yet</p>
+            <p>Drag tasks here to get started</p>
+          </div>
+        {:else}
+          {#each todoItems as item (item.id)}
+            <Draggable
+              {item}
+              source="todo"
+              onDragStart={({ item }) => {
+                console.log('Moving from Todo:', item.name);
+              }}
+            >
+              <div class="task-card">
+                {item.name} ({item.priority})
+              </div>
+            </Draggable>
+          {/each}
+        {/if}
+      </div>
 
-      {#snippet preview(data)}
+      {#snippet dropPreviewSnippet(data)}
         <div class="preview">Dropping: {data?.item?.name}</div>
       {/snippet}
     </DropZone>
 
     <!-- Done zone with restrictions -->
     <DropZone
+      autoHeight={true}
       zone="done"
       accepts={(item) => {
-        console.log(
-          'Checking accepts for done:',
-          item.name,
-          'priority:',
-          item.priority,
-          'result:',
-          item.type === 'task' && item.priority !== 'high'
-        );
+        // Only accept medium/low priority tasks
         return item.type === 'task' && item.priority !== 'high';
       }}
-      maxItems={5}
-      bind:canDrop={canDropInDone}
-      bind:itemCount={doneItems.length}
-      onDrop={({ item }) => {
-        console.log('Dropping to DONE:', item.name, 'priority:', item.priority);
+      bind:canDrop={doneCanDrop}
+      onDrop={({ item, source }) => {
+        console.log('Dropping to DONE:', item.name, 'priority:', item.priority, 'from:', source);
+
+        // Remove from source list
+        if (source === 'available') {
+          items = items.filter((i) => i.id !== item.id);
+        } else if (source === 'todo') {
+          todoItems = todoItems.filter((i) => i.id !== item.id);
+        }
+
+        // Add to done list
         doneItems = [...doneItems, item];
-        items = items.filter((i) => i.id !== item.id);
       }}
     >
-      <h3>Done (only medium/low priority)</h3>
-      <div class="state-info">Can Drop: {canDropInDone}</div>
-      {#each doneItems as item (item.id)}
-        <div class="task-card done">{item.name} ({item.priority})</div>
-      {/each}
+      <div data-layer="content">
+        <h3>Done (only medium/low priority)</h3>
+        <div class="state-info">Can Drop: {doneCanDrop}</div>
 
-      {#snippet empty()}
-        <p>No completed tasks</p>
-      {/snippet}
+        {#if doneItems.length === 0}
+          <div class="empty-state">
+            <p>No completed tasks</p>
+            <p>Only medium/low priority tasks can be marked as done</p>
+          </div>
+        {:else}
+          {#each doneItems as item (item.id)}
+            <Draggable
+              {item}
+              source="done"
+              onDragStart={({ item }) => {
+                console.log('Moving from Done:', item.name);
+              }}
+            >
+              <div class="task-card done">
+                {item.name} ({item.priority})
+              </div>
+            </Draggable>
+          {/each}
+        {/if}
+      </div>
 
-      {#snippet preview(data)}
-        <div class="preview {canDropInDone ? 'can-drop' : 'cannot-drop'}">
-          {#if canDropInDone}
+      {#snippet dropPreviewSnippet(data)}
+        <div class="preview {doneCanDrop ? 'can-drop' : 'cannot-drop'}">
+          {#if doneCanDrop}
             ✓ Can drop: {data?.item?.name}
           {:else}
             ❌ Cannot drop high priority here
@@ -149,6 +177,23 @@
     padding: 2rem;
   }
 
+  .source {
+    padding: 1rem;
+    background: #f9f9f9;
+    border-radius: 0.5rem;
+    border: 1px solid #e0e0e0;
+  }
+
+  .empty-source,
+  .empty-state {
+    padding: 1.5rem;
+    text-align: center;
+    color: #666;
+    background: #f0f0f0;
+    border-radius: 0.25rem;
+    font-style: italic;
+  }
+
   .task-content {
     padding: 0.75rem;
     background: white;
@@ -157,6 +202,7 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    margin-bottom: 0.5rem;
   }
 
   .priority-badge {
@@ -190,6 +236,7 @@
 
   .task-card.done {
     background: #e8f5e9;
+    color: #2e7d32;
   }
 
   .state-info {
@@ -200,8 +247,11 @@
   }
 
   .preview {
-    padding: 0.5rem;
-    background: rgba(0, 0, 0, 0.05);
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+    /*padding: 0.5rem;*/
+    /*background: rgba(0, 0, 0, 0.05);*/
+    background: white;
     border-radius: 0.25rem;
     text-align: center;
     font-style: italic;

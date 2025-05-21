@@ -4,6 +4,8 @@
 
   import { createOrGetDragState } from './drag-state.svelte.js';
 
+  import { GridLayers } from '$lib/components/layout';
+
   import {
     findDraggableSource,
     getDraggableIdFromEvent,
@@ -15,9 +17,10 @@
     DRAG_OVER,
     CAN_DROP,
     CANNOT_DROP,
-    DROP_DISABLED,
-    ACTIVE_DROP
+    DROP_DISABLED
   } from '$lib/constants/state-labels/drop-states.js';
+
+  /** @typedef {import('$lib/typedef').DragData} DragData */
 
   /**
    * @type {{
@@ -25,22 +28,15 @@
    *   group?: string,
    *   disabled?: boolean,
    *   accepts?: (item: any) => boolean,
-   *   maxItems?: number,
    *   base?: string,
    *   classes?: string,
+   *   height?: string,
+   *   autoHeight?: boolean,
    *   children?: import('svelte').Snippet,
    *   contextKey?: import('$lib/typedef').ContextKey,
-   *   empty?: import('svelte').Snippet,
-   *   preview?: import('svelte').Snippet<[{
-   *     item: any,
-   *     source: string,
-   *     group: string,
-   *     metadata?: any
-   *   }]>,
+   *   dropPreviewSnippet?: import('svelte').Snippet<[DragData]>,
    *   isDragOver?: boolean,
    *   canDrop?: boolean,
-   *   isDropping?: boolean,
-   *   itemCount?: number,
    *   onDragEnter?: (detail: {
    *     event: DragEvent,
    *     zone: string,
@@ -81,17 +77,15 @@
     group = 'default',
     disabled = false,
     accepts = () => true,
-    maxItems = Infinity,
     base = '',
     classes = '',
+    height = 'h-min',
+    autoHeight= false,
     children,
     contextKey,
-    empty,
-    preview,
+    dropPreviewSnippet,
     isDragOver = $bindable(false),
     canDrop = $bindable(false),
-    isDropping = $bindable(false),
-    itemCount = $bindable(0),
     onDragEnter,
     onDragOver,
     onDragLeave,
@@ -140,8 +134,7 @@
     'drag-over': currentState === DRAG_OVER,
     'can-drop': currentState === CAN_DROP,
     'cannot-drop': currentState === CANNOT_DROP,
-    'drop-disabled': disabled,
-    'active-drop': currentState === ACTIVE_DROP
+    'drop-disabled': disabled
   });
 
   let stateClasses = $derived(toStateClasses(stateObject));
@@ -155,7 +148,6 @@
     ].includes(currentState);
 
     canDrop = currentState === CAN_DROP;
-    isDropping = currentState === ACTIVE_DROP;
   });
 
   /**
@@ -172,7 +164,6 @@
     if (!data) return false;
     if (data.group !== group) return false;
     if (!accepts(data.item)) return false;
-    if (itemCount >= maxItems) return false;
     return true;
   }
 
@@ -321,8 +312,7 @@ function handleDrop(event) {
 
     // Check if we can accept this drop
     if (dragData && canAcceptDrop(dragData)) {
-      // Update state and notify listeners
-      currentState = ACTIVE_DROP;
+      // Notify listener
       onDropStart?.({ event, zone, data: dragData });
 
       // Call the onDrop handler and handle Promise resolution
@@ -361,17 +351,41 @@ function handleDrop(event) {
   ondragover={handleDragOver}
   ondragleave={handleDragLeave}
   ondrop={handleDrop}
-  class="{base} {classes} {stateClasses}"
+  class="{base} {height} {classes} {stateClasses}"
   data-zone={zone}
   {...attrs}
 >
-  {#if children}
-    {@render children()}
-  {:else if currentState === CAN_DROP && preview}
-    {@render preview(dragState.current)}
-  {:else if itemCount === 0 && empty}
-    {@render empty()}
-  {:else}
-    <div data-element="drop-zone-empty">Drop items here</div>
-  {/if}
+  <GridLayers heightFrom={autoHeight ? 'content' : null}>
+    {#if children}
+      <div data-layer="content" class:auto-height={autoHeight}>
+        {@render children()}
+      </div>
+    {/if}
+
+    {#if currentState === CAN_DROP && dropPreviewSnippet}
+      <div data-layer="preview">
+        {@render dropPreviewSnippet(dragState.current)}
+      </div>
+    {/if}
+
+  </GridLayers>
 </div>
+
+<style>
+  [data-layer='content']:not(.auto-height) {
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+  }
+
+  [data-layer='content'].auto-height {
+    position: relative;
+    width: 100%;
+  }
+
+  [data-layer='preview']
+  {
+    position: absolute;
+    left: 0; right: 0; top: 0; bottom: 0;
+    pointer-events: none;
+  }
+</style>

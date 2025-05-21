@@ -1,7 +1,7 @@
 <script>
   import { toStateClasses } from '$lib/util/design-system/index.js';
   import { createOrGetDragState } from './drag-state.svelte.js';
-  import { PreviewController } from './PreviewController.js';
+  import { DragController } from './DragController.js';
   import { generateLocalId } from '$lib/util/unique';
   import { onDestroy } from 'svelte';
   import {
@@ -22,7 +22,7 @@
    *   base?: string,
    *   classes?: string,
    *   children: import('svelte').Snippet,
-   *   previewSnippet?: import('svelte').Snippet<[{
+   *   draggingSnippet?: import('svelte').Snippet<[{
    *     element: HTMLElement,
    *     rect: DOMRect
    *   }]>,
@@ -35,7 +35,7 @@
    *     item: any,
    *     source: string,
    *     group: string,
-   *     getPreviewController: () => PreviewController
+   *     getController: () => DragController
    *   }) => void,
    *   onDragging?: (detail: {
    *     event: DragEvent,
@@ -64,7 +64,7 @@
     base = '',
     classes = '',
     children,
-    previewSnippet,
+    draggingSnippet,
     contextKey,
     isDragging = $bindable(false),
     isDropping = $bindable(false),
@@ -80,7 +80,10 @@
   const dragState = createOrGetDragState(contextKey);
 
   const draggableId = generateLocalId();
+
+  // svelte-ignore non_reactive_update
   let draggableElement;
+
   let dragTimeout = null;
   let currentState = $state(IDLE);
 
@@ -178,16 +181,16 @@
     event.dataTransfer.setData('application/json', JSON.stringify(dragData));
 
     // Create the preview controller with natural offsets already calculated
-    const previewController = new PreviewController(event);
+    const previewController = new DragController(event);
 
     // Function to get the preview controller
-    const getPreviewController = () => previewController;
+    const getController = () => previewController;
 
-    // Call onDragStart with the getPreviewController function
-    onDragStart?.({ event, item, source, group, getPreviewController });
+    // Call onDragStart with the getController function
+    onDragStart?.({ event, item, source, group, getController });
 
     // Check if we have a preview snippet and no custom preview was set by preview controller
-    if (previewSnippet && !previewController.hasCustomPreview()) {
+    if (draggingSnippet && !previewController.hasCustomPreview()) {
       try {
         // Get the element's bounding rectangle
         const rect = draggableElement.getBoundingClientRect();
@@ -308,13 +311,13 @@
   {@render children()}
 </div>
 
-{#if previewSnippet && showPreview && elementRect}
+{#if draggingSnippet && showPreview && elementRect}
   <div
     data-companion="drag-preview-follower"
     style="position: fixed; z-index: 9999; pointer-events: none;"
     style:left="{previewX}px"
     style:top="{previewY}px"
   >
-    {@render previewSnippet({ element: draggableElement, rect: elementRect })}
+    {@render draggingSnippet({ element: draggableElement, rect: elementRect })}
   </div>
 {/if}

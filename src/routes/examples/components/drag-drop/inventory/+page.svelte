@@ -130,7 +130,7 @@
       name: 'Plastic',
       x: 20,
       y: 20,
-      width: 130,
+      width: 200,
       height: 200,
       acceptTypes: ['plastic'],
       color: 'bg-warning-300',
@@ -139,9 +139,9 @@
     {
       id: 2,
       name: 'Paper',
-      x: 170,
+      x: 240,
       y: 20,
-      width: 130,
+      width: 200,
       height: 200,
       acceptTypes: ['paper'],
       color: 'bg-secondary-300',
@@ -150,9 +150,9 @@
     {
       id: 3,
       name: 'Glass',
-      x: 320,
+      x: 460,
       y: 20,
-      width: 130,
+      width: 200,
       height: 200,
       acceptTypes: ['glass'],
       color: 'bg-tertiary-300',
@@ -161,9 +161,9 @@
     {
       id: 4,
       name: 'Waste',
-      x: 470,
+      x: 680,
       y: 20,
-      width: 130,
+      width: 200,
       height: 200,
       acceptTypes: ['waste'],
       color: 'bg-surface-300',
@@ -172,9 +172,9 @@
     {
       id: 5,
       name: 'Organic',
-      x: 620,
+      x: 900,
       y: 20,
-      width: 130,
+      width: 200,
       height: 200,
       acceptTypes: ['organic'],
       color: 'bg-primary-300',
@@ -246,6 +246,8 @@
 
           <DropZone
             contextKey={dragContextKey}
+            autoHeight={true}
+            height="h-full"
             zone={`bin-${bin.id}`}
             accepts={(item) => binAcceptsItem(item, bin)}
             bind:canDrop={binStates[index]}
@@ -261,8 +263,8 @@
                 {#if placedItems[index].length > 0}
                   <div class="space-y-2">
                     {#each placedItems[index] as item (item.id)}
-                      <div class="flex items-center bg-surface-100 border p-1">
-                        <span class="text-lg mr-1">{item.icon}</span>
+                      <div class="flex items-center bg-surface-100 border p-1 text-sm">
+                        <span class="mr-1">{item.icon}</span>
                         <span>{item.name}</span>
                       </div>
                     {/each}
@@ -278,7 +280,7 @@
               </div>
             </div>
 
-            {#snippet preview(data)}
+            {#snippet dropPreviewSnippet(data)}
               <div class={`p-2 text-center border
                           ${binStates[index] ? 'bg-success-100 border-success-500' : 'bg-error-100 border-error-500'}`}>
                 {#if binStates[index]}
@@ -325,7 +327,7 @@
             <div class="text-sm mt-1">{item.description}</div>
           </div>
 
-          {#snippet previewSnippet({ element, rect })}
+          {#snippet draggingSnippet({ element, rect })}
             <div class="border p-2 bg-white"
                  class:border-warning-500={item.type === 'plastic'}
                  class:border-secondary-500={item.type === 'paper'}
