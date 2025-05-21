@@ -8,7 +8,7 @@
 
   import {
     // findDraggableSource,
-    getDraggableIdFromEvent,
+    getDraggableIdFromEvent
     // processDropWithData
   } from './util.js';
 
@@ -16,7 +16,7 @@
     READY,
     DRAG_OVER,
     CAN_DROP,
-    CANNOT_DROP,
+    CANNOT_DROP
     // DROP_DISABLED
   } from '$lib/constants/state-labels/drop-states.js';
 
@@ -75,7 +75,7 @@
     base = '',
     classes = '',
     height = 'h-min',
-    autoHeight= false,
+    autoHeight = false,
     children,
     contextKey,
     dropPreviewSnippet,
@@ -89,7 +89,6 @@
     onDropEnd,
     ...attrs
   } = $props();
-
 
   const dragState = createOrGetDragState(contextKey);
 
@@ -136,11 +135,7 @@
 
   // Update bindable props
   $effect(() => {
-    isDragOver = [
-      DRAG_OVER,
-      CAN_DROP,
-      CANNOT_DROP
-    ].includes(currentState);
+    isDragOver = [DRAG_OVER, CAN_DROP, CANNOT_DROP].includes(currentState);
 
     canDrop = currentState === CAN_DROP;
   });
@@ -162,96 +157,90 @@
     return true;
   }
 
-/**
- * Handle drag enter with improved DOM traversal check
- * @param {DragEvent} event
- */
-function handleDragEnter(event) {
-  // Prevent default to allow drop
-  event.preventDefault();
+  /**
+   * Handle drag enter with improved DOM traversal check
+   * @param {DragEvent} event
+   */
+  function handleDragEnter(event) {
+    // Prevent default to allow drop
+    event.preventDefault();
 
-  // If we're already in a drag-over state, don't reset anything
-  if (isCurrentlyOver) return;
+    // If we're already in a drag-over state, don't reset anything
+    if (isCurrentlyOver) return;
 
-  // Now we're over this dropzone
-  isCurrentlyOver = true;
+    // Now we're over this dropzone
+    isCurrentlyOver = true;
 
-  // Get the draggable ID from the event
-  const draggableId = getDraggableIdFromEvent(event);
+    // Get the draggable ID from the event
+    const draggableId = getDraggableIdFromEvent(event);
 
-  if (draggableId) {
-    // Get the drag data for this specific draggable
-    const dragData = dragState.getDraggable(draggableId);
+    if (draggableId) {
+      // Get the drag data for this specific draggable
+      const dragData = dragState.getDraggable(draggableId);
 
-    // Update state based on acceptance
-    if (dragData) {
-      currentState = canAcceptDrop(dragData)
-        ? CAN_DROP
-        : CANNOT_DROP;
+      // Update state based on acceptance
+      if (dragData) {
+        currentState = canAcceptDrop(dragData) ? CAN_DROP : CANNOT_DROP;
+      } else {
+        currentState = DRAG_OVER;
+      }
     } else {
-      currentState = DRAG_OVER;
-    }
-  } else {
-    // Fallback to the current drag data (for compatibility)
-    const dragData = dragState.current;
+      // Fallback to the current drag data (for compatibility)
+      const dragData = dragState.current;
 
-    if (dragData) {
-      currentState = canAcceptDrop(dragData)
-        ? CAN_DROP
-        : CANNOT_DROP;
+      if (dragData) {
+        currentState = canAcceptDrop(dragData) ? CAN_DROP : CANNOT_DROP;
+      } else {
+        currentState = DRAG_OVER;
+      }
+    }
+
+    // Notify listeners
+    onDragEnter?.({ event, zone, canDrop: currentState === CAN_DROP });
+  }
+
+  /**
+   * Handle drag over
+   * @param {DragEvent} event
+   */
+  function handleDragOver(event) {
+    // Prevent default to allow drop
+    event.preventDefault();
+
+    // If we're not currently over this dropzone (despite dragover firing),
+    // treat it as an enter event
+    if (!isCurrentlyOver) {
+      handleDragEnter(event);
+      return;
+    }
+
+    // Get the draggable ID from the event
+    const draggableId = getDraggableIdFromEvent(event);
+    let dragData;
+
+    if (draggableId) {
+      // Get the drag data for this specific draggable
+      dragData = dragState.getDraggable(draggableId);
     } else {
-      currentState = DRAG_OVER;
+      // Fallback to the current drag data (for compatibility)
+      dragData = dragState.current;
     }
+
+    // Re-evaluate acceptance
+    if (dragData && [DRAG_OVER, CAN_DROP, CANNOT_DROP].includes(currentState)) {
+      currentState = canAcceptDrop(dragData) ? CAN_DROP : CANNOT_DROP;
+    }
+
+    // Set visual feedback based on drop acceptance
+    if (currentState === CAN_DROP) {
+      event.dataTransfer.dropEffect = 'move';
+    } else if (currentState === CANNOT_DROP) {
+      event.dataTransfer.dropEffect = 'none';
+    }
+
+    // Notify listeners
+    onDragOver?.({ event, zone });
   }
-
-  // Notify listeners
-  onDragEnter?.({ event, zone, canDrop: currentState === CAN_DROP });
-}
-
-/**
- * Handle drag over
- * @param {DragEvent} event
- */
-function handleDragOver(event) {
-  // Prevent default to allow drop
-  event.preventDefault();
-
-  // If we're not currently over this dropzone (despite dragover firing),
-  // treat it as an enter event
-  if (!isCurrentlyOver) {
-    handleDragEnter(event);
-    return;
-  }
-
-  // Get the draggable ID from the event
-  const draggableId = getDraggableIdFromEvent(event);
-  let dragData;
-
-  if (draggableId) {
-    // Get the drag data for this specific draggable
-    dragData = dragState.getDraggable(draggableId);
-  } else {
-    // Fallback to the current drag data (for compatibility)
-    dragData = dragState.current;
-  }
-
-  // Re-evaluate acceptance
-  if (dragData && [DRAG_OVER, CAN_DROP, CANNOT_DROP].includes(currentState)) {
-    currentState = canAcceptDrop(dragData)
-      ? CAN_DROP
-      : CANNOT_DROP;
-  }
-
-  // Set visual feedback based on drop acceptance
-  if (currentState === CAN_DROP) {
-    event.dataTransfer.dropEffect = 'move';
-  } else if (currentState === CANNOT_DROP) {
-    event.dataTransfer.dropEffect = 'none';
-  }
-
-  // Notify listeners
-  onDragOver?.({ event, zone });
-}
 
   /**
    * Handle drag leave with improved DOM traversal check
@@ -265,8 +254,8 @@ function handleDragOver(event) {
     const relatedTarget = event.relatedTarget;
 
     // If relatedTarget is null or outside our dropzone, we're truly leaving
-    const isActuallyLeaving = !relatedTarget ||
-                             !dropzoneElement.contains(relatedTarget);
+    const isActuallyLeaving =
+      !relatedTarget || !dropzoneElement.contains(relatedTarget);
 
     if (isActuallyLeaving) {
       isCurrentlyOver = false;
@@ -275,86 +264,96 @@ function handleDragOver(event) {
     }
   }
 
-/**
- * Handle drop
- * @param {DragEvent} event
- */
-function handleDrop(event) {
-  // Prevent default browser actions
-  event.preventDefault();
+  /**
+   * Handle drop
+   * @param {DragEvent} event
+   */
+  function handleDrop(event) {
+    // Prevent default browser actions
+    event.preventDefault();
 
-  // Reset our tracking state
-  isCurrentlyOver = false;
+    // Reset our tracking state
+    isCurrentlyOver = false;
 
-  try {
-    // First try to get the draggable ID from the event
-    const draggableId = getDraggableIdFromEvent(event);
-    let dragData;
+    try {
+      // First try to get the draggable ID from the event
+      const draggableId = getDraggableIdFromEvent(event);
+      let dragData;
 
-    if (draggableId) {
-      // Get the drag data from state using the draggable ID
-      dragData = dragState.getDraggable(draggableId);
-    }
-
-    // If we couldn't get it from the element attribute, try dataTransfer
-    if (!dragData) {
-      // Parse the JSON data from the dataTransfer object (only works during drop)
-      const jsonData = event.dataTransfer.getData('application/json');
-      if (jsonData) {
-        dragData = JSON.parse(jsonData);
+      if (draggableId) {
+        // Get the drag data from state using the draggable ID
+        dragData = dragState.getDraggable(draggableId);
       }
-    }
 
-    // Check if we can accept this drop
-    if (dragData && canAcceptDrop(dragData)) {
-      // Notify listener
-      onDropStart?.({ event, zone, data: dragData });
+      // If we couldn't get it from the element attribute, try dataTransfer
+      if (!dragData) {
+        // Parse the JSON data from the dataTransfer object (only works during drop)
+        const jsonData = event.dataTransfer.getData('application/json');
+        if (jsonData) {
+          dragData = JSON.parse(jsonData);
+        }
+      }
 
-      const style = window.getComputedStyle(dropzoneElement);
+      // Check if we can accept this drop
+      if (dragData && canAcceptDrop(dragData)) {
+        // Notify listener
+        onDropStart?.({ event, zone, data: dragData });
 
-      // Parse border widths from computed style
-      const borderLeftWidth = parseInt(style.borderLeftWidth, 10) || 0;
-      const borderTopWidth = parseInt(style.borderTopWidth, 10) || 0;
+        const style = window.getComputedStyle(dropzoneElement);
 
-      // Get dropzone rectangle
-      const dropzoneRect = dropzoneElement.getBoundingClientRect();
+        // Parse border widths from computed style
+        const borderLeftWidth = parseInt(style.borderLeftWidth, 10) || 0;
+        const borderTopWidth = parseInt(style.borderTopWidth, 10) || 0;
 
-      // Calculate position with both dragData.offsetX/Y adjustment and border adjustment
-      // This combines your current approach with the border adjustment
-      const offsetX = event.clientX - dropzoneRect.left - borderLeftWidth - (dragData.offsetX ?? 0);
+        // Get dropzone rectangle
+        const dropzoneRect = dropzoneElement.getBoundingClientRect();
 
-      const offsetY = event.clientY - dropzoneRect.top - borderTopWidth - (dragData.offsetY ?? 0);
+        // Calculate position with both dragData.offsetX/Y adjustment and border adjustment
+        // This combines your current approach with the border adjustment
+        const offsetX =
+          event.clientX -
+          dropzoneRect.left -
+          borderLeftWidth -
+          (dragData.offsetX ?? 0);
 
-      // console.debug("dragData", dragData);
+        const offsetY =
+          event.clientY -
+          dropzoneRect.top -
+          borderTopWidth -
+          (dragData.offsetY ?? 0);
 
-      const dropResult = onDrop?.({
-        event,
-        offsetX,
-        offsetY,
-        zone,
-        item: dragData.item,
-        source: dragData.source,
-        metadata: dragData.metadata
-      });
+        // console.debug("dragData", dragData);
 
-      // Handle async or sync results
-      Promise.resolve(dropResult).then(() => {
+        const dropResult = onDrop?.({
+          event,
+          offsetX,
+          offsetY,
+          zone,
+          item: dragData.item,
+          source: dragData.source,
+          metadata: dragData.metadata
+        });
+
+        // Handle async or sync results
+        Promise.resolve(dropResult)
+          .then(() => {
+            currentState = READY;
+            onDropEnd?.({ event, zone, data: dragData, success: true });
+          })
+          .catch((error) => {
+            currentState = READY;
+            onDropEnd?.({ event, zone, data: dragData, success: false, error });
+          });
+      } else {
+        // Not a valid drop, reset state
         currentState = READY;
-        onDropEnd?.({ event, zone, data: dragData, success: true });
-      }).catch((error) => {
-        currentState = READY;
-        onDropEnd?.({ event, zone, data: dragData, success: false, error });
-      });
-    } else {
-      // Not a valid drop, reset state
+      }
+    } catch (error) {
+      // Handle parsing errors
+      console.error('Drop error:', error);
       currentState = READY;
     }
-  } catch (error) {
-    // Handle parsing errors
-    console.error('Drop error:', error);
-    currentState = READY;
   }
-}
 </script>
 
 <div
