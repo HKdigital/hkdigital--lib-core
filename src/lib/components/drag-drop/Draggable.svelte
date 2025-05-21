@@ -162,70 +162,81 @@
     startDrag(event);
   }
 
-  /**
-   * Start the drag operation
-   * @param {DragEvent} event
-   */
-  function startDrag(event) {
-    const dragData = {
-      item,
-      source,
-      group,
-      metadata: { timestamp: Date.now() }
-    };
+/**
+ * Start the drag operation
+ * @param {DragEvent} event - The drag event
+ */
+function startDrag(event) {
+  // Get the element's bounding rectangle
+  const rect = draggableElement.getBoundingClientRect();
 
-    // Set shared drag state
-    dragState.start(draggableId, dragData);
+  // Calculate grab offsets - this is where the user grabbed the element
+  dragOffsetX = event.clientX - rect.left;
+  dragOffsetY = event.clientY - rect.top;
 
-    event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('application/json', JSON.stringify(dragData));
-
-    // Create the preview controller with natural offsets already calculated
-    const previewController = new DragController(event);
-
-    // Function to get the preview controller
-    const getController = () => previewController;
-
-    // Call onDragStart with the getController function
-    onDragStart?.({ event, item, source, group, getController });
-
-    // Check if we have a preview snippet and no custom preview was set by preview controller
-    if (draggingSnippet && !previewController.hasCustomPreview()) {
-      try {
-        // Get the element's bounding rectangle
-        const rect = draggableElement.getBoundingClientRect();
-        elementRect = rect;
-
-        // Calculate offsets - this is the natural position where the user grabbed
-        dragOffsetX = event.clientX - rect.left;
-        dragOffsetY = event.clientY - rect.top;
-
-        // Set initial position
-        previewX = event.clientX - dragOffsetX;
-        previewY = event.clientY - dragOffsetY;
-
-        // Set a transparent 1x1 pixel image as drag preview to hide browser preview
-        const emptyImg = new Image();
-        emptyImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-        event.dataTransfer.setDragImage(emptyImg, 0, 0);
-
-        // Add document level event listener to catch all dragover events
-        document.addEventListener('dragover', handleDocumentDragOver);
-
-        // Show our custom preview
-        showPreview = true;
-        customPreviewSet = true;
-      } catch (err) {
-        console.error('Error setting up custom preview:', err);
-        // Fallback to default preview
-        previewController.applyDefaultPreview();
-      }
+  // Create drag data with your preferred structure
+  const dragData = {
+    offsetX: dragOffsetX,
+    offsetY: dragOffsetY,
+    item,
+    source,
+    group,
+    metadata: {
+      timestamp: Date.now()
     }
-    // Apply default preview if no custom preview was set and no snippet
-    else if (!previewController.hasCustomPreview() && !customPreviewSet) {
+  };
+
+  // Set shared drag state
+  dragState.start(draggableId, dragData);
+
+  // Set data transfer for browser drag and drop API
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('application/json', JSON.stringify(dragData));
+
+  // Create the preview controller
+  const previewController = new DragController(event);
+
+  // Function to get the preview controller
+  const getController = () => previewController;
+
+  // Call onDragStart with the getController function
+  onDragStart?.({ event, item, source, group, getController });
+
+  // Apply drag preview if available
+  if (draggingSnippet && !previewController.hasCustomPreview()) {
+    try {
+      // Store rectangle information for the snippet
+      elementRect = rect;
+
+      // These offsets represent where the user grabbed the element relative to its top-left corner
+      dragOffsetX = event.clientX - rect.left;
+      dragOffsetY = event.clientY - rect.top;
+
+      // Set initial position - this places the preview at the element's original position
+      previewX = rect.left;
+      previewY = rect.top;
+
+      // Set a transparent 1x1 pixel image to hide browser's default preview
+      const emptyImg = new Image();
+      emptyImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+      event.dataTransfer.setDragImage(emptyImg, 0, 0);
+
+      // Add document level event listener to track mouse movement
+      document.addEventListener('dragover', handleDocumentDragOver);
+
+      // Show custom preview
+      showPreview = true;
+      customPreviewSet = true;
+    } catch (err) {
+      console.error('Error setting up custom preview:', err);
+      // Fallback to default preview
       previewController.applyDefaultPreview();
     }
+  } else if (!previewController.hasCustomPreview()) {
+    // Apply default preview if no custom preview was set
+    previewController.applyDefaultPreview();
   }
+}
 
   /**
    * Handle during drag

@@ -2,9 +2,9 @@
   /* Visual styling and customizable aspects */
   [data-component='dropzone'] {
     /*min-height: 100px;*/
-    border: 2px dashed rgb(var(--color-surface-400));
+    border: 1px dashed rgb(var(--color-surface-400));
     border-radius: var(--theme-rounded-container);
-    padding: 1rem;
+    /*padding: 1rem;*/
     transition: all 0.2s ease;
     position: relative;
     background-color: rgb(var(--color-surface-50) / 0.5);
@@ -23,7 +23,7 @@
     &.state-can-drop {
       border-color: rgb(var(--color-success-500));
       background-color: rgb(var(--color-success-500) / 0.08);
-      transform: scale(1.01);
+      /*transform: scale(1.01);*/
       box-shadow: 0 0 0 3px rgb(var(--color-success-500) / 0.2);
     }
 

@@ -175,6 +175,11 @@
     grid-template-columns: repeat(3, 1fr);
     gap: 2rem;
     padding: 2rem;
+
+    & :global( [data-component='dropzone'] ) {
+      padding: 1rem;
+    }
+
   }
 
   .source {

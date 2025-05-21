@@ -7,9 +7,9 @@
   import { GridLayers } from '$lib/components/layout';
 
   import {
-    findDraggableSource,
+    // findDraggableSource,
     getDraggableIdFromEvent,
-    processDropWithData
+    // processDropWithData
   } from './util.js';
 
   import {
@@ -17,10 +17,11 @@
     DRAG_OVER,
     CAN_DROP,
     CANNOT_DROP,
-    DROP_DISABLED
+    // DROP_DISABLED
   } from '$lib/constants/state-labels/drop-states.js';
 
   /** @typedef {import('$lib/typedef').DragData} DragData */
+  /** @typedef {import('$lib/typedef').DropData} DropData */
 
   /**
    * @type {{
@@ -50,13 +51,7 @@
    *     event: DragEvent,
    *     zone: string
    *   }) => void,
-   *   onDrop?: (detail: {
-   *     event: DragEvent,
-   *     zone: string,
-   *     item: any,
-   *     source: string,
-   *     metadata?: any
-   *   }) => any | Promise<any>,
+   *   onDrop?: (detail: DropData) => any | Promise<any>,
    *   onDropStart?: (detail: {
    *     event: DragEvent,
    *     zone: string,
@@ -315,9 +310,27 @@ function handleDrop(event) {
       // Notify listener
       onDropStart?.({ event, zone, data: dragData });
 
-      // Call the onDrop handler and handle Promise resolution
+      const style = window.getComputedStyle(dropzoneElement);
+
+      // Parse border widths from computed style
+      const borderLeftWidth = parseInt(style.borderLeftWidth, 10) || 0;
+      const borderTopWidth = parseInt(style.borderTopWidth, 10) || 0;
+
+      // Get dropzone rectangle
+      const dropzoneRect = dropzoneElement.getBoundingClientRect();
+
+      // Calculate position with both dragData.offsetX/Y adjustment and border adjustment
+      // This combines your current approach with the border adjustment
+      const offsetX = event.clientX - dropzoneRect.left - borderLeftWidth - (dragData.offsetX ?? 0);
+
+      const offsetY = event.clientY - dropzoneRect.top - borderTopWidth - (dragData.offsetY ?? 0);
+
+      // console.debug("dragData", dragData);
+
       const dropResult = onDrop?.({
         event,
+        offsetX,
+        offsetY,
         zone,
         item: dragData.item,
         source: dragData.source,
@@ -367,14 +380,16 @@ function handleDrop(event) {
         {@render dropPreviewSnippet(dragState.current)}
       </div>
     {/if}
-
   </GridLayers>
 </div>
 
 <style>
   [data-layer='content']:not(.auto-height) {
     position: absolute;
-    left: 0; right: 0; top: 0; bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
   }
 
   [data-layer='content'].auto-height {
@@ -382,10 +397,12 @@ function handleDrop(event) {
     width: 100%;
   }
 
-  [data-layer='preview']
-  {
+  [data-layer='preview'] {
     position: absolute;
-    left: 0; right: 0; top: 0; bottom: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
     pointer-events: none;
   }
 </style>

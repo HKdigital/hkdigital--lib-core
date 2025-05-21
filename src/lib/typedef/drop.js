@@ -1,9 +1,12 @@
 /**
  * @typedef {Object} DropData
- * @property {any} item - The dropped item
- * @property {string} source - Source identifier
- * @property {string} group - Drag group
- * @property {any} [metadata] - Additional metadata
+ * @property {DragEvent} event
+ * @property {number} offsetX
+ * @property {number} offsetY
+ * @property {string} zone
+ * @property {any} item
+ * @property {string} source
+ * @property {any} [metadata]
  */
 
-export default {}
+export default {};
