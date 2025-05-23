@@ -53,7 +53,8 @@
 			"svelte": "./dist/index.js",
 			"default": "./dist/index.js"
 		},
-		"./*": "./dist/*"
+		"./*": "./dist/*",
+		"./typedef": "./dist/typedef/index.js",
 	},
 	"peerDependencies": {
 		"@steeze-ui/heroicons": "^2.4.2",
