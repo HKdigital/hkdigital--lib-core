@@ -54,7 +54,7 @@
 			"default": "./dist/index.js"
 		},
 		"./*": "./dist/*",
-		"./typedef": "./dist/typedef/index.js",
+		"./typedef": "./dist/typedef/index.js"
 	},
 	"peerDependencies": {
 		"@steeze-ui/heroicons": "^2.4.2",
