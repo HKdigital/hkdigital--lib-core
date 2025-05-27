@@ -21,8 +21,6 @@ export { smallestFirst, largestFirst };
 
 export { arraySlice, arrayConcat };
 
-// -----------------------------------------------------------------------------
-
 /**
  * Convert a value to an array
  * - Converts an Arguments object to plain JS array
@@ -83,23 +81,24 @@ export function toArray(value, start, end) {
 		//
 		return Array.from(value);
 	} else {
-		return arraySlice(value, start, end);
+		return arraySlice.call(value, start, end);
 	}
 }
-
-// -----------------------------------------------------------------------------
 
 /**
  * Convert an async iterator to an array
  * - If no async iterator is passed, the value will be processed by `from()`
  *
- * @param {AsyncIterator|mixed} value
+ * @param {AsyncIterator|any} value
  *   Async iterator or value to convert to array
  *
- * @returns {Array} list of items returned by the iterator
+ * @returns {Promise<Array>} list of items returned by the iterator
  */
 export async function toArrayAsync(value) {
-	if (value instanceof Object && typeof value[Symbol.asyncIterator] === 'function') {
+	if (
+		value instanceof Object &&
+		typeof value[Symbol.asyncIterator] === 'function'
+	) {
 		// value is an async iterator
 
 		const arr = [];
@@ -115,8 +114,6 @@ export async function toArrayAsync(value) {
 		return toArray(value);
 	}
 }
-
-// -----------------------------------------------------------------------------
 
 /**
  * Convert a path string to an array path
@@ -139,16 +136,16 @@ export function toArrayPath(path, pathSeparator = PATH_SEPARATOR) {
 		// path is already an array
 		return path;
 	} else {
-		throw new Error('Missing or invalid parameter [path] (expected string or array)');
+		throw new Error(
+			'Missing or invalid parameter [path] (expected string or array)'
+		);
 	}
 }
-
-// -----------------------------------------------------------------------------
 
 /**
  * Push a value to an array if it is not null, undefined or an empty string
  *
- * @template {arrray} T
+ * @template {array} T
  * @param {T} arr
  * @param {any} value
  *
@@ -163,8 +160,6 @@ export function pushNotEmpty(arr, value) {
 
 	return arr;
 }
-
-// -----------------------------------------------------------------------------
 
 /**
  * Loop over the supplied array and call the callback for every element
@@ -213,8 +208,6 @@ export function loop(arr, callback, additionalArguments) {
 	}
 }
 
-// -----------------------------------------------------------------------------
-
 /**
  * Get a list of all values from the items in the array at the
  * specified path
@@ -231,7 +224,7 @@ export function loop(arr, callback, additionalArguments) {
  *
  *
  *
- * @returns {mixed[]} values
+ * @returns {any[]|Set<any>} values
  */
 export function pathValues(items, path, options = {}) {
 	// == Process parameters
@@ -277,8 +270,6 @@ export function pathValues(items, path, options = {}) {
 	return values;
 }
 
-// -----------------------------------------------------------------------------
-
 /**
  * Sort function that sorts a list of objects by values encountered at the
  * specified key values of the object.
@@ -306,8 +297,6 @@ export function sortByKeyValue(items, key, compareFn = smallestFirst) {
 	});
 }
 
-// -----------------------------------------------------------------------------
-
 /**
  * Sort function that sorts a list of objects by values encountered at the
  * specified key values of the object.
@@ -334,8 +323,6 @@ export function sortByKeyValueReversed(items, key, compareFn = largestFirst) {
 		return compareFn(itemA[key], itemB[key]);
 	});
 }
-
-// -----------------------------------------------------------------------------
 
 /**
  * Sort function that sorts a list of objects by values encountered at the
@@ -393,8 +380,6 @@ export function sortByPathValue(items, path, compareFn = smallestFirst) {
 	cache.clear();
 }
 
-// -----------------------------------------------------------------------------
-
 /**
  * Find the first item in the list of objects that matches the selector
  * - All items in the supplied array must be objects
@@ -411,8 +396,6 @@ export function findFirst(arr, selector) {
 	return selectorObj.findFirst(arr);
 }
 
-// -----------------------------------------------------------------------------
-
 /**
  * Returns all items from the list of items that match the selector
  * - All items in the supplied array must be objects
@@ -428,8 +411,6 @@ export function findAll(arr, selector) {
 
 	return selectorObj.findAll(arr);
 }
-
-// -----------------------------------------------------------------------------
 
 /**
  * Convert array to an object using a list of keys for each index

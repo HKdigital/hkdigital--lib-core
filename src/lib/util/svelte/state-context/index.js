@@ -30,7 +30,7 @@ export function defineStateContext(State) {
   /**
    * Internal function to get the supplied key or the shared key
    *
-   * @param {import('$lib/typedef').ContextKey} contextKey
+   * @param {import('$lib/typedef').ContextKey} [contextKey]
    *
    * @returns {Symbol} key
    */
@@ -55,7 +55,7 @@ export function defineStateContext(State) {
   /**
    * Create component state
    *
-   * @param {import('$lib/typedef').ContextKey} contextKey
+   * @param {import('$lib/typedef').ContextKey} [contextKey]
    *
    * @returns {T} state
    */
@@ -80,7 +80,7 @@ export function defineStateContext(State) {
   /**
    * Get component state or create a new state if it does not yet exist
    *
-   * @param {import('$lib/typedef').ContextKey} contextKey
+   * @param {import('$lib/typedef').ContextKey} [contextKey]
    *
    * @returns {T} state
    */
@@ -99,7 +99,7 @@ export function defineStateContext(State) {
    *
    * @throws Will throw an error if the state-context does not exist
    *
-   * @param {import('$lib/typedef').ContextKey} contextKey
+   * @param {import('$lib/typedef').ContextKey} [contextKey]
    *
    * @returns {T} state
    */

@@ -10,9 +10,11 @@
     --btn-primary-bg: var(--color-primary-500);
     --btn-primary-text: var(--color-primary-50);
     --btn-primary-border: var(--color-primary-500);
+
     --btn-primary-selected-bg: var(--color-primary-700);
-    --btn-primary-selected-border: var(--color-primary-800);
     --btn-primary-selected-text: var(--color-primary-50);
+    --btn-primary-selected-border: var(--color-primary-800);
+
     --btn-primary-hover-bg: var(--color-primary-600);
     --btn-primary-hover-border: var(--color-primary-600);
     --btn-primary-focus-outline: var(--color-primary-800);
@@ -21,9 +23,11 @@
     --btn-secondary-bg: transparent;
     --btn-secondary-text: var(--color-secondary-500);
     --btn-secondary-border: var(--color-secondary-500);
+
     --btn-secondary-selected-bg: var(--color-secondary-100);
-    --btn-secondary-selected-border: var(--color-secondary-600);
     --btn-secondary-selected-text: var(--color-secondary-800);
+    --btn-secondary-selected-border: var(--color-secondary-600);
+
     --btn-secondary-hover-bg: var(--color-secondary-50);
     --btn-secondary-hover-border: var(--color-secondary-500);
     --btn-secondary-focus-outline: var(--color-secondary-800);

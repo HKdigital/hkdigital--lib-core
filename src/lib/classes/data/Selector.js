@@ -80,7 +80,7 @@ export default class Selector {
 	 * @template {object} T
 	 * @param {T[]|null} items
 	 *
-	 * @returns {T|null} item or null if not found
+	 * @returns {T[]|null} item or null if not found
 	 */
 	findAll(items) {
 		const result = [];
