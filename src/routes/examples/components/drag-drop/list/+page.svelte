@@ -60,7 +60,7 @@
     <DropZone
       autoHeight={true}
       zone="todo"
-      accepts={(item) => item.type === 'task'}
+      accepts={({item}) => item.type === 'task'}
       bind:canDrop={todoCanDrop}
       onDrop={({ item, source }) => {
         console.log('Dropping to TODO:', item.name, 'priority:', item.priority, 'from:', source);
@@ -111,7 +111,7 @@
     <DropZone
       autoHeight={true}
       zone="done"
-      accepts={(item) => {
+      accepts={({item}) => {
         // Only accept medium/low priority tasks
         return item.type === 'task' && item.priority !== 'high';
       }}

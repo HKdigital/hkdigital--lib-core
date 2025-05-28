@@ -174,24 +174,22 @@ function startDrag(event) {
   dragOffsetX = event.clientX - rect.left;
   dragOffsetY = event.clientY - rect.top;
 
-  // Create drag data with your preferred structure
+  // Create drag data with draggableId included
   const dragData = {
+    draggableId,
     offsetX: dragOffsetX,
     offsetY: dragOffsetY,
     item,
     source,
-    group,
-    metadata: {
-      timestamp: Date.now()
-    }
+    group
   };
 
   // Set shared drag state
   dragState.start(draggableId, dragData);
 
-  // Set data transfer for browser drag and drop API
+  // Set minimal data transfer for browser drag and drop API
   event.dataTransfer.effectAllowed = 'move';
-  event.dataTransfer.setData('application/json', JSON.stringify(dragData));
+  event.dataTransfer.setData('application/json', JSON.stringify({ draggableId }));
 
   // Create the preview controller
   const previewController = new DragController(event);
@@ -308,7 +306,6 @@ function startDrag(event) {
 
 <div
   data-component="draggable"
-  data-id={draggableId}
   bind:this={draggableElement}
   draggable={!disabled && canDrag(item)}
   ondragstart={handleDragStart}

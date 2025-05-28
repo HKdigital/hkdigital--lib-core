@@ -7,17 +7,10 @@
   import { GridLayers } from '$lib/components/layout';
 
   import {
-    // findDraggableSource,
-    getDraggableIdFromEvent
-    // processDropWithData
-  } from './util.js';
-
-  import {
     READY,
     DRAG_OVER,
     CAN_DROP,
     CANNOT_DROP
-    // DROP_DISABLED
   } from '$lib/constants/state-labels/drop-states.js';
 
   /** @typedef {import('$lib/typedef').DragData} DragData */
@@ -92,8 +85,6 @@
 
   const dragState = createOrGetDragState(contextKey);
 
-  // console.debug('DropZone contextKey:', contextKey);
-
   let currentState = $state(READY);
   let dropzoneElement; // Reference to the dropzone DOM element
 
@@ -148,13 +139,45 @@
    * @returns {boolean}
    */
   function canAcceptDrop(data) {
-    // console.debug('canAcceptDrop', data, {group});
-
     if (disabled) return false;
     if (!data) return false;
-    if (data.group !== group) return false;
-    if (!accepts(data.item)) return false;
+    if (!accepts(data)) return false;
     return true;
+  }
+
+  /**
+   * Get drag data from either drag state or handle file drops
+   * @param {DragEvent} event
+   * @returns {Object|null} The drag data, or null for file drops
+   */
+  function getDragData(event) {
+    // Check if this is a file drop
+    if (event.dataTransfer.types.includes('Files')) {
+      // Handle file drop - you can extend this based on your needs
+      console.log('File drop detected:', event.dataTransfer.files);
+      return null; // Return null to indicate this is not an internal drag
+    }
+
+    // Handle internal drag operations
+    try {
+      const jsonData = event.dataTransfer.getData('application/json');
+      if (jsonData) {
+        const transferData = JSON.parse(jsonData);
+        const draggableId = transferData.draggableId;
+
+        if (draggableId) {
+          // Get the original instance from drag state
+          const dragData = dragState.getDraggable(draggableId);
+          if (dragData) {
+            return dragData;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error getting drag data:', error);
+    }
+
+    return null;
   }
 
   /**
@@ -171,28 +194,14 @@
     // Now we're over this dropzone
     isCurrentlyOver = true;
 
-    // Get the draggable ID from the event
-    const draggableId = getDraggableIdFromEvent(event);
+    // Get the drag data
+    const dragData = getDragData(event);
 
-    if (draggableId) {
-      // Get the drag data for this specific draggable
-      const dragData = dragState.getDraggable(draggableId);
-
-      // Update state based on acceptance
-      if (dragData) {
-        currentState = canAcceptDrop(dragData) ? CAN_DROP : CANNOT_DROP;
-      } else {
-        currentState = DRAG_OVER;
-      }
+    // Update state based on acceptance
+    if (dragData) {
+      currentState = canAcceptDrop(dragData) ? CAN_DROP : CANNOT_DROP;
     } else {
-      // Fallback to the current drag data (for compatibility)
-      const dragData = dragState.current;
-
-      if (dragData) {
-        currentState = canAcceptDrop(dragData) ? CAN_DROP : CANNOT_DROP;
-      } else {
-        currentState = DRAG_OVER;
-      }
+      currentState = DRAG_OVER;
     }
 
     // Notify listeners
@@ -214,17 +223,8 @@
       return;
     }
 
-    // Get the draggable ID from the event
-    const draggableId = getDraggableIdFromEvent(event);
-    let dragData;
-
-    if (draggableId) {
-      // Get the drag data for this specific draggable
-      dragData = dragState.getDraggable(draggableId);
-    } else {
-      // Fallback to the current drag data (for compatibility)
-      dragData = dragState.current;
-    }
+    // Get the drag data
+    const dragData = getDragData(event);
 
     // Re-evaluate acceptance
     if (dragData && [DRAG_OVER, CAN_DROP, CANNOT_DROP].includes(currentState)) {
@@ -276,23 +276,20 @@
     isCurrentlyOver = false;
 
     try {
-      // First try to get the draggable ID from the event
-      const draggableId = getDraggableIdFromEvent(event);
-      let dragData;
+      // Check if this is a file drop first
+      if (event.dataTransfer.types.includes('Files')) {
+        // Handle file drops
+        const files = Array.from(event.dataTransfer.files);
+        console.log('Files dropped:', files);
 
-      if (draggableId) {
-        // Get the drag data from state using the draggable ID
-        dragData = dragState.getDraggable(draggableId);
+        // You can add custom file handling here
+        // For now, just reset state and return
+        currentState = READY;
+        return;
       }
 
-      // If we couldn't get it from the element attribute, try dataTransfer
-      if (!dragData) {
-        // Parse the JSON data from the dataTransfer object (only works during drop)
-        const jsonData = event.dataTransfer.getData('application/json');
-        if (jsonData) {
-          dragData = JSON.parse(jsonData);
-        }
-      }
+      // Get drag data for internal drag operations
+      const dragData = getDragData(event);
 
       // Check if we can accept this drop
       if (dragData && canAcceptDrop(dragData)) {
@@ -309,7 +306,6 @@
         const dropzoneRect = dropzoneElement.getBoundingClientRect();
 
         // Calculate position with both dragData.offsetX/Y adjustment and border adjustment
-        // This combines your current approach with the border adjustment
         const offsetX =
           event.clientX -
           dropzoneRect.left -
@@ -322,16 +318,13 @@
           borderTopWidth -
           (dragData.offsetY ?? 0);
 
-        // console.debug("dragData", dragData);
-
         const dropResult = onDrop?.({
           event,
           offsetX,
           offsetY,
           zone,
           item: dragData.item,
-          source: dragData.source,
-          metadata: dragData.metadata
+          source: dragData.source
         });
 
         // Handle async or sync results

@@ -6,6 +6,7 @@
   } from '$lib/components/drag-drop';
 
   import { GridLayers } from '$lib/components/layout/index.js';
+  import Recyclable from './Recyclable.js';
 
   /** @typedef {import('$lib/typedef').DropData} DropData */
 
@@ -34,16 +35,16 @@
   // Fixed item size
   const itemSize = 60;
 
-  // Recyclable items - simplified to just icon and type
+  // Recyclable items - now using Recyclable class instances
   let items = $state([
-    { id: 1, type: 'plastic', icon: '🥤' },
-    { id: 2, type: 'paper', icon: '📰' },
-    { id: 3, type: 'glass', icon: '🫙' },
-    { id: 4, type: 'waste', icon: '🍬' },
-    { id: 5, type: 'plastic', icon: '🥛' },
-    { id: 6, type: 'paper', icon: '📦' },
-    { id: 7, type: 'glass', icon: '🍾' },
-    { id: 8, type: 'organic', icon: '🍌' }
+    new Recyclable({ id: 1, type: 'plastic', icon: '🥤' }),
+    new Recyclable({ id: 2, type: 'paper', icon: '📰' }),
+    new Recyclable({ id: 3, type: 'glass', icon: '🫙' }),
+    new Recyclable({ id: 4, type: 'waste', icon: '🍬' }),
+    new Recyclable({ id: 5, type: 'plastic', icon: '🥛' }),
+    new Recyclable({ id: 6, type: 'paper', icon: '📦' }),
+    new Recyclable({ id: 7, type: 'glass', icon: '🍾' }),
+    new Recyclable({ id: 8, type: 'organic', icon: '🍌' })
   ]);
 
   // Define recycling bins
@@ -108,11 +109,11 @@
 
   /**
    * Handle dropping an item into a bin
-   * @param {DropData} _
+   * @param {DropData} dropData - The drop data containing item and position
    * @param {Object} bin - The bin receiving the drop
    */
   function handleBinDrop({ offsetX, offsetY, item }, bin) {
-    console.debug( { offsetX, offsetY } );
+    // console.debug({ offsetX, offsetY, canRecycle: item.canRecycle() });
 
     // Add to dropped items
     droppedItems = [
@@ -162,7 +163,7 @@
               autoHeight={true}
               height="h-full"
               zone={`bin-${bin.id}`}
-              accepts={(item) => item.type === bin.type}
+              accepts={({item}) => item.type === bin.type}
               bind:canDrop={binStates[index]}
               onDrop={(data) => handleBinDrop(data, bin)}
               base={`w-full h-full border-2 ${bin.color} border-dashed relative`}
