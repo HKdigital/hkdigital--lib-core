@@ -1,12 +1,12 @@
 /**
  * @typedef {Object} DropData
- * @property {DragEvent} event
- * @property {number} offsetX
- * @property {number} offsetY
+ * @property {number} x
+ * @property {number} y
  * @property {string} zone
- * @property {any} item
  * @property {string} source
- * @property {any} [metadata]
+ * @property {any} item
+ * @property {import('./drag').DragData} drag
+ * @property {{offsetX: number, offsetY: number, event: DragEvent}} drop
  */
 
 export default {};

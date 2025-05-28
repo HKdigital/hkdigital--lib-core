@@ -112,16 +112,16 @@
    * @param {DropData} dropData - The drop data containing item and position
    * @param {Object} bin - The bin receiving the drop
    */
-  function handleBinDrop({ offsetX, offsetY, item }, bin) {
-    // console.debug({ offsetX, offsetY, canRecycle: item.canRecycle() });
+  function handleBinDrop({ x, y, item, drag, drop }, bin) {
+    console.debug({ x, y, canRecycle: item.canRecycle() });
 
     // Add to dropped items
     droppedItems = [
       ...droppedItems,
       {
         ...item,
-        offsetX,
-        offsetY,
+        x,
+        y,
         binId: bin.id
       }
     ];
@@ -183,8 +183,8 @@
                   class:border-tertiary-500={item.type === 'glass'}
                   class:border-surface-500={item.type === 'waste'}
                   class:border-primary-500={item.type === 'organic'}
-                  style:left="{item.offsetX}px"
-                  style:top="{item.offsetY}px"
+                  style:left="{item.x}px"
+                  style:top="{item.y}px"
                   style:width="{itemSize}px"
                   style:height="{itemSize}px"
                 >

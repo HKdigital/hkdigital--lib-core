@@ -306,25 +306,31 @@
         const dropzoneRect = dropzoneElement.getBoundingClientRect();
 
         // Calculate position with both dragData.offsetX/Y adjustment and border adjustment
-        const offsetX =
+        const dropOffsetX =
           event.clientX -
           dropzoneRect.left -
-          borderLeftWidth -
-          (dragData.offsetX ?? 0);
+          borderLeftWidth;
 
-        const offsetY =
+        const dropOffsetY =
           event.clientY -
           dropzoneRect.top -
-          borderTopWidth -
-          (dragData.offsetY ?? 0);
+          borderTopWidth;
+
+        const x = dropOffsetX - (dragData.offsetX ?? 0);
+        const y = dropOffsetY - (dragData.offsetY ?? 0);
 
         const dropResult = onDrop?.({
-          event,
-          offsetX,
-          offsetY,
           zone,
+          source: dragData.source,
           item: dragData.item,
-          source: dragData.source
+          x,
+          y,
+          drag: dragData,
+          drop: {
+            offsetX: dropOffsetX,
+            offsetY: dropOffsetY,
+            event
+          }
         });
 
         // Handle async or sync results
