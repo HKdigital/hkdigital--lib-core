@@ -154,7 +154,7 @@
     // Check if this is a file drop
     if (event.dataTransfer.types.includes('Files')) {
       // Handle file drop - you can extend this based on your needs
-      console.log('File drop detected:', event.dataTransfer.files);
+      // console.log('File drop detected:', event.dataTransfer.files);
       return null; // Return null to indicate this is not an internal drag
     }
 
@@ -280,7 +280,7 @@
       if (event.dataTransfer.types.includes('Files')) {
         // Handle file drops
         const files = Array.from(event.dataTransfer.files);
-        console.log('Files dropped:', files);
+        // console.log('Files dropped:', files);
 
         // You can add custom file handling here
         // For now, just reset state and return
