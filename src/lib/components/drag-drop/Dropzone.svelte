@@ -86,9 +86,9 @@
   const dragState = createOrGetDragState(contextKey);
 
   let currentState = $state(READY);
-  let dropzoneElement; // Reference to the dropzone DOM element
+  let dropZoneElement; // Reference to the drop zone DOM element
 
-  // We'll use a flag to track if we're currently in the dropzone
+  // We'll use a flag to track if we're currently in the drop zone
   // without relying on a counter approach
   let isCurrentlyOver = $state(false);
 
@@ -191,7 +191,7 @@
     // If we're already in a drag-over state, don't reset anything
     if (isCurrentlyOver) return;
 
-    // Now we're over this dropzone
+    // Now we're over this drop zone
     isCurrentlyOver = true;
 
     // Get the drag data
@@ -216,7 +216,7 @@
     // Prevent default to allow drop
     event.preventDefault();
 
-    // If we're not currently over this dropzone (despite dragover firing),
+    // If we're not currently over this drop zone (despite dragover firing),
     // treat it as an enter event
     if (!isCurrentlyOver) {
       handleDragEnter(event);
@@ -247,15 +247,15 @@
    * @param {DragEvent} event
    */
   function handleDragLeave(event) {
-    // We need to check if we're actually leaving the dropzone or just
-    // entering a child element within the dropzone
+    // We need to check if we're actually leaving the drop zone or just
+    // entering a child element within the drop zone
 
     // relatedTarget is the element we're moving to
     const relatedTarget = event.relatedTarget;
 
-    // If relatedTarget is null or outside our dropzone, we're truly leaving
+    // If relatedTarget is null or outside our drop zone, we're truly leaving
     const isActuallyLeaving =
-      !relatedTarget || !dropzoneElement.contains(relatedTarget);
+      !relatedTarget || !dropZoneElement.contains(relatedTarget);
 
     if (isActuallyLeaving) {
       isCurrentlyOver = false;
@@ -296,24 +296,24 @@
         // Notify listener
         onDropStart?.({ event, zone, data: dragData });
 
-        const style = window.getComputedStyle(dropzoneElement);
+        const style = window.getComputedStyle(dropZoneElement);
 
         // Parse border widths from computed style
         const borderLeftWidth = parseInt(style.borderLeftWidth, 10) || 0;
         const borderTopWidth = parseInt(style.borderTopWidth, 10) || 0;
 
-        // Get dropzone rectangle
-        const dropzoneRect = dropzoneElement.getBoundingClientRect();
+        // Get drop zone rectangle
+        const dropZoneRect = dropZoneElement.getBoundingClientRect();
 
         // Calculate position with both dragData.offsetX/Y adjustment and border adjustment
         const dropOffsetX =
           event.clientX -
-          dropzoneRect.left -
+          dropZoneRect.left -
           borderLeftWidth;
 
         const dropOffsetY =
           event.clientY -
-          dropzoneRect.top -
+          dropZoneRect.top -
           borderTopWidth;
 
         const x = dropOffsetX - (dragData.offsetX ?? 0);
@@ -356,8 +356,8 @@
 </script>
 
 <div
-  data-component="dropzone"
-  bind:this={dropzoneElement}
+  data-component="drop-zone"
+  bind:this={dropZoneElement}
   ondragenter={handleDragEnter}
   ondragover={handleDragOver}
   ondragleave={handleDragLeave}

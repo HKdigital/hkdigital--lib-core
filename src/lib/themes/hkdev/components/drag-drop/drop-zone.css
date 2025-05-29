@@ -1,6 +1,6 @@
-@define-mixin component-dropzone {
+@define-mixin component-drop-zone {
   /* Visual styling and customizable aspects */
-  [data-component='dropzone'] {
+  [data-component='drop-zone'] {
     /*min-height: 100px;*/
     border: 1px dashed rgb(var(--color-surface-400));
     border-radius: var(--theme-rounded-container);

@@ -12,7 +12,7 @@
 /*@import "./components/buttons/skip-button.css";*/
 
 @import './components/drag-drop/draggable.css';
-@import './components/drag-drop/dropzone.css';
+@import './components/drag-drop/drop-zone.css';
 
 /* Icons */
 @import './components/icons/icon-steeze.css';
@@ -40,7 +40,7 @@
   /*  @mixin buttons-skip-button;*/
 
   @mixin component-draggable;
-  @mixin component-dropzone;
+  @mixin component-drop-zone;
 
   @mixin component-icon-steeze;
 

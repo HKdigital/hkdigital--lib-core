@@ -16,7 +16,7 @@
   let todoItems = $state([]);
   let doneItems = $state([]);
 
-  // Bindable states for dropzone interactions
+  // Bindable states for drop zone interactions
   let isDraggingTask = $state(false);
   let todoCanDrop = $state(false);
   let doneCanDrop = $state(false);
@@ -176,7 +176,7 @@
     gap: 2rem;
     padding: 2rem;
 
-    & :global( [data-component='dropzone'] ) {
+    & :global( [data-component='drop-zone'] ) {
       padding: 1rem;
     }
 
