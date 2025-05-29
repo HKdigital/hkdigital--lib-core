@@ -44,12 +44,14 @@ export function rootDesignVarsHTML(design, clamping) {
       --design-width: ${design.width};
       --design-height: ${design.height};
 
-      /* Base clamping units */
+      /* Scaling factors */
       --scale-w: 1;
       --scale-h: 1;
-      --scale-viewport: min(var(--scale-w), var(--scale-h));
 
-      /* Scaling factors with configurable clamping */
+      /* --scale-viewport: min(var(--scale-w), var(--scale-h)); */
+      --scale-viewport: 1;
+
+      /* Base clamping units */
       --scale-ui: clamp(${clamping.ui.min}, var(--scale-viewport), ${clamping.ui.max});
       --scale-text-base: clamp(${clamping.textBase.min}, var(--scale-viewport), ${clamping.textBase.max});
       --scale-text-heading: clamp(${clamping.textHeading.min}, var(--scale-viewport), ${clamping.textHeading.max});
