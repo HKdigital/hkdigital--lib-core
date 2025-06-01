@@ -83,6 +83,8 @@
     ...attrs
   } = $props();
 
+  // let debugEvents = [];
+
   const dragState = createOrGetDragState(contextKey);
 
   let currentState = $state(READY);
@@ -185,8 +187,34 @@
    * @param {DragEvent} event
    */
   function handleDragEnter(event) {
+    // debugEvents.push({
+    //   event: 'dragEnter',
+    //   target: event.target,
+    //   currentTarget: event.currentTarget,
+    //   isCurrentlyOver
+    // });
+
+    // console.log('dragEnter:', {
+    //   target: event.target,
+    //   currentTarget: event.currentTarget,
+    //   isCurrentlyOver
+    // });
+
     // Prevent default to allow drop
     event.preventDefault();
+
+    // Check if mouse is actually within drop zone boundaries
+    const rect = dropZoneElement.getBoundingClientRect();
+    const x = event.clientX;
+    const y = event.clientY;
+
+    const isWithinBounds =
+      x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+
+    if (!isWithinBounds) {
+      // Don't enter if mouse is outside bounds
+      return;
+    }
 
     // If we're already in a drag-over state, don't reset anything
     if (isCurrentlyOver) return;
@@ -213,11 +241,46 @@
    * @param {DragEvent} event
    */
   function handleDragOver(event) {
+    // debugEvents.push({
+    //   event: 'handleDragOver',
+    //   target: event.target,
+    //   currentTarget: event.currentTarget,
+    //   isCurrentlyOver,
+    //   contains: dropZoneElement.contains(event.target),
+    //   mouseX: event.clientX,
+    //   mouseY: event.clientY,
+    //   dropZoneBounds: dropZoneElement.getBoundingClientRect()
+    // });
+
+    // console.log('dragOver:', {
+    //   target: event.target,
+    //   currentTarget: event.currentTarget,
+    //   isCurrentlyOver,
+    //   contains: dropZoneElement.contains(event.target)
+    // });
+
     // Prevent default to allow drop
     event.preventDefault();
 
-    // If we're not currently over this drop zone (despite dragover firing),
-    // treat it as an enter event
+    // Check if mouse is actually within drop zone boundaries
+    const rect = dropZoneElement.getBoundingClientRect();
+    const x = event.clientX;
+    const y = event.clientY;
+
+    const isWithinBounds =
+      x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+
+    if (!isWithinBounds) {
+      // Mouse is outside bounds, treat as leave
+      if (isCurrentlyOver) {
+        isCurrentlyOver = false;
+        currentState = READY;
+        onDragLeave?.({ event, zone });
+      }
+      return;
+    }
+
+    // If we're not currently over this drop zone, treat it as an enter
     if (!isCurrentlyOver) {
       handleDragEnter(event);
       return;
@@ -247,6 +310,23 @@
    * @param {DragEvent} event
    */
   function handleDragLeave(event) {
+    // debugEvents.push({
+    //   event: 'handleDragLeave',
+    //   target: event.target,
+    //   currentTarget: event.currentTarget,
+    //   relatedTarget: event.relatedTarget,
+    //   isCurrentlyOver,
+    //   isActuallyLeaving: !event.relatedTarget || !dropZoneElement.contains(event.relatedTarget)
+    // });
+
+    // console.log('dragLeave:', {
+    //   target: event.target,
+    //   currentTarget: event.currentTarget,
+    //   relatedTarget: event.relatedTarget,
+    //   isCurrentlyOver,
+    //   isActuallyLeaving: !event.relatedTarget || !dropZoneElement.contains(event.relatedTarget)
+    // });
+
     // We need to check if we're actually leaving the drop zone or just
     // entering a child element within the drop zone
 
@@ -269,6 +349,8 @@
    * @param {DragEvent} event
    */
   function handleDrop(event) {
+    // console.debug( JSON.stringify(debugEvents, null, 2));
+
     // Prevent default browser actions
     event.preventDefault();
 
@@ -306,15 +388,9 @@
         const dropZoneRect = dropZoneElement.getBoundingClientRect();
 
         // Calculate position with both dragData.offsetX/Y adjustment and border adjustment
-        const dropOffsetX =
-          event.clientX -
-          dropZoneRect.left -
-          borderLeftWidth;
+        const dropOffsetX = event.clientX - dropZoneRect.left - borderLeftWidth;
 
-        const dropOffsetY =
-          event.clientY -
-          dropZoneRect.top -
-          borderTopWidth;
+        const dropOffsetY = event.clientY - dropZoneRect.top - borderTopWidth;
 
         const x = dropOffsetX - (dragData.offsetX ?? 0);
         const y = dropOffsetY - (dragData.offsetY ?? 0);

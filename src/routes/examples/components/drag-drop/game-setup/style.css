@@ -1,13 +1,8 @@
-@define-mixin component-drop-zone {
-  /* Visual styling and customizable aspects */
-  [data-component='drop-zone'] {
-    /*min-height: 100px;*/
-    border: 1px dashed rgb(var(--color-surface-400));
-    border-radius: var(--theme-rounded-container);
-    /*padding: 1rem;*/
-    transition: all 0.2s ease;
-    position: relative;
-    background-color: rgb(var(--color-surface-50) / 0.5);
+[data-page]
+{
+  & :global([data-component='drop-zone'][data-variant="debug"]) {
+
+    border: solid 10px red;
 
     /* State-based styling using state classes - visual aspects only */
     &.state-ready {
