@@ -229,6 +229,10 @@
 </div>
 
 <style>
+  [data-component="drop-zone"] {
+    -webkit-tap-highlight-color: transparent;
+  }
+
   [data-layer='content']:not(.relative) {
     position: absolute;
     left: 0;

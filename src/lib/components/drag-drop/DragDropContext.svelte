@@ -90,6 +90,12 @@
   ondragleave={onDragLeave}
   ondrop={onDrop}
   ondragend={onDragEnd}
+  ontouchmove={(e) => {
+    // Prevent scrolling if we're dragging
+    if (dragState.isDragging()) {
+      e.preventDefault();
+    }
+  }}
   class="{base} {classes}"
   {...attrs}
 >

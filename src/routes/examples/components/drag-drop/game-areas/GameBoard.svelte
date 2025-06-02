@@ -23,7 +23,7 @@
     console.debug(`dropped in zone [${zone}]`, dropData);
 
     // Get the current scale factor
-    const dropZoneElement = dropData.drop.event.currentTarget;
+    const dropZoneElement = dropData.drop.target;
 
     // console.debug(
     //   '--scale-viewport',

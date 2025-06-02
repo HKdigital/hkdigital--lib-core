@@ -1,6 +1,8 @@
 // drag-state.svelte.js
 import { defineStateContext } from '$lib/util/svelte/state-context/index.js';
 
+/** @typedef {import('$lib/typedef').SimulatedDragEvent} SimulatedDragEvent */
+
 class DragState {
   // Existing draggables map
   draggables = $state(new Map());
@@ -26,7 +28,7 @@ class DragState {
    * @param {Function} config.onDragEnter
    * @param {Function} config.onDragOver
    * @param {Function} config.onDragLeave
-   * @param {Function} config.onDrop
+   * @param {(DropData) => void} config.onDrop
    * @param {HTMLElement} config.element
    */
   registerDropZone(zoneId, config) {
@@ -107,7 +109,7 @@ class DragState {
    *
    * @param {number} x
    * @param {number} y
-   * @param {DragEvent} event
+   * @param {DragEvent|SimulatedDragEvent} event
    */
   updateActiveDropZone(x, y, event) {
     const dropZone = this.getDropZoneAtPoint(x, y);
@@ -152,16 +154,18 @@ class DragState {
    * Handle drop at coordinates
    * @param {number} x
    * @param {number} y
-   * @param {DragEvent} event
+   * @param {DragEvent|SimulatedDragEvent} event
    */
   handleDropAtPoint(x, y, event) {
     const dropZone = this.getDropZoneAtPoint(x, y);
 
     if (dropZone && dropZone.config.canDrop) {
       const dragData = this.getDraggable(event);
-      if (dragData) {
+
+      if (dragData && dropZone.config.element) {
         // Calculate drop position relative to dropzone
         const rect = dropZone.config.element.getBoundingClientRect();
+
         const style = window.getComputedStyle(dropZone.config.element);
 
         const borderLeftWidth = parseInt(style.borderLeftWidth, 10) || 0;
@@ -184,9 +188,19 @@ class DragState {
           drop: {
             offsetX: dropOffsetX,
             offsetY: dropOffsetY,
-            event
+            target: dropZone.config.element
           }
         });
+      }
+    }
+
+    // Ensure we notify the active dropzone that drag ended
+    if (this.activeDropZone) {
+      const config = this.dropZones.get(this.activeDropZone);
+      if (config) {
+        config.isOver = false;
+        config.canDrop = false;
+        config.onDragLeave?.({ event, zone: config.zone });
       }
     }
 
@@ -240,11 +254,28 @@ class DragState {
   /**
    * Get a drag data. Extracts draggable id from the supplied DragEvent
    *
-   * @param {DragEvent} event
+   * @param {DragEvent|SimulatedDragEvent} event
    *
    * @returns {Object|null} The drag data, or null for file drops
    */
   getDraggable(event) {
+    // Check if this is a touch-simulated event
+    if (event.dataTransfer && !event.dataTransfer.files) {
+      try {
+        const jsonData = event.dataTransfer.getData('application/json');
+        if (jsonData) {
+          const transferData = JSON.parse(jsonData);
+          const draggableId = transferData.draggableId;
+
+          if (draggableId) {
+            return this.getDraggableById(draggableId);
+          }
+        }
+      } catch (error) {
+        console.error('Error getting drag data:', error);
+      }
+    }
+
     // Check if this is a file drop
     if (event.dataTransfer.types.includes('Files')) {
       return null;

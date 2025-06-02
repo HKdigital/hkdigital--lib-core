@@ -6,7 +6,7 @@
  * @property {string} source
  * @property {any} item
  * @property {import('./drag').DragData} drag
- * @property {{offsetX: number, offsetY: number, event: DragEvent}} drop
+ * @property {{offsetX: number, offsetY: number, target: Element}} drop
  */
 
 export default {};
