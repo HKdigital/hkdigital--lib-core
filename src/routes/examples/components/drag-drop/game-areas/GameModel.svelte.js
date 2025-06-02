@@ -35,6 +35,7 @@ export default class GameModel {
 
   name;
   src;
+  bg;
 
   boardPlacement;
 
@@ -54,15 +55,15 @@ export default class GameModel {
   constructor({
     zone,
     name,
-    src,
+    bg,
     boardPlacement
   }) {
     this.zone = zone;
     this.currentZone = zone;
 
     this.name = name;
+    this.bg = bg;
 
-    this.src = src;
     this.boardPlacement = boardPlacement;
 
     this.currentPlacement = {...boardPlacement};

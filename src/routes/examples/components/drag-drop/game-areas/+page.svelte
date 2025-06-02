@@ -16,7 +16,7 @@
 
   import { GAME_ITEMS } from './constants/game-items.js';
 
-  import { ZONE_ONE } from './constants/zones.js';
+  import { ZONE_ONE, ZONE_TWO } from './constants/zones.js';
 
   /** @type {GameModel[]} */
   let gameItems = $state([]);
@@ -34,7 +34,12 @@
 <div data-page>
   <DragDropContext>
     <div data-section="main">
-      <GameBoard zone={ZONE_ONE} {gameItems} />
+      <div data-section="one" ondragover={()=>{ console.log(123)}}>
+        <GameBoard zone={ZONE_ONE} {gameItems} />
+      </div>
+      <div data-section="two">
+        <GameBoard zone={ZONE_TWO} {gameItems} />
+      </div>
     </div>
   </DragDropContext>
 </div>

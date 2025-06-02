@@ -1,7 +1,7 @@
 <script>
   import {
     Draggable,
-    DropZone,
+    DropZoneList,
     DragDropContext
   } from '$lib/components/drag-drop';
 
@@ -57,8 +57,7 @@
     </div>
 
     <!-- Todo zone -->
-    <DropZone
-      autoHeight={true}
+    <DropZoneList
       zone="todo"
       accepts={({item}) => item.type === 'task'}
       bind:canDrop={todoCanDrop}
@@ -105,11 +104,10 @@
       {#snippet dropPreviewSnippet(data)}
         <div class="preview">Dropping: {data?.item?.name}</div>
       {/snippet}
-    </DropZone>
+    </DropZoneList>
 
     <!-- Done zone with restrictions -->
-    <DropZone
-      autoHeight={true}
+    <DropZoneList
       zone="done"
       accepts={({item}) => {
         // Only accept medium/low priority tasks
@@ -165,7 +163,7 @@
           {/if}
         </div>
       {/snippet}
-    </DropZone>
+    </DropZoneList>
   </div>
 </DragDropContext>
 

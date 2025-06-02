@@ -24,8 +24,9 @@
    *   accepts?: (item: any) => boolean,
    *   base?: string,
    *   classes?: string,
-   *   height?: string,
-   *   autoHeight?: boolean,
+   *   minHeight?: string,
+   *   maxHeight?: string,
+   *   heightMode?: 'fixed' | 'flexible' | 'fill',
    *   children?: import('svelte').Snippet,
    *   contextKey?: import('$lib/typedef').ContextKey,
    *   dropPreviewSnippet?: import('svelte').Snippet<[DragData]>,
@@ -67,8 +68,9 @@
     accepts = () => true,
     base = '',
     classes = '',
-    height = 'h-min',
-    autoHeight = false,
+    minHeight = '',
+    maxHeight = '',
+    heightMode = 'fixed',
     children,
     contextKey,
     dropPreviewSnippet,
@@ -88,11 +90,18 @@
   const dragState = createOrGetDragState(contextKey);
 
   let currentState = $state(READY);
-  let dropZoneElement; // Reference to the drop zone DOM element
 
-  // We'll use a flag to track if we're currently in the drop zone
-  // without relying on a counter approach
+  let dropZoneElement = $state(null);
+
+  // $effect( () => {
+  //   if(dropZoneElement) {
+  //     console.debug(dropZoneElement);
+  //   }
+  // } )
+
   let isCurrentlyOver = $state(false);
+
+  // $inspect({ zone, isCurrentlyOver });
 
   // Cleanup function
   let cleanup;
@@ -106,13 +115,41 @@
 
     document.addEventListener('dragend', handleGlobalDragEnd);
 
+    // console.debug(`DropZone ${zone} mounted`);
+
     cleanup = () => {
       document.removeEventListener('dragend', handleGlobalDragEnd);
     };
+
+    return cleanup;
   });
 
-  onDestroy(() => {
-    cleanup?.();
+  // Computed height classes based on mode
+  let heightClasses = $derived.by(() => {
+    const classes = [];
+
+    switch (heightMode) {
+      case 'flexible':
+        // Flexible height with optional min/max constraints
+        if (minHeight) classes.push(minHeight);
+        else classes.push('min-h-[100px]'); // Default minimum
+        if (maxHeight) {
+          classes.push(maxHeight);
+          classes.push('overflow-y-auto');
+        }
+        break;
+      case 'fill':
+        // Fill the parent container
+        classes.push('h-full');
+        break;
+      case 'fixed':
+      default:
+        // Fixed height (default to min-height if not filling)
+        classes.push('h-min');
+        break;
+    }
+
+    return classes.join(' ');
   });
 
   // Computed state object for CSS classes
@@ -194,11 +231,7 @@
     //   isCurrentlyOver
     // });
 
-    // console.log('dragEnter:', {
-    //   target: event.target,
-    //   currentTarget: event.currentTarget,
-    //   isCurrentlyOver
-    // });
+    // console.log('dragEnter:', { zone });
 
     // Prevent default to allow drop
     event.preventDefault();
@@ -213,13 +246,24 @@
 
     if (!isWithinBounds) {
       // Don't enter if mouse is outside bounds
+      // console.debug('Mouse outside bounds', {
+      //   x,
+      //   y,
+      //   top: rect.top,
+      //   bottom: rect.bottom,
+      //   left: rect.left,
+      //   right: rect.right
+      // });
+
+      dropZoneElement.style.border = "solid 10px purple";
       return;
     }
 
-    // If we're already in a drag-over state, don't reset anything
-    if (isCurrentlyOver) return;
+    if (isCurrentlyOver) {
+      // console.debug('Already over');
+      return;
+    }
 
-    // Now we're over this drop zone
     isCurrentlyOver = true;
 
     // Get the drag data
@@ -241,6 +285,14 @@
    * @param {DragEvent} event
    */
   function handleDragOver(event) {
+    // console.log('dragOver', {zone}, event );
+    // console.log('dragOver', {
+    //     zone,
+    //     eventTarget: event.target.closest('[data-zone]')?.dataset?.zone,
+    //     currentTarget: event.currentTarget.dataset?.zone,
+    //     path: event.composedPath().map(el => el.dataset?.zone || el.tagName)
+    // });
+
     // debugEvents.push({
     //   event: 'handleDragOver',
     //   target: event.target,
@@ -259,9 +311,6 @@
     //   contains: dropZoneElement.contains(event.target)
     // });
 
-    // Prevent default to allow drop
-    event.preventDefault();
-
     // Check if mouse is actually within drop zone boundaries
     const rect = dropZoneElement.getBoundingClientRect();
     const x = event.clientX;
@@ -279,6 +328,11 @@
       }
       return;
     }
+
+    // console.log('dragOver (accepted)', {zone});
+
+    // Prevent default to allow drop
+    event.preventDefault();
 
     // If we're not currently over this drop zone, treat it as an enter
     if (!isCurrentlyOver) {
@@ -353,6 +407,11 @@
 
     // Prevent default browser actions
     event.preventDefault();
+
+    if (!isCurrentlyOver) {
+      // Prevent drop if not currently over
+      return;
+    }
 
     // Reset our tracking state
     isCurrentlyOver = false;
@@ -429,8 +488,9 @@
       currentState = READY;
     }
   }
-</script>
 
+  // console.log(`DropZone ${zone} script run`);
+</script>
 <div
   data-component="drop-zone"
   bind:this={dropZoneElement}
@@ -438,13 +498,17 @@
   ondragover={handleDragOver}
   ondragleave={handleDragLeave}
   ondrop={handleDrop}
-  class="{base} {height} {classes} {stateClasses}"
+  class="{base} {heightClasses} {classes} {stateClasses}"
   data-zone={zone}
   {...attrs}
 >
-  <GridLayers heightFrom={autoHeight ? 'content' : null}>
+  <GridLayers heightFrom={heightMode === 'flexible' ? 'content' : null}>
     {#if children}
-      <div data-layer="content" class:auto-height={autoHeight}>
+      <div
+        data-layer="content"
+        class:relative={heightMode === 'flexible'}
+        class:w-full={heightMode === 'flexible'}
+      >
         {@render children()}
       </div>
     {/if}
@@ -458,7 +522,7 @@
 </div>
 
 <style>
-  [data-layer='content']:not(.auto-height) {
+  [data-layer='content']:not(.relative) {
     position: absolute;
     left: 0;
     right: 0;
@@ -466,7 +530,7 @@
     bottom: 0;
   }
 
-  [data-layer='content'].auto-height {
+  [data-layer='content'].relative {
     position: relative;
     width: 100%;
   }

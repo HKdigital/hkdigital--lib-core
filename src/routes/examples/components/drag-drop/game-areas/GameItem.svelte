@@ -18,7 +18,7 @@
   } = $props();
 </script>
 
-<div {...attrs}>
+<div {...attrs} style:background-color={data.bg}>
   GameItem
 </div>
 
@@ -27,6 +27,8 @@
     width: 100px;
     height: 100px;
     pointer-events: auto;
-    background-color: red;
+    color: #ddd;
+    border: solid 1px black;
+    padding: 8px;
   }
 </style>

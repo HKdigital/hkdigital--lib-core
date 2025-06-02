@@ -1,7 +1,7 @@
 <script>
   import {
     Draggable,
-    DropZone,
+    DropZoneArea,
     createDragState
   } from '$lib/components/drag-drop';
 
@@ -158,9 +158,8 @@
             style:height="calc({bin.height}px * var(--scale-ui))"
             style:width="calc({bin.width}px * var(--scale-ui))"
           >
-            <DropZone
+            <DropZoneArea
               contextKey={dragContextKey}
-              autoHeight={true}
               height="h-full"
               zone={`bin-${bin.id}`}
               accepts={({item}) => item.type === bin.type}
@@ -170,11 +169,11 @@
               classes={`${typeBorders[bin.type]}`}
             >
               <!-- bin area with icon -->
-              <div class="flex items-center justify-center h-full opacity-30">
+              <div data-layer="icon"
+                class="justify-self-center opacity-30 pt-20up">
                 <span class="text-6xl">{bin.icon}</span>
               </div>
 
-              <!-- Render dropped items outside the DropZone but inside the same bin div -->
               {#each getItemsInBin(bin.id) as item (item.id)}
                 <div
                   class="absolute border-8 bg-white flex items-center justify-center pointer-events-none"
@@ -191,7 +190,7 @@
                   <span class="text-2xl">{item.icon}</span>
                 </div>
               {/each}
-            </DropZone>
+            </DropZoneArea>
           </div>
         </div>
       {/each}
