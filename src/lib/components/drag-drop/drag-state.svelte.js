@@ -21,11 +21,49 @@ class DragState {
   }
 
   /**
+   * Get a drag data by draggable id
+   *
    * @param {string} draggableId
    * @returns {import('$lib/typedef/drag.js').DragData|undefined}
    */
-  getDraggable(draggableId) {
+  getDraggableById(draggableId) {
     return this.draggables.get(draggableId);
+  }
+
+  /**
+   * Get a drag data. Extracts draggable id from the supplied DragEvent
+   *
+   * @param {DragEvent} event
+   *
+   * @returns {Object|null} The drag data, or null for file drops
+   */
+  getDraggable(event) {
+    // Check if this is a file drop
+    if (event.dataTransfer.types.includes('Files')) {
+      // Handle file drop - you can extend this based on your needs
+      // console.log('File drop detected:', event.dataTransfer.files);
+      return null; // Return null to indicate this is not an internal drag
+    }
+
+    // Handle internal drag operations
+    try {
+      const jsonData = event.dataTransfer.getData('application/json');
+      if (jsonData) {
+        const transferData = JSON.parse(jsonData);
+        const draggableId = transferData.draggableId;
+
+        if (draggableId) {
+          const dragData = this.getDraggableById(draggableId);
+          if (dragData) {
+            return dragData;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error getting drag data:', error);
+    }
+
+    return null;
   }
 
   /**

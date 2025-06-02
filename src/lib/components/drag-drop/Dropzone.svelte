@@ -186,6 +186,7 @@
 
   /**
    * Get drag data from either drag state or handle file drops
+   *
    * @param {DragEvent} event
    * @returns {Object|null} The drag data, or null for file drops
    */
@@ -206,7 +207,7 @@
 
         if (draggableId) {
           // Get the original instance from drag state
-          const dragData = dragState.getDraggable(draggableId);
+          const dragData = dragState.getDraggableById(draggableId);
           if (dragData) {
             return dragData;
           }
@@ -255,7 +256,7 @@
       //   right: rect.right
       // });
 
-      dropZoneElement.style.border = "solid 10px purple";
+      // dropZoneElement.style.border = "solid 10px purple";
       return;
     }
 

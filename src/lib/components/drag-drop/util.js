@@ -1,3 +1,5 @@
+import { createOrGetDragState } from './drag-state.svelte.js';
+
 /**
  * Find the source draggable element from an event
  *
@@ -48,13 +50,11 @@ export function getDraggableIdFromEvent(event) {
  * @param {Function} options.setState Function to update component state
  * @returns {Promise<boolean>} Success status
  */
-export async function processDropWithData(event, data, {
-  onDropStart,
-  onDrop,
-  onDropEnd,
-  zone,
-  setState
-}) {
+export async function processDropWithData(
+  event,
+  data,
+  { onDropStart, onDrop, onDropEnd, zone, setState }
+) {
   try {
     // Update state and notify listeners
     setState('ACTIVE_DROP');
