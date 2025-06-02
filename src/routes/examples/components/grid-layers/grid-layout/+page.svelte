@@ -29,11 +29,13 @@
   </div>
 
   <!-- @note using margins for positioning -->
+  <!-- absolute position inside a grid breaks the natural behaviour -->
   <div class="justify-self-end self-end mr-20up mb-20up">
     <div class="bg-amber-500 w-[100px] h-[100px]">
       Bottom Right with margins
     </div>
   </div>
+
 </GridLayers>
 
 <GridLayers classes="m-20up border w-[500px] h-[500px]">
