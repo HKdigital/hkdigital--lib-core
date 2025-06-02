@@ -1,36 +1,5 @@
 [data-page]
 {
-  & [data-thing1] {
-    position: absolute;
-    top: 200px;
-    left: 10px;
-    height: 600px;
-    width: 400px;
-    border: solid 10px pink;
-  }
-
-  & [data-thing2] {
-    position: absolute;
-    top: 200px;
-    left: 510px;
-    height: 600px;
-    width: 400px;
-    border: solid 10px pink;
-  }
-
-  & [data-item] {
-    width: 100px;
-    height: 100px;
-
-    &.red {
-      background-color: red;
-    }
-
-    &.blue {
-      background-color: blue;
-    }
-  }
-
   & [data-section="one"] {
     position: absolute;
     top: 0;

@@ -32,47 +32,16 @@
 </script>
 
 <div data-page>
-  <!-- <DragDropContext> -->
-    <div data-section="main" class="border-8">
-      <!-- <div data-section="one"> -->
-        <!-- <GameBoard zone={ZONE_ONE} {gameItems} /> -->
-        <div
-          data-thing1
-          ondragenter={() => {
-            console.debug('enter1');
-          }}
-          ondragover={() => {
-            console.debug('over1');
-          }}
-          ondragleave={() => {
-            console.debug('leave1');
-          }}
-        >
-          <!-- <div draggable="true" data-item class="red"></div> -->
-        </div>
-
-        <div draggable="true" data-item class="red"></div>
-
-      <!-- </div> -->
-      <!-- <div data-section="two"> -->
-        <div
-          data-thing2
-          ondragenter={() => {
-            console.debug('enter2');
-          }}
-          ondragover={() => {
-            console.debug('over2');
-          }}
-          ondragleave={() => {
-            console.debug('leave2');
-          }}
-        >
-          <div draggable="true">Item B</div>
-        </div>
-        <!-- <GameBoard zone={ZONE_TWO} {gameItems} /> -->
-      <!-- </div> -->
+  <DragDropContext>
+    <div data-section="main">
+      <div data-section="one">
+        <GameBoard zone={ZONE_ONE} {gameItems} />
+      </div>
+      <div data-section="two">
+        <GameBoard zone={ZONE_TWO} {gameItems} />
+      </div>
     </div>
-  <!-- </DragDropContext> -->
+  </DragDropContext>
 </div>
 
 <style src="./style.css"></style>

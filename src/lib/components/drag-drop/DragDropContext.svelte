@@ -16,18 +16,71 @@
   // have access to the same state instance
   const dragState = createDragState(contextKey);
 
-  function onDragEnter( event ) {
-    console.log('dragenter context', dragState.getDraggable(event));
+  /**
+   * Handle drag enter at context level
+   * @param {DragEvent} event
+   */
+  function onDragEnter(event) {
+    event.preventDefault();
+    dragState.updateActiveDropZone(event.clientX, event.clientY, event);
   }
 
-  function onDragOver( event ) {
-    console.log('dragover context', dragState.getDraggable(event));
+  /**
+   * Handle drag over at context level
+   * @param {DragEvent} event
+   */
+  function onDragOver(event) {
+    event.preventDefault();
+    dragState.updateActiveDropZone(event.clientX, event.clientY, event);
+
+    // Set appropriate drop effect
+    const activeZone = dragState.activeDropZone;
+    if (activeZone) {
+      const config = dragState.dropZones.get(activeZone);
+      if (config?.canDrop) {
+        event.dataTransfer.dropEffect = 'move';
+      } else {
+        event.dataTransfer.dropEffect = 'none';
+      }
+    }
   }
 
-  function onDragLeave( event ) {
-    console.log('dragleave context', dragState.getDraggable(event));
+  /**
+   * Handle drag leave at context level
+   * @param {DragEvent} event
+   */
+  function onDragLeave(event) {
+    // Only handle if we're leaving the entire context
+    const rect =
+      /** @type {Element} */ (event.currentTarget).getBoundingClientRect();
+
+
+    const x = event.clientX;
+    const y = event.clientY;
+
+    // Check if we're truly leaving the context bounds
+    if (x < rect.left || x > rect.right || y < rect.top || y > rect.bottom) {
+      dragState.updateActiveDropZone(-1, -1, event);
+    }
   }
 
+  /**
+   * Handle drop at context level
+   * @param {DragEvent} event
+   */
+  function onDrop(event) {
+    event.preventDefault();
+    dragState.handleDropAtPoint(event.clientX, event.clientY, event);
+  }
+
+  /**
+   * Handle drag end to clean up
+   * @param {DragEvent} event
+   */
+  function onDragEnd(event) {
+    // This will trigger cleanup in drag state
+    dragState.updateActiveDropZone(-1, -1, event);
+  }
 </script>
 
 <div
@@ -35,19 +88,10 @@
   ondragenter={onDragEnter}
   ondragover={onDragOver}
   ondragleave={onDragLeave}
+  ondrop={onDrop}
+  ondragend={onDragEnd}
   class="{base} {classes}"
   {...attrs}
 >
   {@render children()}
 </div>
-
-<style>
-  div {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    height: 600px;
-    width: 600px;
-    border: solid 10px cyan;
-  }
-</style>

@@ -130,7 +130,7 @@
 
 <style>
   [data-feature='game-board'] {
-    border: solid 10px green;
+    /*border: solid 10px green;*/
     padding-top: 75px;
     padding-bottom: 75px;
     height: 400px;
