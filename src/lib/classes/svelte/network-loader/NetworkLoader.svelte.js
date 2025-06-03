@@ -87,6 +87,7 @@ export default class NetworkLoader {
     this._url = url;
 
     const state = this._state;
+    const progress = this.progress;
 
     //
     // ISSUE: $effect is not triggered by  this._state changes,
@@ -110,10 +111,15 @@ export default class NetworkLoader {
 
         case STATE_LOADED:
           {
-            // console.error(
-            //   'NetworkLoader:loaded',
-            //   $state.snapshot({ bytes: this.size })
-            // );
+            // console.debug('NetworkLoader:loaded', $state.snapshot(state));
+
+            // setTimeout(() => {
+            //   console.debug(
+            //     'NetworkLoader:loaded',
+            //     $state.snapshot(state),
+            //     progress
+            //   );
+            // }, 500);
 
             // Abort function is no longer needed
             this._abortLoading = null;
@@ -140,7 +146,7 @@ export default class NetworkLoader {
    * Start loading all network data
    */
   load() {
-    // console.log('NetworkLoader: load() called');
+    // console.debug('NetworkLoader: load() called');
     this._state.send(LOAD);
   }
 
@@ -300,6 +306,8 @@ export default class NetworkLoader {
       };
 
       this._buffer = await bufferPromise;
+
+      // console.debug('#load', this._buffer, this._bytesLoaded);
 
       this._state.send(LOADED);
     } catch (e) {

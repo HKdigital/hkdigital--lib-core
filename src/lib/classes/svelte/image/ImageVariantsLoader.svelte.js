@@ -1,12 +1,8 @@
-/** @typedef {import('./typedef.js').ImageMeta} ImageMeta */
-
-// import * as expect from '$lib/util/expect/index.js';
-
 import { calculateEffectiveWidth } from '$lib/util/image/index.js';
 
-import { untrack } from 'svelte';
-
 import ImageLoader from './ImageLoader.svelte.js';
+
+/** @typedef {import('$lib/typedef/image.js').ImageMeta} ImageMeta */
 
 export default class ImageVariantsLoader {
   /** @type {number} */
@@ -37,6 +33,7 @@ export default class ImageVariantsLoader {
   constructor(imagesMeta, { devicePixelRatio = 1 } = {}) {
     this.#devicePixelRatio = devicePixelRatio ?? 1;
     this.#imagesMeta = [...imagesMeta].sort((a, b) => a.width - b.width);
+    // console.debug("imagesMeta",imagesMeta);
   }
 
   /**
@@ -60,6 +57,8 @@ export default class ImageVariantsLoader {
 
     const newVariant = this.getOptimalImageMeta(effectiveWidth);
 
+    // console.debug("updateOptimalImageMeta", effectiveWidth, newVariant );
+
     if (
       !newVariant ||
       !this.#imageVariant ||
@@ -75,6 +74,7 @@ export default class ImageVariantsLoader {
       this.#imageLoader = new ImageLoader({
         imageMeta: newVariant
       });
+
 
       this.#imageLoader.load();
     }

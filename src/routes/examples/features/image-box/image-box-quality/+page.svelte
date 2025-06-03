@@ -15,6 +15,9 @@
   position="top left"
   width="w-[800px]"
   classes="bg-black"
+  onProgress={(progress, id)=> {
+    console.debug("progress", progress);
+  }}
 />
 
 <ImageBox
