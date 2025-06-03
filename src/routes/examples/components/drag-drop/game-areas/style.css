@@ -17,46 +17,4 @@
     height: 400px;
     border: solid 10px olive;
   }
-
-
-  & :global([data-component='drop-zone'][data-variant="debug"]) {
-
-    border: solid 10px red;
-
-    /* State-based styling using state classes - visual aspects only */
-    &.state-ready {
-      border-color: rgb(var(--color-surface-400));
-      background-color: transparent;
-    }
-
-    &.state-drag-over {
-      border-color: rgb(var(--color-primary-400));
-      background-color: rgb(var(--color-primary-500) / 0.05);
-    }
-
-    &.state-can-drop {
-      border-color: rgb(var(--color-success-500));
-      background-color: rgb(var(--color-success-500) / 0.08);
-      box-shadow: 0 0 0 3px rgb(var(--color-success-500) / 0.2);
-    }
-
-    &.state-cannot-drop {
-      border-color: rgb(var(--color-error-500));
-      background-color: rgb(var(--color-error-500) / 0.08);
-      cursor: not-allowed;
-    }
-
-    &.state-drop-disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-      background-color: rgb(var(--color-surface-100));
-    }
-  }
-
-  /* Default styling for inner elements - all visual/customizable */
-  [data-layer='content'],
-  [data-layer='preview'],
-  [data-layer='empty'] {
-    @apply type-base-md;
-  }
 }

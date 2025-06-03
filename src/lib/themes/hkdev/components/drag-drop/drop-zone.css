@@ -32,11 +32,11 @@
       cursor: not-allowed;
     }
 
-    &.state-drop-disabled {
+    /*&.state-drop-disabled {
       opacity: 0.5;
       cursor: not-allowed;
       background-color: rgb(var(--color-surface-100));
-    }
+    }*/
   }
 
   /* Default styling for inner elements - all visual/customizable */

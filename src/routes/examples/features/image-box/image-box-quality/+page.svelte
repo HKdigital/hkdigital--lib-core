@@ -7,7 +7,7 @@
 
 </script>
 
-<img src={BumperOrg} class="image-org" />
+<img src={BumperOrg} class="image-org" alt="" />
 
 <ImageBox
   imageMeta={Bumper}
