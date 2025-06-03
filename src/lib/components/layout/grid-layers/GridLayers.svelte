@@ -29,7 +29,7 @@
     bg = '',
     padding = '',
     margin = '',
-    height = '',
+    height = 'h-full',
     classes = '',
     style = '',
     cellBase = '',
@@ -150,12 +150,15 @@
       observer = null;
     }
   });
+
+  $inspect('heightFrom', heightFrom);
+  $inspect('containerStyle', containerStyle);
 </script>
 
 <div
   data-component="grid-layers"
   bind:this={gridContainer}
-  class="relative {isFirstRender ? 'invisible' : ''} {base} {bg} {!heightFrom ? height : ''} {classes} {margin} {padding}"
+  class="relative {isFirstRender ? 'invisible' : ''} {base} {bg} {heightFrom ? '' : height} {classes} {margin} {padding}"
   style={containerStyle}
   {...attrs}
 >

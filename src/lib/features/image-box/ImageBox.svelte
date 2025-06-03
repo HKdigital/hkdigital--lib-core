@@ -13,7 +13,7 @@
 	 *   aspect?: string,
 	 *   overflow?: string,
 	 *   fit?: 'contain' | 'cover' | 'fill',
-	 *   position?: string,
+	 *   position?: import('$lib/typedef/image.js').ObjectPosition,
 	 *   imageMeta?: import('$lib/typedef').ImageSource,
 	 *   imageLoader?: import('$lib/classes/svelte/image/index.js').ImageLoader,
 	 *   alt?: string,
