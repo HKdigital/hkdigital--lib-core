@@ -1,4 +1,6 @@
 <script>
+    import { ZONE_ONE } from './constants/zones.js';
+
   /**
    * @type {{
    *   data: import('./GameModel.svelte.js').default,
@@ -18,12 +20,26 @@
   } = $props();
 </script>
 
-<div {...attrs} style:background-color={data.bg}>
+{#if !dragPreview && data.currentZone==ZONE_ONE}
+  <div data-section="heading">
+    {data.currentZone}
+  </div>
+{/if}
+
+<div data-section="body" {...attrs}
+    style:background-color={data.bg}>
   GameItem
 </div>
 
 <style>
-  div {
+  [data-section="heading"] {
+    width: 100px;
+    background-color: black;
+    color: white;
+    padding: 4px;
+  }
+
+  [data-section="body"] {
     width: 100px;
     height: 100px;
     pointer-events: auto;
