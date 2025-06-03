@@ -151,8 +151,6 @@
     }
   });
 
-  $inspect('heightFrom', heightFrom);
-  $inspect('containerStyle', containerStyle);
 </script>
 
 <div
