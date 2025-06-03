@@ -211,13 +211,13 @@
 >
   <GridLayers heightFrom={heightMode === 'flexible' ? 'content' : null}>
     {#if children}
-      <div
+      <!-- <div
         data-layer="content"
         class:relative={heightMode === 'flexible'}
         class:w-full={heightMode === 'flexible'}
-      >
+      > -->
         {@render children()}
-      </div>
+      <!-- </div> -->
     {/if}
 
     {#if showPreview && dropPreviewSnippet}
@@ -231,9 +231,11 @@
 <style>
   [data-component="drop-zone"] {
     -webkit-tap-highlight-color: transparent;
+
+
   }
 
-  [data-layer='content']:not(.relative) {
+/*  [data-layer='content']:not(.relative) {
     position: absolute;
     left: 0;
     right: 0;
@@ -245,7 +247,7 @@
     position: relative;
     width: 100%;
   }
-
+*/
   [data-layer='preview'] {
     position: absolute;
     left: 0;
