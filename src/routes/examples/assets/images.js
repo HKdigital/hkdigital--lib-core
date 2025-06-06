@@ -6,6 +6,7 @@ import BumperOrg from './images/audi-rs6-avant-bumper.png';
 import BumperJpg from './images/audi-rs6-avant-bumper.png?preset=gradient';
 import Bumper from './images/audi-rs6-avant-bumper.png?preset=drawing&responsive';
 
+import TrailerEmpty from './images/00-side.jpg?preset=drawing&responsive';
 
 
-export { ArmyGreen, ElectricBlue, TransparentLines, BumperOrg, BumperJpg, Bumper };
+export { ArmyGreen, ElectricBlue, TransparentLines, BumperOrg, BumperJpg, Bumper, TrailerEmpty };
