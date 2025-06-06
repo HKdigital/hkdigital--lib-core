@@ -389,10 +389,10 @@ export default class IndexedDbCache {
 
             let responseBody = entry.body;
 
-            // if (responseBody instanceof Blob) {
-            //   // Clone the blob to ensure it's not consumed
-            //   responseBody = entry.body.slice(0, entry.body.size, entry.body.type);
-            // }
+            if (responseBody instanceof Blob) {
+              // Clone the blob to ensure it's not consumed
+              responseBody = entry.body.slice(0, entry.body.size, entry.body.type);
+            }
 
             // Create Response safely
             let response;
