@@ -347,6 +347,12 @@ export default class IndexedDbCache {
             return;
           }
 
+          // Clone Blob before reference becomes invalid
+          let clonedBody = entry.body;
+          if (entry.body instanceof Blob) {
+            clonedBody = entry.body.slice(0, entry.body.size, entry.body.type);
+          }
+
           // Check if expired
           if (entry.expires && Date.now() > entry.expires) {
             // Delete expired entry (but don't block)
@@ -387,17 +393,10 @@ export default class IndexedDbCache {
           try {
             let responseHeaders = new Headers(entry.headers);
 
-            let responseBody = entry.body;
-
-            if (responseBody instanceof Blob) {
-              // Clone the blob to ensure it's not consumed
-              responseBody = entry.body.slice(0, entry.body.size, entry.body.type);
-            }
-
             // Create Response safely
             let response;
             try {
-              response = new Response(responseBody, {
+              response = new Response(clonedBody, {
                 status: entry.status,
                 statusText: entry.statusText,
                 headers: responseHeaders
