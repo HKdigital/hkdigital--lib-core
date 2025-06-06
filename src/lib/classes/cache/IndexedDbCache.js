@@ -326,7 +326,7 @@ export default class IndexedDbCache {
     // Track concurrent reads per key
     const current = concurrentReadsByKey.get(key) || 0;
     concurrentReadsByKey.set(key, current + 1);
-    console.log(`Concurrent reads for ${key}: ${current + 1}`);
+    // console.log(`Concurrent reads for ${key}: ${current + 1}`);
 
     try {
       const db = await this.dbPromise;
@@ -386,10 +386,17 @@ export default class IndexedDbCache {
             try {
               let responseHeaders = new Headers(entry.headers);
 
+              let responseBody = entry.body;
+
+              if (responseBody instanceof Blob) {
+                // Clone the blob to ensure it's not consumed
+                responseBody = entry.body.slice(0, entry.body.size, entry.body.type);
+              }
+
               // Create Response safely
               let response;
               try {
-                response = new Response(entry.body, {
+                response = new Response(responseBody, {
                   status: entry.status,
                   statusText: entry.statusText,
                   headers: responseHeaders
@@ -444,9 +451,10 @@ export default class IndexedDbCache {
       } else {
         concurrentReadsByKey.set(key, current - 1);
       }
-      console.log(
-        `Concurrent reads for ${key} after decrement: ${current - 1}`
-      );
+
+      // console.debug(
+      //   `Concurrent reads for ${key} after decrement: ${current - 1}`
+      // );
     }
   }
 
