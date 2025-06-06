@@ -348,9 +348,13 @@ export default class IndexedDbCache {
           }
 
           // Clone Blob before reference becomes invalid
-          let clonedBody = entry.body;
-          if (entry.body instanceof Blob) {
-            clonedBody = entry.body.slice(0, entry.body.size, entry.body.type);
+          let responseBody = entry.body;
+
+          if (entry.bodyType === 'arrayBuffer') {
+            // Reconstruct Blob from ArrayBuffer
+            responseBody = new Blob([entry.body], {
+              type: entry.contentType || 'application/octet-stream'
+            });
           }
 
           // Check if expired
@@ -363,7 +367,7 @@ export default class IndexedDbCache {
             return;
           }
 
-          // Update access timestamp (should finish before result is returned)
+          // Update access timestamp
           await this._updateAccessTime(key).catch((err) => {
             console.error('Failed to update access time:', err);
           });
@@ -396,7 +400,7 @@ export default class IndexedDbCache {
             // Create Response safely
             let response;
             try {
-              response = new Response(clonedBody, {
+              response = new Response(responseBody, {
                 status: entry.status,
                 statusText: entry.statusText,
                 headers: responseHeaders
@@ -458,7 +462,6 @@ export default class IndexedDbCache {
     try {
       // Postpone cleanup when storing items
       this._postponeCleanup();
-
       const db = await this.dbPromise;
 
       // Clone the response to avoid consuming it
@@ -466,27 +469,39 @@ export default class IndexedDbCache {
 
       // Extract response data - handle both browser Response and test mocks
       let body;
+      let bodyType = 'arrayBuffer';  // Default to arrayBuffer
+      let contentType = '';
+
       try {
+        contentType = clonedResponse.headers.get('content-type') || '';
+
         // Try standard Response.blob() first (browser environment)
-        body = await clonedResponse.blob();
+        const blob = await clonedResponse.blob();
+
+        // Convert to ArrayBuffer
+        body = await blob.arrayBuffer();
+
       } catch (err) {
         // Fallback for test environment
-        if (
-          typeof clonedResponse.body === 'string' ||
+        if (typeof clonedResponse.body === 'string') {
+          const blob = new Blob([clonedResponse.body]);
+          body = await blob.arrayBuffer();
+        } else if (
           clonedResponse.body instanceof ArrayBuffer ||
           clonedResponse.body instanceof Uint8Array
         ) {
-          body = new Blob([clonedResponse.body]);
+          // Already have array-like data
+          body = clonedResponse.body instanceof ArrayBuffer ?
+            clonedResponse.body :
+            clonedResponse.body.buffer;
         } else {
-          // Last resort - store as-is and hope it's serializable
-          body = clonedResponse.body || new Blob([]);
+          // Last resort - create empty ArrayBuffer
+          body = new ArrayBuffer(0);
         }
       }
 
       // Extract headers
-
       let headers = [];
-
       try {
         headers = Array.from(clonedResponse.headers.entries());
       } catch (err) {
@@ -495,21 +510,9 @@ export default class IndexedDbCache {
         headers = [];
       }
 
-      // let headers = [];
-      // try {
-      //   headers = Array.from(clonedResponse.headers.entries());
-      // } catch (err) {
-      //   // Fallback for test environment - extract headers if available
-      //   if (clonedResponse._headers &&
-      //       typeof clonedResponse._headers.entries === 'function') {
-      //     headers = Array.from(clonedResponse._headers.entries());
-      //   }
-      // }
-
       // Calculate rough size estimate
       const headerSize = JSON.stringify(headers).length * 2;
-      const size =
-        /** @type {Blob} */ (body.size || 0) + headerSize + key.length * 2;
+      const size = body.byteLength + headerSize + key.length * 2;
 
       const entry = {
         key,
@@ -518,6 +521,8 @@ export default class IndexedDbCache {
         statusText: clonedResponse.statusText || '',
         headers,
         body,
+        bodyType,
+        contentType,
         metadata,
         timestamp: Date.now(),
         lastAccessed: Date.now(),
