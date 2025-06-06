@@ -38,15 +38,18 @@
 
 /** @typedef {import('./typedef').IDBVersionChangeEvent} IDBVersionChangeEvent */
 
-const DEFAULT_DB_NAME ='http-cache';
-const DEFAULT_STORE_NAME ='responses';
-const DEFAULT_MAX_SIZE = 50 * 1024 * 1024;         // 50 MB
-const DEFAULT_MAX_AGE = 90 * 24 * 60 * 60 * 1000;  // 90 days
+const DEFAULT_DB_NAME = 'http-cache';
+const DEFAULT_STORE_NAME = 'responses';
+const DEFAULT_MAX_SIZE = 50 * 1024 * 1024; // 50 MB
+const DEFAULT_MAX_AGE = 90 * 24 * 60 * 60 * 1000; // 90 days
 
 const DEFAULT_CLEANUP_BATCH_SIZE = 100;
 const DEFAULT_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes;
 
 const DEFAULT_CLEANUP_POSTPONE_MS = 5000; // 5 seconds
+
+// Add logging to track concurrent access
+const concurrentReadsByKey = new Map();
 
 /**
  * IndexedDbCache with automatic background cleanup
@@ -72,10 +75,12 @@ export default class IndexedDbCache {
     this.maxSize = options.maxSize || DEFAULT_MAX_SIZE;
     this.maxAge = options.maxAge || DEFAULT_MAX_AGE;
 
-    this.cleanupBatchSize = options.cleanupBatchSize || DEFAULT_CLEANUP_BATCH_SIZE;
+    this.cleanupBatchSize =
+      options.cleanupBatchSize || DEFAULT_CLEANUP_BATCH_SIZE;
     this.cleanupInterval = options.cleanupInterval || DEFAULT_CLEANUP_INTERVAL;
 
-    this.cleanupPostponeTimeout = options.cleanupPostponeTimeout || DEFAULT_CLEANUP_POSTPONE_MS;
+    this.cleanupPostponeTimeout =
+      options.cleanupPostponeTimeout || DEFAULT_CLEANUP_POSTPONE_MS;
     this.cacheVersion = options.cacheVersion || '1.0.0';
 
     // Define index names as constants to ensure consistency
@@ -318,10 +323,15 @@ export default class IndexedDbCache {
    * @returns {Promise<CacheEntry|null>} Cache entry or null if not found/expired
    */
   async get(key) {
+    // Track concurrent reads per key
+    const current = concurrentReadsByKey.get(key) || 0;
+    concurrentReadsByKey.set(key, current + 1);
+    console.log(`Concurrent reads for ${key}: ${current + 1}`);
+
     try {
       const db = await this.dbPromise;
 
-      return new Promise((resolve, reject) => {
+      const result = new Promise((resolve, reject) => {
         try {
           const transaction = db.transaction(this.storeName, 'readonly');
           const store = transaction.objectStore(this.storeName);
@@ -421,9 +431,22 @@ export default class IndexedDbCache {
           resolve(null);
         }
       });
+
+      return result;
     } catch (err) {
       console.error('Cache get error:', err);
       return null;
+    } finally {
+      // Always decrement
+      const current = concurrentReadsByKey.get(key) || 1;
+      if (current <= 1) {
+        concurrentReadsByKey.delete(key);
+      } else {
+        concurrentReadsByKey.set(key, current - 1);
+      }
+      console.log(
+        `Concurrent reads for ${key} after decrement: ${current - 1}`
+      );
     }
   }
 
@@ -490,7 +513,7 @@ export default class IndexedDbCache {
       // Calculate rough size estimate
       const headerSize = JSON.stringify(headers).length * 2;
       const size =
-        /** @type {Blob} */ ((body).size || 0) + headerSize + key.length * 2;
+        /** @type {Blob} */ (body.size || 0) + headerSize + key.length * 2;
 
       const entry = {
         key,
