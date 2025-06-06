@@ -32,6 +32,8 @@
  * }
  */
 
+import { HkPromise } from '../promise';
+
 /** @typedef {import('./typedef').CacheEntry} CacheEntry */
 
 /** @typedef {import('./typedef').IDBRequestEvent} IDBRequestEvent */
@@ -47,9 +49,6 @@ const DEFAULT_CLEANUP_BATCH_SIZE = 100;
 const DEFAULT_CLEANUP_INTERVAL = 5 * 60 * 1000; // 5 minutes;
 
 const DEFAULT_CLEANUP_POSTPONE_MS = 5000; // 5 seconds
-
-// Add logging to track concurrent access
-const concurrentReadsByKey = new Map();
 
 /**
  * IndexedDbCache with automatic background cleanup
@@ -323,138 +322,128 @@ export default class IndexedDbCache {
    * @returns {Promise<CacheEntry|null>} Cache entry or null if not found/expired
    */
   async get(key) {
-    // Track concurrent reads per key
-    const current = concurrentReadsByKey.get(key) || 0;
-    concurrentReadsByKey.set(key, current + 1);
-    // console.log(`Concurrent reads for ${key}: ${current + 1}`);
-
     try {
       const db = await this.dbPromise;
 
-      const result = new Promise((resolve, reject) => {
-        try {
-          const transaction = db.transaction(this.storeName, 'readonly');
-          const store = transaction.objectStore(this.storeName);
-          const request = store.get(key);
+      let resolve;
+      let reject;
 
-          request.onerror = () => reject(request.error);
-          request.onsuccess = () => {
-            const entry = request.result;
-
-            if (!entry) {
-              resolve(null);
-              return;
-            }
-
-            // Check if expired
-            if (entry.expires && Date.now() > entry.expires) {
-              // Delete expired entry (but don't block)
-              this._deleteEntry(key).catch((err) => {
-                console.error('Failed to delete expired entry:', err);
-              });
-              resolve(null);
-              return;
-            }
-
-            // Update access timestamp (but don't block)
-            // this._updateAccessTime(key).catch((err) => {
-            //   console.error('Failed to update access time:', err);
-            // });
-
-            // Check if from a different cache version
-            if (entry.cacheVersion !== this.cacheVersion) {
-              console.log(
-                `Migrating entry ${key} from version ${entry.cacheVersion} to ${this.cacheVersion}`
-              );
-
-              // Clone the entry for migration
-              const migratedEntry = {
-                ...entry,
-                cacheVersion: this.cacheVersion
-              };
-
-              // Store the migrated entry (don't block)
-              this._updateEntry(migratedEntry).catch((err) => {
-                console.error(
-                  'Failed to migrate entry to current cache version:',
-                  err
-                );
-              });
-            }
-
-            // Deserialize the response
-            try {
-              let responseHeaders = new Headers(entry.headers);
-
-              let responseBody = entry.body;
-
-              if (responseBody instanceof Blob) {
-                // Clone the blob to ensure it's not consumed
-                responseBody = entry.body.slice(0, entry.body.size, entry.body.type);
-              }
-
-              // Create Response safely
-              let response;
-              try {
-                response = new Response(responseBody, {
-                  status: entry.status,
-                  statusText: entry.statusText,
-                  headers: responseHeaders
-                });
-              } catch (err) {
-                // Simplified mock response for test environments
-                response = /** @type {Response} */ ({
-                  status: entry.status,
-                  statusText: entry.statusText,
-                  headers: responseHeaders,
-                  body: entry.body,
-                  url: entry.url,
-                  clone() {
-                    return this;
-                  }
-                });
-              }
-
-              resolve({
-                response,
-                metadata: entry.metadata,
-                url: entry.url,
-                timestamp: entry.timestamp,
-                expires: entry.expires,
-                etag: entry.etag,
-                lastModified: entry.lastModified,
-                cacheVersion: entry.cacheVersion
-              });
-            } catch (err) {
-              console.error('Failed to deserialize cached response:', err);
-
-              // Delete corrupted entry
-              this._deleteEntry(key).catch(console.error);
-              resolve(null);
-            }
-          };
-        } catch (err) {
-          console.error('Error in get transaction:', err);
-          resolve(null);
-        }
+      let promise = new Promise((_resolve, _reject) => {
+        resolve = _resolve;
+        reject = _reject;
       });
 
-      return result;
+      try {
+        const transaction = db.transaction(this.storeName, 'readonly');
+        const store = transaction.objectStore(this.storeName);
+        const request = store.get(key);
+
+        request.onerror = () => reject(request.error);
+        request.onsuccess = async () => {
+          const entry = request.result;
+
+          if (!entry) {
+            resolve(null);
+            return;
+          }
+
+          // Check if expired
+          if (entry.expires && Date.now() > entry.expires) {
+            // Delete expired entry (but don't block)
+            this._deleteEntry(key).catch((err) => {
+              console.error('Failed to delete expired entry:', err);
+            });
+            resolve(null);
+            return;
+          }
+
+          // Update access timestamp (should finish before result is returned)
+          await this._updateAccessTime(key).catch((err) => {
+            console.error('Failed to update access time:', err);
+          });
+
+          // Check if from a different cache version
+          if (entry.cacheVersion !== this.cacheVersion) {
+            // console.log(
+            //   `Migrating entry ${key} from version ${entry.cacheVersion} to ${this.cacheVersion}`
+            // );
+
+            // Clone the entry for migration
+            const migratedEntry = {
+              ...entry,
+              cacheVersion: this.cacheVersion
+            };
+
+            // Store the migrated entry (don't block)
+            this._updateEntry(migratedEntry).catch((err) => {
+              console.error(
+                'Failed to migrate entry to current cache version:',
+                err
+              );
+            });
+          }
+
+          // Deserialize the response
+          try {
+            let responseHeaders = new Headers(entry.headers);
+
+            let responseBody = entry.body;
+
+            // if (responseBody instanceof Blob) {
+            //   // Clone the blob to ensure it's not consumed
+            //   responseBody = entry.body.slice(0, entry.body.size, entry.body.type);
+            // }
+
+            // Create Response safely
+            let response;
+            try {
+              response = new Response(responseBody, {
+                status: entry.status,
+                statusText: entry.statusText,
+                headers: responseHeaders
+              });
+              // eslint-disable-next-line no-unused-vars
+            } catch (err) {
+              // Simplified mock response for test environments
+              response = /** @type {Response} */ ({
+                status: entry.status,
+                statusText: entry.statusText,
+                headers: responseHeaders,
+                body: entry.body,
+                url: entry.url,
+                clone() {
+                  return this;
+                }
+              });
+            }
+
+            resolve({
+              response,
+              metadata: entry.metadata,
+              url: entry.url,
+              timestamp: entry.timestamp,
+              expires: entry.expires,
+              etag: entry.etag,
+              lastModified: entry.lastModified,
+              cacheVersion: entry.cacheVersion
+            });
+          } catch (err) {
+            console.error('Failed to deserialize cached response:', err);
+
+            // Delete corrupted entry
+            this._deleteEntry(key).catch(console.error);
+            resolve(null);
+          }
+        };
+      } catch (err) {
+        console.error('Error in get transaction:', err);
+        return null;
+      }
+
+      return promise;
     } catch (err) {
       console.error('Cache get error:', err);
       return null;
-    } finally {
-      // Always decrement
-      const current = concurrentReadsByKey.get(key) || 1;
-      if (current <= 1) {
-        concurrentReadsByKey.delete(key);
-      } else {
-        concurrentReadsByKey.set(key, current - 1);
-      }
-
-      // console.debug(
-      //   `Concurrent reads for ${key} after decrement: ${current - 1}`
-      // );
     }
   }
 
