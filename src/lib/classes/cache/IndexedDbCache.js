@@ -357,15 +357,15 @@ export default class IndexedDbCache {
             }
 
             // Update access timestamp (but don't block)
-            this._updateAccessTime(key).catch((err) => {
-              console.error('Failed to update access time:', err);
-            });
+            // this._updateAccessTime(key).catch((err) => {
+            //   console.error('Failed to update access time:', err);
+            // });
 
             // Check if from a different cache version
             if (entry.cacheVersion !== this.cacheVersion) {
-              // console.log(
-              //   `Migrating entry ${key} from version ${entry.cacheVersion} to ${this.cacheVersion}`
-              // );
+              console.log(
+                `Migrating entry ${key} from version ${entry.cacheVersion} to ${this.cacheVersion}`
+              );
 
               // Clone the entry for migration
               const migratedEntry = {
