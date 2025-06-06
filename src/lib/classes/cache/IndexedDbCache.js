@@ -32,8 +32,6 @@
  * }
  */
 
-import { HkPromise } from '../promise';
-
 /** @typedef {import('./typedef').CacheEntry} CacheEntry */
 
 /** @typedef {import('./typedef').IDBRequestEvent} IDBRequestEvent */
@@ -347,10 +345,18 @@ export default class IndexedDbCache {
             return;
           }
 
+          // Skip old entries or corrupted blobs
+          if (!entry.bodyType || entry.bodyType !== 'ab') {
+            // Delete old/corrupted entry
+            this._deleteEntry(key).catch(console.error);
+            resolve(null);
+            return;
+          }
+
           // Clone Blob before reference becomes invalid
           let responseBody = entry.body;
 
-          if (entry.bodyType === 'arrayBuffer') {
+          if (entry.bodyType === 'ab') {
             // Reconstruct Blob from ArrayBuffer
             responseBody = new Blob([entry.body], {
               type: entry.contentType || 'application/octet-stream'
@@ -469,7 +475,7 @@ export default class IndexedDbCache {
 
       // Extract response data - handle both browser Response and test mocks
       let body;
-      let bodyType = 'arrayBuffer';  // Default to arrayBuffer
+      let bodyType = 'ab';  // Default is ArrayBuffer
       let contentType = '';
 
       try {
