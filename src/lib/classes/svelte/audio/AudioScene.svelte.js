@@ -9,11 +9,7 @@ import {
 	STATE_CANCELLED,
 	STATE_ERROR,
 	LOAD,
-	// CANCEL,
-	ERROR,
-	LOADED,
-	UNLOAD,
-	INITIAL
+	LOADED
 } from '$lib/classes/svelte/loading-state-machine/index.js';
 
 import AudioLoader from '$lib/classes/svelte/audio/AudioLoader.svelte.js';

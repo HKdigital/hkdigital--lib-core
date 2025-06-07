@@ -9,7 +9,6 @@ import {
   STATE_CANCELLED,
   STATE_ERROR,
   LOAD,
-  // CANCEL,
   ERROR,
   LOADED,
   UNLOAD,

@@ -4,8 +4,6 @@ import { toSingleImageMeta } from '$lib/util/image/index.js';
 
 import {
   NetworkLoader
-  // ERROR_NOT_LOADED
-  // ERROR_TRANSFERRED
 } from '$lib/classes/svelte/network-loader/index.js';
 
 /**

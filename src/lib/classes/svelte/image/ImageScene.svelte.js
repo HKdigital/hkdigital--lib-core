@@ -11,11 +11,7 @@ import {
   STATE_CANCELLED,
   STATE_ERROR,
   LOAD,
-  // CANCEL,
-  ERROR,
-  LOADED,
-  UNLOAD,
-  INITIAL
+  LOADED
 } from '$lib/classes/svelte/loading-state-machine/index.js';
 
 import ImageLoader from '$lib/classes/svelte/image/ImageLoader.svelte.js';
