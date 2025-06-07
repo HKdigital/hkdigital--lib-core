@@ -108,11 +108,11 @@ describe('MemoryResponseCache', () => {
     const expiresIn = 3600000; // 1 hour
     await cache.set('expires-in-key', response, { expiresIn });
 
-    // Reset Date.now mock
-    vi.spyOn(Date, 'now').mockRestore();
-
-    // Get the entry
+    // Get the entry (while mock is still active)
     const result = await cache.get('expires-in-key');
+
+    // Restore the mock
+    vi.spyOn(Date, 'now').mockRestore();
 
     // Verify expiration
     expect(result).not.toBeNull();
@@ -165,22 +165,22 @@ describe('MemoryResponseCache', () => {
     ];
 
     const response = new MockResponse('test data', { headers });
-    
+
     // Set in cache
     await cache.set('header-key', response, {});
-    
+
     // Get from cache
     const result = await cache.get('header-key');
-    
+
     // Verify headers were stored
     expect(result.etag).toBe('"123456"');
     expect(result.lastModified).toBe('Wed, 21 Oct 2015 07:28:00 GMT');
   });
-  
+
   it('should have a no-op close method for compatibility', async () => {
     // Ensure close method exists
     expect(typeof cache.close).toBe('function');
-    
+
     // Ensure it can be called without errors
     await expect(cache.close()).resolves.not.toThrow();
   });
