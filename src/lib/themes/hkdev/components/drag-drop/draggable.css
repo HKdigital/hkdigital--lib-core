@@ -7,9 +7,8 @@
   }
 
   [data-component='draggable']:not(.state-dragging):not(.state-drag-disabled) {
-    cursor: grab;  /* Open hand when hovering draggable items */
+    cursor: grab; /* Open hand when hovering draggable items */
   }
-
 
   /*[data-component='draggable']:active {
     cursor: grabbing;
@@ -42,6 +41,20 @@
     filter: grayscale(0.5);
   }
 
+  /* Preview follower */
+
+  [data-companion='drag-preview-follower'] {
+    /*box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);*/
+  }
+
+  [data-companion='drag-preview-follower'].state-can-drop {
+    box-shadow: 0 0 12px rgba(74, 222, 128, 0.5);
+  }
+
+  [data-companion='drag-preview-follower'].state-cannot-drop {
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.5);
+  }
+
   /* Animations */
   @keyframes drop-finish {
     0% {
@@ -56,9 +69,5 @@
       transform: scale(1);
       opacity: 1;
     }
-  }
-
-  & [data-companion="drag-preview-follower"] {
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
   }
 }

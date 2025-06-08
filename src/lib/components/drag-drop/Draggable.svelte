@@ -8,8 +8,7 @@
     IDLE,
     DRAGGING,
     DRAG_PREVIEW,
-    DROPPING,
-    DRAG_DISABLED
+    DROPPING
   } from '$lib/constants/state-labels/drag-states.js';
 
 
@@ -99,14 +98,24 @@
   let customPreviewSet = $state(false);
   let elementRect = $state(null);
 
-  // Computed state object for CSS classes
-  let stateObject = $derived({
-    idle: currentState === IDLE,
-    dragging: currentState === DRAGGING,
-    'drag-preview': currentState === DRAG_PREVIEW,
-    dropping: currentState === DROPPING,
-    'drag-disabled': disabled || !canDrag(item)
-  });
+// Track if current draggable can drop in the active zone
+let canDropInActiveZone = $derived.by(() => {
+  if (currentState !== DRAGGING || !dragState.activeDropZone) return false;
+
+  const activeZone = dragState.dropZones.get(dragState.activeDropZone);
+  return activeZone?.canDrop || false;
+});
+
+// Computed state object for CSS classes
+let stateObject = $derived({
+  idle: currentState === IDLE,
+  dragging: currentState === DRAGGING,
+  'drag-preview': currentState === DRAG_PREVIEW,
+  dropping: currentState === DROPPING,
+  'drag-disabled': disabled || !canDrag(item),
+  'can-drop': currentState === DRAGGING && canDropInActiveZone,
+  'cannot-drop': currentState === DRAGGING && dragState.activeDropZone && !canDropInActiveZone
+});
 
   let stateClasses = $derived(toStateClasses(stateObject));
 
@@ -465,6 +474,7 @@ function handleTouchMove(event) {
 {#if draggingSnippet && showPreview && elementRect}
   <div
     data-companion="drag-preview-follower"
+    class={stateClasses}
     style="position: fixed; z-index: 9999; pointer-events: none;"
     style:left="{previewX}px"
     style:top="{previewY}px"
