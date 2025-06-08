@@ -18,7 +18,7 @@
    *   zone?: string,
    *   group?: string,
    *   disabled?: boolean,
-   *   accepts?: (item: any) => boolean,
+   *   accepts?: (dragData: any, target: { zone:string, group: string }) => boolean,
    *   base?: string,
    *   classes?: string,
    *   minHeight?: string,
@@ -140,7 +140,8 @@
         accepts: (dragData) => {
           if (disabled) return false;
           if (!dragData) return false;
-          return accepts(dragData);
+
+          return accepts(dragData, { zone, group });
         },
         onDragEnter: (detail) => {
           currentState = detail.canDrop ? CAN_DROP : CANNOT_DROP;
@@ -197,8 +198,8 @@
   // Monitor drag state to update preview
   let showPreview = $derived(
     dragState.activeDropZone === dropZoneId &&
-    currentState === CAN_DROP &&
-    dropPreviewSnippet
+      currentState === CAN_DROP &&
+      dropPreviewSnippet
   );
 </script>
 
@@ -216,7 +217,7 @@
         class:relative={heightMode === 'flexible'}
         class:w-full={heightMode === 'flexible'}
       > -->
-        {@render children()}
+      {@render children()}
       <!-- </div> -->
     {/if}
 
@@ -229,13 +230,11 @@
 </div>
 
 <style>
-  [data-component="drop-zone"] {
+  [data-component='drop-zone'] {
     -webkit-tap-highlight-color: transparent;
-
-
   }
 
-/*  [data-layer='content']:not(.relative) {
+  /*  [data-layer='content']:not(.relative) {
     position: absolute;
     left: 0;
     right: 0;
