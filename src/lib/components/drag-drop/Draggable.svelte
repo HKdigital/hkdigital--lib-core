@@ -206,6 +206,9 @@ let stateObject = $derived({
       JSON.stringify({ draggableId })
     );
 
+    // Chrome also likes to have text/plain
+    event.dataTransfer.setData('text/plain', draggableId);
+
     // Create the preview controller
     const previewController = new DragController(event);
 
@@ -229,10 +232,20 @@ let stateObject = $derived({
         previewX = rect.left;
         previewY = rect.top;
 
-        // Set a transparent 1x1 pixel image to hide browser's default preview
+        // Set a transparent 1x1 pixel image to hide browser's
+        // default preview
         const emptyImg = new Image();
         emptyImg.src =
-          'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+         'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+        // Chrome needs the image to be loaded before setting it
+        emptyImg.onload = () => {
+         if (event.dataTransfer) {
+           event.dataTransfer.setDragImage(emptyImg, 0, 0);
+         }
+        };
+
+        // Fallback: try to set it immediately too
         event.dataTransfer.setDragImage(emptyImg, 0, 0);
 
         // Add document level event listener to track mouse movement
@@ -398,7 +411,7 @@ function handleTouchMove(event) {
     clientX: touch.clientX,
     clientY: touch.clientY,
     dataTransfer: {
-      types: ['application/json'],
+      types: ['application/json', 'text/plain'],
       getData: () => JSON.stringify({ draggableId }),
       dropEffect: 'move',
       effectAllowed: 'move',
@@ -429,7 +442,7 @@ function handleTouchMove(event) {
     clientX: touch.clientX,
     clientY: touch.clientY,
     dataTransfer: {
-      types: ['application/json'],
+      types: ['application/json', 'text/plain'],
       getData: () => JSON.stringify({ draggableId }),
       dropEffect: 'move',
       effectAllowed: 'move',
