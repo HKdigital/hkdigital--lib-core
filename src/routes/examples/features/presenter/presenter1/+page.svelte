@@ -33,8 +33,7 @@
 </script>
 
 <GridLayers
-  data-module="autospuiten"
-  data-scene="car-paint-picker"
+  data-page="presenter-test"
   classes="w-[800px] h-[450px]"
 >
   <div data-layer="slideshow">
@@ -43,7 +42,7 @@
 
   <div
     data-layer="controls"
-    class="bg-black text-white p-10up flex gap-4 h-min"
+    class="bg-black text-white p-10up flex gap-4 h-min z-[100]"
   >
     {#each colorLabels as colorLabel}
       <button

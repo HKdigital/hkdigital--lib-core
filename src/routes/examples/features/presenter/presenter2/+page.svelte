@@ -1,4 +1,6 @@
 <script>
+  import { onMount } from 'svelte';
+
   import { TextButton } from '$lib/components/buttons/index.js';
 
   import { Presenter } from '$lib/features/presenter/index.js';
@@ -9,14 +11,21 @@
 
   let presenterRef = $state();
 
+  let currentSlide = $state();
+
   // Navigation functions
   function goToHello() {
+    currentSlide = 'slide1';
+
     presenterRef.gotoSlide(SLIDE_HELLO);
   }
 
   function goToWorld() {
+    currentSlide = 'slide2';
     presenterRef.gotoSlide(SLIDE_WORLD);
   }
+
+  onMount( goToHello );
 </script>
 
 <Presenter
@@ -27,7 +36,7 @@
   {#snippet layoutSnippet(slide, layer)}
     {#if slide && slide.data}
       {#if slide.data.component}
-        <div class="absolute inset-0">
+        <div class="justify-self-stretch self-stretch grid">
           <slide.data.component {...slide.data.props || {}} />
         </div>
       {/if}
@@ -36,7 +45,7 @@
 
   {#snippet loadingSnippet()}
     <div
-      class="absolute inset-0 bg-white opacity-50 grid"
+      class="justify-self-stretch self-stretch grid bg-white opacity-50"
       transition:fade={{ duration: 500 }}
     >
       <div
@@ -51,7 +60,7 @@
 </Presenter>
 
 <div class="mt-20up flex gap-40up items-center justify-center">
-  <TextButton role="secondary" onclick={goToHello}>Slide 1</TextButton>
+  <TextButton role="secondary" disabled={currentSlide==='slide1'} onclick={goToHello}>Slide 1</TextButton>
 
-  <TextButton role="secondary" onclick={goToWorld}>Slide 2</TextButton>
+  <TextButton role="secondary" disabled={currentSlide==='slide2'} onclick={goToWorld}>Slide 2</TextButton>
 </div>

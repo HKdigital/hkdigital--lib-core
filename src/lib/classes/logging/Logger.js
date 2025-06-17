@@ -34,7 +34,7 @@
 
 import { EventEmitter } from '$lib/classes/events';
 
-import { DEBUG, INFO, WARN, ERROR, FATAL, NONE, LEVELS } from './constants.js';
+import { DEBUG, INFO, WARN, ERROR, FATAL, LEVELS } from './constants.js';
 
 /**
  * Logger class for consistent logging across services

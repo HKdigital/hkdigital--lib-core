@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
 
-  import ElectricBlue from '../../../assets/images/electric-blue.jpg?preset=gradient&responsive';
+  import ElectricBlue from '../../../../assets/images/electric-blue.jpg?preset=gradient&responsive';
 
   import { ImageBox } from '$lib/features/index.js';
 
@@ -60,7 +60,7 @@
   }
 </script>
 
-<div class="absolute inset-0" class:invisible={!show}>
+<div class="justify-self-stretch self-stretch grid" class:invisible={!show}>
   <ImageBox
     imageMeta={ElectricBlue}
     fit="cover"
@@ -70,7 +70,7 @@
 </div>
 
 {#if show}
-  <div class="absolute inset-0">
+  <div class="justify-self-stretch self-stretch grid">
     <div class="p-40up">
       <h3 class="text-heading-h3 font-heading mb-16ht">{title}</h3>
       <p class="text-base-md font-base mb-8bt">{subtitle}</p>

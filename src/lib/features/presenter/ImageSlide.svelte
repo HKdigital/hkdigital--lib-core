@@ -3,7 +3,7 @@
 
   /**
    * @type {{
-   *   imageMeta?: import('@hkdigital/lib-sveltekit/config/typedef.js').ImageMeta | import('@hkdigital/lib-sveltekit/config/typedef.js').ImageMeta[],
+   *   imageMeta?: import('$lib/typedef').ImageSource,
    *   slideDuration?: number,
    *   nextSlideLabel?: string,
    *   presenter?: { gotoSlide: (name: string) => void, getCurrentSlideName: () => string },
@@ -53,7 +53,7 @@
   });
 </script>
 
-<div class="absolute inset-0" class:invisible={!show}>
+<div class="justify-self-stretch self-stretch grid" class:invisible={!show}>
   <ImageBox
     {imageMeta}
     {fit}

@@ -20,8 +20,8 @@
 </div> -->
 
 <div class="p-20up">
-  <h2 class="type-header-h3 mb-4">Dynamic height example (heightFrom="content")</h2>
-  <GridLayers heightFrom="content" classes="border border-gray-300 w-full max-w-lg">
+  <h2 class="type-header-h3 mb-4">Dynamic height example</h2>
+  <GridLayers classes="border border-gray-300 w-full max-w-lg">
     <div data-layer="header" class="justify-self-center self-start z-10">
       <div class="bg-primary-500 text-white p-4 w-full text-center">
         <span class="type-base-md">Header</span>
@@ -54,7 +54,7 @@
     </button>
   </div>
 
-  <GridLayers heightFrom="dynamic-content" classes="border border-gray-300 w-full max-w-lg">
+  <GridLayers classes="border border-gray-300 w-full max-w-lg">
     <div data-layer="dynamic-content" class="justify-self-center self-center p-8 m-8 border-8">
       <div
         class="bg-secondary-500 text-white p-4 rounded my-4 transition-all duration-300 ease-in-out"

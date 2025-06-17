@@ -44,7 +44,7 @@
   {#snippet layoutSnippet(slide, layer)}
     {#if slide && slide.data}
       {#if slide.data.component}
-        <div class="absolute inset-0">
+        <div class="justify-self-stretch self-stretch grid">
           <slide.data.component {...slide.data.props || {}} />
         </div>
       {/if}
@@ -52,7 +52,7 @@
   {/snippet}
 
   {#snippet loadingSnippet()}
-    <div class="absolute inset-0 grid" transition:fade={{ duration: 500 }}>
+    <div class="justify-self-stretch self-stretch grid" transition:fade={{ duration: 500 }}>
       <div
         class="justify-self-center self-center inline-block h-50up w-50up animate-spin rounded-full border-width-thick border-solid border-primary-500 border-t-transparent"
         role="status"

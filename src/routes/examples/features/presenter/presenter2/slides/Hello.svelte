@@ -1,5 +1,5 @@
 <script>
-  import ElectricBlue from '../../../assets/images/electric-blue.jpg?preset=gradient&responsive';
+  import ElectricBlue from '../../../../assets/images/electric-blue.jpg?preset=gradient&responsive';
 
   import { GridLayers } from '$lib/components/layout/index.js';
 
@@ -51,7 +51,7 @@
   }
 </script>
 
-<div class="absolute inset-0">
+<div class="justify-self-stretch self-stretch grid">
   <ImageBox
     imageMeta={ElectricBlue}
     fit="cover"
@@ -61,7 +61,7 @@
 </div>
 
 {#if show}
-  <div class="absolute inset-0">
+  <div class="justify-self-stretch self-stretch grid">
     <div class="p-40up">
       <h3 class="text-heading-h3 font-heading mb-16ht">{title}</h3>
       <p class="text-base-md font-base mb-8bt">{subtitle}</p>

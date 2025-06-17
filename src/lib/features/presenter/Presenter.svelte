@@ -109,8 +109,9 @@
   });
 </script>
 
-<GridLayers data-component="presenter" {classes}>
+<GridLayers data-feature="presenter" {classes}>
   <div
+    data-layer="layer1"
     style:z-index={presenter.layerA.z}
     style:visibility={presenter.layerA.visible ? 'visible' : 'hidden'}
     inert={presenter.busy}
@@ -122,6 +123,7 @@
   </div>
 
   <div
+    data-layer="layer2"
     style:z-index={presenter.layerB.z}
     style:visibility={presenter.layerB.visible ? 'visible' : 'hidden'}
     inert={presenter.busy}
@@ -133,7 +135,7 @@
   </div>
 
   {#if loadingSnippet && presenter.loadingSpinner}
-    <div class="h-full w-full" style="z-index:20;">
+    <div class="justify-self-stretch self-stretch overflow-hidden grid z-[20]">
       {@render loadingSnippet()}
     </div>
   {/if}
