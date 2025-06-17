@@ -20,6 +20,20 @@
   let isDraggingTask = $state(false);
   let todoCanDrop = $state(false);
   let doneCanDrop = $state(false);
+
+  function addToToDo(item) {
+    if( !todoItems.find( ( current ) => { return current.id === item.id; } ) )
+    {
+      todoItems = [...todoItems, item];
+    }
+  }
+
+  function addToDone(item) {
+    if( !doneItems.find( ( current ) => { return current.id === item.id; } ) )
+    {
+      doneItems = [...doneItems, item];
+    }
+  }
 </script>
 
 <DragDropContext>
@@ -32,16 +46,13 @@
           {item}
           source="available"
           bind:isDragging={isDraggingTask}
-          onDragStart={({ item, getController }) => {
+          onDragStart={({ item } ) => {
             console.log(
               'Started dragging:',
               item.name,
               'priority:',
               item.priority
             );
-
-            const controller = getController();
-            controller.grabPreviewImage();
           }}
         >
           <div class="task-content">
@@ -71,8 +82,7 @@
           doneItems = doneItems.filter((i) => i.id !== item.id);
         }
 
-        // Add to todo list
-        todoItems = [...todoItems, item];
+        addToToDo( item );
       }}
     >
       <div data-layer="content">
@@ -124,8 +134,7 @@
           todoItems = todoItems.filter((i) => i.id !== item.id);
         }
 
-        // Add to done list
-        doneItems = [...doneItems, item];
+        addToDone( item );
       }}
     >
       <div data-layer="content">
@@ -170,14 +179,13 @@
 <style>
   .container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, calc(200px + 2rem));
     gap: 2rem;
     padding: 2rem;
 
     & :global( [data-component='drop-zone'] ) {
       padding: 1rem;
     }
-
   }
 
   .source {
@@ -198,6 +206,7 @@
   }
 
   .task-content {
+    width: 200px;
     padding: 0.75rem;
     background: white;
     border-radius: 0.375rem;
@@ -231,6 +240,7 @@
   }
 
   .task-card {
+    width: 200px;
     padding: 0.75rem;
     background: #f5f5f5;
     border-radius: 0.375rem;

@@ -25,7 +25,7 @@
     dragState.updateActiveDropZone(event.clientX, event.clientY, event);
   }
 
-  /**
+/**
    * Handle drag over at context level
    * @param {DragEvent} event
    */
@@ -33,15 +33,22 @@
     event.preventDefault();
     dragState.updateActiveDropZone(event.clientX, event.clientY, event);
 
-    // Set appropriate drop effect
-    const activeZone = dragState.activeDropZone;
-    if (activeZone) {
-      const config = dragState.dropZones.get(activeZone);
-      if (config?.canDrop) {
-        event.dataTransfer.dropEffect = 'move';
+    // Set appropriate drop effect based on current drag operation
+    if (dragState.isDragging()) {
+      const activeZone = dragState.activeDropZone;
+      if (activeZone) {
+        const config = dragState.dropZones.get(activeZone);
+        if (config?.canDrop) {
+          event.dataTransfer.dropEffect = 'move';
+        } else {
+          event.dataTransfer.dropEffect = 'none';
+        }
       } else {
         event.dataTransfer.dropEffect = 'none';
       }
+    } else {
+      // No internal drag operation, might be file drag
+      event.dataTransfer.dropEffect = 'copy';
     }
   }
 

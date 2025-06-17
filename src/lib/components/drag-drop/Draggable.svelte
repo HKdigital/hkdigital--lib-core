@@ -23,7 +23,10 @@
    *   dragDelay?: number,
    *   base?: string,
    *   classes?: string,
-   *   children: import('svelte').Snippet,
+   *   children: import('svelte').Snippet<[{
+   *     element: HTMLElement,
+   *     rect: DOMRect
+   *   }]>,
    *   draggingSnippet?: import('svelte').Snippet<[{
    *     element: HTMLElement,
    *     rect: DOMRect
@@ -206,6 +209,9 @@ let stateObject = $derived({
       JSON.stringify({ draggableId })
     );
 
+    // Chrome also likes to have text/plain
+    event.dataTransfer.setData('text/plain', draggableId);
+
     // Create the preview controller
     const previewController = new DragController(event);
 
@@ -216,8 +222,8 @@ let stateObject = $derived({
     onDragStart?.({ event, item, source, group, getController });
 
     // Apply drag preview if available
-    if (draggingSnippet && !previewController.hasCustomPreview()) {
-      try {
+    // if (draggingSnippet) {
+      // try {
         // Store rectangle information for the snippet
         elementRect = rect;
 
@@ -229,10 +235,20 @@ let stateObject = $derived({
         previewX = rect.left;
         previewY = rect.top;
 
-        // Set a transparent 1x1 pixel image to hide browser's default preview
+        // Set a transparent 1x1 pixel image to hide browser's
+        // default preview
         const emptyImg = new Image();
         emptyImg.src =
-          'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+         'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
+        // Chrome needs the image to be loaded before setting it
+        emptyImg.onload = () => {
+         if (event.dataTransfer) {
+           event.dataTransfer.setDragImage(emptyImg, 0, 0);
+         }
+        };
+
+        // Fallback: try to set it immediately too
         event.dataTransfer.setDragImage(emptyImg, 0, 0);
 
         // Add document level event listener to track mouse movement
@@ -241,15 +257,15 @@ let stateObject = $derived({
         // Show custom preview
         showPreview = true;
         customPreviewSet = true;
-      } catch (err) {
-        console.error('Error setting up custom preview:', err);
-        // Fallback to default preview
-        previewController.applyDefaultPreview();
-      }
-    } else if (!previewController.hasCustomPreview()) {
-      // Apply default preview if no custom preview was set
-      previewController.applyDefaultPreview();
-    }
+      // } catch (err) {
+      //   console.error('Error setting up custom preview:', err);
+      //   // Fallback to default preview
+      //   previewController.applyDefaultPreview();
+      // }
+    // } else {
+    //   // Apply default preview if no custom preview was set
+    //   previewController.applyDefaultPreview();
+    // }
   }
 
   /**
@@ -358,12 +374,12 @@ let stateObject = $derived({
       dragState.start(draggableId, dragData);
 
       // Show preview
-      if (draggingSnippet) {
+      // if (draggingSnippet) {
         elementRect = rect;
         previewX = rect.left;
         previewY = rect.top;
         showPreview = true;
-      }
+      // }
 
       // Prevent scrolling while dragging
       event.preventDefault();
@@ -398,7 +414,7 @@ function handleTouchMove(event) {
     clientX: touch.clientX,
     clientY: touch.clientY,
     dataTransfer: {
-      types: ['application/json'],
+      types: ['application/json', 'text/plain'],
       getData: () => JSON.stringify({ draggableId }),
       dropEffect: 'move',
       effectAllowed: 'move',
@@ -429,7 +445,7 @@ function handleTouchMove(event) {
     clientX: touch.clientX,
     clientY: touch.clientY,
     dataTransfer: {
-      types: ['application/json'],
+      types: ['application/json', 'text'],
       getData: () => JSON.stringify({ draggableId }),
       dropEffect: 'move',
       effectAllowed: 'move',
@@ -468,10 +484,10 @@ function handleTouchMove(event) {
   style="touch-action: none;"
   {...attrs}
 >
-  {@render children()}
+  {@render children({ element: draggableElement, rect: elementRect })}
 </div>
 
-{#if draggingSnippet && showPreview && elementRect}
+{#if showPreview && elementRect}
   <div
     data-companion="drag-preview-follower"
     class={stateClasses}
@@ -479,7 +495,11 @@ function handleTouchMove(event) {
     style:left="{previewX}px"
     style:top="{previewY}px"
   >
+  {#if draggingSnippet}
     {@render draggingSnippet({ element: draggableElement, rect: elementRect })}
+  {:else}
+    {@render children({ element: draggableElement, rect: elementRect })}
+  {/if}
   </div>
 {/if}
 

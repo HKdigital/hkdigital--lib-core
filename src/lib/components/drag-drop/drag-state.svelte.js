@@ -259,8 +259,26 @@ class DragState {
    * @returns {Object|null} The drag data, or null for file drops
    */
   getDraggable(event) {
-    // Check if this is a touch-simulated event
-    if (event.dataTransfer && !event.dataTransfer.files) {
+    // Check if this is a file drop first
+    if (event.dataTransfer && event.dataTransfer.types) {
+      // Check if types is an array or DOMStringList
+      const types = Array.from(event.dataTransfer.types);
+      if (types.includes('Files')) {
+        return null; // This is a file drop, not an internal drag
+      }
+    }
+
+    // For dragover events, we can't read dataTransfer.getData in Chrome
+    // Instead, check if we have an active drag operation
+    if (event.type === 'dragover') {
+      if (this.draggables.size > 0) {
+        // Return the most recent drag operation
+        return this.current;
+      }
+    }
+
+    // For drop events, we can read the data
+    if (event.type === 'drop' && event.dataTransfer) {
       try {
         const jsonData = event.dataTransfer.getData('application/json');
         if (jsonData) {
@@ -272,34 +290,12 @@ class DragState {
           }
         }
       } catch (error) {
-        console.error('Error getting drag data:', error);
+        console.error('Error getting drag data from drop:', error);
       }
     }
 
-    // Check if this is a file drop
-    if (event.dataTransfer.types.includes('Files')) {
-      return null;
-    }
-
-    // Handle internal drag operations
-    try {
-      const jsonData = event.dataTransfer.getData('application/json');
-      if (jsonData) {
-        const transferData = JSON.parse(jsonData);
-        const draggableId = transferData.draggableId;
-
-        if (draggableId) {
-          const dragData = this.getDraggableById(draggableId);
-          if (dragData) {
-            return dragData;
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Error getting drag data:', error);
-    }
-
-    return null;
+    // Fallback to checking active drags
+    return this.current;
   }
 
   /**
