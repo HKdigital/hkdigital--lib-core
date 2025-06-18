@@ -1,6 +1,8 @@
 <script>
   import { createDragState } from './drag-state.svelte.js';
 
+  import { activeDragOver } from './actions.js';
+
   /**
    * @type {{
    *   contextKey?: import('$lib/typedef').ContextKey,
@@ -93,7 +95,7 @@
 <div
   data-component="drag-drop-context"
   ondragenter={onDragEnter}
-  ondragover={onDragOver}
+  use:activeDragOver={onDragOver}
   ondragleave={onDragLeave}
   ondrop={onDrop}
   ondragend={onDragEnd}
