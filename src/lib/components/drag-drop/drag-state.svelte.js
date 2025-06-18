@@ -270,7 +270,7 @@ class DragState {
 
     // For dragover events, we can't read dataTransfer.getData in Chrome
     // Instead, check if we have an active drag operation
-    if (event.type === 'dragover') {
+    if (event.type === 'dragover'|| event.type === 'dragenter') {
       if (this.draggables.size > 0) {
         // Return the most recent drag operation
         return this.current;

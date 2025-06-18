@@ -1,4 +1,6 @@
 <script>
+  import { browser } from '$app/environment';
+
   import { toStateClasses } from '$lib/util/design-system/index.js';
   import { createOrGetDragState } from './drag-state.svelte.js';
   import { DragController } from './DragController.js';
@@ -177,11 +179,23 @@ let stateObject = $derived({
     startDrag(event);
   }
 
+  let transparentPixel;
+
+  if( browser )
+  {
+    transparentPixel = new Image();
+    transparentPixel.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+  }
+
   /**
    * Start the drag operation
    * @param {DragEvent} event - The drag event
    */
   function startDrag(event) {
+
+    // Set a transparent 1x1 pixel image to hide browser's default preview
+    event.dataTransfer.setDragImage(transparentPixel, 0, 0);
+
     // Get the element's bounding rectangle
     const rect = draggableElement.getBoundingClientRect();
 
@@ -221,51 +235,23 @@ let stateObject = $derived({
     // Call onDragStart with the getController function
     onDragStart?.({ event, item, source, group, getController });
 
-    // Apply drag preview if available
-    // if (draggingSnippet) {
-      // try {
-        // Store rectangle information for the snippet
-        elementRect = rect;
+    // Store rectangle information for the snippet
+    elementRect = rect;
 
-        // These offsets represent where the user grabbed the element relative to its top-left corner
-        dragOffsetX = event.clientX - rect.left;
-        dragOffsetY = event.clientY - rect.top;
+    // These offsets represent where the user grabbed the element relative to its top-left corner
+    dragOffsetX = event.clientX - rect.left;
+    dragOffsetY = event.clientY - rect.top;
 
-        // Set initial position - this places the preview at the element's original position
-        previewX = rect.left;
-        previewY = rect.top;
+    // Set initial position - this places the preview at the element's original position
+    previewX = rect.left;
+    previewY = rect.top;
 
-        // Set a transparent 1x1 pixel image to hide browser's
-        // default preview
-        const emptyImg = new Image();
-        emptyImg.src =
-         'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    // Add document level event listener to track mouse movement
+    document.addEventListener('dragover', handleDocumentDragOver);
 
-        // Chrome needs the image to be loaded before setting it
-        emptyImg.onload = () => {
-         if (event.dataTransfer) {
-           event.dataTransfer.setDragImage(emptyImg, 0, 0);
-         }
-        };
-
-        // Fallback: try to set it immediately too
-        event.dataTransfer.setDragImage(emptyImg, 0, 0);
-
-        // Add document level event listener to track mouse movement
-        document.addEventListener('dragover', handleDocumentDragOver);
-
-        // Show custom preview
-        showPreview = true;
-        customPreviewSet = true;
-      // } catch (err) {
-      //   console.error('Error setting up custom preview:', err);
-      //   // Fallback to default preview
-      //   previewController.applyDefaultPreview();
-      // }
-    // } else {
-    //   // Apply default preview if no custom preview was set
-    //   previewController.applyDefaultPreview();
-    // }
+    // Show custom preview
+    showPreview = true;
+    customPreviewSet = true;
   }
 
   /**
