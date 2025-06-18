@@ -7,6 +7,9 @@ class DragState {
   // Existing draggables map
   draggables = $state(new Map());
 
+  // Draggable id counter
+  draggableIdCount = 1;
+
   // New: Registry for dropzones
   dropZones = $state(new Map());
 
@@ -162,6 +165,9 @@ class DragState {
     if (dropZone && dropZone.config.canDrop) {
       const dragData = this.getDraggable(event);
 
+      console.debug('handleDropAtPoint', event, dragData);
+
+
       if (dragData && dropZone.config.element) {
         // Calculate drop position relative to dropzone
         const rect = dropZone.config.element.getBoundingClientRect();
@@ -213,6 +219,7 @@ class DragState {
    * @param {import('$lib/typedef/drag.js').DragData} dragData
    */
   start(draggableId, dragData) {
+    // console.debug('DragState.start called:', draggableId, dragData);
     this.draggables.set(draggableId, dragData);
   }
 
@@ -220,6 +227,7 @@ class DragState {
    * @param {string} draggableId
    */
   end(draggableId) {
+    // console.debug('DragState.end called:', draggableId);
     this.draggables.delete(draggableId);
 
     // Check both current AND last active dropzone
@@ -241,6 +249,10 @@ class DragState {
     this.lastActiveDropZone = null;
   }
 
+  newDraggableId() {
+    return `${this.draggableIdCount++}`;
+  }
+
   /**
    * Get a drag data by draggable id
    *
@@ -256,7 +268,7 @@ class DragState {
    *
    * @param {DragEvent|SimulatedDragEvent} event
    *
-   * @returns {Object|null} The drag data, or null for file drops
+   * @returns {Object|null} The drag data, or null for file drops or not found
    */
   getDraggable(event) {
     // Check if this is a file drop first
@@ -268,34 +280,25 @@ class DragState {
       }
     }
 
-    // For dragover events, we can't read dataTransfer.getData in Chrome
-    // Instead, check if we have an active drag operation
-    if (event.type === 'dragover'|| event.type === 'dragenter') {
-      if (this.draggables.size > 0) {
-        // Return the most recent drag operation
-        return this.current;
+    if (event.dataTransfer?.types) {
+      const types = Array.from(event.dataTransfer.types);
+
+      const PREFIX = 'application/x-draggable-';
+
+      const dragType = types.find((t) => t.startsWith(PREFIX));
+
+      if (dragType) {
+        const draggableId = dragType.slice(PREFIX.length);
+
+        const entry = this.getDraggableById(draggableId);
+
+        console.debug('getDraggable', draggableId, entry);
+
+        return entry;
       }
     }
 
-    // For drop events, we can read the data
-    if (event.type === 'drop' && event.dataTransfer) {
-      try {
-        const jsonData = event.dataTransfer.getData('application/json');
-        if (jsonData) {
-          const transferData = JSON.parse(jsonData);
-          const draggableId = transferData.draggableId;
-
-          if (draggableId) {
-            return this.getDraggableById(draggableId);
-          }
-        }
-      } catch (error) {
-        console.error('Error getting drag data from drop:', error);
-      }
-    }
-
-    // Fallback to checking active drags
-    return this.current;
+    return null;
   }
 
   /**

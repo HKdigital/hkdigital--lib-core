@@ -1,7 +1,7 @@
 <script>
   import { createDragState } from './drag-state.svelte.js';
 
-  import { activeDragOver, activeTouchMove } from './actions.js';
+  import { activeTouchMove, activeDragOver, activeDrop } from './actions.js';
 
   /**
    * @type {{
@@ -97,10 +97,9 @@
   ondragenter={onDragEnter}
   use:activeDragOver={onDragOver}
   ondragleave={onDragLeave}
-  ondrop={onDrop}
+  use:activeDrop={onDrop}
   ondragend={onDragEnd}
   use:activeTouchMove={(e) => {
-    // Prevent scrolling if we're dragging
     if (dragState.isDragging()) {
       e.preventDefault();
     }

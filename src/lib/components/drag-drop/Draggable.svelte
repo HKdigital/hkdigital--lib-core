@@ -4,7 +4,6 @@
   import { toStateClasses } from '$lib/util/design-system/index.js';
   import { createOrGetDragState } from './drag-state.svelte.js';
   import { DragController } from './DragController.js';
-  import { generateLocalId } from '$lib/util/unique';
   import { onDestroy } from 'svelte';
   import {
     IDLE,
@@ -86,7 +85,7 @@
 
   const dragState = createOrGetDragState(contextKey);
 
-  const draggableId = generateLocalId();
+  const draggableId = dragState.newDraggableId();
 
   // svelte-ignore non_reactive_update
   let draggableElement;
@@ -213,17 +212,20 @@ let stateObject = $derived({
       group
     };
 
+    // console.debug('handleDragStart:', draggableId, dragData);
+
     // Set shared drag state
     dragState.start(draggableId, dragData);
 
     // Set minimal data transfer for browser drag and drop API
     event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData(
-      'application/json',
-      JSON.stringify({ draggableId })
-    );
 
-    // Chrome also likes to have text/plain
+    // Set draggableId as custom mime type, since that value is availabe
+    // during all event types (dragstart, dragenter, dragover, dragleave,
+    // drop and dragend)
+    event.dataTransfer.setData(`application/x-draggable-${draggableId}`, '1');
+
+    // Also keep text/plain for browser compatibility
     event.dataTransfer.setData('text/plain', draggableId);
 
     // Create the preview controller
@@ -374,6 +376,7 @@ let stateObject = $derived({
       document.addEventListener('touchmove', handleTouchMove, {
         passive: false
       });
+
       document.addEventListener('touchend', handleTouchEnd);
     }, 150); // 150ms delay to distinguish from scrolling
   }
@@ -400,12 +403,13 @@ function handleTouchMove(event) {
     clientX: touch.clientX,
     clientY: touch.clientY,
     dataTransfer: {
-      types: ['application/json', 'text/plain'],
-      getData: () => JSON.stringify({ draggableId }),
+      types: [`application/x-draggable-${draggableId}`, 'text/plain'],
+      getData: () => 1,
       dropEffect: 'move',
       effectAllowed: 'move',
       files: []
     },
+
     preventDefault: () => {},
     stopPropagation: () => {}
   };
@@ -431,8 +435,8 @@ function handleTouchMove(event) {
     clientX: touch.clientX,
     clientY: touch.clientY,
     dataTransfer: {
-      types: ['application/json', 'text'],
-      getData: () => JSON.stringify({ draggableId }),
+      types: [`application/x-draggable-${draggableId}`, 'text/plain'],
+      getData: () => 1,
       dropEffect: 'move',
       effectAllowed: 'move',
       files: []
