@@ -12,7 +12,6 @@
     DROPPING
   } from '$lib/constants/state-labels/drag-states.js';
 
-
   /** @typedef {import('$lib/typedef').SimulatedDragEvent} SimulatedDragEvent */
 
   /**
@@ -26,7 +25,8 @@
    *   classes?: string,
    *   children: import('svelte').Snippet<[{
    *     element: HTMLElement,
-   *     rect: DOMRect
+   *     rect: DOMRect,
+   *     isDragging: boolean
    *   }]>,
    *   draggingSnippet?: import('svelte').Snippet<[{
    *     element: HTMLElement,
@@ -102,24 +102,27 @@
   let customPreviewSet = $state(false);
   let elementRect = $state(null);
 
-// Track if current draggable can drop in the active zone
-let canDropInActiveZone = $derived.by(() => {
-  if (currentState !== DRAGGING || !dragState.activeDropZone) return false;
+  // Track if current draggable can drop in the active zone
+  let canDropInActiveZone = $derived.by(() => {
+    if (currentState !== DRAGGING || !dragState.activeDropZone) return false;
 
-  const activeZone = dragState.dropZones.get(dragState.activeDropZone);
-  return activeZone?.canDrop || false;
-});
+    const activeZone = dragState.dropZones.get(dragState.activeDropZone);
+    return activeZone?.canDrop || false;
+  });
 
-// Computed state object for CSS classes
-let stateObject = $derived({
-  idle: currentState === IDLE,
-  dragging: currentState === DRAGGING,
-  'drag-preview': currentState === DRAG_PREVIEW,
-  dropping: currentState === DROPPING,
-  'drag-disabled': disabled || !canDrag(item),
-  'can-drop': currentState === DRAGGING && canDropInActiveZone,
-  'cannot-drop': currentState === DRAGGING && dragState.activeDropZone && !canDropInActiveZone
-});
+  // Computed state object for CSS classes
+  let stateObject = $derived({
+    idle: currentState === IDLE,
+    dragging: currentState === DRAGGING,
+    'drag-preview': currentState === DRAG_PREVIEW,
+    dropping: currentState === DROPPING,
+    'drag-disabled': disabled || !canDrag(item),
+    'can-drop': currentState === DRAGGING && canDropInActiveZone,
+    'cannot-drop':
+      currentState === DRAGGING &&
+      dragState.activeDropZone &&
+      !canDropInActiveZone
+  });
 
   let stateClasses = $derived(toStateClasses(stateObject));
 
@@ -180,10 +183,10 @@ let stateObject = $derived({
 
   let transparentPixel;
 
-  if( browser )
-  {
+  if (browser) {
     transparentPixel = new Image();
-    transparentPixel.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    transparentPixel.src =
+      'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
   }
 
   /**
@@ -191,7 +194,6 @@ let stateObject = $derived({
    * @param {DragEvent} event - The drag event
    */
   function startDrag(event) {
-
     // Set a transparent 1x1 pixel image to hide browser's default preview
     event.dataTransfer.setDragImage(transparentPixel, 0, 0);
 
@@ -363,10 +365,10 @@ let stateObject = $derived({
 
       // Show preview
       // if (draggingSnippet) {
-        elementRect = rect;
-        previewX = rect.left;
-        previewY = rect.top;
-        showPreview = true;
+      elementRect = rect;
+      previewX = rect.left;
+      previewY = rect.top;
+      showPreview = true;
       // }
 
       // Prevent scrolling while dragging
@@ -385,79 +387,83 @@ let stateObject = $derived({
    * Handle touch move
    * @param {TouchEvent} event
    */
-function handleTouchMove(event) {
-  if (!touchDragging) return;
+  function handleTouchMove(event) {
+    if (!touchDragging) return;
 
-  event.preventDefault();
-  const touch = event.touches[0];
+    event.preventDefault();
+    const touch = event.touches[0];
 
-  // Update preview position
-  if (showPreview) {
-    previewX = touch.clientX - dragOffsetX;
-    previewY = touch.clientY - dragOffsetY;
+    // Update preview position
+    if (showPreview) {
+      previewX = touch.clientX - dragOffsetX;
+      previewY = touch.clientY - dragOffsetY;
+    }
+
+    /** @type {SimulatedDragEvent} */
+    const simulatedEvent = {
+      type: 'dragover',
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+      dataTransfer: {
+        types: [`application/x-draggable-${draggableId}`, 'text/plain'],
+        getData: () => 1,
+        dropEffect: 'move',
+        effectAllowed: 'move',
+        files: []
+      },
+
+      preventDefault: () => {},
+      stopPropagation: () => {}
+    };
+
+    // Update active dropzone in drag state
+    dragState.updateActiveDropZone(
+      touch.clientX,
+      touch.clientY,
+      simulatedEvent
+    );
   }
-
-  /** @type {SimulatedDragEvent} */
-  const simulatedEvent = {
-    type: 'dragover',
-    clientX: touch.clientX,
-    clientY: touch.clientY,
-    dataTransfer: {
-      types: [`application/x-draggable-${draggableId}`, 'text/plain'],
-      getData: () => 1,
-      dropEffect: 'move',
-      effectAllowed: 'move',
-      files: []
-    },
-
-    preventDefault: () => {},
-    stopPropagation: () => {}
-  };
-
-  // Update active dropzone in drag state
-  dragState.updateActiveDropZone(touch.clientX, touch.clientY, simulatedEvent);
-}
 
   /**
    * Handle touch end
    * @param {TouchEvent} event
    */
   function handleTouchEnd(event) {
-  clearTimeout(dragTimeout);
+    clearTimeout(dragTimeout);
 
-  if (!touchDragging) return;
+    if (!touchDragging) return;
 
-  const touch = event.changedTouches[0];
+    const touch = event.changedTouches[0];
 
-  /** @type {SimulatedDragEvent} */
-  const simulatedEvent = {
-    type: 'drop',
-    clientX: touch.clientX,
-    clientY: touch.clientY,
-    dataTransfer: {
-      types: [`application/x-draggable-${draggableId}`, 'text/plain'],
-      getData: () => 1,
-      dropEffect: 'move',
-      effectAllowed: 'move',
-      files: []
-    },
-    preventDefault: () => {},  // Add this!
-    stopPropagation: () => {}  // And this!
-  };
+    /** @type {SimulatedDragEvent} */
+    const simulatedEvent = {
+      type: 'drop',
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+      dataTransfer: {
+        types: [`application/x-draggable-${draggableId}`, 'text/plain'],
+        getData: () => 1,
+        dropEffect: 'move',
+        effectAllowed: 'move',
+        files: []
+      },
+      preventDefault: () => {}, // Add this!
+      stopPropagation: () => {} // And this!
+    };
 
-  // Trigger drop at final touch position
-  dragState.handleDropAtPoint(touch.clientX, touch.clientY, simulatedEvent);
+    // Trigger drop at final touch position
+    dragState.handleDropAtPoint(touch.clientX, touch.clientY, simulatedEvent);
 
-  // Clean up
-  touchDragging = false;
-  currentState = IDLE;
-  showPreview = false;
-  dragState.end(draggableId);
+    // Clean up
+    touchDragging = false;
+    currentState = IDLE;
+    showPreview = false;
+    dragState.end(draggableId);
 
-  // Remove document handlers
-  document.removeEventListener('touchmove', handleTouchMove);
-  document.removeEventListener('touchend', handleTouchEnd);
-}
+    // Remove document handlers
+    document.removeEventListener('touchmove', handleTouchMove);
+    document.removeEventListener('touchend', handleTouchEnd);
+  }
 </script>
 
 <div
@@ -474,7 +480,11 @@ function handleTouchMove(event) {
   style="touch-action: none;"
   {...attrs}
 >
-  {@render children({ element: draggableElement, rect: elementRect })}
+  {@render children({
+    element: draggableElement,
+    rect: elementRect,
+    isDragging: false
+  })}
 </div>
 
 {#if showPreview && elementRect}
@@ -485,11 +495,18 @@ function handleTouchMove(event) {
     style:left="{previewX}px"
     style:top="{previewY}px"
   >
-  {#if draggingSnippet}
-    {@render draggingSnippet({ element: draggableElement, rect: elementRect })}
-  {:else}
-    {@render children({ element: draggableElement, rect: elementRect })}
-  {/if}
+    {#if draggingSnippet}
+      {@render draggingSnippet({
+        element: draggableElement,
+        rect: elementRect
+      })}
+    {:else}
+      {@render children({
+        element: draggableElement,
+        rect: elementRect,
+        isDragging: true
+      })}
+    {/if}
   </div>
 {/if}
 

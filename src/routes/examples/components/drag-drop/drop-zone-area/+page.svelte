@@ -6,7 +6,10 @@
   } from '$lib/components/drag-drop';
 
   import { GridLayers } from '$lib/components/layout/index.js';
+
   import Recyclable from './Recyclable.js';
+
+  import Item from './Item.svelte';
 
   /** @typedef {import('$lib/typedef').DropData} DropData */
 
@@ -173,18 +176,11 @@
 
                 {#each getItemsInBin(bin.id) as item (item.id)}
                   <div
-                    class="absolute border-8 bg-white flex items-center justify-center pointer-events-none"
-                    class:border-warning-500={item.type === 'plastic'}
-                    class:border-secondary-500={item.type === 'paper'}
-                    class:border-tertiary-500={item.type === 'glass'}
-                    class:border-surface-500={item.type === 'waste'}
-                    class:border-primary-500={item.type === 'organic'}
+                    class="absolute"
                     style:left="{item.x}px"
                     style:top="{item.y}px"
-                    style:width="{itemSize}px"
-                    style:height="{itemSize}px"
                   >
-                    <span class="text-2xl">{item.icon}</span>
+                    <Item {item} {itemSize} isDragging={false} />
                   </div>
                 {/each}
               </DropZoneArea>
@@ -206,15 +202,11 @@
             base="cursor-grab active:cursor-grabbing border-8"
             classes={typeBorders[item.type]}
           >
-            <div
-              class="flex items-center justify-center"
-              style:width="{itemSize}px"
-              style:height="{itemSize}px"
-            >
-              <span class="text-2xl">{item.icon}</span>
-            </div>
+            {#snippet children( { isDragging })}
+              <Item {item} {itemSize} {isDragging} />
+            {/snippet}
 
-            {#snippet draggingSnippet()}
+<!--             {#snippet draggingSnippet()}
               <div
                 class="border-8 flex items-center justify-center bg-white"
                 class:border-warning-500={item.type === 'plastic'}
@@ -227,7 +219,7 @@
               >
                 <span class="text-2xl">{item.icon}</span>
               </div>
-            {/snippet}
+            {/snippet} -->
           </Draggable>
         {/each}
 
