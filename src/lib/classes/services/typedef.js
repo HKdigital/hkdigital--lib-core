@@ -9,8 +9,8 @@
  * // In your service implementation
  * import { ServiceBase } from './ServiceBase.js';
  * 
- * // @typedef {import('./typedef.js').ServiceConfig} ServiceConfig
- * // @typedef {import('./typedef.js').HealthStatus} HealthStatus
+ * // @ typedef {import('./typedef.js').ServiceConfig} ServiceConfig
+ * // @ typedef {import('./typedef.js').HealthStatus} HealthStatus
  * 
  * class MyService extends ServiceBase {
  *   async _init(config) {
@@ -27,8 +27,8 @@
  * // When using ServiceManager
  * import { ServiceManager } from './ServiceManager.js';
  * 
- * // @typedef {import('./typedef.js').ServiceManagerConfig} ServiceManagerConfig
- * // @typedef {import('./typedef.js').ServiceRegistrationOptions} ServiceRegistrationOptions
+ * // @ typedef {import('./typedef.js').ServiceManagerConfig} ServiceManagerConfig
+ * // @ typedef {import('./typedef.js').ServiceRegistrationOptions} ServiceRegistrationOptions
  * 
  * const config = {
  *   environment: 'development',
@@ -48,7 +48,7 @@
 /**
  * Service configuration object passed to service initialization
  * @typedef {Object} ServiceConfig
- * @property {*} [*] - Service-specific configuration properties
+ * @property {*} [key] - Service-specific configuration properties
  */
 
 /**
@@ -73,7 +73,7 @@
  * @property {boolean} healthy - Whether the service is healthy
  * @property {string} [error] - Error message if unhealthy
  * @property {string} [checkError] - Error from health check itself
- * @property {*} [*] - Additional health check properties
+ * @property {*} [key] - Additional health check properties
  */
 
 /**
@@ -154,7 +154,7 @@
  * @property {string} state - Current state
  * @property {boolean} healthy - Health status
  * @property {Error|null} error - Last error
- * @property {Logger} logger - Service logger
+ * @property {import('$lib/classes/logging').Logger} logger - Service logger
  * @property {(config?: ServiceConfig) => Promise<boolean>} initialize
  * @property {() => Promise<boolean>} start
  * @property {(options?: StopOptions) => Promise<boolean>} stop
