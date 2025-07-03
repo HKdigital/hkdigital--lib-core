@@ -13,7 +13,7 @@
  * import AuthService from './services/AuthService.js';
  *
  * const manager = new ServiceManager({
- *   environment: 'development',
+ *   debug: true,
  *   stopTimeout: 10000
  * });
  *
@@ -103,7 +103,7 @@ export class ServiceManager extends EventEmitter {
 
     /** @type {ServiceManagerConfig} */
     this.config = {
-      environment: config.environment || 'production',
+      debug: config.debug ?? false,
       autoStart: config.autoStart ?? false,
       stopTimeout: config.stopTimeout || 10000,
       logConfig: config.logConfig || {}
@@ -449,7 +449,8 @@ export class ServiceManager extends EventEmitter {
       this.config.logConfig.globalLevel = level;
 
       // Apply to all existing services
-      for (const [serviceName, entry] of this.services) {
+      // eslint-disable-next-line no-unused-vars
+      for (const [_, entry] of this.services) {
         if (entry.instance) {
           entry.instance.setLogLevel(level);
         }
@@ -489,13 +490,13 @@ export class ServiceManager extends EventEmitter {
   // Private methods
 
   /**
-   * Setup logging configuration based on environment
+   * Setup logging configuration based on config.dev
    *
    * @private
    */
   _setupLogging() {
-    // Set default log levels based on environment
-    if (this.config.environment === 'development') {
+    // Set default log levels based on config.debug flag
+    if (this.config.debug) {
       this.config.logConfig.defaultLevel = DEBUG;
     } else {
       this.config.logConfig.defaultLevel = WARN;

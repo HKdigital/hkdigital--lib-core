@@ -440,11 +440,11 @@ describe('ServiceManager', () => {
   });
 
   describe('Logging Configuration', () => {
-    it('should set default log level based on environment', () => {
-      const devManager = new ServiceManager({ environment: 'development' });
+    it('should set default log level based on debug flag', () => {
+      const devManager = new ServiceManager({ debug: true });
       expect(devManager.config.logConfig.defaultLevel).toBe(DEBUG);
 
-      const prodManager = new ServiceManager({ environment: 'production' });
+      const prodManager = new ServiceManager({ debug: false });
       expect(prodManager.config.logConfig.defaultLevel).toBe(WARN);
     });
 
