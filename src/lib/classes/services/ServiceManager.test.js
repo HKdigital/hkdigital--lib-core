@@ -2,51 +2,62 @@
  * @fileoverview Unit tests for ServiceManager.js
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
-import { ServiceBase, ServiceManager } from './index.js';
-
+import { ServiceBase } from './ServiceBase.js';
+import { ServiceManager } from './ServiceManager.js';
+import { DEBUG, INFO, WARN } from '$lib/classes/logging';
 import {
   CREATED,
-  INITIALIZING,
   INITIALIZED,
-  STARTING,
   RUNNING,
-  STOPPING,
   STOPPED,
-  DESTROYING,
-  DESTROYED,
-  ERROR,
-  RECOVERING
-} from './constants.js';
+  ERROR
+} from './service-states.js';
 
-// Mock service implementation
-class MockService extends ServiceBase {
-  constructor(name) {
-    super(name);
-    
-    // Add mocks for lifecycle methods
-    this._init = vi.fn().mockResolvedValue(undefined);
-    this._start = vi.fn().mockResolvedValue(undefined);
-    this._stop = vi.fn().mockResolvedValue(undefined);
-    this._destroy = vi.fn().mockResolvedValue(undefined);
-    this._recover = vi.fn().mockResolvedValue(undefined);
+// Mock service classes
+class MockServiceA extends ServiceBase {
+  async _init(config) {
+    this.config = config;
+  }
+  async _start() {
+    this.started = true;
+  }
+  async _stop() {
+    this.started = false;
+  }
+}
+
+class MockServiceB extends ServiceBase {
+  async _init(config) {
+    this.config = config;
+  }
+  async _start() {
+    this.started = true;
+  }
+  async _stop() {
+    this.started = false;
+  }
+}
+
+class MockServiceC extends ServiceBase {
+  async _init(config) {
+    this.config = config;
+  }
+  async _start() {
+    this.started = true;
+  }
+  async _stop() {
+    this.started = false;
+  }
+  async _healthCheck() {
+    return { custom: 'health-data' };
   }
 }
 
 describe('ServiceManager', () => {
   let manager;
-  let serviceA;
-  let serviceB;
-  let serviceC;
 
   beforeEach(() => {
-    // Setup clean manager and services
     manager = new ServiceManager();
-    serviceA = new MockService('serviceA');
-    serviceB = new MockService('serviceB');
-    serviceC = new MockService('serviceC');
-    
-    // Reset mocks
     vi.clearAllMocks();
   });
 
@@ -54,335 +65,471 @@ describe('ServiceManager', () => {
     vi.restoreAllMocks();
   });
 
-  it('should register services', () => {
-    expect(manager.register('serviceA', serviceA)).toBe(true);
-    expect(manager.register('serviceB', serviceB)).toBe(true);
-    
-    expect(manager.getServiceNames()).toEqual(['serviceA', 'serviceB']);
-    expect(manager.getService('serviceA')).toBe(serviceA);
-  });
+  describe('Service Registration', () => {
+    it('should register service classes', () => {
+      manager.register('serviceA', MockServiceA, { configA: true });
+      manager.register('serviceB', MockServiceB, { configB: true });
 
-  it('should handle service dependencies', () => {
-    // Register services with dependencies
-    manager.register('serviceA', serviceA);
-    
-    // B depends on A
-    manager.register('serviceB', serviceB, {
-      dependencies: ['serviceA']
-    });
-    
-    // C depends on B
-    const result = manager.register('serviceC', serviceC, {
-      dependencies: ['serviceB']
-    });
-    
-    expect(result).toBe(true);
-    
-    // Check dependency tracking
-    const statusB = manager.getServiceStatus('serviceB');
-    const statusC = manager.getServiceStatus('serviceC');
-    
-    expect(statusB.dependencies).toEqual(['serviceA']);
-    expect(statusC.dependencies).toEqual(['serviceB']);
-  });
-  
-  it('should reject registration with missing dependencies', () => {
-    // Try to register with a non-existent dependency
-    const result = manager.register('serviceB', serviceB, {
-      dependencies: ['nonExistentService']
-    });
-    
-    expect(result).toBe(false);
-    expect(manager.getService('serviceB')).toBeNull();
-  });
-
-  it('should initialize services', async () => {
-    manager.register('serviceA', serviceA);
-    
-    const config = { testOption: 'value' };
-    const result = await manager.initializeService('serviceA', config);
-    
-    expect(result).toBe(true);
-    expect(serviceA._init).toHaveBeenCalledWith(config);
-    expect(serviceA.state).toBe(INITIALIZED);
-  });
-
-  it('should initialize all services', async () => {
-    manager.register('serviceA', serviceA);
-    manager.register('serviceB', serviceB);
-    
-    const configs = {
-      serviceA: { optionA: 'valueA' },
-      serviceB: { optionB: 'valueB' }
-    };
-    
-    const result = await manager.initializeAll(configs);
-    
-    expect(result).toBe(true);
-    expect(serviceA._init).toHaveBeenCalledWith(configs.serviceA);
-    expect(serviceB._init).toHaveBeenCalledWith(configs.serviceB);
-    expect(serviceA.state).toBe(INITIALIZED);
-    expect(serviceB.state).toBe(INITIALIZED);
-  });
-
-  it('should start services respecting dependencies', async () => {
-    // Setup services with dependencies
-    manager.register('serviceA', serviceA);
-    manager.register('serviceB', serviceB, {
-      dependencies: ['serviceA']
-    });
-    
-    await manager.initializeAll();
-    
-    // Start serviceB (should start A first)
-    const result = await manager.startService('serviceB');
-    
-    expect(result).toBe(true);
-    expect(serviceA._start).toHaveBeenCalled();
-    expect(serviceB._start).toHaveBeenCalled();
-    expect(serviceA.state).toBe(RUNNING);
-    expect(serviceB.state).toBe(RUNNING);
-  });
-
-  it('should prevent starting if dependencies fail', async () => {
-    // Setup services with dependencies
-    manager.register('serviceA', serviceA);
-    manager.register('serviceB', serviceB, {
-      dependencies: ['serviceA']
-    });
-    
-    await manager.initializeAll();
-    
-    // Make serviceA fail to start
-    serviceA._start.mockRejectedValueOnce(new Error('Failed to start'));
-    
-    // Try to start serviceB
-    const result = await manager.startService('serviceB');
-    
-    expect(result).toBe(false);
-    expect(serviceA._start).toHaveBeenCalled();
-    expect(serviceB._start).not.toHaveBeenCalled();
-    expect(serviceA.state).toBe(ERROR);
-    expect(serviceB.state).toBe(INITIALIZED);
-  });
-
-  it('should start all services in dependency order', async () => {
-    // Setup services with dependencies
-    manager.register('serviceA', serviceA);
-    manager.register('serviceB', serviceB, {
-      dependencies: ['serviceA']
-    });
-    manager.register('serviceC', serviceC, {
-      dependencies: ['serviceB']
-    });
-    
-    await manager.initializeAll();
-    
-    // Start all services
-    const result = await manager.startAll();
-    
-    expect(result).toBe(true);
-    
-    // Check correct order through invocation order
-    const startOrder = [
-      serviceA._start.mock.invocationCallOrder[0],
-      serviceB._start.mock.invocationCallOrder[0],
-      serviceC._start.mock.invocationCallOrder[0]
-    ];
-    
-    // Verify order is ascending (dependencies started first)
-    expect(startOrder[0]).toBeLessThan(startOrder[1]);
-    expect(startOrder[1]).toBeLessThan(startOrder[2]);
-    
-    // All services should be running
-    expect(serviceA.state).toBe(RUNNING);
-    expect(serviceB.state).toBe(RUNNING);
-    expect(serviceC.state).toBe(RUNNING);
-  });
-
-  it('should stop services considering dependents', async () => {
-    // Setup services with dependencies
-    manager.register('serviceA', serviceA);
-    manager.register('serviceB', serviceB, {
-      dependencies: ['serviceA']
-    });
-    
-    await manager.initializeAll();
-    await manager.startAll();
-    
-    // Try to stop serviceA (should fail because B depends on it)
-    const result = await manager.stopService('serviceA');
-    
-    expect(result).toBe(false);
-    expect(serviceA._stop).not.toHaveBeenCalled();
-    expect(serviceA.state).toBe(RUNNING);
-    
-    // Force stop serviceA
-    const forceResult = await manager.stopService('serviceA', { force: true });
-    
-    expect(forceResult).toBe(true);
-    expect(serviceB._stop).toHaveBeenCalled(); // B stopped first
-    expect(serviceA._stop).toHaveBeenCalled();
-    expect(serviceB.state).toBe(STOPPED);
-    expect(serviceA.state).toBe(STOPPED);
-  });
-
-  it('should stop all services in reverse dependency order', async () => {
-    // Setup services with dependencies
-    manager.register('serviceA', serviceA);
-    manager.register('serviceB', serviceB, {
-      dependencies: ['serviceA']
-    });
-    manager.register('serviceC', serviceC, {
-      dependencies: ['serviceB']
-    });
-    
-    await manager.initializeAll();
-    await manager.startAll();
-    
-    // Stop all services
-    const result = await manager.stopAll();
-    
-    expect(result).toBe(true);
-    
-    // Check correct order through invocation order
-    const stopOrder = [
-      serviceC._stop.mock.invocationCallOrder[0],
-      serviceB._stop.mock.invocationCallOrder[0],
-      serviceA._stop.mock.invocationCallOrder[0]
-    ];
-    
-    // Verify order is ascending (dependents stopped first)
-    expect(stopOrder[0]).toBeLessThan(stopOrder[1]);
-    expect(stopOrder[1]).toBeLessThan(stopOrder[2]);
-    
-    // All services should be stopped
-    expect(serviceA.state).toBe(STOPPED);
-    expect(serviceB.state).toBe(STOPPED);
-    expect(serviceC.state).toBe(STOPPED);
-  });
-
-  it('should recover services from error state', async () => {
-    // Setup services with dependencies
-    manager.register('serviceA', serviceA);
-    manager.register('serviceB', serviceB, {
-      dependencies: ['serviceA']
-    });
-    
-    await manager.initializeAll();
-    
-    // Put serviceA in error state
-    const error = new Error('Test error');
-    serviceA._setError('test', error);
-    
-    expect(serviceA.state).toBe(ERROR);
-    
-    // Recover serviceA
-    const result = await manager.recoverService('serviceA');
-    
-    expect(result).toBe(true);
-    expect(serviceA._recover).toHaveBeenCalled();
-    expect(serviceA._start).toHaveBeenCalled(); // Should call start since autoStart=true
-
-    // Should be running after recovery (with auto-start)
-    expect(serviceA.state).toBe(RUNNING);
-    expect(serviceA.error).toBeNull();
-  });
-
-  it('should recover dependent services', async () => {
-    // Setup services with dependencies
-    manager.register('serviceA', serviceA);
-    manager.register('serviceB', serviceB, {
-      dependencies: ['serviceA']
+      expect(manager.services.size).toBe(2);
+      expect(manager.services.has('serviceA')).toBe(true);
+      expect(manager.services.has('serviceB')).toBe(true);
     });
 
-    await manager.initializeAll();
+    it('should reject duplicate registrations', () => {
+      manager.register('serviceA', MockServiceA);
 
-    // Put both services in error state
-    serviceA._setError('test', new Error('Error A'));
-    serviceB._setError('test', new Error('Error B'));
-
-    expect(serviceA.state).toBe(ERROR);
-    expect(serviceB.state).toBe(ERROR);
-
-    // Recover serviceB (should recover A first since B depends on A)
-    const result = await manager.recoverService('serviceB');
-
-    expect(result).toBe(true);
-    expect(serviceA._recover).toHaveBeenCalled();
-    expect(serviceB._recover).toHaveBeenCalled();
-    expect(serviceA._start).toHaveBeenCalled(); // A should start
-    expect(serviceB._start).toHaveBeenCalled(); // B should start
-
-    // Both should be recovered and running
-    expect(serviceA.state).toBe(RUNNING);
-    expect(serviceB.state).toBe(RUNNING);
-  });
-
-  it('should emit events for service state changes', async () => {
-    const eventHandler = vi.fn();
-    manager.on('service:stateChanged', eventHandler);
-    
-    manager.register('serviceA', serviceA);
-    await manager.initializeService('serviceA');
-    
-    // Should have received events for state transitions
-    expect(eventHandler).toHaveBeenCalledTimes(2); // CREATED->INITIALIZING->INITIALIZED
-    
-    // Check event data
-    const lastEvent = eventHandler.mock.calls[1][0];
-    expect(lastEvent.service).toBe('serviceA');
-    expect(lastEvent.newState).toBe(INITIALIZED);
-  });
-
-  it('should handle circular dependency detection', () => {
-    const loggerErrorSpy = vi.spyOn(manager.logger, 'error');
-    
-    // Create a circular dependency
-    manager.register('serviceA', serviceA);
-    manager.register('serviceB', serviceB, {
-      dependencies: ['serviceA']
+      expect(() => {
+        manager.register('serviceA', MockServiceB);
+      }).toThrow('Service \'serviceA\' already registered');
     });
-    manager.register('serviceC', serviceC, {
-      dependencies: ['serviceB']
+
+    it('should register with options', () => {
+      manager.register('serviceA', MockServiceA, { test: true }, {
+        dependencies: ['database'],
+        tags: ['critical', 'api'],
+        priority: 10
+      });
+
+      const entry = manager.services.get('serviceA');
+      expect(entry.dependencies).toEqual(['database']);
+      expect(entry.tags).toEqual(['critical', 'api']);
+      expect(entry.priority).toBe(10);
     });
-    
-    // Create circular dependency by making A depend on C
-    const entry = manager.services.get('serviceA');
-    entry.dependencies = ['serviceC'];
-    manager._updateDependencyGraph();
-    
-    // Should detect circular dependency
-    expect(loggerErrorSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Circular dependency detected')
-    );
+
+    it('should track dependents', () => {
+      manager.register('serviceA', MockServiceA);
+      manager.register('serviceB', MockServiceB, {}, {
+        dependencies: ['serviceA']
+      });
+
+      const entryA = manager.services.get('serviceA');
+      expect(entryA.dependents.has('serviceB')).toBe(true);
+    });
   });
-  
-  it('should destroy and unregister services', async () => {
-    manager.register('serviceA', serviceA);
-    await manager.initializeService('serviceA');
-    
-    const result = await manager.destroyService('serviceA');
-    
-    expect(result).toBe(true);
-    expect(serviceA._destroy).toHaveBeenCalled();
-    expect(manager.getService('serviceA')).toBeNull();
+
+  describe('Lazy Instantiation', () => {
+    it('should create instances on first get', () => {
+      manager.register('serviceA', MockServiceA);
+
+      const entry = manager.services.get('serviceA');
+      expect(entry.instance).toBeNull();
+
+      const instance = manager.get('serviceA');
+      expect(instance).toBeInstanceOf(MockServiceA);
+      expect(entry.instance).toBe(instance);
+    });
+
+    it('should reuse existing instances', () => {
+      manager.register('serviceA', MockServiceA);
+
+      const instance1 = manager.get('serviceA');
+      const instance2 = manager.get('serviceA');
+
+      expect(instance1).toBe(instance2);
+    });
+
+    it('should return null for unregistered services', () => {
+      const instance = manager.get('unknown');
+      expect(instance).toBeNull();
+    });
+
+    it('should handle constructor errors', () => {
+      class FailingService extends ServiceBase {
+        constructor() {
+          throw new Error('Constructor failed');
+        }
+      }
+
+      manager.register('failing', FailingService);
+      const instance = manager.get('failing');
+
+      expect(instance).toBeNull();
+    });
   });
-  
-  it('should allow setting log levels', () => {
-    manager.register('serviceA', serviceA);
-    
-    // Mock the setLogLevel methods
-    const managerSetLevelSpy = vi.spyOn(manager.logger, 'setLevel').mockReturnValue(true);
-    const serviceSetLevelSpy = vi.spyOn(serviceA, 'setLogLevel').mockReturnValue(true);
-    
-    // Set log level for specific service
-    manager.setLogLevel('debug', 'serviceA');
-    expect(serviceSetLevelSpy).toHaveBeenCalledWith('debug');
-    
-    // Set log level for all services
-    manager.setLogLevel('info');
-    expect(managerSetLevelSpy).toHaveBeenCalledWith('info');
-    expect(serviceSetLevelSpy).toHaveBeenCalledWith('info');
+
+  describe('Service Lifecycle', () => {
+    beforeEach(() => {
+      manager.register('serviceA', MockServiceA, { configA: true });
+      manager.register('serviceB', MockServiceB, { configB: true });
+    });
+
+    it('should initialize services', async () => {
+      const result = await manager.initService('serviceA');
+      const instance = manager.get('serviceA');
+
+      expect(result).toBe(true);
+      expect(instance.state).toBe(INITIALIZED);
+      expect(instance.config).toEqual({ configA: true });
+    });
+
+    it('should start services', async () => {
+      const result = await manager.startService('serviceA');
+      const instance = manager.get('serviceA');
+
+      expect(result).toBe(true);
+      expect(instance.state).toBe(RUNNING);
+      expect(instance.started).toBe(true);
+    });
+
+    it('should stop services', async () => {
+      await manager.startService('serviceA');
+      const result = await manager.stopService('serviceA');
+      const instance = manager.get('serviceA');
+
+      expect(result).toBe(true);
+      expect(instance.state).toBe(STOPPED);
+      expect(instance.started).toBe(false);
+    });
+
+    it('should recover services', async () => {
+      const instance = manager.get('serviceA');
+      await instance.initialize();
+      await instance.start();
+
+      // Force error state
+      instance.state = ERROR;
+      instance.error = new Error('Test error');
+
+      const result = await manager.recoverService('serviceA');
+
+      expect(result).toBe(true);
+      expect(instance.state).toBe(RUNNING);
+      expect(instance.error).toBeNull();
+    });
+  });
+
+  describe('Dependencies', () => {
+    beforeEach(() => {
+      manager.register('database', MockServiceA);
+      manager.register('cache', MockServiceB, {}, {
+        dependencies: ['database']
+      });
+      manager.register('api', MockServiceC, {}, {
+        dependencies: ['database', 'cache']
+      });
+    });
+
+    it('should start dependencies first', async () => {
+      const startOrder = [];
+
+      // Track start order
+      vi.spyOn(MockServiceA.prototype, '_start').mockImplementation(async function() {
+        startOrder.push('database');
+        this.started = true;
+      });
+      vi.spyOn(MockServiceB.prototype, '_start').mockImplementation(async function() {
+        startOrder.push('cache');
+        this.started = true;
+      });
+      vi.spyOn(MockServiceC.prototype, '_start').mockImplementation(async function() {
+        startOrder.push('api');
+        this.started = true;
+      });
+
+      await manager.startService('api');
+
+      expect(startOrder).toEqual(['database', 'cache', 'api']);
+    });
+
+    it('should fail if dependency fails to start', async () => {
+      vi.spyOn(MockServiceA.prototype, '_start').mockRejectedValue(
+        new Error('Database failed')
+      );
+
+      const result = await manager.startService('cache');
+
+      expect(result).toBe(false);
+      const cache = manager.get('cache');
+      expect(cache.state).not.toBe(RUNNING);
+    });
+
+    it('should prevent stopping services with running dependents', async () => {
+      await manager.startAll();
+
+      const result = await manager.stopService('database');
+
+      expect(result).toBe(false);
+      const database = manager.get('database');
+      expect(database.state).toBe(RUNNING);
+    });
+
+    it('should allow force stopping', async () => {
+      await manager.startAll();
+
+      const result = await manager.stopService('database', { force: true });
+
+      expect(result).toBe(true);
+      const database = manager.get('database');
+      expect(database.state).toBe(STOPPED);
+    });
+  });
+
+  describe('Batch Operations', () => {
+    beforeEach(() => {
+      manager.register('serviceA', MockServiceA);
+      manager.register('serviceB', MockServiceB, {}, {
+        dependencies: ['serviceA']
+      });
+      manager.register('serviceC', MockServiceC, {}, {
+        dependencies: ['serviceB']
+      });
+    });
+
+    it('should start all services in order', async () => {
+      const results = await manager.startAll();
+
+      expect(results).toEqual({
+        serviceA: true,
+        serviceB: true,
+        serviceC: true
+      });
+
+      expect(manager.get('serviceA').state).toBe(RUNNING);
+      expect(manager.get('serviceB').state).toBe(RUNNING);
+      expect(manager.get('serviceC').state).toBe(RUNNING);
+    });
+
+    it('should stop all services in reverse order', async () => {
+      await manager.startAll();
+
+      const stopOrder = [];
+      vi.spyOn(MockServiceA.prototype, '_stop').mockImplementation(async function() {
+        stopOrder.push('serviceA');
+        this.started = false;
+      });
+      vi.spyOn(MockServiceB.prototype, '_stop').mockImplementation(async function() {
+        stopOrder.push('serviceB');
+        this.started = false;
+      });
+      vi.spyOn(MockServiceC.prototype, '_stop').mockImplementation(async function() {
+        stopOrder.push('serviceC');
+        this.started = false;
+      });
+
+      await manager.stopAll();
+
+      expect(stopOrder).toEqual(['serviceC', 'serviceB', 'serviceA']);
+    });
+
+    it('should handle timeout during stopAll', async () => {
+      vi.useFakeTimers();
+
+      await manager.startAll();
+
+      // Make serviceB hang during stop
+      vi.spyOn(MockServiceB.prototype, '_stop').mockImplementation(
+        () => new Promise(() => {}) // Never resolves
+      );
+
+      const stopPromise = manager.stopAll({ timeout: 1000 });
+      await vi.advanceTimersByTimeAsync(1100);
+
+      const results = await stopPromise;
+
+      // Should timeout but still return results
+      expect(results.serviceB).toBe(false);
+
+      vi.useRealTimers();
+    });
+  });
+
+  describe('Health Monitoring', () => {
+    beforeEach(() => {
+      manager.register('serviceA', MockServiceA);
+      manager.register('serviceC', MockServiceC); // Has custom health check
+    });
+
+    it('should check health of all services', async () => {
+      await manager.startService('serviceA');
+      await manager.startService('serviceC');
+
+      const health = await manager.checkHealth();
+
+      expect(health.serviceA).toMatchObject({
+        name: 'serviceA',
+        state: RUNNING,
+        healthy: true
+      });
+
+      expect(health.serviceC).toMatchObject({
+        name: 'serviceC',
+        state: RUNNING,
+        healthy: true,
+        custom: 'health-data'
+      });
+    });
+
+    it('should report health for non-created services', async () => {
+      const health = await manager.checkHealth();
+
+      expect(health.serviceA).toEqual({
+        name: 'serviceA',
+        state: 'NOT_CREATED',
+        healthy: false
+      });
+    });
+  });
+
+  describe('Event Forwarding', () => {
+    it('should forward service state changes', async () => {
+      manager.register('serviceA', MockServiceA);
+
+      const stateEvents = [];
+      manager.on('service:stateChanged', (e) => stateEvents.push(e));
+
+      await manager.startService('serviceA');
+
+      expect(stateEvents.length).toBeGreaterThan(0);
+      expect(stateEvents[0]).toMatchObject({
+        service: 'serviceA',
+        oldState: expect.any(String),
+        newState: expect.any(String)
+      });
+    });
+
+    it('should forward health changes', async () => {
+      manager.register('serviceA', MockServiceA);
+
+      const healthEvents = [];
+      manager.on('service:healthChanged', (e) => healthEvents.push(e));
+
+      await manager.startService('serviceA');
+
+      expect(healthEvents).toHaveLength(1);
+      expect(healthEvents[0]).toEqual({
+        service: 'serviceA',
+        healthy: true
+      });
+    });
+
+    it('should forward errors', async () => {
+      manager.register('serviceA', MockServiceA);
+
+      const errorEvents = [];
+      manager.on('service:error', (e) => errorEvents.push(e));
+
+      const instance = manager.get('serviceA');
+      vi.spyOn(instance, '_init').mockRejectedValue(new Error('Init failed'));
+
+      await manager.initService('serviceA');
+
+      expect(errorEvents).toHaveLength(1);
+      expect(errorEvents[0]).toMatchObject({
+        service: 'serviceA',
+        operation: 'initialization',
+        error: expect.objectContaining({ message: 'Init failed' })
+      });
+    });
+
+    it('should forward log events', () => {
+      manager.register('serviceA', MockServiceA);
+
+      const logEvents = [];
+      manager.on('service:log', (e) => logEvents.push(e));
+
+      const instance = manager.get('serviceA');
+      instance.logger.info('Test log');
+
+      expect(logEvents).toHaveLength(1);
+      expect(logEvents[0]).toMatchObject({
+        service: 'serviceA',
+        level: INFO,
+        message: 'Test log'
+      });
+    });
+  });
+
+  describe('Logging Configuration', () => {
+    it('should set default log level based on environment', () => {
+      const devManager = new ServiceManager({ environment: 'development' });
+      expect(devManager.config.logConfig.defaultLevel).toBe(DEBUG);
+
+      const prodManager = new ServiceManager({ environment: 'production' });
+      expect(prodManager.config.logConfig.defaultLevel).toBe(WARN);
+    });
+
+    it('should set global log level', () => {
+      manager.register('serviceA', MockServiceA);
+      manager.register('serviceB', MockServiceB);
+
+      const instanceA = manager.get('serviceA');
+      const instanceB = manager.get('serviceB');
+
+      vi.spyOn(instanceA, 'setLogLevel');
+      vi.spyOn(instanceB, 'setLogLevel');
+
+      manager.setLogLevel('*', DEBUG);
+
+      expect(instanceA.setLogLevel).toHaveBeenCalledWith(DEBUG);
+      expect(instanceB.setLogLevel).toHaveBeenCalledWith(DEBUG);
+    });
+
+    it('should set service-specific log level', () => {
+      manager.register('serviceA', MockServiceA);
+      const instance = manager.get('serviceA');
+
+      vi.spyOn(instance, 'setLogLevel');
+
+      manager.setLogLevel('serviceA', DEBUG);
+
+      expect(instance.setLogLevel).toHaveBeenCalledWith(DEBUG);
+      expect(manager.config.logConfig.serviceLevels.serviceA).toBe(DEBUG);
+    });
+  });
+
+  describe('Service Tags', () => {
+    beforeEach(() => {
+      manager.register('database', MockServiceA, {}, { tags: ['storage', 'critical'] });
+      manager.register('cache', MockServiceB, {}, { tags: ['storage', 'performance'] });
+      manager.register('api', MockServiceC, {}, { tags: ['api', 'critical'] });
+    });
+
+    it('should get services by tag', () => {
+      expect(manager.getServicesByTag('storage')).toEqual(['database', 'cache']);
+      expect(manager.getServicesByTag('critical')).toEqual(['database', 'api']);
+      expect(manager.getServicesByTag('performance')).toEqual(['cache']);
+      expect(manager.getServicesByTag('unknown')).toEqual([]);
+    });
+  });
+
+  describe('Circular Dependencies', () => {
+    it('should detect circular dependencies', async () => {
+      manager.register('serviceA', MockServiceA, {}, {
+        dependencies: ['serviceB']
+      });
+      manager.register('serviceB', MockServiceB, {}, {
+        dependencies: ['serviceC']
+      });
+      manager.register('serviceC', MockServiceC, {}, {
+        dependencies: ['serviceA'] // Creates cycle
+      });
+
+      await expect(manager.startAll()).rejects.toThrow('Circular dependency detected');
+    });
+  });
+
+  describe('Error Handling', () => {
+    it('should handle missing service in operations', async () => {
+      expect(await manager.initService('unknown')).toBe(false);
+      expect(await manager.startService('unknown')).toBe(false);
+      expect(await manager.stopService('unknown')).toBe(true); // Already stopped
+      expect(await manager.recoverService('unknown')).toBe(false);
+    });
+
+    it('should continue on partial startup failure', async () => {
+      manager.register('serviceA', MockServiceA);
+      manager.register('serviceB', MockServiceB);
+
+      vi.spyOn(MockServiceA.prototype, '_start').mockRejectedValue(
+        new Error('Start failed')
+      );
+
+      const results = await manager.startAll();
+
+      expect(results).toEqual({
+        serviceA: false,
+        serviceB: false // Stops on first failure
+      });
+    });
   });
 });

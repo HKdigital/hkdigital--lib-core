@@ -1,52 +1,53 @@
 /**
- * @fileoverview Base service class with lifecycle management and logging.
+ * @fileoverview Base service class with lifecycle management, health checks,
+ * and integrated logging.
  *
- * ServiceBase provides a standardized lifecycle (initialize, start, stop,
- * destroy) with state transitions, error handling, and integrated logging.
- * Services should extend this class and override the protected _init, _start,
- * _stop, and _destroy methods to implement their specific functionality.
+ * ServiceBase provides a standardized lifecycle for all services with states,
+ * events, logging, and error handling. Services extend this class and override
+ * the protected methods to implement their specific functionality.
  *
  * @example
- * // Creating a service
+ * // Basic service implementation
  * import { ServiceBase } from './ServiceBase.js';
  *
  * class DatabaseService extends ServiceBase {
- *   constructor() {
- *     super('database');
- *     this.connection = null;
- *   }
- *
  *   async _init(config) {
- *     this.config = config;
- *     this.logger.debug('Database configured', { config });
+ *     this.connectionString = config.connectionString;
  *   }
  *
  *   async _start() {
- *     this.connection = await createConnection(this.config);
- *     this.logger.info('Database connected', { id: this.connection.id });
+ *     this.connection = await createConnection(this.connectionString);
  *   }
  *
  *   async _stop() {
- *     await this.connection.close();
- *     this.connection = null;
- *     this.logger.info('Database disconnected');
+ *     await this.connection?.close();
  *   }
  * }
  *
- * // Using a service
- * const db = new DatabaseService();
- *
- * await db.initialize({ host: 'localhost', port: 27017 });
+ * // Usage
+ * const db = new DatabaseService('database');
+ * await db.initialize({ connectionString: 'postgres://...' });
  * await db.start();
  *
- * // Listen for state changes
- * db.on('stateChanged', ({ oldState, newState }) => {
- *   console.log(`Database service: ${oldState} -> ${newState}`);
+ * // Listen to events
+ * db.on('healthChanged', ({ healthy }) => {
+ *   console.log(`Database is ${healthy ? 'healthy' : 'unhealthy'}`);
  * });
  *
- * // Later...
- * await db.stop();
- * await db.destroy();
+ * @example
+ * // Service with recovery and health checks
+ * class ApiService extends ServiceBase {
+ *   async _recover() {
+ *     // Custom recovery logic
+ *     await this.reconnect();
+ *   }
+ *
+ *   async _healthCheck() {
+ *     const start = Date.now();
+ *     await this.ping();
+ *     return { latency: Date.now() - start };
+ *   }
+ * }
  */
 
 import { EventEmitter } from '$lib/classes/events';
@@ -62,81 +63,68 @@ import {
   STOPPED,
   DESTROYING,
   DESTROYED,
-  ERROR,
+  ERROR as ERROR_STATE,
   RECOVERING
-} from './constants';
+} from './service-states.js';
 
 /**
- * Base class for all services
+ * @typedef {import('./typedef.js').ServiceConfig} ServiceConfig
+ * @typedef {import('./typedef.js').ServiceOptions} ServiceOptions
+ * @typedef {import('./typedef.js').StopOptions} StopOptions
+ * @typedef {import('./typedef.js').HealthStatus} HealthStatus
+ * @typedef {import('./typedef.js').StateChangeEvent} StateChangeEvent
+ * @typedef {import('./typedef.js').HealthChangeEvent} HealthChangeEvent
+ * @typedef {import('./typedef.js').ServiceErrorEvent} ServiceErrorEvent
  */
-export default class ServiceBase {
+
+/**
+ * Base class for all services with lifecycle management
+ * @extends EventEmitter
+ */
+export class ServiceBase extends EventEmitter {
   /**
-   * Create a new service
+   * Create a new service instance
    *
    * @param {string} name - Service name
-   * @param {Object} [options] - Service options
-   * @param {string} [options.logLevel=INFO] - Initial log level
+   * @param {ServiceOptions} [options={}] - Service options
    */
   constructor(name, options = {}) {
-    /**
-     * Service name
-     * @type {string}
-     */
+    super();
+
+    /** @type {string} */
     this.name = name;
 
-    /**
-     * Event emitter for service events
-     * @type {EventEmitter}
-     */
-    this.events = new EventEmitter();
-
-    /**
-     * Current service state
-     * @type {string}
-     */
+    /** @type {string} */
     this.state = CREATED;
 
-    /**
-     * Last error that occurred
-     * @type {Error|null}
-     */
+    /** @type {boolean} */
+    this.healthy = false;
+
+    /** @type {Error|null} */
     this.error = null;
 
-    /**
-     * Last stable state before error
-     * @type {string|null}
-     * @private
-     */
-    this._preErrorState = null;
-
-    /**
-     * Service logger
-     * @type {Logger}
-     */
+    /** @type {Logger} */
     this.logger = new Logger(name, options.logLevel || INFO);
 
-    // Set the initial state through _setState to ensure
-    // the event is emitted consistently
-    this._setState(CREATED);
+    /** @private @type {number} */
+    this._shutdownTimeout = options.shutdownTimeout || 5000;
   }
 
   /**
-   * Set the service log level
+   * Initialize the service with configuration
    *
-   * @param {string} level - New log level
-   * @returns {boolean} True if level was set, false if invalid
-   */
-  setLogLevel(level) {
-    return this.logger.setLevel(level);
-  }
-
-  /**
-   * Initialize the service
+   * @param {ServiceConfig} [config={}] - Service-specific configuration
    *
-   * @param {Object} [config] - Service configuration
-   * @returns {Promise<boolean>} True if initialized successfully
+   * @returns {Promise<boolean>} True if initialization succeeded
    */
   async initialize(config = {}) {
+    if (this.state !== CREATED &&
+        this.state !== STOPPED &&
+        this.state !== DESTROYED) {
+      this.logger.warn(`Cannot initialize from state: ${this.state}`);
+      return false;
+    }
+
     try {
       this._setState(INITIALIZING);
       this.logger.debug('Initializing service', { config });
@@ -155,15 +143,11 @@ export default class ServiceBase {
   /**
    * Start the service
    *
-   * @returns {Promise<boolean>} True if started successfully
+   * @returns {Promise<boolean>} True if the service started successfully
    */
   async start() {
-    // Check if service can be started
     if (this.state !== INITIALIZED && this.state !== STOPPED) {
-      this._setError(
-        'startup',
-        new Error(`Cannot start service in state: ${this.state}`)
-      );
+      this.logger.warn(`Cannot start from state: ${this.state}`);
       return false;
     }
 
@@ -174,6 +158,7 @@ export default class ServiceBase {
       await this._start();
 
       this._setState(RUNNING);
+      this._setHealthy(true);
       this.logger.info('Service started');
       return true;
     } catch (error) {
@@ -183,95 +168,118 @@ export default class ServiceBase {
   }
 
   /**
-   * Stop the service
+   * Stop the service with optional timeout
    *
-   * @returns {Promise<boolean>} True if stopped successfully
+   * @param {StopOptions} [options={}] - Stop options
+   *
+   * @returns {Promise<boolean>} True if the service stopped successfully
    */
-  async stop() {
-    // Check if service can be stopped
-    if (this.state !== RUNNING) {
-      this._setError(
-        'stopping',
-        new Error(`Cannot stop service in state: ${this.state}`)
-      );
-      return false;
+  async stop(options = {}) {
+    if (this.state !== RUNNING && this.state !== ERROR_STATE) {
+      this.logger.warn(`Cannot stop from state: ${this.state}`);
+      return true; // Already stopped
     }
+
+    const timeout = options.timeout ?? this._shutdownTimeout;
 
     try {
       this._setState(STOPPING);
+      this._setHealthy(false);
       this.logger.debug('Stopping service');
 
-      await this._stop();
+      // Wrap _stop in a timeout
+      const stopPromise = this._stop();
+
+      if (timeout > 0) {
+        await Promise.race([
+          stopPromise,
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Shutdown timeout')), timeout)
+          )
+        ]);
+      } else {
+        await stopPromise;
+      }
 
       this._setState(STOPPED);
       this.logger.info('Service stopped');
       return true;
     } catch (error) {
-      this._setError('stopping', error);
+      if (error.message === 'Shutdown timeout' && options.force) {
+        this.logger.warn('Forced shutdown after timeout');
+        this._setState(STOPPED);
+        return true;
+      }
+      this._setError('shutdown', error);
       return false;
     }
   }
 
   /**
-   * Recover the service
+   * Recover the service from error state
    *
-   * @returns {Promise<boolean>} True if stopped successfully
+   * @returns {Promise<boolean>} True if recovery succeeded
    */
   async recover() {
-  if (this.state !== ERROR) {
-    this.logger.warn(`Can only recover from ERROR state, current state: ${this.state}`);
-    return false;
-  }
-
-  try {
-    this._setState(RECOVERING);
-    this.logger.info('Attempting service recovery');
-
-    const targetState = this._preErrorState;
-
-    // Allow service-specific recovery logic
-    await this._recover();
-
-    // this._setState(targetState);
-    if( this.state !== ERROR )
-    {
-      // Clear
-      this._preErrorState = null;
+    if (this.state !== ERROR_STATE) {
+      this.logger.warn(
+        `Can only recover from ERROR state, current: ${this.state}`
+      );
+      return false;
     }
 
-    // Clear error
-    this.error = null;
+    try {
+      this._setState(RECOVERING);
+      this.logger.info('Attempting recovery');
 
+      // Try custom recovery first
+      if (this._recover) {
+        await this._recover();
+        this._setState(RUNNING);
+        this._setHealthy(true);
+      } else {
+        // Default: restart
+        this._setState(STOPPED);
+        await this.start();
+      }
 
-    // If recovery successful, return to initialized state
-    this._setState(INITIALIZED);
-    this.logger.info('Service recovery successful');
-
-
-    return true;
-  } catch (error) {
-    this._setError('recovery', error);
-    return false;
+      this.error = null;
+      this.logger.info('Recovery successful');
+      return true;
+    } catch (error) {
+      this._setError('recovery', error);
+      return false;
+    }
   }
-}
 
   /**
-   * Destroy the service
+   * Destroy the service and cleanup resources
    *
-   * @returns {Promise<boolean>} True if destroyed successfully
+   * @returns {Promise<boolean>} True if destruction succeeded
    */
   async destroy() {
+    if (this.state === DESTROYED) {
+      return true;
+    }
+
     try {
+      if (this.state === RUNNING) {
+        await this.stop();
+      }
+
       this._setState(DESTROYING);
       this.logger.debug('Destroying service');
 
-      await this._destroy();
+      if (this._destroy) {
+        await this._destroy();
+      }
 
       this._setState(DESTROYED);
+      this._setHealthy(false);
       this.logger.info('Service destroyed');
 
-      // Clean up event listeners
-      this.events.removeAllListeners();
+      // Cleanup
+      this.removeAllListeners();
       this.logger.removeAllListeners();
 
       return true;
@@ -282,128 +290,176 @@ export default class ServiceBase {
   }
 
   /**
-   * Add an event listener
+   * Get the current health status of the service
    *
-   * @param {string} eventName - Event name
-   * @param {Function} handler - Event handler
-   * @returns {Function} Unsubscribe function
+   * @returns {Promise<HealthStatus>} Health status object
    */
-  on(eventName, handler) {
-    return this.events.on(eventName, handler);
+  async getHealth() {
+    const baseHealth = {
+      name: this.name,
+      state: this.state,
+      healthy: this.healthy,
+      error: this.error?.message
+    };
+
+    if (this._healthCheck) {
+      try {
+        const customHealth = await this._healthCheck();
+        return { ...baseHealth, ...customHealth };
+      } catch (error) {
+        return {
+          ...baseHealth,
+          healthy: false,
+          checkError: error.message
+        };
+      }
+    }
+
+    return baseHealth;
   }
 
   /**
-   * Emit an event
+   * Set the service log level
    *
-   * @param {string} eventName - Event name
-   * @param {*} data - Event data
-   * @returns {boolean} True if event had listeners
+   * @param {string} level - New log level
+   *
+   * @returns {boolean} True if the level was set successfully
    */
-  emit(eventName, data) {
-    return this.events.emit(eventName, data);
+  setLogLevel(level) {
+    return this.logger.setLevel(level);
   }
 
-  // Protected methods to be overridden by subclasses
+  // Protected methods to override in subclasses
 
   /**
-   * Initialize the service (to be overridden)
+   * Initialize the service (override in subclass)
    *
    * @protected
-   * @param {Object} config - Service configuration
+   * @param {ServiceConfig} config - Service configuration
+   *
    * @returns {Promise<void>}
    */
   async _init(config) {
-    // Default implementation does nothing
+    // Override in subclass
   }
 
   /**
-   * Start the service (to be overridden)
+   * Start the service (override in subclass)
    *
    * @protected
+   *
    * @returns {Promise<void>}
    */
   async _start() {
-    // Default implementation does nothing
+    // Override in subclass
   }
 
   /**
-   * Stop the service (to be overridden)
+   * Stop the service (override in subclass)
    *
    * @protected
+   *
    * @returns {Promise<void>}
    */
   async _stop() {
-    // Default implementation does nothing
+    // Override in subclass
   }
 
   /**
-   * Destroy the service (to be overridden)
+   * Destroy the service (optional override)
    *
    * @protected
+   *
    * @returns {Promise<void>}
    */
   async _destroy() {
-    // Default implementation does nothing
+    // Override in subclass if needed
   }
 
   /**
-   * Recover the service from an error (to be overridden)
+   * Recover from error state (optional override)
    *
    * @protected
+   *
    * @returns {Promise<void>}
    */
   async _recover() {
-    // @note the user implementation is responsible for setting the target state
-    this._setState( this._preErrorState );
+    // Override in subclass if custom recovery needed
+    // Default behavior is stop + start
   }
 
-  // Private helper methods
+  /**
+   * Perform health check (optional override)
+   *
+   * @protected
+   *
+   * @returns {Promise<Object>} Additional health information
+   */
+  async _healthCheck() {
+    // Override in subclass if health checks needed
+    return {};
+  }
+
+  // Private methods
 
   /**
-   * Set the service state
+   * Set the service state and emit event
    *
    * @private
-   * @param {string} state - New state
+   * @param {string} newState - New state value
    */
-  _setState(state) {
+  _setState(newState) {
     const oldState = this.state;
-    this.state = state;
+    this.state = newState;
 
-    this.logger.debug(`State changed from ${oldState} to ${state}`);
-
-    this.events.emit('stateChanged', {
+    this.emit('stateChanged', {
       service: this.name,
       oldState,
-      newState: state
+      newState
     });
   }
 
   /**
-   * Set an error state
+   * Set the health status and emit event if changed
+   *
+   * @private
+   * @param {boolean} healthy - New health status
+   */
+  _setHealthy(healthy) {
+    const wasHealthy = this.healthy;
+    this.healthy = healthy;
+
+    if (wasHealthy !== healthy) {
+      this.emit('healthChanged', {
+        service: this.name,
+        healthy
+      });
+    }
+  }
+
+  /**
+   * Set error state and emit error event
    *
    * @private
    * @param {string} operation - Operation that failed
    * @param {Error} error - Error that occurred
    */
   _setError(operation, error) {
-
-    if (this.state !== ERROR) {
-      // Store current state before transitioning to ERROR
-      this._preErrorState = this.state;
-    }
-
     this.error = error;
-    this._setState(ERROR);
+    this._setState(ERROR_STATE);
+    this._setHealthy(false);
 
-    this.logger.error(`${operation} error`, {
+    this.logger.error(`${operation} failed`, {
       error: error.message,
       stack: error.stack
     });
 
-    this.events.emit('error', {
+    this.emit('error', {
       service: this.name,
       operation,
       error
     });
   }
 }
+
+export default ServiceBase;

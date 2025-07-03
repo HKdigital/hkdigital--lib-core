@@ -2,9 +2,9 @@
  * @fileoverview Unit tests for ServiceBase.js
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-
+import { ServiceBase } from './ServiceBase.js';
+import { DEBUG, INFO } from '$lib/classes/logging';
 import {
-  ServiceBase,
   CREATED,
   INITIALIZING,
   INITIALIZED,
@@ -16,9 +16,7 @@ import {
   DESTROYED,
   ERROR,
   RECOVERING
-} from './index.js';
-
-import { DEBUG, INFO } from '$lib/classes/logging';
+} from './service-states.js';
 
 describe('ServiceBase', () => {
   let service;
@@ -31,290 +29,333 @@ describe('ServiceBase', () => {
     vi.restoreAllMocks();
   });
 
-  it('should initialize with correct default state', () => {
-    expect(service.name).toBe('testService');
-    expect(service.state).toBe(CREATED);
-    expect(service.error).toBeNull();
-    expect(service.logger).toBeDefined();
-  });
+  describe('Initialization', () => {
+    it('should initialize with correct defaults', () => {
+      expect(service.name).toBe('testService');
+      expect(service.state).toBe(CREATED);
+      expect(service.healthy).toBe(false);
+      expect(service.error).toBeNull();
+      expect(service.logger).toBeDefined();
+    });
 
-  it('should allow setting log level', () => {
-    const setLevelSpy = vi.spyOn(service.logger, 'setLevel');
-
-    service.setLogLevel(DEBUG);
-
-    expect(setLevelSpy).toHaveBeenCalledWith(DEBUG);
-  });
-
-  it('should transition through lifecycle states', async () => {
-    const stateChangedHandler = vi.fn();
-    service.on('stateChanged', stateChangedHandler);
-
-    // Mock the protected methods to verify they're called
-    vi.spyOn(service, '_init').mockResolvedValue();
-    vi.spyOn(service, '_start').mockResolvedValue();
-    vi.spyOn(service, '_stop').mockResolvedValue();
-    vi.spyOn(service, '_destroy').mockResolvedValue();
-
-    // Initialize
-    const initResult = await service.initialize({ testConfig: true });
-    expect(initResult).toBe(true);
-    expect(service.state).toBe(INITIALIZED);
-    expect(service._init).toHaveBeenCalledWith({ testConfig: true });
-
-    // Start
-    const startResult = await service.start();
-    expect(startResult).toBe(true);
-    expect(service.state).toBe(RUNNING);
-    expect(service._start).toHaveBeenCalled();
-
-    // Stop
-    const stopResult = await service.stop();
-    expect(stopResult).toBe(true);
-    expect(service.state).toBe(STOPPED);
-    expect(service._stop).toHaveBeenCalled();
-
-    // Destroy
-    const destroyResult = await service.destroy();
-    expect(destroyResult).toBe(true);
-    expect(service.state).toBe(DESTROYED);
-    expect(service._destroy).toHaveBeenCalled();
-
-    // Check state change events
-    expect(stateChangedHandler).toHaveBeenCalledTimes(8); // Including intermediate states
-
-    const states = stateChangedHandler.mock.calls.map(call => call[0].newState);
-    expect(states).toEqual([
-      INITIALIZING,
-      INITIALIZED,
-      STARTING,
-      RUNNING,
-      STOPPING,
-      STOPPED,
-      DESTROYING,
-      DESTROYED
-    ]);
-  });
-
-  it('should handle initialization errors', async () => {
-    const error = new Error('Init failed');
-    vi.spyOn(service, '_init').mockRejectedValue(error);
-
-    const errorHandler = vi.fn();
-    service.on('error', errorHandler);
-
-    const result = await service.initialize();
-
-    expect(result).toBe(false);
-    expect(service.state).toBe(ERROR);
-    expect(service.error).toBe(error);
-
-    expect(errorHandler).toHaveBeenCalledWith({
-      service: 'testService',
-      operation: 'initialization',
-      error
+    it('should accept constructor options', () => {
+      const customService = new ServiceBase('custom', {
+        logLevel: DEBUG,
+        shutdownTimeout: 3000
+      });
+      
+      expect(customService._shutdownTimeout).toBe(3000);
+      // Logger level is set internally
     });
   });
 
-  it('should handle start errors', async () => {
-    // First initialize successfully
-    vi.spyOn(service, '_init').mockResolvedValue();
-    await service.initialize();
+  describe('Lifecycle Management', () => {
+    beforeEach(() => {
+      // Mock protected methods
+      vi.spyOn(service, '_init').mockResolvedValue();
+      vi.spyOn(service, '_start').mockResolvedValue();
+      vi.spyOn(service, '_stop').mockResolvedValue();
+    });
 
-    // Then fail on start
-    const error = new Error('Start failed');
-    vi.spyOn(service, '_start').mockRejectedValue(error);
+    it('should transition through basic lifecycle', async () => {
+      const stateChanges = [];
+      service.on('stateChanged', (e) => stateChanges.push(e.newState));
 
-    const errorHandler = vi.fn();
-    service.on('error', errorHandler);
+      // Initialize
+      expect(await service.initialize({ test: true })).toBe(true);
+      expect(service.state).toBe(INITIALIZED);
+      expect(service._init).toHaveBeenCalledWith({ test: true });
 
-    const result = await service.start();
+      // Start
+      expect(await service.start()).toBe(true);
+      expect(service.state).toBe(RUNNING);
+      expect(service.healthy).toBe(true);
 
-    expect(result).toBe(false);
-    expect(service.state).toBe(ERROR);
-    expect(service.error).toBe(error);
+      // Stop
+      expect(await service.stop()).toBe(true);
+      expect(service.state).toBe(STOPPED);
+      expect(service.healthy).toBe(false);
 
-    expect(errorHandler).toHaveBeenCalledWith({
-      service: 'testService',
-      operation: 'startup',
-      error
+      // Verify state transitions
+      expect(stateChanges).toEqual([
+        INITIALIZING, INITIALIZED,
+        STARTING, RUNNING,
+        STOPPING, STOPPED
+      ]);
+    });
+
+    it('should allow restart from stopped state', async () => {
+      await service.initialize();
+      await service.start();
+      await service.stop();
+      
+      expect(service.state).toBe(STOPPED);
+      
+      // Should be able to start again
+      expect(await service.start()).toBe(true);
+      expect(service.state).toBe(RUNNING);
+    });
+
+    it('should prevent invalid state transitions', async () => {
+      // Can't start from CREATED
+      expect(await service.start()).toBe(false);
+      expect(service.state).toBe(CREATED);
+      
+      // Can't stop from INITIALIZED
+      await service.initialize();
+      expect(await service.stop()).toBe(true); // Returns true but does nothing
+      expect(service.state).toBe(INITIALIZED);
     });
   });
 
-  it('should reject invalid state transitions', async () => {
-    // Try to stop without starting
-    const result = await service.stop();
+  describe('Error Handling', () => {
+    it('should handle initialization errors', async () => {
+      const error = new Error('Init failed');
+      vi.spyOn(service, '_init').mockRejectedValue(error);
 
-    expect(result).toBe(false);
-    expect(service.state).toBe(ERROR);
-    expect(service.error).toBeInstanceOf(Error);
-    expect(service.error.message).toContain('Cannot stop service');
-  });
+      const errorEvents = [];
+      service.on('error', (e) => errorEvents.push(e));
 
-  it('should allow restarting a stopped service', async () => {
-    // Mock lifecycle methods
-    vi.spyOn(service, '_init').mockResolvedValue();
-    vi.spyOn(service, '_start').mockResolvedValue();
-    vi.spyOn(service, '_stop').mockResolvedValue();
+      expect(await service.initialize()).toBe(false);
+      expect(service.state).toBe(ERROR);
+      expect(service.error).toBe(error);
+      expect(service.healthy).toBe(false);
 
-    // Complete lifecycle
-    await service.initialize();
-    await service.start();
-    await service.stop();
+      expect(errorEvents).toHaveLength(1);
+      expect(errorEvents[0]).toMatchObject({
+        service: 'testService',
+        operation: 'initialization',
+        error
+      });
+    });
 
-    // Should be in stopped state
-    expect(service.state).toBe(STOPPED);
+    it('should handle start errors', async () => {
+      vi.spyOn(service, '_init').mockResolvedValue();
+      vi.spyOn(service, '_start').mockRejectedValue(new Error('Start failed'));
 
-    // Try to restart
-    const restartResult = await service.start();
+      await service.initialize();
+      expect(await service.start()).toBe(false);
+      expect(service.state).toBe(ERROR);
+      expect(service.healthy).toBe(false);
+    });
 
-    expect(restartResult).toBe(true);
-    expect(service.state).toBe(RUNNING);
-    expect(service._start).toHaveBeenCalledTimes(2);
-  });
+    it('should allow stopping from error state', async () => {
+      // Get into error state
+      vi.spyOn(service, '_init').mockRejectedValue(new Error('Failed'));
+      await service.initialize();
+      expect(service.state).toBe(ERROR);
 
-  it('should provide access to logger events', async () => {
-    const logHandler = vi.fn();
-    service.logger.on('log', logHandler);
-
-    service.logger.info('Test log message');
-
-    expect(logHandler).toHaveBeenCalledTimes(1);
-    const logEvent = logHandler.mock.calls[0][0];
-
-    expect(logEvent.service).toBe('testService');
-    expect(logEvent.level).toBe(INFO);
-    expect(logEvent.message).toBe('Test log message');
-  });
-
-  it('should clean up event listeners on destroy', async () => {
-    const removeAllListenersSpy = vi.spyOn(service.events, 'removeAllListeners');
-    const loggerRemoveAllListenersSpy = vi.spyOn(
-      service.logger,
-      'removeAllListeners'
-    );
-
-    await service.destroy();
-
-    expect(removeAllListenersSpy).toHaveBeenCalled();
-    expect(loggerRemoveAllListenersSpy).toHaveBeenCalled();
-  });
-
-  it('should recover from error state', async () => {
-    // Put service in error state first
-    const error = new Error('Test error');
-    vi.spyOn(service, '_init').mockRejectedValue(error);
-    await service.initialize();
-
-    // Verify error state
-    expect(service.state).toBe(ERROR);
-    expect(service.error).toBe(error);
-    expect(service._preErrorState).toBe(INITIALIZING);
-
-    // Mock recovery methods
-    vi.spyOn(service, '_recover').mockResolvedValue();
-
-    // Setup event listeners
-    const stateChangedHandler = vi.fn();
-    service.on('stateChanged', stateChangedHandler);
-
-    // Perform recovery
-    const recoveryResult = await service.recover();
-
-    // Verify recovery
-    expect(recoveryResult).toBe(true);
-    expect(service._recover).toHaveBeenCalled();
-    expect(service.error).toBeNull();
-
-    // Check state transitions during recovery
-    const states = stateChangedHandler.mock.calls.map(call => call[0].newState);
-    expect(states).toContain(RECOVERING);
-    expect(states).toContain(INITIALIZED);
-
-    // Final state should be initialized
-    expect(service.state).toBe(INITIALIZED);
-  });
-
-  it('should handle recovery errors', async () => {
-    // Put service in error state first
-    const initialError = new Error('Initial error');
-    vi.spyOn(service, '_init').mockRejectedValue(initialError);
-    await service.initialize();
-
-    // Mock recovery to fail
-    const recoveryError = new Error('Recovery failed');
-    vi.spyOn(service, '_recover').mockRejectedValue(recoveryError);
-
-    // Setup error listener
-    const errorHandler = vi.fn();
-    service.on('error', errorHandler);
-
-    // Attempt recovery
-    const recoveryResult = await service.recover();
-
-    // Verify failed recovery
-    expect(recoveryResult).toBe(false);
-    expect(service.state).toBe(ERROR);
-    expect(service.error).toBe(recoveryError);
-
-    // Verify error event for recovery failure
-    expect(errorHandler).toHaveBeenCalledWith({
-      service: 'testService',
-      operation: 'recovery',
-      error: recoveryError
+      // Should be able to stop
+      vi.spyOn(service, '_stop').mockResolvedValue();
+      expect(await service.stop()).toBe(true);
+      expect(service.state).toBe(STOPPED);
     });
   });
 
-  it('should recover to previous state before error', async () => {
-    // Initialize and start service
-    vi.spyOn(service, '_init').mockResolvedValue();
-    vi.spyOn(service, '_start').mockResolvedValue();
-    await service.initialize();
-    await service.start();
+  describe('Recovery', () => {
+    beforeEach(async () => {
+      // Get service into error state
+      vi.spyOn(service, '_init').mockRejectedValue(new Error('Failed'));
+      await service.initialize();
+      expect(service.state).toBe(ERROR);
+    });
 
-    // Verify running state
-    expect(service.state).toBe(RUNNING);
+    it('should recover using custom _recover method', async () => {
+      vi.spyOn(service, '_recover').mockResolvedValue();
 
-    // Cause an error during operation
-    const operationError = new Error('Operation error');
-    service._setError('operation', operationError);
+      expect(await service.recover()).toBe(true);
+      expect(service._recover).toHaveBeenCalled();
+      expect(service.state).toBe(RUNNING);
+      expect(service.healthy).toBe(true);
+      expect(service.error).toBeNull();
+    });
 
-    // Verify error state and previous state tracking
-    expect(service.state).toBe(ERROR);
-    expect(service._preErrorState).toBe(RUNNING);
+    it('should recover using restart when no _recover method', async () => {
+      // Reset the service to test default recovery
+      service = new ServiceBase('testService');
 
-    // Mock recovery methods
-    vi.spyOn(service, '_recover').mockResolvedValue();
+      // Setup all mocks for successful operation
+      vi.spyOn(service, '_init').mockResolvedValue();
+      vi.spyOn(service, '_start').mockResolvedValue();
+      vi.spyOn(service, '_stop').mockResolvedValue();
 
-    // Recover the service
-    const recoveryResult = await service.recover();
+      // Initialize and start service successfully
+      await service.initialize();
+      await service.start();
+      expect(service.state).toBe(RUNNING);
 
-    // Verify recovery
-    expect(recoveryResult).toBe(true);
-    expect(service.state).toBe(INITIALIZED); // Should match implementation
-    expect(service.error).toBeNull();
+      // Force error state manually
+      service.state = ERROR;
+      service.healthy = false;
+      service.error = new Error('Some error');
+
+      // Now test recovery - it should stop then start
+      expect(await service.recover()).toBe(true);
+      expect(service.state).toBe(RUNNING);
+      expect(service.healthy).toBe(true);
+      expect(service.error).toBeNull();
+    });
+
+    it('should handle recovery failures', async () => {
+      vi.spyOn(service, '_recover').mockRejectedValue(new Error('Recovery failed'));
+
+      expect(await service.recover()).toBe(false);
+      expect(service.state).toBe(ERROR);
+      expect(service.error.message).toBe('Recovery failed');
+    });
+
+    it('should only recover from ERROR state', async () => {
+      // Get to running state
+      service.state = RUNNING;
+      service.error = null;
+
+      expect(await service.recover()).toBe(false);
+      expect(service.state).toBe(RUNNING);
+    });
   });
 
-  it('should only allow recovery from ERROR state', async () => {
-    // Service starts in CREATED state
-    vi.spyOn(service, '_recover').mockResolvedValue();
+  describe('Health Monitoring', () => {
+    it('should emit healthChanged events', async () => {
+      vi.spyOn(service, '_init').mockResolvedValue();
+      vi.spyOn(service, '_start').mockResolvedValue();
 
-    const result = await service.recover();
+      const healthEvents = [];
+      service.on('healthChanged', (e) => healthEvents.push(e));
 
-    expect(result).toBe(false);
-    expect(service._recover).not.toHaveBeenCalled();
+      await service.initialize();
+      expect(healthEvents).toHaveLength(0); // No change yet
+
+      await service.start();
+      expect(healthEvents).toHaveLength(1);
+      expect(healthEvents[0]).toEqual({
+        service: 'testService',
+        healthy: true
+      });
+    });
+
+    it('should provide basic health status', async () => {
+      const health = await service.getHealth();
+      
+      expect(health).toEqual({
+        name: 'testService',
+        state: CREATED,
+        healthy: false,
+        error: undefined
+      });
+    });
+
+    it('should include custom health check data', async () => {
+      vi.spyOn(service, '_healthCheck').mockResolvedValue({
+        latency: 10,
+        connections: 5
+      });
+
+      const health = await service.getHealth();
+      
+      expect(health).toMatchObject({
+        name: 'testService',
+        latency: 10,
+        connections: 5
+      });
+    });
+
+    it('should handle health check errors', async () => {
+      vi.spyOn(service, '_healthCheck').mockRejectedValue(new Error('Check failed'));
+
+      const health = await service.getHealth();
+      
+      expect(health).toMatchObject({
+        healthy: false,
+        checkError: 'Check failed'
+      });
+    });
   });
 
-  it('should default to no-op implementations of lifecycle methods', async () => {
-    // Create a new service that doesn't override protected methods
-    const basicService = new ServiceBase('basicService');
+  describe('Graceful Shutdown', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
 
-    // Complete lifecycle should work without errors
-    await basicService.initialize({ someConfig: true });
-    await basicService.start();
-    await basicService.stop();
-    await basicService.destroy();
+    afterEach(() => {
+      vi.useRealTimers();
+    });
 
-    expect(basicService.state).toBe(DESTROYED);
+    it('should respect shutdown timeout', async () => {
+      // Create service with short timeout
+      service = new ServiceBase('test', { shutdownTimeout: 1000 });
+      
+      // Make stop hang
+      vi.spyOn(service, '_stop').mockImplementation(() => 
+        new Promise(() => {}) // Never resolves
+      );
+
+      // Get to running state
+      service.state = RUNNING;
+
+      // Start stop
+      const stopPromise = service.stop();
+      
+      // Advance past timeout
+      await vi.advanceTimersByTimeAsync(1100);
+
+      expect(await stopPromise).toBe(false);
+      expect(service.state).toBe(ERROR);
+      expect(service.error.message).toBe('Shutdown timeout');
+    });
+
+    it('should force shutdown when requested', async () => {
+      service = new ServiceBase('test', { shutdownTimeout: 1000 });
+      
+      // Make stop hang
+      vi.spyOn(service, '_stop').mockImplementation(() => 
+        new Promise(() => {}) // Never resolves
+      );
+
+      service.state = RUNNING;
+
+      const stopPromise = service.stop({ force: true, timeout: 100 });
+      await vi.advanceTimersByTimeAsync(150);
+
+      expect(await stopPromise).toBe(true);
+      expect(service.state).toBe(STOPPED);
+    });
+  });
+
+  describe('Cleanup', () => {
+    it('should clean up on destroy', async () => {
+      const removeListenersSpy = vi.spyOn(service, 'removeAllListeners');
+      const loggerRemoveSpy = vi.spyOn(service.logger, 'removeAllListeners');
+
+      await service.destroy();
+
+      expect(service.state).toBe(DESTROYED);
+      expect(removeListenersSpy).toHaveBeenCalled();
+      expect(loggerRemoveSpy).toHaveBeenCalled();
+    });
+
+    it('should stop before destroying if running', async () => {
+      vi.spyOn(service, '_init').mockResolvedValue();
+      vi.spyOn(service, '_start').mockResolvedValue();
+      vi.spyOn(service, '_stop').mockResolvedValue();
+
+      await service.initialize();
+      await service.start();
+      
+      expect(service.state).toBe(RUNNING);
+
+      await service.destroy();
+      
+      expect(service._stop).toHaveBeenCalled();
+      expect(service.state).toBe(DESTROYED);
+    });
+  });
+
+  describe('Logging', () => {
+    it('should allow changing log level', () => {
+      const spy = vi.spyOn(service.logger, 'setLevel');
+      
+      expect(service.setLogLevel(DEBUG)).toBe(true);
+      expect(spy).toHaveBeenCalledWith(DEBUG);
+    });
   });
 });

@@ -1,1114 +1,607 @@
 /**
- * @fileoverview Service manager for coordinating service lifecycle.
+ * @fileoverview Service Manager for coordinating service lifecycle,
+ * dependencies, and health monitoring.
  *
- * The ServiceManager provides centralized registration, lifecycle management,
- * and coordination of services. It maintains a registry of all services,
- * manages dependencies between them, and provides events for global service
- * state changes.
+ * The ServiceManager handles registration, dependency resolution, startup
+ * orchestration, and coordinated shutdown of services. It provides centralized
+ * logging control and health monitoring for all registered services.
  *
  * @example
  * // Basic usage
  * import { ServiceManager } from './ServiceManager.js';
  * import DatabaseService from './services/DatabaseService.js';
- * import ApiService from './services/ApiService.js';
+ * import AuthService from './services/AuthService.js';
  *
- * // Create a service manager
- * const manager = new ServiceManager();
- *
- * // Register services
- * manager.register('database', new DatabaseService());
- * manager.register('api', new ApiService(), { dependencies: ['database'] });
- *
- * // Initialize all services
- * await manager.initializeAll({
- *   database: { connectionString: 'mongodb://localhost:27017' },
- *   api: { port: 3000 }
+ * const manager = new ServiceManager({
+ *   environment: 'development',
+ *   stopTimeout: 10000
  * });
  *
- * // Start all services (respecting dependencies)
+ * // Register services with dependencies
+ * manager.register('database', DatabaseService, {
+ *   connectionString: 'postgres://localhost/myapp'
+ * });
+ *
+ * manager.register('auth', AuthService, {
+ *   secret: process.env.JWT_SECRET
+ * }, {
+ *   dependencies: ['database'] // auth depends on database
+ * });
+ *
+ * // Start all services
  * await manager.startAll();
  *
- * // Listen for service events
- * manager.on('service:started', ({ service }) => {
- *   console.log(`Service ${service} started`);
+ * @example
+ * // Advanced usage with health monitoring
+ * manager.on('service:healthChanged', ({ service, healthy }) => {
+ *   if (!healthy) {
+ *     console.error(`Service ${service} became unhealthy`);
+ *   }
  * });
  *
- * // Get service instance
- * const db = manager.getService('database');
- * await db.query('SELECT * FROM users');
+ * // Check health of all services
+ * const health = await manager.checkHealth();
+ * console.log('System health:', health);
  *
- * // Later, stop all services
- * await manager.stopAll();
+ * // Recover failed service
+ * manager.on('service:error', async ({ service }) => {
+ *   console.log(`Attempting to recover ${service}`);
+ *   await manager.recoverService(service);
+ * });
+ *
+ * @example
+ * // Logging control
+ * // Set global log level
+ * manager.setLogLevel('*', 'DEBUG');
+ *
+ * // Set specific service log level
+ * manager.setLogLevel('database', 'ERROR');
+ *
+ * // Listen to all service logs
+ * manager.on('service:log', (logEvent) => {
+ *   writeToLogFile(logEvent);
+ * });
  */
 
 import { EventEmitter } from '$lib/classes/events';
-import { Logger, INFO } from '$lib/classes/logging';
+import { Logger, DEBUG, INFO, WARN } from '$lib/classes/logging';
 
 import {
   CREATED,
-  INITIALIZING,
-  INITIALIZED,
-  STARTING,
   RUNNING,
-  STOPPING,
-  STOPPED,
-  DESTROYING,
-  DESTROYED,
-  ERROR,
-  RECOVERING
-} from './constants.js';
+  DESTROYED
+} from './service-states.js';
 
 /**
- * @typedef {Object} ServiceEntry
- * @property {Object} instance - Service instance
- * @property {Object} config - Service configuration
- * @property {string[]} dependencies - List of service dependencies
- * @property {Function} stateChangedUnsubscribe - Unsubscribe function for state events
- * @property {Function} errorUnsubscribe - Unsubscribe function for error events
+ * @typedef {import('./typedef.js').ServiceConstructor} ServiceConstructor
+ * @typedef {import('./typedef.js').ServiceConfig} ServiceConfig
+ * @typedef {import('./typedef.js').ServiceRegistrationOptions} ServiceRegistrationOptions
+ * @typedef {import('./typedef.js').ServiceManagerConfig} ServiceManagerConfig
+ * @typedef {import('./typedef.js').StopOptions} StopOptions
+ * @typedef {import('./typedef.js').ServiceEntry} ServiceEntry
+ * @typedef {import('./typedef.js').HealthCheckResult} HealthCheckResult
  */
 
 /**
- * Manager for coordinating services lifecycle
+ * Service Manager for lifecycle and dependency management
+ * @extends EventEmitter
  */
-export default class ServiceManager {
+export class ServiceManager extends EventEmitter {
   /**
-   * Create a new service manager
+   * Create a new ServiceManager instance
    *
-   * @param {Object} [options] - Manager options
-   * @param {string} [options.logLevel=INFO] - Log level for the manager
+   * @param {ServiceManagerConfig} [config={}] - Manager configuration
    */
-  constructor(options = {}) {
-    /**
-     * Map of registered services
-     * @type {Map<string, ServiceEntry>}
-     * @private
-     */
+  constructor(config = {}) {
+    super();
+
+    /** @type {Map<string, ServiceEntry>} */
     this.services = new Map();
 
-    /**
-     * Event emitter for service events
-     * @type {EventEmitter}
-     */
-    this.events = new EventEmitter();
+    /** @type {Logger} */
+    this.logger = new Logger('ServiceManager', config.logLevel || INFO);
 
-    /**
-     * Service manager logger
-     * @type {Logger}
-     */
-    this.logger = new Logger('ServiceManager', options.logLevel || INFO);
-
-    /**
-     * Service dependency graph
-     * @type {Map<string, Set<string>>}
-     * @private
-     */
-    this.dependencyGraph = new Map();
-
-    this.logger.debug('Service manager created');
-  }
-
-  /**
-   * Register an event handler
-   *
-   * @param {string} eventName - Event name
-   * @param {Function} handler - Event handler
-   * @returns {Function} Unsubscribe function
-   */
-  on(eventName, handler) {
-    return this.events.on(eventName, handler);
-  }
-
-  /**
-   * Remove an event handler
-   *
-   * @param {string} eventName - Event name
-   * @param {Function} handler - Event handler
-   * @returns {boolean} True if handler was removed
-   */
-  off(eventName, handler) {
-    return this.events.off(eventName, handler);
-  }
-
-  /**
-   * Emit an event
-   *
-   * @param {string} eventName - Event name
-   * @param {*} data - Event data
-   * @returns {boolean} True if event had listeners
-   * @private
-   */
-  _emit(eventName, data) {
-    return this.events.emit(eventName, data);
-  }
-
-  /**
-   * Register a service
-   *
-   * @param {string} name - Service name
-   * @param {Object} instance - Service instance
-   * @param {Object} [options] - Registration options
-   * @param {string[]} [options.dependencies=[]] - Service dependencies
-   * @param {Object} [options.config={}] - Service configuration
-   * @returns {boolean} True if registration was successful
-   *
-   * @example
-   * manager.register('database', new DatabaseService());
-   * manager.register('api', new ApiService(), {
-   *   dependencies: ['database'],
-   *   config: { port: 3000 }
-   * });
-   */
-  register(name, instance, options = {}) {
-    if (this.services.has(name)) {
-      this.logger.warn(`Service '${name}' already registered`);
-      return false;
-    }
-
-    const { dependencies = [], config = {} } = options;
-
-    // Check if dependencies are valid
-    for (const dep of dependencies) {
-      if (!this.services.has(dep)) {
-        this.logger.warn(
-          `Cannot register service '${name}': missing dependency '${dep}'`
-        );
-        return false;
-      }
-    }
-
-    // Create service entry
-    const entry = {
-      instance,
-      config,
-      dependencies,
-      stateChangedUnsubscribe: null,
-      errorUnsubscribe: null
+    /** @type {ServiceManagerConfig} */
+    this.config = {
+      environment: config.environment || 'production',
+      autoStart: config.autoStart ?? false,
+      stopTimeout: config.stopTimeout || 10000,
+      logConfig: config.logConfig || {}
     };
 
-    // Subscribe to service events
-    entry.stateChangedUnsubscribe = instance.on('stateChanged', event => {
-      this._handleStateChanged(name, event);
+    this._setupLogging();
+  }
+
+  /**
+   * Register a service class with the manager
+   *
+   * @param {string} name - Unique service identifier
+   * @param {ServiceConstructor} ServiceClass - Service class constructor
+   * @param {ServiceConfig} [config={}] - Service configuration
+   * @param {ServiceRegistrationOptions} [options={}] - Registration options
+   *
+   * @throws {Error} If service name is already registered
+   */
+  register(name, ServiceClass, config = {}, options = {}) {
+    if (this.services.has(name)) {
+      throw new Error(`Service '${name}' already registered`);
+    }
+
+    /** @type {ServiceEntry} */
+    const entry = {
+      ServiceClass,
+      instance: null,
+      config,
+      dependencies: options.dependencies || [],
+      dependents: new Set(),
+      tags: options.tags || [],
+      priority: options.priority || 0
+    };
+
+    // Track dependents
+    entry.dependencies.forEach(dep => {
+      const depEntry = this.services.get(dep);
+      if (depEntry) {
+        depEntry.dependents.add(name);
+      }
     });
 
-    entry.errorUnsubscribe = instance.on('error', event => {
-      this._handleError(name, event);
-    });
-
-    // Add to registry
     this.services.set(name, entry);
-
-    // Update dependency graph
-    this._updateDependencyGraph();
-
-    this.logger.info(`Service '${name}' registered`, { dependencies });
-    this._emit('service:registered', { service: name });
-
-    return true;
+    this.logger.debug(`Registered service '${name}'`, {
+      dependencies: entry.dependencies,
+      tags: entry.tags
+    });
   }
 
   /**
-   * Unregister a service
+   * Get or create a service instance
    *
    * @param {string} name - Service name
-   * @returns {boolean} True if unregistration was successful
    *
-   * @example
-   * manager.unregister('api');
+   * @returns {import('./typedef.js').ServiceBase|null}
+   *   Service instance or null if not found
    */
-  unregister(name) {
+  get(name) {
     const entry = this.services.get(name);
     if (!entry) {
-      this.logger.warn(`Service '${name}' not registered`);
-      return false;
+      this.logger.warn(`Service '${name}' not found`);
+      return null;
     }
 
-    // Check if other services depend on this one
-    for (const [serviceName, serviceEntry] of this.services.entries()) {
-      if (serviceEntry.dependencies.includes(name)) {
-        this.logger.error(
-          `Cannot unregister service '${name}': ` +
-          `'${serviceName}' depends on it`
-        );
-        return false;
+    if (!entry.instance) {
+      try {
+        entry.instance = new entry.ServiceClass(name);
+
+        // Apply log level
+        const logLevel = this._getServiceLogLevel(name);
+        if (logLevel) {
+          entry.instance.setLogLevel(logLevel);
+        }
+
+        // Forward events
+        this._attachServiceEvents(name, entry.instance);
+
+        this.logger.debug(`Created instance for '${name}'`);
+      } catch (error) {
+        this.logger.error(`Failed to create instance for '${name}'`, error);
+        return null;
       }
     }
 
-    // Clean up event subscriptions
-    if (entry.stateChangedUnsubscribe) {
-      entry.stateChangedUnsubscribe();
-    }
-
-    if (entry.errorUnsubscribe) {
-      entry.errorUnsubscribe();
-    }
-
-    // Remove from registry
-    this.services.delete(name);
-
-    // Update dependency graph
-    this._updateDependencyGraph();
-
-    this.logger.info(`Service '${name}' unregistered`);
-    this._emit('service:unregistered', { service: name });
-
-    return true;
+    return entry.instance;
   }
 
   /**
-   * Get a service instance
+   * Initialize a service
    *
    * @param {string} name - Service name
-   * @returns {Object|null} Service instance or null if not found
    *
-   * @example
-   * const db = manager.getService('database');
-   * await db.query('SELECT * FROM users');
+   * @returns {Promise<boolean>} True if initialization succeeded
    */
-  getService(name) {
+  async initService(name) {
+    const instance = this.get(name);
+    if (!instance) return false;
+
     const entry = this.services.get(name);
-    return entry ? entry.instance : null;
+    return await instance.initialize(entry.config);
   }
 
   /**
-   * Initialize a specific service
+   * Start a service and its dependencies
    *
    * @param {string} name - Service name
-   * @param {Object} [config] - Service configuration (overrides config from
-   *                            registration)
-   * @returns {Promise<boolean>} True if initialization was successful
    *
-   * @example
-   * await manager.initializeService('database', {
-   *   connectionString: 'mongodb://localhost:27017'
-   * });
-   */
-  async initializeService(name, config) {
-    const entry = this.services.get(name);
-    if (!entry) {
-      this.logger.error(`Cannot initialize unknown service '${name}'`);
-      return false;
-    }
-
-    // Merge configs if provided
-    const mergedConfig = config
-      ? { ...entry.config, ...config }
-      : entry.config;
-
-    this.logger.debug(`Initializing service '${name}'`);
-    const result = await entry.instance.initialize(mergedConfig);
-
-    if (result) {
-      this.logger.info(`Service '${name}' initialized`);
-    } else {
-      this.logger.error(`Service '${name}' initialization failed`);
-    }
-
-    return result;
-  }
-
-  /**
-   * Initialize all registered services
-   *
-   * @param {Object} [configs] - Configuration map for services
-   * @returns {Promise<boolean>} True if all services initialized successfully
-   *
-   * @example
-   * await manager.initializeAll({
-   *   database: { connectionString: 'mongodb://localhost:27017' },
-   *   api: { port: 3000 }
-   * });
-   */
-  async initializeAll(configs = {}) {
-    let allSuccessful = true;
-
-    this.logger.info('Initializing all services');
-
-    for (const [name, entry] of this.services.entries()) {
-      const config = configs[name] || entry.config;
-      const success = await this.initializeService(name, config);
-
-      if (!success) {
-        allSuccessful = false;
-      }
-    }
-
-    if (allSuccessful) {
-      this.logger.info('All services initialized successfully');
-    } else {
-      this.logger.error('Some services failed to initialize');
-    }
-
-    return allSuccessful;
-  }
-
-  /**
-   * Start a specific service and its dependencies
-   *
-   * @param {string} name - Service name
-   * @returns {Promise<boolean>} True if start was successful
-   *
-   * @example
-   * await manager.startService('api');
+   * @returns {Promise<boolean>} True if service started successfully
    */
   async startService(name) {
     const entry = this.services.get(name);
     if (!entry) {
-      this.logger.error(`Cannot start unknown service '${name}'`);
+      this.logger.warn(`Cannot start unregistered service '${name}'`);
       return false;
-    }
-
-    // Check if service is already running
-    if (entry.instance.state === RUNNING) {
-      this.logger.debug(`Service '${name}' is already running`);
-      return true;
     }
 
     // Start dependencies first
-    for (const depName of entry.dependencies) {
-      const depEntry = this.services.get(depName);
-
-      if (!depEntry) {
-        this.logger.error(
-          `Cannot start service '${name}': ` +
-          `dependency '${depName}' not found`
-        );
-        return false;
-      }
-
-      if (depEntry.instance.state !== RUNNING) {
-        const success = await this.startService(depName);
-        if (!success) {
+    for (const dep of entry.dependencies) {
+      if (!await this.isRunning(dep)) {
+        this.logger.debug(`Starting dependency '${dep}' for '${name}'`);
+        const started = await this.startService(dep);
+        if (!started) {
           this.logger.error(
-            `Cannot start service '${name}': ` +
-            `dependency '${depName}' failed to start`
+            `Failed to start dependency '${dep}' for '${name}'`
           );
           return false;
         }
       }
     }
 
-    // Start this service
-    this.logger.debug(`Starting service '${name}'`);
-    const result = await entry.instance.start();
+    const instance = this.get(name);
+    if (!instance) return false;
 
-    if (result) {
-      this.logger.info(`Service '${name}' started`);
-    } else {
-      this.logger.error(`Service '${name}' failed to start`);
+    // Initialize if needed
+    if (instance.state === CREATED || instance.state === DESTROYED) {
+      const initialized = await this.initService(name);
+      if (!initialized) return false;
     }
 
-    return result;
+    return await instance.start();
   }
 
   /**
-   * Start all services in dependency order
-   *
-   * @returns {Promise<boolean>} True if all services started successfully
-   *
-   * @example
-   * await manager.startAll();
-   */
-  async startAll() {
-    let allSuccessful = true;
-    const started = new Set();
-
-    this.logger.info('Starting all services');
-
-    // Get dependency ordered list
-    const orderedServices = this._getStartOrder();
-
-    // Start services in order
-    for (const name of orderedServices) {
-      if (started.has(name)) {
-        continue; // Already started as a dependency
-      }
-
-      const success = await this.startService(name);
-
-      if (success) {
-        started.add(name);
-      } else {
-        allSuccessful = false;
-        this.logger.error(`Failed to start service '${name}'`);
-      }
-    }
-
-    if (allSuccessful) {
-      this.logger.info('All services started successfully');
-    } else {
-      this.logger.error('Some services failed to start');
-    }
-
-    return allSuccessful;
-  }
-
-  /**
-   * Stop a specific service and services that depend on it
+   * Stop a service
    *
    * @param {string} name - Service name
-   * @param {Object} [options] - Stop options
-   * @param {boolean} [options.force=false] - Force stop even with dependents
-   * @returns {Promise<boolean>} True if stop was successful
+   * @param {StopOptions} [options={}] - Stop options
    *
-   * @example
-   * await manager.stopService('database');
+   * @returns {Promise<boolean>} True if service stopped successfully
    */
   async stopService(name, options = {}) {
-    const { force = false } = options;
+    const instance = this.get(name);
+    if (!instance) {
+      this.logger.warn(`Cannot stop unregistered service '${name}'`);
+      return true; // Already stopped
+    }
+
+    // Check dependents
     const entry = this.services.get(name);
-
-    if (!entry) {
-      this.logger.error(`Cannot stop unknown service '${name}'`);
-      return false;
-    }
-
-    // Check if already stopped
-    if (entry.instance.state !== RUNNING) {
-      this.logger.debug(`Service '${name}' is not running`);
-      return true;
-    }
-
-    // Find services that depend on this one
-    const dependents = [];
-    for (const [serviceName, serviceEntry] of this.services.entries()) {
-      if (serviceEntry.dependencies.includes(name) &&
-          serviceEntry.instance.state === RUNNING) {
-        dependents.push(serviceName);
+    if (!options.force && entry && entry.dependents.size > 0) {
+      const runningDependents = [];
+      for (const dep of entry.dependents) {
+        if (await this.isRunning(dep)) {
+          runningDependents.push(dep);
+        }
       }
-    }
 
-    // If there are dependents, stop them first or fail if not forced
-    if (dependents.length > 0) {
-      if (!force) {
-        this.logger.error(
-          `Cannot stop service '${name}': ` +
-          `other services depend on it: ${dependents.join(', ')}`
+      if (runningDependents.length > 0) {
+        this.logger.warn(
+          `Cannot stop '${name}' - required by: ${runningDependents.join(', ')}`
         );
         return false;
       }
+    }
 
-      this.logger.warn(
-        `Force stopping service '${name}' with dependents: ` +
-        dependents.join(', ')
-      );
+    return await instance.stop(options);
+  }
 
-      // Stop all dependents first
-      for (const dependent of dependents) {
-        const success = await this.stopService(dependent, { force });
-        if (!success) {
-          this.logger.error(
-            `Failed to stop dependent service '${dependent}'`
-          );
-          return false;
+  /**
+   * Recover a service from error state
+   *
+   * @param {string} name - Service name
+   *
+   * @returns {Promise<boolean>} True if recovery succeeded
+   */
+  async recoverService(name) {
+    const instance = this.get(name);
+    if (!instance) return false;
+
+    return await instance.recover();
+  }
+
+  /**
+   * Start all registered services in dependency order
+   *
+   * @returns {Promise<Object<string, boolean>>} Map of service results
+   */
+  async startAll() {
+    this.logger.info('Starting all services');
+
+    // Sort by priority and dependencies
+    const sorted = this._topologicalSort();
+    const results = new Map();
+
+    for (const name of sorted) {
+      const success = await this.startService(name);
+      results.set(name, success);
+
+      if (!success) {
+        this.logger.error(`Failed to start '${name}', stopping`);
+        // Mark remaining services as not started
+        for (const remaining of sorted) {
+          if (!results.has(remaining)) {
+            results.set(remaining, false);
+          }
         }
+        break;
       }
     }
 
-    // Stop this service
-    this.logger.debug(`Stopping service '${name}'`);
-    const result = await entry.instance.stop();
-
-    if (result) {
-      this.logger.info(`Service '${name}' stopped`);
-    } else {
-      this.logger.error(`Service '${name}' failed to stop`);
-    }
-
-    return result;
+    return Object.fromEntries(results);
   }
 
   /**
    * Stop all services in reverse dependency order
    *
-   * @param {Object} [options] - Stop options
-   * @param {boolean} [options.force=false] - Force stop even with errors
-   * @returns {Promise<boolean>} True if all services stopped successfully
+   * @param {StopOptions} [options={}] - Stop options
    *
-   * @example
-   * await manager.stopAll();
+   * @returns {Promise<Object<string, boolean>>} Map of service results
    */
   async stopAll(options = {}) {
-    const { force = false } = options;
-    let allSuccessful = true;
-
     this.logger.info('Stopping all services');
 
-    // Get reverse dependency order
-    const orderedServices = this._getStartOrder().reverse();
+    const stopOptions = {
+      timeout: options.timeout || this.config.stopTimeout,
+      force: options.force || false
+    };
 
-    // Stop services in reverse order
-    for (const name of orderedServices) {
-      const entry = this.services.get(name);
+    // Stop in reverse order
+    const sorted = this._topologicalSort().reverse();
+    const results = new Map();
 
-      if (entry.instance.state === RUNNING) {
-        const success = await this.stopService(name, { force: true });
-
-        if (!success) {
-          this.logger.error(`Failed to stop service '${name}'`);
-          allSuccessful = false;
-
-          if (!force) {
-            break;
-          }
-        }
-      }
-    }
-
-    if (allSuccessful) {
-      this.logger.info('All services stopped successfully');
-    } else {
-      this.logger.error('Some services failed to stop');
-    }
-
-    return allSuccessful;
-  }
-
-  /**
-   * Destroy a service and remove it from the manager
-   *
-   * @param {string} name - Service name
-   * @param {Object} [options] - Destroy options
-   * @param {boolean} [options.force=false] - Force destroy even with dependents
-   * @returns {Promise<boolean>} True if service was destroyed
-   *
-   * @example
-   * await manager.destroyService('api');
-   */
-  async destroyService(name, options = {}) {
-    const { force = false } = options;
-    const entry = this.services.get(name);
-
-    if (!entry) {
-      this.logger.error(`Cannot destroy unknown service '${name}'`);
-      return false;
-    }
-
-    // If running, stop first
-    if (entry.instance.state === RUNNING) {
-      const stopSuccess = await this.stopService(name, { force });
-      if (!stopSuccess) {
-        return false;
-      }
-    }
-
-    // Check for dependents
-    const dependents = [];
-    for (const [serviceName, serviceEntry] of this.services.entries()) {
-      if (serviceEntry.dependencies.includes(name)) {
-        dependents.push(serviceName);
-      }
-    }
-
-    if (dependents.length > 0 && !force) {
-      this.logger.error(
-        `Cannot destroy service '${name}': ` +
-        `other services depend on it: ${dependents.join(', ')}`
+    // Handle global timeout if specified
+    if (stopOptions.timeout > 0) {
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(
+          () => reject(new Error('Global shutdown timeout')),
+          stopOptions.timeout
+        )
       );
-      return false;
-    }
 
-    // Destroy the service
-    this.logger.debug(`Destroying service '${name}'`);
-    const result = await entry.instance.destroy();
-
-    if (result) {
-      this.logger.info(`Service '${name}' destroyed`);
-
-      // Unregister after successful destruction
-      this.unregister(name);
-    } else {
-      this.logger.error(`Service '${name}' failed to destroy`);
-    }
-
-    return result;
-  }
-
-  /**
-   * Destroy all services and shutdown the manager
-   *
-   * @param {Object} [options] - Destroy options
-   * @param {boolean} [options.force=false] - Force destroy even with errors
-   * @returns {Promise<boolean>} True if all services were destroyed
-   *
-   * @example
-   * await manager.destroyAll();
-   */
-  async destroyAll(options = {}) {
-    const { force = false } = options;
-    let allSuccessful = true;
-
-    this.logger.info('Destroying all services');
-
-    // Get reverse dependency order
-    const orderedServices = this._getStartOrder().reverse();
-
-    // Destroy services in reverse order
-    for (const name of orderedServices) {
-      if (this.services.has(name)) {
-        const success = await this.destroyService(name, { force: true });
-
-        if (!success) {
-          this.logger.error(`Failed to destroy service '${name}'`);
-          allSuccessful = false;
-
-          if (!force) {
-            break;
+      try {
+        // Race between stopping all services and timeout
+        await Promise.race([
+          this._stopAllSequentially(sorted, results, stopOptions),
+          timeoutPromise
+        ]);
+      } catch (error) {
+        if (error.message === 'Global shutdown timeout') {
+          this.logger.error('Global shutdown timeout reached');
+          // Mark any remaining services as failed
+          for (const name of sorted) {
+            if (!results.has(name)) {
+              results.set(name, false);
+            }
           }
+        } else {
+          throw error;
         }
-      }
-    }
-
-    // Clean up
-    this.services.clear();
-    this.dependencyGraph.clear();
-    this.events.removeAllListeners();
-
-    this.logger.info('Service manager shut down');
-
-    return allSuccessful;
-  }
-
-  /**
-   * Recover a service and its dependencies from error state
-   *
-   * @param {string} name - Service name
-   * @param {Object} [options] - Recovery options
-   * @param {boolean} [options.recursive=true] - Recursively recover dependencies
-   * @param {boolean} [options.autoStart=true] - Auto-start service after recovery
-   * @returns {Promise<boolean>} True if recovery was successful
-   *
-   * @example
-   * // Recover a service and its dependencies
-   * await manager.recoverService('api');
-   *
-   * // Recover just this service without auto-starting
-   * await manager.recoverService('database', {
-   *   recursive: false,
-   *   autoStart: false
-   * });
-   */
-  async recoverService(name, options = {}) {
-    const {
-      recursive = true,
-      autoStart = true
-    } = options;
-
-    const entry = this.services.get(name);
-
-    if (!entry) {
-      this.logger.error(`Cannot recover unknown service '${name}'`);
-      return false;
-    }
-
-    // Only proceed if service is in ERROR state
-    if (entry.instance.state !== ERROR) {
-      this.logger.debug(
-        `Service '${name}' is not in ERROR state (current: ${entry.instance.state})`
-      );
-      return true; // Not an error, already in a valid state
-    }
-
-    // First recover dependencies if needed
-    if (recursive) {
-      // Build dependency recovery order
-      const recoveryOrder = [];
-      const visited = new Set();
-
-      const visitDependencies = (serviceName) => {
-        if (visited.has(serviceName)) return;
-        visited.add(serviceName);
-
-        const deps = this.services.get(serviceName)?.dependencies || [];
-        for (const dep of deps) {
-          visitDependencies(dep);
-        }
-
-        recoveryOrder.push(serviceName);
-      };
-
-      // Visit all dependencies first
-      for (const dep of entry.dependencies) {
-        visitDependencies(dep);
-      }
-
-      // Recover dependencies in the correct order
-      for (const depName of recoveryOrder) {
-        if (depName === name) continue; // Skip self
-
-        const depEntry = this.services.get(depName);
-        if (!depEntry) continue;
-
-        if (depEntry.instance.state === ERROR) {
-          this.logger.info(
-            `Recovering dependency '${depName}' for service '${name}'`
-          );
-
-          const success = await this.recoverService(depName, options);
-          if (!success) {
-            this.logger.error(
-              `Failed to recover dependency '${depName}' for '${name}'`
-            );
-            return false;
-          }
-        }
-      }
-    }
-
-    // Now recover this service
-    this.logger.debug(`Recovering service '${name}'`);
-    const result = await entry.instance.recover();
-
-    if (!result) {
-      this.logger.error(`Failed to recover service '${name}'`);
-      return false;
-    }
-
-    this.logger.info(`Service '${name}' recovered successfully`);
-
-    // Auto-start if requested and all dependencies are running
-    if (autoStart) {
-      const canStart = entry.dependencies.every(dep => {
-        const depEntry = this.services.get(dep);
-        return depEntry && depEntry.instance.state === RUNNING;
-      });
-
-      if (canStart) {
-        this.logger.debug(`Auto-starting recovered service '${name}'`);
-        return await this.startService(name);
-      }
-    }
-
-    return true;
-  }
-
-  /**
-   * Recover all services in dependency order
-   *
-   * @param {Object} [options] - Recovery options
-   * @param {boolean} [options.autoStart=true] - Auto-start services after recovery
-   * @returns {Promise<boolean>} True if all recoveries were successful
-   *
-   * @example
-   * // Recover all services and auto-start them
-   * await manager.recoverAll();
-   *
-   * // Recover all services without auto-starting
-   * await manager.recoverAll({ autoStart: false });
-   */
-  async recoverAll(options = {}) {
-    let allSuccessful = true;
-    const { autoStart = true } = options;
-
-    this.logger.info('Recovering all services');
-
-    // Find services in ERROR state
-    const errorServices = [];
-    for (const [name, entry] of this.services.entries()) {
-      if (entry.instance.state === ERROR) {
-        errorServices.push(name);
-      }
-    }
-
-    if (errorServices.length === 0) {
-      this.logger.info('No services in ERROR state');
-      return true;
-    }
-
-    // Get dependency ordered list
-    const orderedServices = this._getStartOrder();
-
-    // Recover services in order
-    for (const name of orderedServices) {
-      const entry = this.services.get(name);
-
-      if (entry.instance.state === ERROR) {
-        const success = await this.recoverService(name, {
-          recursive: false, // Already handling order here
-          autoStart
-        });
-
-        if (!success) {
-          allSuccessful = false;
-          this.logger.error(`Failed to recover service '${name}'`);
-        }
-      }
-    }
-
-    if (allSuccessful) {
-      this.logger.info('All services recovered successfully');
-
-      // If auto-start enabled, start services that weren't auto-started
-      if (autoStart) {
-        await this.startAll();
       }
     } else {
-      this.logger.error('Some services failed to recover');
+      // No timeout, just stop sequentially
+      await this._stopAllSequentially(sorted, results, stopOptions);
     }
 
-    return allSuccessful;
+    return Object.fromEntries(results);
   }
 
   /**
-   * Set log level for a specific service or all services
+   * Stop services sequentially
    *
-   * @param {string} level - New log level
-   * @param {string} [serviceName] - Service to set level for, or all if omitted
-   * @returns {boolean} True if level was set successfully
-   *
-   * @example
-   * // Set level for specific service
-   * manager.setLogLevel(DEBUG, 'database');
-   *
-   * // Set level for all services including manager
-   * manager.setLogLevel(INFO);
+   * @private
+   * @param {string[]} serviceNames - Ordered list of service names
+   * @param {Map<string, boolean>} results - Results map to populate
+   * @param {StopOptions} options - Stop options
    */
-  setLogLevel(level, serviceName) {
-    if (serviceName) {
-      // Set for specific service
-      const entry = this.services.get(serviceName);
-      if (!entry) {
-        this.logger.error(`Cannot set log level for unknown service '${serviceName}'`);
-        return false;
+  async _stopAllSequentially(serviceNames, results, options) {
+    for (const name of serviceNames) {
+      try {
+        const success = await this.stopService(name, options);
+        results.set(name, success);
+      } catch (error) {
+        this.logger.error(`Error stopping '${name}'`, error);
+        results.set(name, false);
       }
-
-      return entry.instance.setLogLevel(level);
-    } else {
-      // Set for all services and manager
-      let allSuccess = true;
-
-      // Set for the manager
-      if (!this.logger.setLevel(level)) {
-        allSuccess = false;
-      }
-
-      // Set for all services
-      for (const [name, entry] of this.services.entries()) {
-        if (!entry.instance.setLogLevel(level)) {
-          this.logger.warn(`Failed to set log level for service '${name}'`);
-          allSuccess = false;
-        }
-      }
-
-      return allSuccess;
     }
   }
 
   /**
-   * Get the names of all registered services
+   * Get health status for all services
    *
-   * @returns {string[]} List of service names
-   *
-   * @example
-   * const services = manager.getServiceNames();
-   * console.log(`Registered services: ${services.join(', ')}`);
+   * @returns {Promise<HealthCheckResult>} Health status for all services
    */
-  getServiceNames() {
-    return Array.from(this.services.keys());
-  }
+  async checkHealth() {
+    const health = {};
 
-  /**
-   * Get service status information
-   *
-   * @param {string} [name] - Service name, or all if omitted
-   * @returns {Object|Array|null} Service status or null if not found
-   *
-   * @example
-   * // Get status for all services
-   * const allStatus = manager.getServiceStatus();
-   *
-   * // Get status for specific service
-   * const dbStatus = manager.getServiceStatus('database');
-   * console.log(`Database state: ${dbStatus.state}`);
-   */
-  getServiceStatus(name) {
-    if (name) {
-      // Get status for specific service
-      const entry = this.services.get(name);
-      if (!entry) {
-        return null;
-      }
-
-      return {
-        name,
-        state: entry.instance.state,
-        dependencies: entry.dependencies,
-        error: entry.instance.error ? entry.instance.error.message : null
-      };
-    } else {
-      // Get status for all services
-      const statuses = [];
-
-      for (const [name, entry] of this.services.entries()) {
-        statuses.push({
+    for (const [name, entry] of this.services) {
+      if (entry.instance) {
+        health[name] = await entry.instance.getHealth();
+      } else {
+        health[name] = {
           name,
-          state: entry.instance.state,
-          dependencies: entry.dependencies,
-          error: entry.instance.error ? entry.instance.error.message : null
-        });
+          state: 'NOT_CREATED',
+          healthy: false
+        };
       }
-
-      return statuses;
     }
+
+    return health;
+  }
+
+  /**
+   * Check if a service is currently running
+   *
+   * @param {string} name - Service name
+   *
+   * @returns {Promise<boolean>} True if service is running
+   */
+  async isRunning(name) {
+    const instance = this.get(name);
+    return instance ? instance.state === RUNNING : false;
+  }
+
+  /**
+   * Set log level for a service or globally
+   *
+   * @param {string} name - Service name or '*' for global
+   * @param {string} level - Log level to set
+   */
+  setLogLevel(name, level) {
+    if (name === '*') {
+      // Global level
+      this.config.logConfig.globalLevel = level;
+
+      // Apply to all existing services
+      for (const [serviceName, entry] of this.services) {
+        if (entry.instance) {
+          entry.instance.setLogLevel(level);
+        }
+      }
+    } else {
+      // Service-specific level
+      if (!this.config.logConfig.serviceLevels) {
+        this.config.logConfig.serviceLevels = {};
+      }
+      this.config.logConfig.serviceLevels[name] = level;
+
+      // Apply to existing instance
+      const instance = this.get(name);
+      if (instance) {
+        instance.setLogLevel(level);
+      }
+    }
+  }
+
+  /**
+   * Get all services with a specific tag
+   *
+   * @param {string} tag - Tag to filter by
+   *
+   * @returns {string[]} Array of service names
+   */
+  getServicesByTag(tag) {
+    const services = [];
+    for (const [name, entry] of this.services) {
+      if (entry.tags.includes(tag)) {
+        services.push(name);
+      }
+    }
+    return services;
   }
 
   // Private methods
 
   /**
-   * Handle state change events from services
+   * Setup logging configuration based on environment
    *
    * @private
-   * @param {string} serviceName - Service name
-   * @param {Object} event - State change event
    */
-  _handleStateChanged(serviceName, event) {
-    const { oldState, newState } = event;
+  _setupLogging() {
+    // Set default log levels based on environment
+    if (this.config.environment === 'development') {
+      this.config.logConfig.defaultLevel = DEBUG;
+    } else {
+      this.config.logConfig.defaultLevel = WARN;
+    }
 
-    this.logger.debug(
-      `Service '${serviceName}' state changed: ${oldState} -> ${newState}`
-    );
+    // Apply config
+    if (this.config.logConfig.globalLevel) {
+      this.logger.setLevel(this.config.logConfig.globalLevel);
+    }
+  }
 
-    // Emit specific state events
-    this._emit('service:stateChanged', {
-      service: serviceName,
-      oldState,
-      newState
+  /**
+   * Get the appropriate log level for a service
+   *
+   * @private
+   * @param {string} name - Service name
+   *
+   * @returns {string|undefined} Log level or undefined
+   */
+  _getServiceLogLevel(name) {
+    const config = this.config.logConfig;
+
+    // Check in order of precedence:
+    // 1. Global level (overrides everything)
+    if (config.globalLevel) {
+      return config.globalLevel;
+    }
+
+    // 2. Service-specific level
+    if (config.serviceLevels?.[name]) {
+      return config.serviceLevels[name];
+    }
+
+    // 3. Don't use defaultLevel as it might be too restrictive
+    // Return undefined to let the service use its own default
+    return undefined;
+  }
+
+  /**
+   * Attach event listeners to forward service events
+   *
+   * @private
+   * @param {string} name - Service name
+   * @param {import('./typedef.js').ServiceBase} instance
+   *   Service instance
+   */
+  _attachServiceEvents(name, instance) {
+    // Forward service events
+    instance.on('stateChanged', (data) => {
+      this.emit('service:stateChanged', { ...data, service: name });
     });
 
-    // Emit events for specific states
-    if (newState === INITIALIZED) {
-      this._emit('service:initialized', { service: serviceName });
-    } else if (newState === RUNNING) {
-      this._emit('service:started', { service: serviceName });
-    } else if (newState === STOPPED) {
-      this._emit('service:stopped', { service: serviceName });
-    } else if (newState === DESTROYED) {
-      this._emit('service:destroyed', { service: serviceName });
-    } else if (newState === ERROR) {
-      this._emit('service:error', {
-        service: serviceName,
-        error: this.services.get(serviceName).instance.error
-      });
-    } else if (newState === RECOVERING) {
-      this._emit('service:recovering', { service: serviceName });
-    }
-  }
+    instance.on('healthChanged', (data) => {
+      this.emit('service:healthChanged', { ...data, service: name });
+    });
 
-  /**
-   * Handle error events from services
-   *
-   * @private
-   * @param {string} serviceName - Service name
-   * @param {Object} event - Error event
-   */
-  _handleError(serviceName, event) {
-    const { operation, error } = event;
+    instance.on('error', (data) => {
+      this.emit('service:error', { ...data, service: name });
+    });
 
-    this.logger.error(
-      `Service '${serviceName}' error during ${operation}`,
-    );
-
-    this._emit('service:error', {
-      service: serviceName,
-      operation,
-      error
+    // Forward log events
+    instance.logger.on('log', (logEvent) => {
+      this.emit('service:log', { ...logEvent, service: name });
     });
   }
 
   /**
-   * Update the dependency graph
+   * Sort services by dependencies using topological sort
    *
    * @private
-   */
-  _updateDependencyGraph() {
-    this.dependencyGraph.clear();
-
-    // Add all services to the graph
-    for (const name of this.services.keys()) {
-      this.dependencyGraph.set(name, new Set());
-    }
-
-    // Add dependencies
-    for (const [name, entry] of this.services.entries()) {
-      for (const dep of entry.dependencies) {
-        this.dependencyGraph.get(name).add(dep);
-      }
-    }
-
-    // Check for circular dependencies
-    this._checkForCircularDependencies();
-  }
-
-  /**
-   * Check for circular dependencies in the graph
    *
-   * @private
+   * @returns {string[]} Service names in dependency order
+   * @throws {Error} If circular dependencies are detected
    */
-  _checkForCircularDependencies() {
+  _topologicalSort() {
+    const sorted = [];
     const visited = new Set();
-    const recursionStack = new Set();
+    const visiting = new Set();
 
-    const checkNode = (node) => {
-      if (!visited.has(node)) {
-        visited.add(node);
-        recursionStack.add(node);
-
-        const dependencies = this.dependencyGraph.get(node);
-        if (dependencies) {
-          for (const dep of dependencies) {
-            if (!visited.has(dep) && checkNode(dep)) {
-              return true;
-            } else if (recursionStack.has(dep)) {
-              this.logger.error(
-                `Circular dependency detected: ` +
-                `'${node}' -> '${dep}'`
-              );
-              return true;
-            }
-          }
-        }
+    const visit = (name) => {
+      if (visited.has(name)) return;
+      if (visiting.has(name)) {
+        throw new Error(`Circular dependency detected involving '${name}'`);
       }
 
-      recursionStack.delete(node);
-      return false;
-    };
+      visiting.add(name);
 
-    for (const node of this.dependencyGraph.keys()) {
-      if (checkNode(node)) {
-        break;
-      }
-    }
-  }
-
-  /**
-   * Get optimal service start order based on dependencies
-   *
-   * @private
-   * @returns {string[]} Services in dependency order
-   */
-  _getStartOrder() {
-    const visited = new Set();
-    const result = [];
-
-    const visit = (node) => {
-      if (visited.has(node)) return;
-
-      visited.add(node);
-
-      const dependencies = this.dependencyGraph.get(node);
-      if (dependencies) {
-        for (const dep of dependencies) {
+      const entry = this.services.get(name);
+      if (entry) {
+        for (const dep of entry.dependencies) {
           visit(dep);
         }
       }
 
-      result.push(node);
+      visiting.delete(name);
+      visited.add(name);
+      sorted.push(name);
     };
 
-    // Visit all nodes
-    for (const node of this.dependencyGraph.keys()) {
-      visit(node);
+    // Visit all services
+    for (const name of this.services.keys()) {
+      visit(name);
     }
 
-    return result;
+    return sorted;
   }
 }
+
+export default ServiceManager;
