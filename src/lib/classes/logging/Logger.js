@@ -84,7 +84,7 @@ export default class Logger extends EventEmitter {
    * @returns {boolean} True if the log was emitted
    */
   debug(message, details) {
-    return this._log(DEBUG, message, details);
+    return this.#log(DEBUG, message, details);
   }
 
   /**
@@ -95,7 +95,7 @@ export default class Logger extends EventEmitter {
    * @returns {boolean} True if the log was emitted
    */
   info(message, details) {
-    return this._log(INFO, message, details);
+    return this.#log(INFO, message, details);
   }
 
   /**
@@ -106,7 +106,7 @@ export default class Logger extends EventEmitter {
    * @returns {boolean} True if the log was emitted
    */
   warn(message, details) {
-    return this._log(WARN, message, details);
+    return this.#log(WARN, message, details);
   }
 
   /**
@@ -117,7 +117,7 @@ export default class Logger extends EventEmitter {
    * @returns {boolean} True if the log was emitted
    */
   error(message, details) {
-    return this._log(ERROR, message, details);
+    return this.#log(ERROR, message, details);
   }
 
   /**
@@ -144,21 +144,39 @@ export default class Logger extends EventEmitter {
   }
 
   /**
+   * Log an event of type LogEvent,
+   * e.g. an event that was created by another Logger instance and should be
+   * forwarded to this logger.
+   *
+   * @param {import('./typedef.js').LogEvent} logEvent
+   */
+  logEvent( logEvent ) {
+    const level = logEvent.level;
+
+    // Check if this log level should be filtered
+    if (LEVELS[level] < LEVELS[this.level]) {
+      return false; // Below threshold, don't emit
+    }
+
+    this.#logEvent( logEvent );
+  }
+
+  /**
    * Internal logging method
    *
    * @param {string} level - Log level
    * @param {string} message - Log message
    * @param {*} [details] - Additional details to include in the log
    * @returns {boolean} True if the log was emitted, false if filtered
-   * @private
    */
-  _log(level, message, details) {
+  #log(level, message, details) {
     // Check if this log level should be filtered
     if (LEVELS[level] < LEVELS[this.level]) {
       return false; // Below threshold, don't emit
     }
 
     const timestamp = new Date();
+
     const logEvent = {
       timestamp,
       service: this.name,
@@ -170,6 +188,19 @@ export default class Logger extends EventEmitter {
 
     // Emit as both specific level event and generic 'log' event
     this.emit(level, logEvent);
+    this.emit('log', logEvent);
+
+    return true;
+  }
+
+  /**
+   * Internal event loggin method
+   *
+   * @param {import('./typedef.js').LogEvent} logEvent
+   */
+  #logEvent(logEvent) {
+    // Emit as both specific level event and generic 'log' event
+    this.emit(logEvent.level, logEvent);
     this.emit('log', logEvent);
 
     return true;

@@ -6,13 +6,13 @@ import { INFO } from '../constants.js';
 /**
  * Create a server-side logger with pino adapter
  *
- * @param {string} serviceName - Name of the service
+ * @param {string} name
  * @param {string} [level=INFO] - Initial log level
  * @param {Object} [pinoOptions] - Additional pino options
  * @returns {Logger} Configured logger instance
  */
-export function createServerLogger(serviceName, level = INFO, pinoOptions = {}) {
-  const logger = new Logger(serviceName, level);
+export function createServerLogger(name, level = INFO, pinoOptions = {}) {
+  const logger = new Logger(name, level);
   const adapter = new PinoAdapter(pinoOptions);
 
   // Connect adapter to logger events

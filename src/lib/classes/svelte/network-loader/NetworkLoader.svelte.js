@@ -86,7 +86,7 @@ export default class NetworkLoader {
     this._url = url;
 
     const state = this._state;
-    const progress = this.progress;
+    // const progress = this.progress;
 
     //
     // ISSUE: $effect is not triggered by  this._state changes,

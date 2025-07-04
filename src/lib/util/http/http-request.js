@@ -356,12 +356,12 @@ export async function httpRequest(options) {
       }
 
       // Create stale info
-      const staleInfo = {
-        isStale: false,
-        fresh: null,
-        timestamp: Date.now(),
-        expires
-      };
+      // const staleInfo = {
+      //   isStale: false,
+      //   fresh: null,
+      //   timestamp: Date.now(),
+      //   expires
+      // };
 
       // Store response in cache
       const cacheKeyParams = { url, ...headers };

@@ -5,3 +5,4 @@ export { createServerLogger } from './factories/server.js';
 export { createClientLogger } from './factories/client.js';
 export { createLogger } from './factories/universal.js';
 
+export * from '$lib/classes/logger/typedef.js';
