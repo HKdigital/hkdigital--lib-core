@@ -1,0 +1,22 @@
+import { Logger } from '$lib/classes/logging';
+
+import { PinoAdapter } from '../adapters/pino.js';
+import { INFO } from '../constants.js';
+
+/**
+ * Create a server-side logger with pino adapter
+ *
+ * @param {string} serviceName - Name of the service
+ * @param {string} [level=INFO] - Initial log level
+ * @param {Object} [pinoOptions] - Additional pino options
+ * @returns {Logger} Configured logger instance
+ */
+export function createServerLogger(serviceName, level = INFO, pinoOptions = {}) {
+  const logger = new Logger(serviceName, level);
+  const adapter = new PinoAdapter(pinoOptions);
+
+  // Connect adapter to logger events
+  logger.on('log', (logEvent) => adapter.handleLog(logEvent));
+
+  return logger;
+}

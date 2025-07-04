@@ -38,6 +38,12 @@
  */
 
 /**
+ * Service has not been created yet
+ * @const {string}
+ */
+export const NOT_CREATED = 'not-created';
+
+/**
  * Service has been created but not initialized
  * @const {string}
  */

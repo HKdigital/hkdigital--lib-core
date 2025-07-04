@@ -10,7 +10,6 @@ import
     INFO,
     WARN,
     ERROR,
-    FATAL,
     NONE
   } from './index.js';
 
@@ -124,7 +123,6 @@ describe('Logger', () => {
     logger.info('Info message');
     logger.warn('Warning message');
     logger.error('Error message');
-    logger.fatal('Fatal message');
     
     expect(logHandler).not.toHaveBeenCalled();
   });
@@ -144,8 +142,7 @@ describe('Logger', () => {
     // These should pass through
     logger.warn('Warning message');
     logger.error('Error message');
-    logger.fatal('Fatal message');
-    
-    expect(logHandler).toHaveBeenCalledTimes(3);
+
+    expect(logHandler).toHaveBeenCalledTimes(2);
   });
 });

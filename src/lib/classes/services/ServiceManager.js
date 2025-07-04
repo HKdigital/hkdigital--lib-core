@@ -67,6 +67,7 @@ import { EventEmitter } from '$lib/classes/events';
 import { Logger, DEBUG, INFO, WARN } from '$lib/classes/logging';
 
 import {
+  NOT_CREATED,
   CREATED,
   RUNNING,
   DESTROYED
@@ -147,6 +148,7 @@ export class ServiceManager extends EventEmitter {
     });
 
     this.services.set(name, entry);
+
     this.logger.debug(`Registered service '${name}'`, {
       dependencies: entry.dependencies,
       tags: entry.tags
@@ -158,7 +160,7 @@ export class ServiceManager extends EventEmitter {
    *
    * @param {string} name - Service name
    *
-   * @returns {import('./typedef.js').ServiceBase|null}
+   * @returns {import('./typedef.js').ServiceInstance|null}
    *   Service instance or null if not found
    */
   get(name) {
@@ -223,7 +225,9 @@ export class ServiceManager extends EventEmitter {
     // Start dependencies first
     for (const dep of entry.dependencies) {
       if (!await this.isRunning(dep)) {
+
         this.logger.debug(`Starting dependency '${dep}' for '${name}'`);
+
         const started = await this.startService(dep);
         if (!started) {
           this.logger.error(
@@ -408,6 +412,7 @@ export class ServiceManager extends EventEmitter {
    * @returns {Promise<HealthCheckResult>} Health status for all services
    */
   async checkHealth() {
+    /** @type {HealthCheckResult} */
     const health = {};
 
     for (const [name, entry] of this.services) {
@@ -416,7 +421,7 @@ export class ServiceManager extends EventEmitter {
       } else {
         health[name] = {
           name,
-          state: 'NOT_CREATED',
+          state: NOT_CREATED,
           healthy: false
         };
       }
@@ -540,7 +545,7 @@ export class ServiceManager extends EventEmitter {
    *
    * @private
    * @param {string} name - Service name
-   * @param {import('./typedef.js').ServiceBase} instance
+   * @param {import('./typedef.js').ServiceInstance} instance
    *   Service instance
    */
   _attachServiceEvents(name, instance) {

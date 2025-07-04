@@ -6,7 +6,7 @@ import { ServiceBase } from './ServiceBase.js';
 import { ServiceManager } from './ServiceManager.js';
 import { DEBUG, INFO, WARN } from '$lib/classes/logging';
 import {
-  CREATED,
+  NOT_CREATED,
   INITIALIZED,
   RUNNING,
   STOPPED,
@@ -364,7 +364,7 @@ describe('ServiceManager', () => {
 
       expect(health.serviceA).toEqual({
         name: 'serviceA',
-        state: 'NOT_CREATED',
+        state: NOT_CREATED,
         healthy: false
       });
     });

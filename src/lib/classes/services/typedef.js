@@ -47,12 +47,14 @@
 
 /**
  * Service configuration object passed to service initialization
+ *
  * @typedef {Object} ServiceConfig
  * @property {*} [key] - Service-specific configuration properties
  */
 
 /**
  * Options for creating a service instance
+ *
  * @typedef {Object} ServiceOptions
  * @property {string} [logLevel] - Initial log level for the service
  * @property {number} [shutdownTimeout=5000] - Timeout for graceful shutdown
@@ -60,6 +62,7 @@
 
 /**
  * Options for stopping a service
+ *
  * @typedef {Object} StopOptions
  * @property {number} [timeout] - Override shutdown timeout
  * @property {boolean} [force=false] - Force stop even if timeout exceeded
@@ -67,6 +70,7 @@
 
 /**
  * Health status returned by service health checks
+ *
  * @typedef {Object} HealthStatus
  * @property {string} name - Service name
  * @property {string} state - Current service state
@@ -78,6 +82,7 @@
 
 /**
  * Event emitted when service state changes
+ *
  * @typedef {Object} StateChangeEvent
  * @property {string} service - Service name
  * @property {string} oldState - Previous state
@@ -86,6 +91,7 @@
 
 /**
  * Event emitted when service health changes
+ *
  * @typedef {Object} HealthChangeEvent
  * @property {string} service - Service name
  * @property {boolean} healthy - New health status
@@ -93,6 +99,7 @@
 
 /**
  * Event emitted when service encounters an error
+ *
  * @typedef {Object} ServiceErrorEvent
  * @property {string} service - Service name
  * @property {string} operation - Operation that failed
@@ -101,11 +108,13 @@
 
 /**
  * Service class constructor type
- * @typedef {new (name: string, options?: ServiceOptions) => ServiceBase} ServiceConstructor
+ *
+ * @typedef {new (name: string, options?: ServiceOptions) => ServiceInstance} ServiceConstructor
  */
 
 /**
  * Options for registering a service
+ *
  * @typedef {Object} ServiceRegistrationOptions
  * @property {string[]} [dependencies=[]] - Services this service depends on
  * @property {string[]} [tags=[]] - Tags for grouping services
@@ -114,8 +123,9 @@
 
 /**
  * Configuration for ServiceManager
+ *
  * @typedef {Object} ServiceManagerConfig
- * @property {string} [environment='production'] - Runtime environment
+ * @property {boolean} [debug=false] - Debug mode switch
  * @property {boolean} [autoStart=false] - Auto-start services on registration
  * @property {number} [stopTimeout=10000] - Default timeout for stopping services
  * @property {string} [logLevel] - Initial log level for ServiceManager
@@ -124,6 +134,7 @@
 
 /**
  * Logging configuration
+ *
  * @typedef {Object} LogConfig
  * @property {string} [defaultLevel] - Default log level for services
  * @property {string} [globalLevel] - Override level for all services
@@ -132,9 +143,10 @@
 
 /**
  * Internal service registry entry
+ *
  * @typedef {Object} ServiceEntry
  * @property {ServiceConstructor} ServiceClass - Service class constructor
- * @property {ServiceBase|null} instance - Service instance (lazy-created)
+ * @property {ServiceInstance|null} instance - Service instance (lazy-created)
  * @property {ServiceConfig} config - Service configuration
  * @property {string[]} dependencies - Service dependencies
  * @property {Set<string>} dependents - Services that depend on this one
@@ -149,7 +161,8 @@
 
 /**
  * Base class interface that services must implement
- * @typedef {Object} ServiceBase
+ *
+ * @typedef {Object} ServiceInstance
  * @property {string} name - Service name
  * @property {string} state - Current state
  * @property {boolean} healthy - Health status

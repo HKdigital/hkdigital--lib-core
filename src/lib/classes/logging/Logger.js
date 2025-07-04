@@ -34,30 +34,36 @@
 
 import { EventEmitter } from '$lib/classes/events';
 
-import { DEBUG, INFO, WARN, ERROR, FATAL, LEVELS } from './constants.js';
+import { DEBUG, INFO, WARN, ERROR, LEVELS } from './constants.js';
 
 /**
  * Logger class for consistent logging across services
  * @extends EventEmitter
  */
 export default class Logger extends EventEmitter {
+  #defaultContext;
+  #hasContext;
+
   /**
    * Create a new Logger instance
    *
    * @param {string} name - Name of the service/component for this logger
    * @param {string} [defaultLevel=INFO] - Initial log level threshold
+   * @param {Object} [context={}] - Default context data for all logs
    */
-  constructor(name, defaultLevel = INFO) {
+  constructor(name, defaultLevel = INFO, context = {}) {
     super();
     this.name = name;
     this.level = defaultLevel;
+
+    this.#defaultContext = structuredClone(context);
+    this.#hasContext = Object.keys(this.#defaultContext).length > 0;
   }
 
   /**
    * Set the minimum log level threshold
    *
-   * @param {string} level - New log level (DEBUG, INFO, WARN, ERROR, FATAL,
-   *                         or NONE)
+   * @param {string} level - New log level (DEBUG, INFO, WARN, ERROR or NONE)
    * @returns {boolean} True if level was valid and set, false otherwise
    */
   setLevel(level) {
@@ -68,37 +74,6 @@ export default class Logger extends EventEmitter {
 
     console.warn(`Invalid log level: ${level}`);
     return false;
-  }
-
-  /**
-   * Internal logging method
-   *
-   * @param {string} level - Log level
-   * @param {string} message - Log message
-   * @param {*} [details] - Additional details to include in the log
-   * @returns {boolean} True if the log was emitted, false if filtered
-   * @private
-   */
-  _log(level, message, details) {
-    // Check if this log level should be filtered
-    if (LEVELS[level] < LEVELS[this.level]) {
-      return false; // Below threshold, don't emit
-    }
-
-    const timestamp = new Date();
-    const logEvent = {
-      timestamp,
-      service: this.name,
-      level,
-      message,
-      details
-    };
-
-    // Emit as both specific level event and generic 'log' event
-    this.emit(level, logEvent);
-    this.emit('log', logEvent);
-
-    return true;
   }
 
   /**
@@ -146,13 +121,57 @@ export default class Logger extends EventEmitter {
   }
 
   /**
-   * Log a fatal error message
+   * Create a child logger with additional context
    *
-   * @param {string} message - Log message
-   * @param {*} [details] - Additional details
-   * @returns {boolean} True if the log was emitted
+   * @param {string} namespace
+   *   Namespace of the context (needed for chaining contexts)
+   *
+   * @param {Object} additionalContext - Additional context data
+   *
+   * @returns {Logger} New logger instance with merged context
    */
-  fatal(message, details) {
-    return this._log(FATAL, message, details);
+  context(namespace, additionalContext) {
+    if( typeof namespace !== "string" ) {
+      throw new Error('Invalid namespace');
+    }
+
+    const mergedContext = {
+      ...this.#defaultContext,
+      [namespace]: additionalContext
+    };
+
+    return new Logger(this.name, this.level, mergedContext);
+  }
+
+  /**
+   * Internal logging method
+   *
+   * @param {string} level - Log level
+   * @param {string} message - Log message
+   * @param {*} [details] - Additional details to include in the log
+   * @returns {boolean} True if the log was emitted, false if filtered
+   * @private
+   */
+  _log(level, message, details) {
+    // Check if this log level should be filtered
+    if (LEVELS[level] < LEVELS[this.level]) {
+      return false; // Below threshold, don't emit
+    }
+
+    const timestamp = new Date();
+    const logEvent = {
+      timestamp,
+      service: this.name,
+      level,
+      message,
+      context: this.#hasContext ? this.#defaultContext : null,
+      details
+    };
+
+    // Emit as both specific level event and generic 'log' event
+    this.emit(level, logEvent);
+    this.emit('log', logEvent);
+
+    return true;
   }
 }
