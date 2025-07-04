@@ -381,9 +381,11 @@ describe('ServiceManager', () => {
 
       expect(stateEvents.length).toBeGreaterThan(0);
       expect(stateEvents[0]).toMatchObject({
-        source: 'serviceA',
-        oldState: expect.any(String),
-        newState: expect.any(String)
+        service: 'serviceA',
+        data: {
+          oldState: expect.any(String),
+          newState: expect.any(String)
+        }
       });
     });
 
@@ -397,9 +399,11 @@ describe('ServiceManager', () => {
 
       expect(healthEvents).toHaveLength(1);
       expect(healthEvents[0]).toEqual({
-        source: 'serviceA',
-        healthy: true,
-        eventName: 'service:healthChanged'
+        service: 'serviceA',
+        data: {
+          healthy: true,
+          wasHealthy: false
+        }
       });
     });
 
@@ -416,9 +420,11 @@ describe('ServiceManager', () => {
 
       expect(errorEvents).toHaveLength(1);
       expect(errorEvents[0]).toMatchObject({
-        source: 'serviceA',
-        operation: 'initialization',
-        error: expect.objectContaining({ message: 'Init failed' })
+        service: 'serviceA',
+        data: {
+          operation: 'initialization',
+          error: expect.objectContaining({ message: 'Init failed' })
+        }
       });
     });
 

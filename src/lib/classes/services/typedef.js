@@ -81,20 +81,17 @@
  */
 
 /**
- * Event emitted when service state changes
- *
  * @typedef {Object} StateChangeEvent
- * @property {string} service - Service name
+ * @property {string} service - Service name (added by ServiceManager)
  * @property {string} oldState - Previous state
  * @property {string} newState - New state
  */
 
 /**
- * Event emitted when service health changes
- *
  * @typedef {Object} HealthChangeEvent
- * @property {string} service - Service name
- * @property {boolean} healthy - New health status
+ * @property {string} service - Service name (added by ServiceManager)
+ * @property {boolean} healthy - Current health status
+ * @property {boolean} [wasHealthy] - Previous health status
  */
 
 /**

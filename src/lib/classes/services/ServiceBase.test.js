@@ -123,7 +123,6 @@ describe('ServiceBase', () => {
 
       expect(errorEvents).toHaveLength(1);
       expect(errorEvents[0]).toMatchObject({
-        source: 'testService',
         operation: 'initialization',
         error
       });
@@ -228,8 +227,8 @@ describe('ServiceBase', () => {
       await service.start();
       expect(healthEvents).toHaveLength(1);
       expect(healthEvents[0]).toEqual({
-        source: 'testService',
-        healthy: true
+        healthy: true,
+        wasHealthy: false
       });
     });
 
