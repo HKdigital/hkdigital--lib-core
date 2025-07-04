@@ -82,7 +82,7 @@ describe('createClientLogger', () => {
       expect.objectContaining({
         level: INFO,
         message: 'Test message',
-        service: 'testService',
+        source: 'testService',
         details: { data: 'test' }
       })
     );
@@ -122,7 +122,7 @@ describe('createClientLogger', () => {
       expect.objectContaining({
         level: 'error',
         message: 'Parent error',
-        service: 'testService',
+        source: 'testService',
         details: { code: 500 }
       })
     );

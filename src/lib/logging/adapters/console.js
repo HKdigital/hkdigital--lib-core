@@ -9,7 +9,8 @@ export class ConsoleAdapter {
    *
    * @param {Object} [options] - Browser configuration options
    * @param {string} [options.level] - Minimum log level
-   * @param {Object} [options.context] - Additional context data to include with all logs
+   * @param {Object} [options.context]
+   *   Additional context data to include with all logs
    */
   constructor(options = {}) {
     this.level = options.level || 'info';
@@ -23,7 +24,7 @@ export class ConsoleAdapter {
    */
   handleLog(logEvent) {
     // eslint-disable-next-line no-unused-vars
-    const { level, message, details, service, timestamp } = logEvent;
+    const { level, message, details, source, timestamp } = logEvent;
 
     // Filter by level
     if (LEVELS[level] < LEVELS[this.level]) {
@@ -32,7 +33,7 @@ export class ConsoleAdapter {
 
     // Use browser console styling
     const styles = this._getStyles(level);
-    const prefix = `%c[${service}]`;
+    const prefix = `%c[${source}]`;
 
     // Merge context with details
     const logData = details

@@ -381,7 +381,7 @@ describe('ServiceManager', () => {
 
       expect(stateEvents.length).toBeGreaterThan(0);
       expect(stateEvents[0]).toMatchObject({
-        service: 'serviceA',
+        source: 'serviceA',
         oldState: expect.any(String),
         newState: expect.any(String)
       });
@@ -397,8 +397,9 @@ describe('ServiceManager', () => {
 
       expect(healthEvents).toHaveLength(1);
       expect(healthEvents[0]).toEqual({
-        service: 'serviceA',
-        healthy: true
+        source: 'serviceA',
+        healthy: true,
+        eventName: 'service:healthChanged'
       });
     });
 
@@ -415,7 +416,7 @@ describe('ServiceManager', () => {
 
       expect(errorEvents).toHaveLength(1);
       expect(errorEvents[0]).toMatchObject({
-        service: 'serviceA',
+        source: 'serviceA',
         operation: 'initialization',
         error: expect.objectContaining({ message: 'Init failed' })
       });
@@ -432,7 +433,7 @@ describe('ServiceManager', () => {
 
       expect(logEvents).toHaveLength(1);
       expect(logEvents[0]).toMatchObject({
-        service: 'serviceA',
+        source: 'serviceA',
         level: INFO,
         message: 'Test log'
       });

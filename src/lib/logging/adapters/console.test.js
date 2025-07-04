@@ -37,10 +37,10 @@ describe('ConsoleAdapter', () => {
     it('should create adapter with custom options', () => {
       const adapter = new ConsoleAdapter({
         level: 'debug',
-        context: { service: 'test', version: '1.0' }
+        context: { source: 'test', version: '1.0' }
       });
       expect(adapter.level).toBe('debug');
-      expect(adapter.context).toEqual({ service: 'test', version: '1.0' });
+      expect(adapter.context).toEqual({ source: 'test', version: '1.0' });
     });
   });
 
@@ -49,7 +49,7 @@ describe('ConsoleAdapter', () => {
       const logEvent = {
         level: INFO,
         message: 'Test info message',
-        service: 'TestService',
+        source: 'TestService',
         timestamp: new Date(),
         details: { userId: '123' }
       };
@@ -68,7 +68,7 @@ describe('ConsoleAdapter', () => {
       const logEvent = {
         level: ERROR,
         message: 'Test error',
-        service: 'ErrorService',
+        source: 'ErrorService',
         timestamp: new Date()
       };
 
@@ -89,7 +89,7 @@ describe('ConsoleAdapter', () => {
       const logEvent = {
         level: INFO,
         message: 'Request processed',
-        service: 'API',
+        source: 'API',
         timestamp: new Date(),
         details: { statusCode: 200 }
       };
@@ -111,7 +111,7 @@ describe('ConsoleAdapter', () => {
       warnAdapter.handleLog({
         level: DEBUG,
         message: 'Debug message',
-        service: 'Test',
+        source: 'Test',
         timestamp: new Date()
       });
       expect(consoleMocks.debug).not.toHaveBeenCalled();
@@ -120,7 +120,7 @@ describe('ConsoleAdapter', () => {
       warnAdapter.handleLog({
         level: INFO,
         message: 'Info message',
-        service: 'Test',
+        source: 'Test',
         timestamp: new Date()
       });
       expect(consoleMocks.info).not.toHaveBeenCalled();
@@ -129,7 +129,7 @@ describe('ConsoleAdapter', () => {
       warnAdapter.handleLog({
         level: WARN,
         message: 'Warning message',
-        service: 'Test',
+        source: 'Test',
         timestamp: new Date()
       });
       expect(consoleMocks.warn).toHaveBeenCalledTimes(1);
@@ -139,7 +139,7 @@ describe('ConsoleAdapter', () => {
       const logEvent = {
         level: INFO,
         message: 'Simple message',
-        service: 'SimpleService',
+        source: 'SimpleService',
         timestamp: new Date()
       };
 
@@ -163,7 +163,7 @@ describe('ConsoleAdapter', () => {
       const logEvent = {
         level: INFO,
         message: 'Message without details',
-        service: 'ContextService',
+        source: 'ContextService',
         timestamp: new Date()
       };
 
@@ -197,7 +197,7 @@ describe('ConsoleAdapter', () => {
         debugAdapter.handleLog({
           level,
           message: `${level} message`,
-          service: 'StyleTest',
+          source: 'StyleTest',
           timestamp: new Date()
         });
 
@@ -245,7 +245,7 @@ describe('ConsoleAdapter', () => {
       childAdapter.handleLog({
         level: ERROR,
         message: 'Child error',
-        service: 'ChildService',
+        source: 'ChildService',
         timestamp: new Date(),
         details: { code: 500 }
       });
@@ -269,7 +269,7 @@ describe('ConsoleAdapter', () => {
       const debugAdapter = new ConsoleAdapter({ level: DEBUG });
 
       const logEvent = {
-        service: 'MethodTest',
+        source: 'MethodTest',
         timestamp: new Date(),
         message: 'Test message'
       };

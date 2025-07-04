@@ -413,7 +413,7 @@ export class ServiceBase extends EventEmitter {
     this.state = newState;
 
     this.emit('stateChanged', {
-      service: this.name,
+      source: this.name,
       oldState,
       newState
     });
@@ -431,7 +431,7 @@ export class ServiceBase extends EventEmitter {
 
     if (wasHealthy !== healthy) {
       this.emit('healthChanged', {
-        service: this.name,
+        source: this.name,
         healthy
       });
     }
@@ -455,7 +455,7 @@ export class ServiceBase extends EventEmitter {
     });
 
     this.emit('error', {
-      service: this.name,
+      source: this.name,
       operation,
       error
     });

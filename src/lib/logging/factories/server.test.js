@@ -67,7 +67,7 @@ describe('createServerLogger', () => {
       expect.objectContaining({
         level: ERROR,
         message: 'Database connection failed',
-        service: 'apiService',
+        source: 'apiService',
         details: { host: 'localhost', port: 5432 },
         timestamp: expect.any(Date)
       })
@@ -111,7 +111,7 @@ describe('createServerLogger', () => {
       expect.objectContaining({
         level: INFO,
         message: 'Parent log message',
-        service: 'apiService',
+        source: 'apiService',
         details: { userId: 'new-user-123' },
         timestamp: expect.any(Date)
       })

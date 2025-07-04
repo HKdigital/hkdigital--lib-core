@@ -34,10 +34,10 @@ export class PinoAdapter {
    * @param {Object} logEvent - Log event from Logger
    */
   handleLog(logEvent) {
-    const { level, message, details, service, timestamp } = logEvent;
+    const { level, message, details, source, timestamp } = logEvent;
 
     const logData = {
-      service,
+      source,
       timestamp,
       ...(details && { details })
     };

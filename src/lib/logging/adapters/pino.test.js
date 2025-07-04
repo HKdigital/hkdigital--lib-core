@@ -117,7 +117,7 @@ describe('PinoAdapter', () => {
         level: INFO,
         message: 'Test message',
         details: { userId: '123' },
-        service: 'TestService',
+        source: 'TestService',
         timestamp: new Date('2024-01-01T12:00:00Z')
       };
 
@@ -125,7 +125,7 @@ describe('PinoAdapter', () => {
 
       expect(mockPinoInstance.info).toHaveBeenCalledWith(
         {
-          service: 'TestService',
+          source: 'TestService',
           timestamp: new Date('2024-01-01T12:00:00Z'),
           details: { userId: '123' }
         },
@@ -135,7 +135,7 @@ describe('PinoAdapter', () => {
 
     it('should handle all log levels correctly', () => {
       const baseEvent = {
-        service: 'TestService',
+        source: 'TestService',
         timestamp: new Date(),
         message: 'Test message'
       };
@@ -158,7 +158,7 @@ describe('PinoAdapter', () => {
       const logEvent = {
         level: WARN,
         message: 'Warning without details',
-        service: 'WarnService',
+        source: 'WarnService',
         timestamp: new Date('2024-01-01T12:00:00Z')
       };
 
@@ -166,7 +166,7 @@ describe('PinoAdapter', () => {
 
       expect(mockPinoInstance.warn).toHaveBeenCalledWith(
         {
-          service: 'WarnService',
+          source: 'WarnService',
           timestamp: new Date('2024-01-01T12:00:00Z')
         },
         'Warning without details'
@@ -195,7 +195,7 @@ describe('PinoAdapter', () => {
         level: INFO,
         message: 'Complex log',
         details: complexDetails,
-        service: 'API',
+        source: 'API',
         timestamp: new Date()
       };
 
@@ -203,7 +203,7 @@ describe('PinoAdapter', () => {
 
       expect(mockPinoInstance.info).toHaveBeenCalledWith(
         {
-          service: 'API',
+          source: 'API',
           timestamp: expect.any(Date),
           details: complexDetails
         },
@@ -245,14 +245,14 @@ describe('PinoAdapter', () => {
       childAdapter.handleLog({
         level: ERROR,
         message: 'Child error',
-        service: 'ChildService',
+        source: 'ChildService',
         timestamp: new Date(),
         details: { code: 500 }
       });
 
       expect(mockChildPino.error).toHaveBeenCalledWith(
         {
-          service: 'ChildService',
+          source: 'ChildService',
           timestamp: expect.any(Date),
           details: { code: 500 }
         },
@@ -289,7 +289,7 @@ describe('PinoAdapter', () => {
         { level: ERROR, message: 'Third' }
       ].map(e => ({
         ...e,
-        service: 'Test',
+        source: 'Test',
         timestamp: new Date()
       }));
 

@@ -144,21 +144,23 @@ export default class Logger extends EventEmitter {
   }
 
   /**
-   * Log an event of type LogEvent,
-   * e.g. an event that was created by another Logger instance and should be
+   * Log an event from an event emitter of type LogEvent
+   *
+   * E.g. an event that was created by another Logger instance and should be
    * forwarded to this logger.
    *
-   * @param {import('./typedef.js').LogEvent} logEvent
+   * @param {string} eventName
+   * @param {import('./typedef.js').LogEventData} eventData
    */
-  logEvent( logEvent ) {
-    const level = logEvent.level;
+  logFromEvent( eventName, eventData ) {
+    const level = eventData.level;
 
     // Check if this log level should be filtered
     if (LEVELS[level] < LEVELS[this.level]) {
       return false; // Below threshold, don't emit
     }
 
-    this.#logEvent( logEvent );
+    this.#logEvent( { ...eventData, eventName });
   }
 
   /**
@@ -179,7 +181,7 @@ export default class Logger extends EventEmitter {
 
     const logEvent = {
       timestamp,
-      service: this.name,
+      source: this.name,
       level,
       message,
       context: this.#hasContext ? this.#defaultContext : null,

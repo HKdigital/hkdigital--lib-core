@@ -48,7 +48,7 @@ describe('Logger', () => {
     const logEventInfo = infoHandler.mock.calls[0][0];
     expect(logEventInfo.level).toBe(INFO);
     expect(logEventInfo.message).toBe('Info message');
-    expect(logEventInfo.service).toBe('testService');
+    expect(logEventInfo.source).toBe('testService');
   });
 
   it('should handle log level changes', () => {
@@ -144,5 +144,216 @@ describe('Logger', () => {
     logger.error('Error message');
 
     expect(logHandler).toHaveBeenCalledTimes(2);
+  });
+});
+
+/**
+ * Test for Logger.logFromEvent() method
+ */
+describe('Logger.logFromEvent()', () => {
+  let logger;
+
+  beforeEach(() => {
+    logger = new Logger('testService', INFO);
+  });
+
+  it('should forward a LogEvent from another logger', () => {
+    const logHandler = vi.fn();
+    const infoHandler = vi.fn();
+
+    logger.on('log', logHandler);
+    logger.on(INFO, infoHandler);
+
+    // Create LogEventData as if it came from another logger
+    const externalEventData = {
+      timestamp: new Date('2024-01-01T10:00:00Z'),
+      source: 'externalService', // Updated from 'service' to 'source'
+      level: INFO,
+      message: 'External log message',
+      context: { requestId: '12345' },
+      details: { userId: 'user123' }
+    };
+
+    logger.logFromEvent('service:log', externalEventData);
+
+    // Should emit both specific level and generic log events
+    expect(logHandler).toHaveBeenCalledTimes(1);
+    expect(infoHandler).toHaveBeenCalledTimes(1);
+
+    // Should create a new LogEvent with eventName added
+    const receivedLogEvent = logHandler.mock.calls[0][0];
+    expect(receivedLogEvent.source).toBe('externalService'); // Original source preserved
+    expect(receivedLogEvent.timestamp).toEqual(new Date('2024-01-01T10:00:00Z'));
+    expect(receivedLogEvent.context).toEqual({ requestId: '12345' });
+    expect(receivedLogEvent.eventName).toBe('service:log'); // eventName added
+  });
+
+  it('should filter LogEvents based on current log level', () => {
+    const logHandler = vi.fn();
+    const debugHandler = vi.fn();
+
+    logger.on('log', logHandler);
+    logger.on(DEBUG, debugHandler);
+
+    // Create a DEBUG level LogEventData (should be filtered at INFO level)
+    const debugEventData = {
+      timestamp: new Date(),
+      source: 'externalService',
+      level: DEBUG,
+      message: 'Debug message from external service',
+      context: null,
+      details: null
+    };
+
+    const result = logger.logFromEvent('debug:event', debugEventData);
+
+    // Should be filtered out
+    expect(result).toBe(false);
+    expect(logHandler).not.toHaveBeenCalled();
+    expect(debugHandler).not.toHaveBeenCalled();
+  });
+
+  it('should respect log level hierarchy for LogEvents', () => {
+    const logHandler = vi.fn();
+    logger.on('log', logHandler);
+
+    // Set to WARN level
+    logger.setLevel(WARN);
+
+    // Create LogEventData at different levels
+    const debugEvent = {
+      timestamp: new Date(),
+      source: 'external',
+      level: DEBUG,
+      message: 'Debug message',
+      context: null,
+      details: null
+    };
+
+    const infoEvent = {
+      timestamp: new Date(),
+      source: 'external',
+      level: INFO,
+      message: 'Info message',
+      context: null,
+      details: null
+    };
+
+    const warnEvent = {
+      timestamp: new Date(),
+      source: 'external',
+      level: WARN,
+      message: 'Warning message',
+      context: null,
+      details: null
+    };
+
+    const errorEvent = {
+      timestamp: new Date(),
+      source: 'external',
+      level: ERROR,
+      message: 'Error message',
+      context: null,
+      details: null
+    };
+
+    // These should be filtered
+    logger.logFromEvent('debug:event', debugEvent);
+    logger.logFromEvent('info:event', infoEvent);
+    expect(logHandler).toHaveBeenCalledTimes(0);
+
+    // These should pass through
+    logger.logFromEvent('warn:event', warnEvent);
+    logger.logFromEvent('error:event', errorEvent);
+    expect(logHandler).toHaveBeenCalledTimes(2);
+  });
+
+  it('should handle LogEventData with null context and details', () => {
+    const logHandler = vi.fn();
+    logger.on('log', logHandler);
+
+    const minimalEventData = {
+      timestamp: new Date(),
+      source: 'minimal',
+      level: ERROR,
+      message: 'Simple error message',
+      context: null,
+      details: undefined
+    };
+
+    logger.logFromEvent('error:minimal', minimalEventData);
+
+    expect(logHandler).toHaveBeenCalledTimes(1);
+    const receivedEvent = logHandler.mock.calls[0][0];
+    expect(receivedEvent.context).toBeNull();
+    expect(receivedEvent.details).toBeUndefined();
+    expect(receivedEvent.eventName).toBe('error:minimal');
+  });
+
+  it('should preserve original LogEventData properties and add eventName', () => {
+    const logHandler = vi.fn();
+    logger.on('log', logHandler);
+
+    const originalEventData = {
+      timestamp: new Date('2024-06-15T14:30:00Z'),
+      source: 'authService',
+      level: WARN,
+      message: 'Authentication attempt failed',
+      context: {
+        sessionId: 'abc123',
+        ip: '192.168.1.1'
+      },
+      details: {
+        attempts: 3,
+        lastAttempt: '2024-06-15T14:29:45Z',
+        reason: 'invalid_password'
+      }
+    };
+
+    // Create a deep copy to verify the original isn't modified
+    const originalCopy = structuredClone(originalEventData);
+
+    logger.logFromEvent('auth:failed', originalEventData);
+
+    expect(logHandler).toHaveBeenCalledTimes(1);
+    const forwardedEvent = logHandler.mock.calls[0][0];
+
+    // Should preserve all original properties
+    expect(forwardedEvent.timestamp).toEqual(originalEventData.timestamp);
+    expect(forwardedEvent.source).toBe(originalEventData.source);
+    expect(forwardedEvent.level).toBe(originalEventData.level);
+    expect(forwardedEvent.message).toBe(originalEventData.message);
+    expect(forwardedEvent.context).toEqual(originalEventData.context);
+    expect(forwardedEvent.details).toEqual(originalEventData.details);
+
+    // Should add the eventName
+    expect(forwardedEvent.eventName).toBe('auth:failed');
+
+    // Verify original eventData wasn't modified
+    expect(originalEventData).toEqual(originalCopy);
+  });
+
+  it('should work with real event manager scenario', () => {
+    const logHandler = vi.fn();
+    logger.on('log', logHandler);
+
+    // Simulate serviceManager.on('service:log', (data) => {...})
+    const serviceLogData = {
+      timestamp: new Date(),
+      source: 'UserService',
+      level: INFO,
+      message: 'User registration completed',
+      context: null,
+      details: { userId: 'user_123', email: 'test@example.com' }
+    };
+
+    logger.logFromEvent('service:log', serviceLogData);
+
+    expect(logHandler).toHaveBeenCalledTimes(1);
+    const logEvent = logHandler.mock.calls[0][0];
+
+    expect(logEvent.source).toBe('UserService');
+    expect(logEvent.eventName).toBe('service:log');
+    expect(logEvent.message).toBe('User registration completed');
   });
 });

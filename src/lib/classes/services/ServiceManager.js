@@ -551,20 +551,24 @@ export class ServiceManager extends EventEmitter {
   _attachServiceEvents(name, instance) {
     // Forward service events
     instance.on('stateChanged', (data) => {
-      this.emit('service:stateChanged', { ...data, service: name });
+      const eventName = 'service:stateChanged';
+      this.emit(eventName, { ...data, eventName, source: name });
     });
 
     instance.on('healthChanged', (data) => {
-      this.emit('service:healthChanged', { ...data, service: name });
+      const eventName = 'service:healthChanged';
+      this.emit(eventName, { ...data, eventName, source: name });
     });
 
     instance.on('error', (data) => {
-      this.emit('service:error', { ...data, service: name });
+      const eventName = 'service:error';
+      this.emit(eventName, { ...data, eventName, source: name });
     });
 
     // Forward log events
-    instance.logger.on('log', (logEvent) => {
-      this.emit('service:log', { ...logEvent, service: name });
+    instance.logger.on('log', (data) => {
+      const eventName = 'service:log';
+      this.emit(eventName, { ...data, eventName, source: name });
     });
   }
 
