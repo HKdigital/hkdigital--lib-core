@@ -1,53 +1,32 @@
-
-@define-mixin on_surface_dark {
-  
-  & .h1 {
-    color: rgb(var(--color-primary-contrast-light));
-  }
-
-  & .p {
-    color: rgb(var(--color-primary-contrast-light));
-  }
-
-  & .a {
-    color: rgb(var(--color-primary-contrast-light));
-  }
-
-  & svg {
-    color: rgb(var(--color-primary-contrast-light));
-  }
-
+& .h1 {
+  color: var(--color-primary-contrast-light);
 }
 
-@define-mixin on_surface_light {
-  
-  & .h1 {
-    color: rgb(var(--color-surface-950));
-  }
-
-  & .p {
-    color: rgb(var(--color-surface-500));
-  }
-
-  & .a {
-    color: rgb(var(--color-surface-500));
-  }
-
-  & svg {
-    color: rgb(var(--color-surface-500));
-  }
-  
+& .p {
+  color: var(--color-primary-contrast-light);
 }
 
-@define-mixin all_on_colors {
-
-  /* .on-primary-dark < :not('cancel-on-primary-dark') */
-  .on-primary-dark {
-    @mixin on_surface_dark;
-  }
-
-  .on-primary-light {    
-    @mixin on_surface_light;
-  }
-
+& .a {
+  color: var(--color-primary-contrast-light);
 }
+
+& svg {
+  color: var(--color-primary-contrast-light);
+}
+
+& .h1 {
+  color: var(--color-surface-950);
+}
+
+& .p {
+  color: var(--color-surface-500);
+}
+
+& .a {
+  color: var(--color-surface-500);
+}
+
+& svg {
+  color: var(--color-surface-500);
+}
+

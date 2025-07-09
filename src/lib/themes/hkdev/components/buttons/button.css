@@ -1,4 +1,4 @@
-@define-mixin component-button {
+
   [data-component='button'] {
     /* ---- Core Button Variables ---- */
 
@@ -73,48 +73,48 @@
   /* Role-based styling for primary buttons */
   [data-component='button'][data-role='primary'] {
     @apply border-width-normal;
-    border-color: rgb(var(--btn-primary-border));
-    background-color: rgb(var(--btn-primary-bg));
-    color: rgb(var(--btn-primary-text));
+    border-color: var(--btn-primary-border);
+    background-color: var(--btn-primary-bg);
+    color: var(--btn-primary-text);
 
     &:hover:not(:disabled):not(.state-selected) {
-      border-color: rgb(var(--btn-primary-hover-border));
-      background-color: rgb(var(--btn-primary-hover-bg));
+      border-color: var(--btn-primary-hover-border);
+      background-color: var(--btn-primary-hover-bg);
     }
 
     &:focus-visible {
-      @apply outline outline-normal outline-offset-normal;
-      outline-color: rgb(var(--btn-primary-focus-outline));
+      @apply outline-normal outline-offset-normal;
+      outline-color: var(--btn-primary-focus-outline);
     }
 
     &.state-selected {
-      background-color: rgb(var(--btn-primary-selected-bg));
-      border-color: rgb(var(--btn-primary-selected-border));
-      color: rgb(var(--btn-primary-selected-text));
+      background-color: var(--btn-primary-selected-bg);
+      border-color: var(--btn-primary-selected-border);
+      color: var(--btn-primary-selected-text);
     }
   }
 
   /* Role-based styling for secondary buttons */
   [data-component='button'][data-role='secondary'] {
     @apply border-width-normal;
-    border-color: rgb(var(--btn-secondary-border));
-    color: rgb(var(--btn-secondary-text));
+    border-color: var(--btn-secondary-border);
+    color: var(--btn-secondary-text);
     background-color: var(--btn-secondary-bg);
 
     &:hover:not(:disabled):not(.state-selected) {
-      background-color: rgb(var(--btn-secondary-hover-bg));
-      border-color: rgb(var(--btn-secondary-hover-border));
+      background-color: var(--btn-secondary-hover-bg);
+      border-color: var(--btn-secondary-hover-border);
     }
 
     &:focus-visible {
       @apply outline outline-normal outline-offset-normal;
-      outline-color: rgb(var(--btn-secondary-focus-outline));
+      outline-color: var(--btn-secondary-focus-outline);
     }
 
     &.state-selected {
-      background-color: rgb(var(--btn-secondary-selected-bg));
-      border-color: rgb(var(--btn-secondary-selected-border));
-      color: rgb(var(--btn-secondary-selected-text));
+      background-color: var(--btn-secondary-selected-bg);
+      border-color: var(--btn-secondary-selected-border);
+      color: var(--btn-secondary-selected-text);
     }
   }
 
@@ -128,7 +128,7 @@
     }
 
     &.state-error {
-      border-color: rgb(var(--btn-error-border));
+      border-color:var(--btn-error-border);
     }
 
     &.state-loading {
@@ -143,4 +143,4 @@
     opacity: var(--btn-disabled-opacity);
     pointer-events: none;
   }
-}
+

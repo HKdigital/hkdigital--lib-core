@@ -1,6 +1,4 @@
 @import '../../global/on-colors.css';
 
-@define-mixin rows-panel-grid-row {
-  [data-row='panel-grid-row'] {
-  }
+[data-row='panel-grid-row'] {
 }

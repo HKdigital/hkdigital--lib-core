@@ -1,6 +1,5 @@
 @import '../../global/on-colors.css';
 
-@define-mixin buttons-skip-button {
   [data-button='skip-button'] {
   }
-}
+
