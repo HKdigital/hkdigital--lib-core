@@ -1,4 +1,12 @@
-import { METHOD_GET, METHOD_POST } from '$lib/constants/http/methods.js';
+import {
+  METHOD_GET,
+  METHOD_POST,
+  METHOD_PUT,
+  METHOD_DELETE,
+  METHOD_PATCH,
+  METHOD_OPTIONS,
+  METHOD_HEAD
+} from '$lib/constants/http/methods.js';
 
 import { APPLICATION_JSON } from '$lib/constants/mime/application.js';
 import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
@@ -30,7 +38,7 @@ export const DEFAULT_HTTP_CONFIG = {
   body: null,
   headers: null,
   withCredentials: false,
-  timeoutMs: null,  // No timeout by default
+  timeoutMs: null, // No timeout by default
 
   // Fetch
   mode: 'cors',
@@ -118,6 +126,200 @@ export async function httpPost(options) {
   });
 }
 
+/**
+ * Make a PUT request
+ *
+ * This function performs an HTTP PUT request, typically used for updating
+ * or replacing resources. It supports optional body, headers, credentials,
+ * and timeout functionality.
+ *
+ * @param {import('./typedef').HttpRequestOptions} options
+ *   Request configuration options
+ *
+ * @returns {Promise<Response>} Response promise
+ *
+ * @example
+ * // Update a user resource
+ * const response = await httpPut({
+ *   url: 'https://api.example.com/users/123',
+ *   body: JSON.stringify({ name: 'John Doe', email: 'john.doe@example.com' }),
+ *   headers: { 'content-type': 'application/json' }
+ * });
+ *
+ * @example
+ * // Replace a resource with timeout
+ * const response = await httpPut({
+ *   url: 'https://api.example.com/documents/456',
+ *   body: documentData,
+ *   timeoutMs: 10000 // 10 seconds timeout
+ * });
+ */
+export async function httpPut(options) {
+  return await httpRequest({
+    ...options,
+    method: METHOD_PUT
+  });
+}
+
+/**
+ * Make a DELETE request
+ *
+ * This function performs an HTTP DELETE request, typically used for
+ * removing resources. It supports optional headers, credentials,
+ * and timeout functionality.
+ *
+ * @param {import('./typedef').HttpRequestOptions} options
+ *   Request configuration options
+ *
+ * @returns {Promise<Response>} Response promise
+ *
+ * @example
+ * // Delete a user resource
+ * const response = await httpDelete({
+ *   url: 'https://api.example.com/users/123'
+ * });
+ *
+ * @example
+ * // Delete with authorization and timeout
+ * const response = await httpDelete({
+ *   url: 'https://api.example.com/posts/456',
+ *   headers: { 'authorization': 'Bearer token123' },
+ *   timeoutMs: 5000
+ * });
+ */
+export async function httpDelete(options) {
+  return await httpRequest({
+    ...options,
+    method: METHOD_DELETE
+  });
+}
+
+/**
+ * Make a PATCH request
+ *
+ * This function performs an HTTP PATCH request, typically used for
+ * partial updates to resources. It supports optional body, headers,
+ * credentials, and timeout functionality.
+ *
+ * @param {import('./typedef').HttpRequestOptions} options
+ *   Request configuration options
+ *
+ * @returns {Promise<Response>} Response promise
+ *
+ * @example
+ * // Partially update a user's email
+ * const response = await httpPatch({
+ *   url: 'https://api.example.com/users/123',
+ *   body: JSON.stringify({ email: 'newemail@example.com' }),
+ *   headers: { 'content-type': 'application/json' }
+ * });
+ *
+ * @example
+ * // Apply JSON Patch operations
+ * const response = await httpPatch({
+ *   url: 'https://api.example.com/documents/456',
+ *   body: JSON.stringify([
+ *     { op: 'replace', path: '/title', value: 'New Title' },
+ *     { op: 'add', path: '/tags/-', value: 'updated' }
+ *   ]),
+ *   headers: { 'content-type': 'application/json-patch+json' }
+ * });
+ */
+export async function httpPatch(options) {
+  return await httpRequest({
+    ...options,
+    method: METHOD_PATCH
+  });
+}
+
+/**
+ * Make an OPTIONS request
+ *
+ * This function performs an HTTP OPTIONS request, typically used for
+ * discovering allowed methods on a resource or for CORS preflight requests.
+ * It supports optional headers, credentials, and timeout functionality.
+ *
+ * @param {import('./typedef').HttpRequestOptions} options
+ *   Request configuration options
+ *
+ * @returns {Promise<Response>} Response promise
+ *
+ * @example
+ * // Check allowed methods on a resource
+ * const response = await httpOptions({
+ *   url: 'https://api.example.com/users/123'
+ * });
+ *
+ * const allowedMethods = response.headers.get('Allow');
+ * console.log('Allowed methods:', allowedMethods);
+ *
+ * @example
+ * // CORS preflight check
+ * const response = await httpOptions({
+ *   url: 'https://api.example.com/data',
+ *   headers: {
+ *     'Access-Control-Request-Method': 'POST',
+ *     'Access-Control-Request-Headers': 'Content-Type'
+ *   }
+ * });
+ */
+export async function httpOptions(options) {
+  return await httpRequest({
+    ...options,
+    method: METHOD_OPTIONS
+  });
+}
+
+/**
+ * Make a HEAD request
+ *
+ * This function performs an HTTP HEAD request, which returns only the
+ * headers of a response without the body. It's useful for checking
+ * resource existence, getting metadata, or cache validation.
+ *
+ * @param {import('./typedef').HttpRequestOptions} options
+ *   Request configuration options
+ *
+ * @returns {Promise<Response>} Response promise (with empty body)
+ *
+ * @example
+ * // Check if a resource exists
+ * const response = await httpHead({
+ *   url: 'https://api.example.com/users/123'
+ * });
+ *
+ * if (response.ok) {
+ *   console.log('User exists');
+ *   console.log('Last modified:', response.headers.get('Last-Modified'));
+ * }
+ *
+ * @example
+ * // Get content length without downloading
+ * const response = await httpHead({
+ *   url: 'https://api.example.com/large-file.zip'
+ * });
+ *
+ * const contentLength = response.headers.get('Content-Length');
+ * console.log('File size:', contentLength, 'bytes');
+ *
+ * @example
+ * // Cache validation
+ * const response = await httpHead({
+ *   url: 'https://api.example.com/data',
+ *   headers: { 'If-None-Match': '"cached-etag-value"' }
+ * });
+ *
+ * if (response.status === 304) {
+ *   console.log('Cache is still valid');
+ * }
+ */
+export async function httpHead(options) {
+  return await httpRequest({
+    ...options,
+    method: METHOD_HEAD
+  });
+}
+
 // -----------------------------------------------------------------------------
 
 /**
@@ -181,13 +383,11 @@ export async function httpRequest(options) {
     const cacheKeyParams = { url, ...headers };
     const cachedResponse = await getCachedResponse(cacheKeyParams);
 
-    if( !isTestEnv )
-    {
+    if (!isTestEnv) {
       if (cachedResponse) {
         console.debug(`http:cache-hit [${url.pathname}]`);
         return cachedResponse;
-      }
-      else {
+      } else {
         console.debug(`http:cache-miss [${url.pathname}]`);
       }
     }
@@ -215,7 +415,7 @@ export async function httpRequest(options) {
   const init = {
     mode,
     cache,
-    credentials: withCredentials ? 'include': 'omit',
+    credentials: withCredentials ? 'include' : 'omit',
     redirect,
     referrerPolicy,
     headers: requestHeaders
@@ -236,7 +436,7 @@ export async function httpRequest(options) {
       if (existingParams.has(name)) {
         throw new Error(
           `Cannot set URL search parameter [${name}] ` +
-          `in url [${url.href}] (already set)`
+            `in url [${url.href}] (already set)`
         );
       }
 
@@ -337,7 +537,7 @@ export async function httpRequest(options) {
 
     // Parse cache-control directives
     const directives = {};
-    cacheControl.split(',').forEach(directive => {
+    cacheControl.split(',').forEach((directive) => {
       const [key, value] = directive.trim().split('=');
       directives[key.toLowerCase()] = value !== undefined ? value : true;
     });
@@ -350,7 +550,7 @@ export async function httpRequest(options) {
       let expires = null;
       if (directives['max-age']) {
         const maxAge = parseInt(directives['max-age'], 10);
-        expires = Date.now() + (maxAge * 1000);
+        expires = Date.now() + maxAge * 1000;
       } else if (response.headers.get('Expires')) {
         expires = new Date(response.headers.get('Expires')).getTime();
       }
@@ -376,4 +576,3 @@ export async function httpRequest(options) {
 
   return response;
 }
-

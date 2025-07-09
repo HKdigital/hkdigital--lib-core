@@ -185,7 +185,7 @@ export default class Logger extends EventEmitter {
       level,
       message,
       context: this.#hasContext ? this.#defaultContext : null,
-      details
+      details: details ?? null
     };
 
     // Emit as both specific level event and generic 'log' event
