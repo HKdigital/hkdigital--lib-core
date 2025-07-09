@@ -13,14 +13,6 @@ Do not use in production environments yet.
 
 ### TODO
 
-Add information about Skeleton, theming and imagetools
-
-## A note about tailwindcss
-
-Components in this package use [tailwindcss](https://tailwindcss.com/).
-
-To compile tailwind classes inside this package, you must add the package location to your tailwindcss plugin configuration (instructions below).
-
 ## Using the library
 
 ### Install
@@ -31,37 +23,51 @@ The library can be installed as a normal NPM library.
 pnpm add @hkdigital/lib-sveltekit
 ```
 
+#### Tailwind
+
+Components in this package use [tailwindcss](https://tailwindcss.com/).
+
+To compile tailwind classes inside this package, you must add the package location to your tailwindcss plugin configuration.
+
+```
+// tailwind.config.js
+export default {
+  content: [
+    './node_modules/@hkdigital/**/*.{html,js,svelte,ts}',
+    './src/**/*.{html,js,svelte,ts}',
+```
+
 ### Update
 
-We use a global installion of the `ncu` package to upgrade our `package.json`. Install `ncu` first if you don't have it yet
+Make sure your project has a script called `upgrade:hk` to upgrade all packages
+in the '@hkdigital' namespace.
 
 ```bash
-npm install -g npm-check-updates
+pnpm upgrade:hk
 ```
 
-Upgrading works as follows:
+### The package.json scripts:
 
 ```bash
-ncu "@hkdigital/*" -u && pnpm install
+pnpm add -D npm-check-updates
+pnpm add -D npm-check-updates
 ```
 
-We use a wildcard to upgrade all installed `node_modules` in the scope `@hkdigital`.
-
-You can also add this command to your project. To do so, add the lines to the bottom of the `scripts` section of your `package.json`.
-
-```bash
-"upgrade:hk": "ncu --dep dev,optional,peer,prod '@hkdigital/*' -u && pnpm install",
-"upgrade:all": "ncu -u && pnpm install"
+```js
+"scripts": {
+  "upgrade:hk": "run-s upgrade:hk:update pnpm:install",
+  "upgrade:hk:update": "ncu --dep dev,optional,peer,prod '@hkdigital/*' -u",
+  "pnpm:install": "pnpm install"
+}
 ```
 
-### Import JS & Svelte
 
-All exports are in subfolders.
+### Import JS, Svelte files and Typedefs
 
-For example to import a constant from `constants/regexp/index.js`
+Most subfolders have an index.js that export all functionality and typedefs.
 
 ```svelte
-import { CHAR } from '@hkdigital/lib-sveltekit/constants/regexp';
+import { CHAR } from '@hkdigital/lib-sveltekit/constants/regexp/index.js';
 ```
 
 ### Import CSS
@@ -130,6 +136,14 @@ npm publish --access public
 pnpm run publish:npm
 ```
 
+### Troubleshooting
+
+#### Running scripts from package.json in Windows
+
+The CMD terminal in Windows is quite limited. Use the PowerShell instead of some scripts from package.json do not run correctly.
+
+
 ## Contribute
 
-If your wish to contribute to this library, please contact us [HKdigital](https://hkdigital.nl/contact). Alternatively, the license permits you to fork the library and publish under an alternative name. Change the package name in [package.json](./package.json) to do so.
+If your wish to contribute to this library, please contact us [HKdigital](https://hkdigital.nl/contact). Alternatively, the license permits you to fork the library and publish under an alternative name. Don't forget to change the package name in [package.json](./package.json) if you do so.
+
