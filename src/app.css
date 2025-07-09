@@ -1,3 +1,20 @@
+@layer theme, base, components, utilities;
+
+/* Insert tailwind classes and styles */
+@import 'tailwindcss';
+
+/* Import theme classes and styles */
+@import './lib/themes/hkdev/theme.css' layer(theme);
+
+/*@import '$lib/themes/hkdev/debug.css';*/
+@import '$lib/themes/hkdev/globals.css';
+@import '$lib/themes/hkdev/components.css' layer(components);
+@import '$lib/themes/hkdev/responsive.css';
+
+@import '@skeletonlabs/skeleton' source('../node_modules/@skeletonlabs/skeleton-svelte/dist');
+@import '@skeletonlabs/skeleton/optional/presets' source('../node_modules/@skeletonlabs/skeleton-svelte/dist');
+
+@config "../tailwind.config.js";
 /* Import common CSS */
 
 /*@import "./lib/css/utilities.css";*/
@@ -8,16 +25,3 @@
 
 /*@import url(/fonts/unbounded/unbounded.css);
 @import url(/fonts/mulish/mulish.css);*/
-
-/* Import theme classes and styles */
-
-/*@import '$lib/themes/hkdev/debug.css';*/
-@import '$lib/themes/hkdev/globals.css';
-@import '$lib/themes/hkdev/components.css';
-@import '$lib/themes/hkdev/responsive.css';
-
-/* Insert tailwind classes and styles */
-
-@tailwind base;
-@tailwind components;
-@tailwind utilities;

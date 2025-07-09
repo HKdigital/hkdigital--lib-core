@@ -1,6 +1,5 @@
 @import '../../global/on-colors.css';
 
-@define-mixin boxes-game-box {
   [data-boxes='game-box'] {
     /*& .game-box-padding-20p {
       @apply mt-20p;
@@ -9,4 +8,4 @@
       @apply ml-20p;
     }*/
   }
-}
+

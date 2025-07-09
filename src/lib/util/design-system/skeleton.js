@@ -51,22 +51,22 @@ export function customUtilitiesPlugin({ addUtilities, theme }) {
 
   const textColorUtilities = {
     '.text-base-color': {
-      color: 'rgb( var(--base-font-color) )'
+      color: 'var(--base-font-color)'
     },
     '.text-base-color-dark': {
-      color: 'rgb( var(--base-font-color-dark) )'
+      color: 'var(--base-font-color-dark)'
     },
     '.text-heading-color': {
-      color: 'rgb( var(--heading-font-color) )'
+      color: 'var(--heading-font-color)'
     },
     '.text-heading-color-dark': {
-      color: 'rgb( var(--heading-font-color-dark) )'
+      color: 'var(--heading-font-color-dark)'
     },
     '.text-ui-color': {
-      color: 'rgb( var(--ui-font-color, var(--base-font-color)) )'
+      color: 'var(--ui-font-color, var(--base-font-color))'
     },
     '.text-ui-color-dark': {
-      color: 'rgb( var(--ui-font-color-dark, var(--base-font-color-dark)) )'
+      color: 'var(--ui-font-color-dark, var(--base-font-color-dark))'
     }
   };
 
@@ -142,12 +142,12 @@ function generateTypographyUtilities(theme) {
         fontStyle: 'var(--heading-font-style)',
         fontWeight: 'var(--heading-font-weight)',
         letterSpacing: 'var(--heading-letter-spacing)',
-        color: 'rgb(var(--heading-font-color))'
+        color: 'var(--heading-font-color)'
       };
 
       propertiesDark = {
         ...properties,
-        color: 'rgb(var(--heading-font-color-dark))'
+        color: 'var(--heading-font-color-dark)'
       };
     } else if (key.startsWith('base-')) {
       properties = {
@@ -155,12 +155,12 @@ function generateTypographyUtilities(theme) {
         fontFamily: 'var(--base-font-family)',
         fontWeight: 'var(--base-font-weight)',
         letterSpacing: 'var(--base-letter-spacing)',
-        color: 'rgb(var(--base-font-color))'
+        color: 'var(--base-font-color)'
       };
 
       propertiesDark = {
         ...properties,
-        color: 'rgb(var(--base-font-color-dark))'
+        color: 'var(--base-font-color-dark)'
       };
     } else if (key.startsWith('ui-')) {
       properties = {
@@ -168,12 +168,12 @@ function generateTypographyUtilities(theme) {
         fontFamily: 'var(--ui-font-family, var(--base-font-family))',
         fontWeight: 'var(--ui-font-weight)',
         letterSpacing: 'var(--ui-letter-spacing, var(--base-letter-spacing))',
-        color: 'rgb(var(--ui-font-color, var(--base-font-color)))'
+        color: 'var(--ui-font-color, var(--base-font-color))'
       };
 
       propertiesDark = {
         ...properties,
-        color: 'rgb(var(--ui-font-color-dark, var(--base-font-color-dark)))'
+        color: 'var(--ui-font-color-dark, var(--base-font-color-dark))'
       };
     }
 

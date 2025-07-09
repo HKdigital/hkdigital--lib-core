@@ -26,28 +26,4 @@
 /* ... */
 @import './components/blocks/text-block.css';
 
-/* Wrap component styles in theme selector */
 
-[data-theme='hkdev'] {
-  /* Rows */
-  /*  @mixin rows-panel-grid-row;*/
-  /*  @mixin rows-panel-row-2;*/
-
-  /* Buttons */
-  @mixin component-button;
-  @mixin component-button-text;
-  @mixin component-button-icon-steeze;
-  /*  @mixin buttons-skip-button;*/
-
-  @mixin component-draggable;
-  @mixin component-drop-zone;
-
-  @mixin component-icon-steeze;
-
-  @mixin component-panel;
-
-  @mixin text_block;
-
-  /* Inputs */
-  @mixin inputs-text-input;
-}

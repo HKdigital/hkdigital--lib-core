@@ -1,4 +1,4 @@
-@define-mixin component-draggable {
+
   [data-component='draggable'] {
     user-select: none;
     transition:
@@ -70,4 +70,4 @@
       opacity: 1;
     }
   }
-}
+

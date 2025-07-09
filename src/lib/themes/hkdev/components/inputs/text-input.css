@@ -1,103 +1,101 @@
 /*@import "../../global/on-colors.css";*/
 
-@define-mixin inputs-text-input {
-  [data-input='text-input'] {
-    /* Base */
+[data-input='text-input'] {
+  /* Base */
 
-    /* Required and disabled */
+  /* Required and disabled */
 
-    &.required {
+  &.required {
+  }
+  &.disabled {
+  }
+
+  /* Focus */
+
+  &.focused {
+    border: solid thin black;
+
+    & [data-child='legend'] {
+      color: black;
     }
-    &.disabled {
+
+    & [data-child='input'] {
+      color: black;
+    }
+  }
+
+  &.unfocused {
+    border: solid thin grey;
+
+    & [data-child='legend'] {
+      color: grey;
     }
 
-    /* Focus */
+    & [data-child='input'] {
+      color: grey;
+    }
+  }
 
-    &.focused {
-      border: solid thin black;
+  /* Invalid */
+  &.invalid {
+    &.pristine [data-child='legend'] {
+      color: white;
+      background-color: orange;
+    }
 
-      & [data-child='legend'] {
+    &.dirty {
+      &.focused [data-child='legend'] {
         color: black;
+        background-color: yellow;
       }
 
-      & [data-child='input'] {
-        color: black;
-      }
-    }
-
-    &.unfocused {
-      border: solid thin grey;
-
-      & [data-child='legend'] {
-        color: grey;
-      }
-
-      & [data-child='input'] {
-        color: grey;
-      }
-    }
-
-    /* Invalid */
-    &.invalid {
-      &.pristine [data-child='legend'] {
+      &.unfocused [data-child='legend'] {
         color: white;
-        background-color: orange;
-      }
-
-      &.dirty {
-        &.focused [data-child='legend'] {
-          color: black;
-          background-color: yellow;
-        }
-
-        &.unfocused [data-child='legend'] {
-          color: white;
-          background-color: red;
-        }
+        background-color: red;
       }
     }
+  }
 
-    /* Pristine (valid-invalid) */
+  /* Pristine (valid-invalid) */
 
-    &.pristine.valid {
+  &.pristine.valid {
+    & [data-child='icon-box'] {
+      color: grey;
+    }
+  }
+
+  &.pristine.invalid {
+    & [data-child='icon-box'] {
+      color: orange;
+    }
+  }
+
+  /* Dirty (valid-invalid) */
+
+  &.dirty.valid {
+    &.focused {
       & [data-child='icon-box'] {
         color: grey;
       }
     }
 
-    &.pristine.invalid {
+    &.unfocused {
+      & [data-child='icon-box'] {
+        color: green;
+      }
+    }
+  }
+
+  &.dirty.invalid {
+    &.focused {
       & [data-child='icon-box'] {
         color: orange;
       }
     }
 
-    /* Dirty (valid-invalid) */
-
-    &.dirty.valid {
-      &.focused {
-        & [data-child='icon-box'] {
-          color: grey;
-        }
-      }
-
-      &.unfocused {
-        & [data-child='icon-box'] {
-          color: green;
-        }
-      }
-    }
-
-    &.dirty.invalid {
-      &.focused {
-        & [data-child='icon-box'] {
-          color: orange;
-        }
-      }
-
-      &.unfocused {
-        & [data-child='icon-box'] {
-          color: red;
-        }
+    &.unfocused {
+      & [data-child='icon-box'] {
+        color: red;
       }
     }
   }

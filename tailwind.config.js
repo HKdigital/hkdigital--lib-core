@@ -1,14 +1,5 @@
 import { default as TailwindTypography } from '@tailwindcss/typography';
 
-import { skeleton } from '@skeletonlabs/skeleton/plugin';
-
-import { customSkeletonPlugin } from './src/lib/util/design-system/skeleton.js';
-
-import * as defaultThemes from '@skeletonlabs/skeleton/themes';
-import { skeleton } from '@skeletonlabs/skeleton/plugin';
-
-import * as customThemes from './src/lib/themes/index.js';
-
 /**
  * The following tailwind theme extensions require CSS custom
  * properties (variables) to be set at the root level
@@ -64,9 +55,6 @@ export default {
   plugins: [
     TailwindTypography,
     customUtilitiesPlugin,
-    skeleton({
-      themes: [defaultThemes.cerberus, defaultThemes.rose, customThemes.hkdev]
-    })
   ]
 };
 

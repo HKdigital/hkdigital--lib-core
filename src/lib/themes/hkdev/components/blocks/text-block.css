@@ -1,5 +1,3 @@
-@define-mixin text_block {
-
 /* .on-primary-dark
 {
   & [data-title-text-button-block] {
@@ -14,7 +12,6 @@
 } */
 
 [data-title-text-button-block] {
-
   &.block-width {
     @apply w-1/2;
   }
@@ -28,14 +25,10 @@
     @apply text-base-md;
   }
 
-  & > .content-box:has( + .footer-box )
-  {
+  & > .content-box:has(+ .footer-box) {
     @apply mb-30p; /* 10p + 20p */
   }
 
   & > .footer-box {
   }
-}
-
-
 }
