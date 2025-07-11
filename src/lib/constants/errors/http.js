@@ -1,19 +1,15 @@
-export class TypeOrValueError extends Error {}
-
-export class InternalError extends Error {}
-
-export class InternalEventOrLogError extends Error {}
-
-export class DetailedError extends Error
+export class HttpError extends Error
 {
   /**
+   * @param {number} status - HTTP status
    * @param {string} message - Error message
    * @param {string|{[key: string]: any}|null} [details] - Additional details
    * @param {Error|string} [cause] - Original error
    */
-  constructor(message, details, cause ) {
+  constructor(status, message, details, cause ) {
     super(message);
-    this.name = 'DetailedError';
+    this.status = status;
+    this.name = 'HttpError';
     this.details = details ?? null;
     this.cause = cause;
   }
