@@ -68,7 +68,6 @@ import {
 } from './service-states.js';
 
 /**
- * @typedef {import('./typedef.js').ServiceConfig} ServiceConfig
  * @typedef {import('./typedef.js').ServiceOptions} ServiceOptions
  * @typedef {import('./typedef.js').StopOptions} StopOptions
  * @typedef {import('./typedef.js').HealthStatus} HealthStatus
@@ -113,7 +112,7 @@ export class ServiceBase extends EventEmitter {
   /**
    * Initialize the service with configuration
    *
-   * @param {ServiceConfig} [config={}] - Service-specific configuration
+   * @param {*} [config={}] - Service-specific configuration
    *
    * @returns {Promise<boolean>} True if initialization succeeded
    */
@@ -335,7 +334,7 @@ export class ServiceBase extends EventEmitter {
    * Initialize the service (override in subclass)
    *
    * @protected
-   * @param {ServiceConfig} config - Service configuration
+   * @param {*} config - Service configuration
    *
    * @returns {Promise<void>}
    */

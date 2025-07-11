@@ -75,7 +75,6 @@ import {
 
 /**
  * @typedef {import('./typedef.js').ServiceConstructor} ServiceConstructor
- * @typedef {import('./typedef.js').ServiceConfig} ServiceConfig
  * @typedef {import('./typedef.js').ServiceRegistrationOptions} ServiceRegistrationOptions
  * @typedef {import('./typedef.js').ServiceManagerConfig} ServiceManagerConfig
  * @typedef {import('./typedef.js').StopOptions} StopOptions
@@ -118,7 +117,7 @@ export class ServiceManager extends EventEmitter {
    *
    * @param {string} name - Unique service identifier
    * @param {ServiceConstructor} ServiceClass - Service class constructor
-   * @param {ServiceConfig} [config={}] - Service configuration
+   * @param {*} [config={}] - Service configuration
    * @param {ServiceRegistrationOptions} [options={}] - Registration options
    *
    * @throws {Error} If service name is already registered

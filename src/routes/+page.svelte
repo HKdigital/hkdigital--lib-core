@@ -75,7 +75,7 @@
     </div>
   {/if}
   <ul>
-    <!-- Eerst tonen we de items in deze map -->
+    <!-- Items from current folder -->
     {#each folder.items.sort( (a, b) => a.displayName.localeCompare(b.displayName) ) as item}
       <li class="list-none text-nowrap my-4bt">
         <a
@@ -87,7 +87,8 @@
         </a>
       </li>
     {/each}
-    <!-- Dan tonen we de submappen -->
+
+    <!-- Subfolders -->
     {#each Object.keys(folder.children).sort() as subfolder}
       {@render FolderView(folder.children[subfolder], level + 1)}
     {/each}

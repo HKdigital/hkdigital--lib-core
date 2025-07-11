@@ -9,12 +9,8 @@
  * // In your service implementation
  * import { ServiceBase } from './ServiceBase.js';
  * 
- * // @ typedef {import('./typedef.js').ServiceConfig} ServiceConfig
- * // @ typedef {import('./typedef.js').HealthStatus} HealthStatus
- * 
  * class MyService extends ServiceBase {
  *   async _init(config) {
- *     // config is typed as ServiceConfig
  *   }
  *   
  *   async _healthCheck() {
@@ -43,13 +39,6 @@
  * };
  * 
  * manager.register('auth', AuthService, {}, options);
- */
-
-/**
- * Service configuration object passed to service initialization
- *
- * @typedef {Object} ServiceConfig
- * @property {*} [key] - Service-specific configuration properties
  */
 
 /**
@@ -144,7 +133,7 @@
  * @typedef {Object} ServiceEntry
  * @property {ServiceConstructor} ServiceClass - Service class constructor
  * @property {ServiceInstance|null} instance - Service instance (lazy-created)
- * @property {ServiceConfig} config - Service configuration
+ * @property {*} config - Service configuration
  * @property {string[]} dependencies - Service dependencies
  * @property {Set<string>} dependents - Services that depend on this one
  * @property {string[]} tags - Service tags
@@ -165,7 +154,7 @@
  * @property {boolean} healthy - Health status
  * @property {Error|null} error - Last error
  * @property {import('$lib/classes/logging').Logger} logger - Service logger
- * @property {(config?: ServiceConfig) => Promise<boolean>} initialize
+ * @property {(config?: *) => Promise<boolean>} initialize
  * @property {() => Promise<boolean>} start
  * @property {(options?: StopOptions) => Promise<boolean>} stop
  * @property {() => Promise<boolean>} recover
