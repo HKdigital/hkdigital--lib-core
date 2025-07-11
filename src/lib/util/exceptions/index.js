@@ -8,7 +8,7 @@ import { DetailedError } from "$lib/constants/errors/generic.js";
  *
  * @param {string} message - Additional message to prepend
  * @param {Error|string} error - Original error
- * @param {string|Object.<string, any>} details
+ * @param {string|Object.<string, any>|null} [details]
  *
  * @throws {DetailedError}
  * @returns {never} This function never returns
