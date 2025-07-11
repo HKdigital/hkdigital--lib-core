@@ -1,6 +1,6 @@
 {
-	"name": "@hkdigital/lib-sveltekit",
-	"version": "0.2.22",
+	"name": "@hkdigital/lib-core",
+	"version": "0.3.0",
 	"author": {
 		"name": "HKdigital",
 		"url": "https://hkdigital.nl"
