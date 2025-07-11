@@ -15,7 +15,7 @@
     INVALID,
     REQUIRED,
     DISABLED
-  } from '$lib/constants/state-labels/input-states.js';
+  } from '$lib/constants/states/input.js';
 
   /**
    * @type {{
@@ -133,7 +133,7 @@
     //
     // Return CSS classes that indicate the component's state
     //
-    // @see $lib/constants/state-labels
+    // @see $lib/constants/states
     //
     const outArr = [];
 

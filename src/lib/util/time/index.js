@@ -33,7 +33,7 @@ import {
 	MINUTE_MS,
 	HOUR_MS,
 	DAY_MS,
-	TIME_2025_01_01 } from '$lib/constants/time.js';
+	TIME_2025_01_01 } from '$lib/constants/time/index.js';
 
 import * as expect from '$lib/util/expect';
 import { HkPromise } from '$lib/classes/promise/index.js';

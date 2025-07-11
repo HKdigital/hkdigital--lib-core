@@ -1,5 +1,5 @@
 
-import { DetailedError } from "$lib/constants/errors/generic.js";
+import { DetailedError } from "$lib/errors/generic.js";
 
 /**
  * Creates a new Error from the error message and throws it with a reference

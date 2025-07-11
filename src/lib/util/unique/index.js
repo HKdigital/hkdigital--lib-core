@@ -17,7 +17,7 @@
 
 /* ------------------------------------------------------------------ Imports */
 
-import { ALPHABET_BASE_HUMAN, ALPHABET_BASE_58 } from '$lib/constants/bases.js';
+import { ALPHABET_BASE_HUMAN, ALPHABET_BASE_58 } from '$lib/constants/bases/index.js';
 
 import { base58fromNumber } from '$lib/util/bases';
 

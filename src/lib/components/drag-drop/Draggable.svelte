@@ -10,7 +10,7 @@
     DRAGGING,
     DRAG_PREVIEW,
     DROPPING
-  } from '$lib/constants/state-labels/drag-states.js';
+  } from '$lib/constants/states/drag.js';
 
   /** @typedef {import('$lib/typedef').SimulatedDragEvent} SimulatedDragEvent */
 

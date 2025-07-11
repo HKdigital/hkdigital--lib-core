@@ -4,7 +4,7 @@ import {
 	WWW_AUTHENTICATE,
 	CONTENT_LENGTH
 } from '$lib/constants/http/headers.js';
-import { ResponseError } from '$lib/constants/errors/index.js';
+import { ResponseError } from '$lib/errors/index.js';
 
 import {
 	expectResponseOk,

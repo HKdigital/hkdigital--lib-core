@@ -8,7 +8,7 @@
     DRAG_OVER,
     CAN_DROP,
     CANNOT_DROP
-  } from '$lib/constants/state-labels/drop-states.js';
+  } from '$lib/constants/states/drop.js';
 
   /** @typedef {import('$lib/typedef').DragData} DragData */
   /** @typedef {import('$lib/typedef').DropData} DropData */

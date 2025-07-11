@@ -5,7 +5,7 @@
 // 	AbortError,
 // 	TimeoutError,
 // 	TypeOrValueError
-// } from '$lib/constants/errors/index.js';
+// } from '$lib/errors/index.js';
 
 // import { setRequestHeaders } from './headers.js';
 // import { getErrorFromResponse } from './errors.js';

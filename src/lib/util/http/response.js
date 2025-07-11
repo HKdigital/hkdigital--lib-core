@@ -1,4 +1,4 @@
-import { ResponseError } from '$lib/constants/errors/index.js';
+import { ResponseError } from '$lib/errors/index.js';
 import * as expect from '$lib/util/expect/index.js';
 import { toURL } from '$lib/util/http/url.js';
 

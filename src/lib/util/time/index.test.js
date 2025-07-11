@@ -6,7 +6,7 @@ import {
   HOUR_MS,
   DAY_MS,
   TIME_2025_01_01
-} from '$lib/constants/time.js';
+} from '$lib/constants/time/index.js';
 
 import {
   delay,

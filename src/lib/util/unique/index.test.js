@@ -17,8 +17,8 @@ import {
   bootTimePrefix
 } from '$lib/util/unique';
 
-import { ALPHABET_BASE_HUMAN, ALPHABET_BASE_58 } from '$lib/constants/bases.js';
-import { TIME_2025_01_01 } from '$lib/constants/time.js';
+import { ALPHABET_BASE_HUMAN, ALPHABET_BASE_58 } from '$lib/constants/bases/index.js';
+import { TIME_2025_01_01 } from '$lib/constants/time/index.js';
 
 describe('randomString', () => {
   it('should generate string of the correct length', () => {
