@@ -1,6 +1,6 @@
-# HKdigital's lib Sveltekit
+# HKdigital's lib-core
 
-Base library that we use to power up our Sveltekit projects
+Core library that we use to power up our Sveltekit projects
 
 This is a library for [SvelteKit](https://svelte.dev/) projects.
 It contains common code and components that we use to create our projects.
