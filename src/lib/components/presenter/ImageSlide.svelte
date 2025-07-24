@@ -1,5 +1,5 @@
 <script>
-  import { ImageBox } from '$lib/features/index.js';
+  import { ImageBox } from '$lib/components/index.js';
 
   /**
    * @type {{

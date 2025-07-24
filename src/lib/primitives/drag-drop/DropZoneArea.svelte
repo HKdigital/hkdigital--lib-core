@@ -1,5 +1,5 @@
 <script>
-  import { DropZone } from '$lib/components/drag-drop/index.js';
+  import { DropZone } from '$lib/primitives/drag-drop/index.js';
 
   /**
    * @type {{

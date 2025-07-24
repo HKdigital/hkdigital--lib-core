@@ -20,9 +20,8 @@ const config = {
 	// alias: {
 	//   $lib: 'src/lib',
 
-	//   $components: 'src/lib/components',
-	//   $define: 'src/lib/define',
-	//   $utils: 'src/lib/utils'
+	//   $primitives: 'src/lib/primitives',
+	//   ...
 	// },
 };
 

@@ -1,6 +1,6 @@
 <script>
-  import TextButton from '$lib/components/buttons/button/Button.svelte';
-  import TextBlock from '$lib/components/hkdev/blocks/TextBlock.svelte';
+  import TextButton from '$lib/primitives/buttons/button/Button.svelte';
+  import TextBlock from '$lib/primitives/hkdev/blocks/TextBlock.svelte';
 </script>
 
 <TextBlock class="row block-lg2 items-center justify-self-start">

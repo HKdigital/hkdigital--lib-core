@@ -1,5 +1,5 @@
 <script>
-  import { Button, TextButton } from '$lib/components/buttons/index.js';
+  import { Button, TextButton } from '$lib/primitives/buttons/index.js';
 </script>
 
 <!-- <div class="grid grid-cols-2 gap-4">

@@ -1,9 +1,9 @@
 <script>
   import { onMount } from 'svelte';
 
-  import { TextButton } from '$lib/components/buttons/index.js';
+  import { TextButton } from '$lib/primitives/buttons/index.js';
 
-  import { Presenter } from '$lib/features/presenter/index.js';
+  import { Presenter } from '$lib/components/presenter/index.js';
 
   import { slides } from './config/slides.js';
   import { SLIDE_HELLO, SLIDE_WORLD } from './config/labels.js';

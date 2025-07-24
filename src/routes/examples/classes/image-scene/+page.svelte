@@ -3,7 +3,7 @@
 
   import { ArmyGreen, ElectricBlue } from '../../assets/images.js';
 
-  import { ImageBox } from '$lib/features/index.js';
+  import { ImageBox } from '$lib/components/index.js';
 
   import ImageScene from '$lib/classes/svelte/image/ImageScene.svelte';
 

@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
 
-  import { GridLayers } from '$lib/components/layout/index.js';
+  import { GridLayers } from '$lib/primitives/layout/index.js';
 
   import { PresenterState } from './Presenter.state.svelte.js';
   import { cssBefore, cssDuring, waitForRender } from './util.js';

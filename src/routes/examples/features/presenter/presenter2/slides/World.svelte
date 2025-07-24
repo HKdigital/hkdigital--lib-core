@@ -3,13 +3,13 @@
 
   import ElectricBlue from '../../../../assets/images/electric-blue.jpg?preset=gradient&responsive';
 
-  import { ImageBox } from '$lib/features/index.js';
+  import { ImageBox } from '$lib/components/index.js';
 
-  import { TextButton } from '$lib/components/buttons/index.js';
+  import { TextButton } from '$lib/primitives/buttons/index.js';
 
   import { SLIDE_HELLO } from '../config/labels.js';
 
-  // import GridLayers from '$lib/components/layout/grid-layers/GridLayers.svelte';
+  // import GridLayers from '$lib/primitives/layout/grid-layers/GridLayers.svelte';
 
   /**
    * @type {{

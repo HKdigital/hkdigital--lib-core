@@ -1,7 +1,7 @@
 <script>
   import { DESIGN, CLAMPING } from '$lib/design/design-config.js';
 
-  import { GameBox } from '$lib/features/index.js';
+  import { GameBox } from '$lib/components/index.js';
 </script>
 
 <GameBox

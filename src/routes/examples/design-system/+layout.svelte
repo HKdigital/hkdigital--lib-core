@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
-  import { VirtualViewport } from '$lib/features/index.js';
-  import { Button, TextButton } from '$lib/components/buttons/index.js';
+  import { VirtualViewport } from '$lib/components/index.js';
+  import { Button, TextButton } from '$lib/primitives/buttons/index.js';
 
   let { children } = $props();
 

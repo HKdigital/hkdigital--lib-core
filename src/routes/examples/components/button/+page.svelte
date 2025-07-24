@@ -1,5 +1,5 @@
 <script>
-  import { Button } from '$lib/components/buttons/index.js';
+  import { Button } from '$lib/primitives/buttons/index.js';
 </script>
 
 <div class="p-20up">

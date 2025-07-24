@@ -1,11 +1,11 @@
 <script>
   import Button from '../button/Button.svelte';
 
-  import { SteezeIcon } from '$lib/components/icons/index.js';
+  import { SteezeIcon } from '$lib/primitives/icons/index.js';
 
   /**
    * @type {{
-   *   src: import('$lib/components/icons/typedef.js').IconSource,
+   *   src: import('$lib/primitives/icons/typedef.js').IconSource,
    *   iconSize?: string,
    *   theme?: string,
    *   [key: string]: any

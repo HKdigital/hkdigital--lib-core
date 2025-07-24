@@ -1,4 +1,4 @@
-import ImageSlide from '$lib/features/presenter/ImageSlide.svelte';
+import ImageSlide from '$lib/components/presenter/ImageSlide.svelte';
 
 import {
   LABEL_RUSTY,
@@ -22,7 +22,7 @@ import {
 
 import { INTRO_FADE_IN_SLIDE_UP, OUTRO_FADE_OUT } from './transitions.js';
 
-/** @typedef {import('$lib/features/presenter/index.js').Slide} Slide */
+/** @typedef {import('$lib/components/presenter/index.js').Slide} Slide */
 
 /** @type {Slide[]} */
 export let slides = [

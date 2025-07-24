@@ -1,7 +1,7 @@
 <script>
   import { Star } from '@steeze-ui/heroicons';
 
-  import { SteezeIconButton } from '$lib/components/buttons/index.js';
+  import { SteezeIconButton } from '$lib/primitives/buttons/index.js';
 </script>
 
 <div class="p-20up">

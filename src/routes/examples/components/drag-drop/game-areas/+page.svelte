@@ -1,7 +1,7 @@
 <script>
-  // import { GridLayers } from '$lib/components/layout/index.js';
+  // import { GridLayers } from '$lib/primitives/layout/index.js';
 
-  // import { ImageBox } from '$lib/features/index.js';
+  // import { ImageBox } from '$lib/components/index.js';
 
   // import {
   //   AudiRs6AvantEmptyBumper,
@@ -9,7 +9,7 @@
   //   AudiRs6AvantEmptyRadiator
   // } from '$lib/assets/autoschadeherstel/bg';
 
-  import { DragDropContext } from '$lib/components/drag-drop/index.js';
+  import { DragDropContext } from '$lib/primitives/drag-drop/index.js';
 
   import GameBoard from './GameBoard.svelte';
   import GameModel from './GameModel.svelte.js';

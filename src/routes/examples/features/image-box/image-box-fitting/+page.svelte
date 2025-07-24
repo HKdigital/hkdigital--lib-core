@@ -9,7 +9,7 @@
 
 	// console.log('ElectricBlue', ElectricBlue);
 
-	import { ImageBox } from '$lib/features/index.js';
+	import { ImageBox } from '$lib/components/index.js';
 </script>
 
 <!-- Example that fits in an outer-box -->

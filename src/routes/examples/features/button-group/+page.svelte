@@ -1,16 +1,16 @@
 <script>
-  import { ButtonGroup } from '$lib/features/index.js';
+  import { ButtonGroup } from '$lib/components/index.js';
 
-  import { TextButton } from '$lib/components/buttons/index.js';
+  import { TextButton } from '$lib/primitives/buttons/index.js';
 
-  /** @type {import('$lib/features/index.js').ButtonDef} */
+  /** @type {import('$lib/components/index.js').ButtonDef} */
   let selected = $state(null);
 
   /* @type {( label:string ) => void } */
   let select = $state();
 
   // Button definitions
-  /** @type {import('$lib/features/index.js').ButtonDef[]} */
+  /** @type {import('$lib/components/index.js').ButtonDef[]} */
   const buttons = $state([
     {
       text: 'One',

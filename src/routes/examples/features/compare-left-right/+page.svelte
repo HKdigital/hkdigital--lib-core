@@ -1,6 +1,6 @@
 <!-- +page.svelte -->
 <script>
-  import { CompareLeftRight } from '$lib/features/compare-left-right/index.js';
+  import { CompareLeftRight } from '$lib/components/compare-left-right/index.js';
 
   // Raw images
 
@@ -14,7 +14,7 @@
 
   import ElectricBlue from '../../assets/images/electric-blue.jpg?preset=gradient';
 
-  import { ImageBox } from '$lib/features/index.js';
+  import { ImageBox } from '$lib/components/index.js';
 </script>
 
 <CompareLeftRight width="w-[90vw]">

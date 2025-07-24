@@ -1,5 +1,5 @@
 <script>
-  import { TextInput } from '$lib/components/inputs/index.js';
+  import { TextInput } from '$lib/primitives/inputs/index.js';
   import v, * as Vali from '$lib/valibot/index.js';
 
   let nameValue = $state('');

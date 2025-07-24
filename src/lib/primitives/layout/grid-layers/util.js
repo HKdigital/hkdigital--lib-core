@@ -1,4 +1,4 @@
-// lib/components/layout/gridLayers.utils.js
+// lib/primitives/layout/gridLayers.utils.js
 
 /**
  * Sets up a ResizeObserver on the target layer

@@ -1,5 +1,5 @@
 <script>
-  import { DebugPanelDesignScaling } from '$lib/components/debug/index.js';
+  import { DebugPanelDesignScaling } from '$lib/primitives/debug/index.js';
 
   import { onMount } from 'svelte';
   import { DESIGN, CLAMPING } from '$lib/design/design-config.js';

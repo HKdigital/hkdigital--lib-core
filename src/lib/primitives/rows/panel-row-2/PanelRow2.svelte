@@ -1,5 +1,5 @@
 <script>
-  import { PanelGridRow } from '$lib/components/rows/index.js';
+  import { PanelGridRow } from '$lib/primitives/rows/index.js';
 
   /**
    * @example
