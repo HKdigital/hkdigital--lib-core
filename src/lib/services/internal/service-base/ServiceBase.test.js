@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ServiceBase } from './ServiceBase.js';
-import { DEBUG, INFO } from '$lib/classes/logging';
+import { DEBUG } from '$lib/logging/internal/unified-logger';
 import {
   CREATED,
   INITIALIZING,
@@ -12,11 +12,9 @@ import {
   RUNNING,
   STOPPING,
   STOPPED,
-  DESTROYING,
   DESTROYED,
-  ERROR,
-  RECOVERING
-} from './service-states.js';
+  ERROR
+} from './constants.js';
 
 describe('ServiceBase', () => {
   let service;

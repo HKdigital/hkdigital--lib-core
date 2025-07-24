@@ -8,7 +8,7 @@
  *
  * @example
  * // Basic usage
- * import { Logger, INFO, DEBUG } from './Logger.js';
+ * import { Logger, LOG, INFO, DEBUG } from '@hkdigital/lib-core/logger/index.js';
  *
  * const logger = new Logger('myService', INFO);
  *
@@ -18,7 +18,7 @@
  * logger.warn('Unusual condition detected');           // Will be logged
  *
  * // Listen to log events
- * logger.on('log', (logEvent) => {
+ * logger.on(LOG, (logEvent) => {
  *   // Process all log events
  *   saveToLogFile(logEvent);
  * });
@@ -32,12 +32,19 @@
  * logger.setLevel(DEBUG); // Now debug messages will also be logged
  */
 
-import { EventEmitter } from '$lib/classes/events';
+import { EventEmitter } from '$lib/classes/event-emitter';
 
-import { DEBUG, INFO, WARN, ERROR, LEVELS } from './constants.js';
+import {
+  DEBUG,
+  INFO,
+  WARN,
+  ERROR,
+  LEVELS,
+  LOG
+} from './constants.js';
 
 /**
- * Logger class for consistent logging across services
+ * Logger class for consistent logging
  * @extends EventEmitter
  */
 export default class Logger extends EventEmitter {
@@ -131,7 +138,7 @@ export default class Logger extends EventEmitter {
    * @returns {Logger} New logger instance with merged context
    */
   context(namespace, additionalContext) {
-    if( typeof namespace !== "string" ) {
+    if (typeof namespace !== 'string') {
       throw new Error('Invalid namespace');
     }
 
@@ -144,7 +151,7 @@ export default class Logger extends EventEmitter {
   }
 
   /**
-   * Log an event from an event emitter of type LogEvent
+   * Log an LogEvent emitted by an event emitter
    *
    * E.g. an event that was created by another Logger instance and should be
    * forwarded to this logger.
@@ -152,7 +159,7 @@ export default class Logger extends EventEmitter {
    * @param {string} eventName
    * @param {import('./typedef.js').LogEventData} eventData
    */
-  logFromEvent( eventName, eventData ) {
+  logFromEvent(eventName, eventData) {
     const level = eventData.level;
 
     // Check if this log level should be filtered
@@ -160,7 +167,7 @@ export default class Logger extends EventEmitter {
       return false; // Below threshold, don't emit
     }
 
-    this.#logEvent( { ...eventData, eventName });
+    this.#logEvent({ ...eventData, eventName });
   }
 
   /**
@@ -188,9 +195,9 @@ export default class Logger extends EventEmitter {
       details: details ?? null
     };
 
-    // Emit as both specific level event and generic 'log' event
+    // Emit as both specific level event and generic LOG event
     this.emit(level, logEvent);
-    this.emit('log', logEvent);
+    this.emit(LOG, logEvent);
 
     return true;
   }
@@ -203,7 +210,7 @@ export default class Logger extends EventEmitter {
   #logEvent(logEvent) {
     // Emit as both specific level event and generic 'log' event
     this.emit(logEvent.level, logEvent);
-    this.emit('log', logEvent);
+    this.emit(LOG, logEvent);
 
     return true;
   }

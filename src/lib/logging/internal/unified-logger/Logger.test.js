@@ -10,7 +10,8 @@ import
     INFO,
     WARN,
     ERROR,
-    NONE
+    NONE,
+    LOG
   } from './index.js';
 
 describe('Logger', () => {
@@ -32,7 +33,7 @@ describe('Logger', () => {
 
     logger.on(INFO, infoHandler);
     logger.on(DEBUG, debugHandler);
-    logger.on('log', logHandler);
+    logger.on(LOG, logHandler);
 
     // Debug should be filtered out at INFO level
     const debugResult = logger.debug('Debug message');
@@ -98,7 +99,7 @@ describe('Logger', () => {
     const logHandler = vi.fn();
     
     logger.on(WARN, warnHandler);
-    logger.on('log', logHandler);
+    logger.on(LOG, logHandler);
     
     logger.warn('Warning message');
     
@@ -114,7 +115,7 @@ describe('Logger', () => {
 
   it('should respect the NONE level to disable all logging', () => {
     const logHandler = vi.fn();
-    logger.on('log', logHandler);
+    logger.on(LOG, logHandler);
     
     logger.setLevel(NONE);
     
@@ -129,7 +130,7 @@ describe('Logger', () => {
 
   it('should correctly follow log level hierarchy', () => {
     const logHandler = vi.fn();
-    logger.on('log', logHandler);
+    logger.on(LOG, logHandler);
     
     // Set to WARN level
     logger.setLevel(WARN);
@@ -161,7 +162,7 @@ describe('Logger.logFromEvent()', () => {
     const logHandler = vi.fn();
     const infoHandler = vi.fn();
 
-    logger.on('log', logHandler);
+    logger.on(LOG, logHandler);
     logger.on(INFO, infoHandler);
 
     // Create LogEventData as if it came from another logger
@@ -192,7 +193,7 @@ describe('Logger.logFromEvent()', () => {
     const logHandler = vi.fn();
     const debugHandler = vi.fn();
 
-    logger.on('log', logHandler);
+    logger.on(LOG, logHandler);
     logger.on(DEBUG, debugHandler);
 
     // Create a DEBUG level LogEventData (should be filtered at INFO level)
@@ -215,7 +216,7 @@ describe('Logger.logFromEvent()', () => {
 
   it('should respect log level hierarchy for LogEvents', () => {
     const logHandler = vi.fn();
-    logger.on('log', logHandler);
+    logger.on(LOG, logHandler);
 
     // Set to WARN level
     logger.setLevel(WARN);
@@ -270,7 +271,7 @@ describe('Logger.logFromEvent()', () => {
 
   it('should handle LogEventData with null context and details', () => {
     const logHandler = vi.fn();
-    logger.on('log', logHandler);
+    logger.on(LOG, logHandler);
 
     const minimalEventData = {
       timestamp: new Date(),
@@ -292,7 +293,7 @@ describe('Logger.logFromEvent()', () => {
 
   it('should preserve original LogEventData properties and add eventName', () => {
     const logHandler = vi.fn();
-    logger.on('log', logHandler);
+    logger.on(LOG, logHandler);
 
     const originalEventData = {
       timestamp: new Date('2024-06-15T14:30:00Z'),
@@ -335,7 +336,7 @@ describe('Logger.logFromEvent()', () => {
 
   it('should work with real event manager scenario', () => {
     const logHandler = vi.fn();
-    logger.on('log', logHandler);
+    logger.on(LOG, logHandler);
 
     // Simulate serviceManager.on('service:log', (data) => {...})
     const serviceLogData = {

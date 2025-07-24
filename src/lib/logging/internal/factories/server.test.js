@@ -2,11 +2,11 @@
  * @fileoverview Unit tests for server logger factory
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { createServerLogger } from '$lib/logging/factories/server.js';
-import { INFO, DEBUG, ERROR } from '$lib/logging/constants.js';
+import { createServerLogger } from '$lib/logging/internal/factories/server.js';
+import { INFO, DEBUG, ERROR } from '$lib/logging/internal/unified-logger/constants.js';
 
 // Mock the PinoAdapter
-vi.mock('$lib/logging/adapters/pino.js', () => ({
+vi.mock('$lib/logging/internal/adapters/pino.js', () => ({
   PinoAdapter: vi.fn().mockImplementation(function(options) {
     this.options = options;
     this.handleLog = vi.fn();
@@ -35,7 +35,7 @@ describe('createServerLogger', () => {
 
   it('should pass pino options to PinoAdapter', async () => {
     // @ts-ignore
-    const { PinoAdapter } = await import('$lib/logging/adapters/pino.js');
+    const { PinoAdapter } = await import('$lib/logging/internal/adapters/pino.js');
     const pinoOptions = {
       level: 'debug',
       prettyPrint: true,
@@ -49,7 +49,7 @@ describe('createServerLogger', () => {
 
   it('should connect adapter to logger events', async () => {
     // @ts-ignore
-    const { PinoAdapter } = await import('$lib/logging/adapters/pino.js');
+    const { PinoAdapter } = await import('$lib/logging/internal/adapters/pino.js');
     const logger = createServerLogger('apiService');
 
     // Get the adapter instance
@@ -93,7 +93,7 @@ describe('createServerLogger', () => {
 
   it('should handle log events from child logger', async () => {
     // @ts-ignore
-    const { PinoAdapter } = await import('$lib/logging/adapters/pino.js');
+    const { PinoAdapter } = await import('$lib/logging/internal/adapters/pino.js');
     const logger = createServerLogger('apiService');
 
     // Get the adapter instance

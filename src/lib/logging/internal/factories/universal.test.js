@@ -2,25 +2,25 @@
  * @fileoverview Unit tests for universal logger factory
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { INFO, DEBUG } from '$lib/logging/constants.js';
+import { INFO, DEBUG } from '$lib/logging/internal/unified-logger/constants.js';
 
 // Mock modules before any imports that use them
 vi.mock('$app/environment', () => ({
   browser: false // Default to server-side
 }));
 
-vi.mock('$lib/logging/factories/server.js', () => ({
+vi.mock('$lib/logging/internal/factories/server.js', () => ({
   createServerLogger: vi.fn()
 }));
 
-vi.mock('$lib/logging/factories/client.js', () => ({
+vi.mock('$lib/logging/internal/factories/client.js', () => ({
   createClientLogger: vi.fn()
 }));
 
 // Import after mocks are set up
-const { createLogger } = await import('$lib/logging/factories/universal.js');
-const { createServerLogger } = await import('$lib/logging/factories/server.js');
-const { createClientLogger } = await import('$lib/logging/factories/client.js');
+const { createLogger } = await import('$lib/logging/internal/factories/universal.js');
+const { createServerLogger } = await import('$lib/logging/internal/factories/server.js');
+const { createClientLogger } = await import('$lib/logging/internal/factories/client.js');
 
 describe('createLogger', () => {
   beforeEach(() => {
@@ -79,7 +79,7 @@ describe('createLogger', () => {
 
     // Clear module cache and re-import
     vi.resetModules();
-    const { createLogger: createLoggerBrowser } = await import('$lib/logging/factories/universal.js');
+    const { createLogger: createLoggerBrowser } = await import('$lib/logging/internal/factories/universal.js');
 
     const logger = createLoggerBrowser('universalService', DEBUG, {
       console: true
@@ -171,10 +171,10 @@ describe('createLogger', () => {
     }));
     vi.resetModules();
 
-    const { createLogger: createLoggerBrowser } = await import('$lib/logging/factories/universal.js');
+    const { createLogger: createLoggerBrowser } = await import('$lib/logging/internal/factories/universal.js');
 
     // Need to re-import mocked functions after module reset
-    const { createClientLogger: clientLoggerMock } = await import('$lib/logging/factories/client.js');
+    const { createClientLogger: clientLoggerMock } = await import('$lib/logging/internal/factories/client.js');
     // @ts-ignore
     clientLoggerMock.mockReturnValue({
       name: 'mockClientLogger',

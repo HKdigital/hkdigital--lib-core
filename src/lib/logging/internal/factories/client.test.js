@@ -2,11 +2,11 @@
  * @fileoverview Unit tests for client logger factory
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { createClientLogger } from '$lib/logging/factories/client.js';
-import { INFO, DEBUG, WARN } from '$lib/logging/constants.js';
+import { createClientLogger } from '$lib/logging/internal/factories/client.js';
+import { INFO, DEBUG, WARN } from '$lib/logging/internal/unified-logger/constants.js';
 
 // Mock the ConsoleAdapter
-vi.mock('$lib/logging/adapters/console.js', () => ({
+vi.mock('$lib/logging/internal/adapters/console.js', () => ({
   ConsoleAdapter: vi.fn().mockImplementation(function(options) {
     this.options = options;
     this.handleLog = vi.fn();
@@ -52,7 +52,7 @@ describe('createClientLogger', () => {
 
   it('should pass console options to ConsoleAdapter', async () => {
     // @ts-ignore
-    const { ConsoleAdapter } = await import('$lib/logging/adapters/console.js');
+    const { ConsoleAdapter } = await import('$lib/logging/internal/adapters/console.js');
     const consoleOptions = { customOption: 'test' };
 
     createClientLogger('testService', INFO, consoleOptions);
@@ -67,12 +67,12 @@ describe('createClientLogger', () => {
 
   it('should connect adapter to logger events', async () => {
     // @ts-ignore
-    const { ConsoleAdapter } = await import('$lib/logging/adapters/console.js');
+    const { ConsoleAdapter } = await import('$lib/logging/internal/adapters/console.js');
     const logger = createClientLogger('testService');
 
     // Get the adapter instance
     // @ts-ignore
-    const adapterInstance = ConsoleAdapter.mock.results[0].value;
+    const adapterInstance = ConsoleAdapter.mock.instances[0];
 
     // Trigger a log event
     logger.info('Test message', { data: 'test' });
@@ -106,12 +106,12 @@ describe('createClientLogger', () => {
 
   it('should handle log events from child logger', async () => {
     // @ts-ignore
-    const { ConsoleAdapter } = await import('$lib/logging/adapters/console.js');
+    const { ConsoleAdapter } = await import('$lib/logging/internal/adapters/console.js');
     const logger = createClientLogger('testService');
 
     // Get the adapter instance
     // @ts-ignore
-    const adapterInstance = ConsoleAdapter.mock.results[0].value;
+    const adapterInstance = ConsoleAdapter.mock.instances[0];
 
     // The child logger is a new Logger instance without listeners
     // So we need to verify that the parent logger can still log

@@ -63,23 +63,24 @@
  * });
  */
 
-import { EventEmitter } from '$lib/classes/events';
-import { Logger, DEBUG, INFO, WARN } from '$lib/classes/logging';
+import { EventEmitter } from '$lib/classes/event-emitter';
+import { Logger, DEBUG, INFO, WARN } from '$lib/logging/index.js';
 
 import {
   NOT_CREATED,
   CREATED,
   RUNNING,
   DESTROYED
-} from './service-states.js';
+} from '$lib/services/internal/service-base/constants.js';
 
 /**
  * @typedef {import('./typedef.js').ServiceConstructor} ServiceConstructor
  * @typedef {import('./typedef.js').ServiceRegistrationOptions} ServiceRegistrationOptions
  * @typedef {import('./typedef.js').ServiceManagerConfig} ServiceManagerConfig
- * @typedef {import('./typedef.js').StopOptions} StopOptions
  * @typedef {import('./typedef.js').ServiceEntry} ServiceEntry
  * @typedef {import('./typedef.js').HealthCheckResult} HealthCheckResult
+ *
+ * @typedef {import('../service-base/typedef.js').StopOptions} StopOptions
  */
 
 /**
@@ -544,7 +545,7 @@ export class ServiceManager extends EventEmitter {
    *
    * @private
    * @param {string} name - Service name
-   * @param {import('./typedef.js').ServiceInstance} instance
+   * @param {import('../service-base/typedef.js').ServiceInstance} instance
    *   Service instance
    */
   _attachServiceEvents(name, instance) {

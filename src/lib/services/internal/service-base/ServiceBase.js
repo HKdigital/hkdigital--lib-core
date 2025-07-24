@@ -50,8 +50,8 @@
  * }
  */
 
-import { EventEmitter } from '$lib/classes/events';
-import { Logger, INFO } from '$lib/classes/logging';
+import { EventEmitter } from '$lib/classes/event-emitter';
+import { Logger, INFO } from '$lib/logging/internal/unified-logger';
 
 import {
   CREATED,
@@ -65,7 +65,7 @@ import {
   DESTROYED,
   ERROR as ERROR_STATE,
   RECOVERING
-} from './service-states.js';
+} from './constants.js';
 
 /**
  * @typedef {import('./typedef.js').ServiceOptions} ServiceOptions

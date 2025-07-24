@@ -2,7 +2,7 @@
  * @fileoverview Unit tests for PinoAdapter
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { DEBUG, INFO, WARN, ERROR } from '$lib/logging/constants.js';
+import { DEBUG, INFO, WARN, ERROR } from '$lib/logging/index.js';
 
 // Mock pino module
 vi.mock('pino', () => ({
@@ -15,7 +15,7 @@ vi.mock('$app/environment', () => ({
 }));
 
 // Import after mocks
-const { PinoAdapter } = await import('$lib/logging/adapters/pino.js');
+const { PinoAdapter } = await import('$lib/logging/internal/adapters/pino.js');
 const pino = (await import('pino')).default;
 
 describe('PinoAdapter', () => {
@@ -66,7 +66,7 @@ describe('PinoAdapter', () => {
       
       // Re-import to get updated environment
       vi.resetModules();
-      const { PinoAdapter: PinoAdapterDev } = await import('$lib/logging/adapters/pino.js');
+      const { PinoAdapter: PinoAdapterDev } = await import('$lib/logging/internal/adapters/pino.js');
       const pinoDev = (await import('pino')).default;
       
       pinoDev.mockReturnValue(mockPinoInstance);
@@ -91,7 +91,7 @@ describe('PinoAdapter', () => {
       }));
       
       vi.resetModules();
-      const { PinoAdapter: PinoAdapterDev } = await import('$lib/logging/adapters/pino.js');
+      const { PinoAdapter: PinoAdapterDev } = await import('$lib/logging/internal/adapters/pino.js');
       const pinoDev = (await import('pino')).default;
       
       pinoDev.mockReturnValue(mockPinoInstance);

@@ -2,16 +2,16 @@
  * @fileoverview Unit tests for ServiceManager.js
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { ServiceBase } from './ServiceBase.js';
 import { ServiceManager } from './ServiceManager.js';
-import { DEBUG, INFO, WARN } from '$lib/classes/logging';
+import { DEBUG, INFO, WARN } from '$lib/logging/internal/unified-logger';
 import {
+  ServiceBase,
   NOT_CREATED,
   INITIALIZED,
   RUNNING,
   STOPPED,
   ERROR
-} from './service-states.js';
+} from '$lib/services/internal/service-base/index.js';
 
 // Mock service classes
 class MockServiceA extends ServiceBase {
