@@ -44,7 +44,11 @@ describe('PinoAdapter', () => {
   describe('constructor', () => {
     it('should create pino instance with default options in production', () => {
       new PinoAdapter();
-      expect(pino).toHaveBeenCalledWith({});
+      expect(pino).toHaveBeenCalledWith({
+        serializers: {
+          err: expect.any(Function)
+        }
+      });
     });
 
     it('should create pino instance with custom options', () => {
@@ -55,7 +59,14 @@ describe('PinoAdapter', () => {
       };
       
       new PinoAdapter(customOptions);
-      expect(pino).toHaveBeenCalledWith(customOptions);
+      expect(pino).toHaveBeenCalledWith({
+        serializers: {
+          err: expect.any(Function)
+        },
+        level: 'debug',
+        name: 'my-app',
+        customField: 'value'
+      });
     });
 
     it('should use pretty transport in dev environment', async () => {
@@ -74,10 +85,10 @@ describe('PinoAdapter', () => {
       new PinoAdapterDev();
       
       expect(pinoDev).toHaveBeenCalledWith({
-        level: 'debug',
         serializers: {
           err: expect.any(Function)
         },
+        level: 'debug',
         transport: {
           target: 'pino-pretty',
           options: {
@@ -102,10 +113,10 @@ describe('PinoAdapter', () => {
       new PinoAdapterDev({ customField: 'custom' });
       
       expect(pinoDev).toHaveBeenCalledWith({
-        level: 'debug',
         serializers: {
           err: expect.any(Function)
         },
+        level: 'debug',
         transport: {
           target: 'pino-pretty',
           options: {
@@ -214,6 +225,73 @@ describe('PinoAdapter', () => {
           details: complexDetails
         },
         'Complex log'
+      );
+    });
+
+    it('should promote error in details to err property for serializer', () => {
+      const error = new Error('Test error');
+      const logEvent = {
+        level: ERROR,
+        message: 'Error occurred',
+        details: { error, userId: '123', action: 'login' },
+        source: 'AuthService',
+        timestamp: new Date('2024-01-01T12:00:00Z')
+      };
+
+      adapter.handleLog(logEvent);
+
+      expect(mockPinoInstance.error).toHaveBeenCalledWith(
+        {
+          source: 'AuthService',
+          timestamp: new Date('2024-01-01T12:00:00Z'),
+          err: error,
+          details: { userId: '123', action: 'login' }
+        },
+        'Error occurred'
+      );
+    });
+
+    it('should handle when details is directly an error', () => {
+      const error = new Error('Direct error');
+      const logEvent = {
+        level: ERROR,
+        message: 'Direct error log',
+        details: error,
+        source: 'DirectService',
+        timestamp: new Date('2024-01-01T12:00:00Z')
+      };
+
+      adapter.handleLog(logEvent);
+
+      expect(mockPinoInstance.error).toHaveBeenCalledWith(
+        {
+          source: 'DirectService',
+          timestamp: new Date('2024-01-01T12:00:00Z'),
+          err: error
+        },
+        'Direct error log'
+      );
+    });
+
+    it('should handle error with only error property in details', () => {
+      const error = new Error('Only error');
+      const logEvent = {
+        level: ERROR,
+        message: 'Error only',
+        details: { error },
+        source: 'ErrorOnlyService',
+        timestamp: new Date('2024-01-01T12:00:00Z')
+      };
+
+      adapter.handleLog(logEvent);
+
+      expect(mockPinoInstance.error).toHaveBeenCalledWith(
+        {
+          source: 'ErrorOnlyService',
+          timestamp: new Date('2024-01-01T12:00:00Z'),
+          err: error
+        },
+        'Error only'
       );
     });
   });
@@ -373,12 +451,68 @@ describe('PinoAdapter', () => {
       });
     });
 
-    it('should not include stack trace in production mode', () => {
+    it('should serialize errors in production mode (but without pretty transport)', () => {
       // Use production adapter (dev: false)
       const adapter = new PinoAdapter();
       
-      // In production, there should be no serializers configured
-      expect(pino).toHaveBeenCalledWith({});
+      // In production, serializers should still be configured
+      expect(pino).toHaveBeenCalledWith({
+        serializers: {
+          err: expect.any(Function)
+        }
+      });
+      
+      // Test that the serializer works
+      const pinoConfig = pino.mock.calls[pino.mock.calls.length - 1][0];
+      const serializer = pinoConfig.serializers?.err;
+      
+      const mockPinoWithInfoLevel = {
+        ...mockPinoInstance,
+        level: 'info'
+      };
+      
+      const error = new Error('Test error');
+      error.stack = 'Error: Test error\n    at test.js:1:1';
+      
+      const result = serializer.call({ pino: mockPinoWithInfoLevel }, error);
+      
+      expect(result).toEqual({
+        errorChain: [{
+          name: 'Error',
+          message: 'Test error'
+          // No stack in production info level
+        }]
+      });
+    });
+
+    it('should include stack trace in production when debug level is set', () => {
+      // Create a mock pino instance with debug level first
+      const mockPinoWithDebugLevel = {
+        ...mockPinoInstance,
+        level: 'debug'
+      };
+      
+      // Mock pino to return our debug-level instance
+      pino.mockReturnValue(mockPinoWithDebugLevel);
+      
+      // Use production adapter but with debug level
+      const adapter = new PinoAdapter({ level: 'debug' });
+      
+      const pinoConfig = pino.mock.calls[pino.mock.calls.length - 1][0];
+      const serializer = pinoConfig.serializers?.err;
+      
+      const error = new Error('Test error');
+      error.stack = 'Error: Test error\n    at test.js:1:1';
+      
+      const result = serializer.call({ pino: mockPinoWithDebugLevel }, error);
+      
+      expect(result).toEqual({
+        errorChain: [{
+          name: 'Error',
+          message: 'Test error',
+          stack: 'Error: Test error\n    at test.js:1:1'
+        }]
+      });
     });
 
     it('should not include stack trace when not in debug level', async () => {
