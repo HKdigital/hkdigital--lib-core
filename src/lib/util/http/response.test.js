@@ -165,6 +165,48 @@ describe('waitForAndCheckResponse', () => {
 			expect(e).toBe(customError);
 		}
 	});
+
+	it('should throw HttpError with response body for HTTP errors', async () => {
+		const mockResponse = {
+			ok: false,
+			status: 404,
+			statusText: 'Not Found',
+			text: vi.fn().mockResolvedValue('{"error": "Resource not found", "code": "NOT_FOUND"}')
+		};
+		const responsePromise = Promise.resolve(mockResponse);
+		const url = 'http://localhost/api/resource';
+
+		try {
+			await waitForAndCheckResponse(responsePromise, url);
+			expect.fail('Should have thrown an error');
+		} catch (e) {
+			expect(e.constructor.name).toBe('HttpError');
+			expect(e.status).toBe(404);
+			expect(e.message).toBe('HTTP 404: Not Found');
+			expect(e.details).toEqual({ error: 'Resource not found', code: 'NOT_FOUND' });
+		}
+	});
+
+	it('should handle plain text response bodies in HttpError', async () => {
+		const mockResponse = {
+			ok: false,
+			status: 500,
+			statusText: 'Internal Server Error',
+			text: vi.fn().mockResolvedValue('Server is temporarily unavailable')
+		};
+		const responsePromise = Promise.resolve(mockResponse);
+		const url = 'http://localhost/api/resource';
+
+		try {
+			await waitForAndCheckResponse(responsePromise, url);
+			expect.fail('Should have thrown an error');
+		} catch (e) {
+			expect(e.constructor.name).toBe('HttpError');
+			expect(e.status).toBe(500);
+			expect(e.message).toBe('HTTP 500: Internal Server Error');
+			expect(e.details).toBe('Server is temporarily unavailable');
+		}
+	});
 });
 
 describe('loadResponseBuffer', () => {

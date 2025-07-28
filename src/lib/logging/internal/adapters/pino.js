@@ -31,6 +31,15 @@ export class PinoAdapter {
                   stack: current.stack
                 })
             };
+
+            // Include HttpError-specific properties
+            if (current.status !== undefined) {
+              serialized.status = current.status;
+            }
+            if (current.details !== undefined) {
+              serialized.details = current.details;
+            }
+
             chain.push(serialized);
             current = current.cause;
             isFirst = false;

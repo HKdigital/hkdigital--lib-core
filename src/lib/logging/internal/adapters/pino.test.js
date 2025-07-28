@@ -547,6 +547,97 @@ describe('PinoAdapter', () => {
         }]
       });
     });
+
+    it('should serialize HttpError with status and details', async () => {
+      vi.doMock('$app/environment', () => ({
+        dev: true
+      }));
+      
+      vi.resetModules();
+      const { PinoAdapter: PinoAdapterDev } = await import('$lib/logging/internal/adapters/pino.js');
+      const { HttpError } = await import('$lib/errors/index.js');
+      
+      const mockPinoWithDebugLevel = {
+        ...mockPinoInstance,
+        level: 'debug'
+      };
+      
+      const pino = (await import('pino')).default;
+      pino.mockReturnValue(mockPinoWithDebugLevel);
+      
+      const adapter = new PinoAdapterDev();
+      const pinoConfig = pino.mock.calls[pino.mock.calls.length - 1][0];
+      const serializer = pinoConfig.serializers?.err;
+      
+      const httpError = new HttpError(
+        404,
+        'HTTP 404: Not Found',
+        { error: 'Resource not found', resourceId: 'abc123' }
+      );
+      httpError.stack = 'HttpError: HTTP 404: Not Found\n    at test.js:1:1';
+      
+      const result = serializer.call({ pino: mockPinoWithDebugLevel }, httpError);
+      
+      expect(result).toEqual({
+        errorChain: [{
+          name: 'HttpError',
+          message: 'HTTP 404: Not Found',
+          status: 404,
+          details: { error: 'Resource not found', resourceId: 'abc123' },
+          stack: 'HttpError: HTTP 404: Not Found\n    at test.js:1:1'
+        }]
+      });
+    });
+
+    it('should serialize HttpError with cause chain', async () => {
+      vi.doMock('$app/environment', () => ({
+        dev: true
+      }));
+      
+      vi.resetModules();
+      const { PinoAdapter: PinoAdapterDev } = await import('$lib/logging/internal/adapters/pino.js');
+      const { HttpError } = await import('$lib/errors/index.js');
+      
+      const mockPinoWithDebugLevel = {
+        ...mockPinoInstance,
+        level: 'debug'
+      };
+      
+      const pino = (await import('pino')).default;
+      pino.mockReturnValue(mockPinoWithDebugLevel);
+      
+      const adapter = new PinoAdapterDev();
+      const pinoConfig = pino.mock.calls[pino.mock.calls.length - 1][0];
+      const serializer = pinoConfig.serializers?.err;
+      
+      // Create a chain: HttpError -> regular Error
+      const originalError = new Error('Database connection failed');
+      const httpError = new HttpError(
+        500,
+        'HTTP 500: Internal Server Error',
+        { message: 'Service unavailable', retryAfter: '60s' },
+        originalError
+      );
+      httpError.stack = 'HttpError: HTTP 500: Internal Server Error\n    at handler.js:1:1';
+      
+      const result = serializer.call({ pino: mockPinoWithDebugLevel }, httpError);
+      
+      expect(result).toEqual({
+        errorChain: [
+          {
+            name: 'HttpError',
+            message: 'HTTP 500: Internal Server Error',
+            status: 500,
+            details: { message: 'Service unavailable', retryAfter: '60s' },
+            stack: 'HttpError: HTTP 500: Internal Server Error\n    at handler.js:1:1'
+          },
+          {
+            name: 'Error',
+            message: 'Database connection failed'
+          }
+        ]
+      });
+    });
   });
 
   describe('adapter instance reuse', () => {

@@ -1,4 +1,4 @@
-import { ResponseError } from '$lib/errors/index.js';
+import { ResponseError, HttpError } from '$lib/errors/index.js';
 import * as expect from '$lib/util/expect/index.js';
 import { toURL } from '$lib/util/http/url.js';
 
@@ -155,11 +155,35 @@ export async function waitForAndCheckResponse(responsePromise, url) {
     response = await responsePromise;
 
     if (response && false === response.ok) {
-      // if response.ok is false, it also indicates a network error
-      throw new Error(`Response failed [response.ok=false]`);
+      // Check if this is a network error (status 0) vs HTTP error
+      if (response.status === 0) {
+        // Network error - treat as before
+        throw new Error(`Response failed [response.ok=false]`);
+      }
+      
+      // HTTP error - get response body for detailed error information
+      const responseBody = await response.text();
+      let errorDetails;
+
+      try {
+        // Try to parse as JSON (common for API errors)
+        errorDetails = JSON.parse(responseBody);
+      } catch {
+        // Fallback to plain text
+        errorDetails = responseBody;
+      }
+
+      throw new HttpError(
+        response.status,
+        `HTTP ${response.status}: ${response.statusText}`,
+        errorDetails
+      );
     }
   } catch (e) {
-    if (e instanceof TypeError || response?.ok === false) {
+    if (e instanceof HttpError) {
+      // Re-throw HttpError as-is
+      throw e;
+    } else if (e instanceof TypeError || response?.ok === false) {
       throw new ResponseError(
         `A network error occurred for request [${href(url)}]`,
         {
