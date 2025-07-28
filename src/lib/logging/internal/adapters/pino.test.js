@@ -75,6 +75,9 @@ describe('PinoAdapter', () => {
       
       expect(pinoDev).toHaveBeenCalledWith({
         level: 'debug',
+        serializers: {
+          err: expect.any(Function)
+        },
         transport: {
           target: 'pino-pretty',
           options: {
@@ -100,6 +103,9 @@ describe('PinoAdapter', () => {
       
       expect(pinoDev).toHaveBeenCalledWith({
         level: 'debug',
+        serializers: {
+          err: expect.any(Function)
+        },
         transport: {
           target: 'pino-pretty',
           options: {
@@ -278,6 +284,134 @@ describe('PinoAdapter', () => {
       expect(mockPinoInstance.child).toHaveBeenCalledWith({ level1: 'context1' });
       expect(mockChild1.child).toHaveBeenCalledWith({ level2: 'context2' });
       expect(child2.pino).toBe(mockChild2);
+    });
+  });
+
+  describe('error serialization', () => {
+    it('should serialize error with stack trace in debug mode', async () => {
+      // Mock dev environment and debug level
+      vi.doMock('$app/environment', () => ({
+        dev: true
+      }));
+      
+      vi.resetModules();
+      const { PinoAdapter: PinoAdapterDev } = await import('$lib/logging/internal/adapters/pino.js');
+      
+      const mockPinoWithLevel = {
+        ...mockPinoInstance,
+        level: 'debug'
+      };
+      
+      const pino = (await import('pino')).default;
+      pino.mockReturnValue(mockPinoWithLevel);
+      
+      const adapter = new PinoAdapterDev();
+      const pinoConfig = pino.mock.calls[pino.mock.calls.length - 1][0];
+      const serializer = pinoConfig.serializers?.err;
+      
+      expect(serializer).toBeDefined();
+      
+      const error = new Error('Test error');
+      error.stack = 'Error: Test error\n    at test.js:1:1';
+      
+      const result = serializer.call({ pino: mockPinoWithLevel }, error);
+      
+      expect(result).toEqual({
+        errorChain: [{
+          name: 'Error',
+          message: 'Test error',
+          stack: 'Error: Test error\n    at test.js:1:1'
+        }]
+      });
+    });
+
+    it('should serialize error chain with cause errors', async () => {
+      vi.doMock('$app/environment', () => ({
+        dev: true
+      }));
+      
+      vi.resetModules();
+      const { PinoAdapter: PinoAdapterDev } = await import('$lib/logging/internal/adapters/pino.js');
+      
+      const mockPinoWithLevel = {
+        ...mockPinoInstance,
+        level: 'debug'
+      };
+      
+      const pino = (await import('pino')).default;
+      pino.mockReturnValue(mockPinoWithLevel);
+      
+      const adapter = new PinoAdapterDev();
+      const pinoConfig = pino.mock.calls[pino.mock.calls.length - 1][0];
+      const serializer = pinoConfig.serializers?.err;
+      
+      const rootCause = new Error('Root cause');
+      const middleCause = new Error('Middle cause');
+      middleCause.cause = rootCause;
+      const mainError = new Error('Main error');
+      mainError.cause = middleCause;
+      mainError.stack = 'Error: Main error\n    at test.js:1:1';
+      
+      const result = serializer.call({ pino: mockPinoWithLevel }, mainError);
+      
+      expect(result).toEqual({
+        errorChain: [
+          {
+            name: 'Error',
+            message: 'Main error',
+            stack: 'Error: Main error\n    at test.js:1:1'
+          },
+          {
+            name: 'Error',
+            message: 'Middle cause'
+          },
+          {
+            name: 'Error',
+            message: 'Root cause'
+          }
+        ]
+      });
+    });
+
+    it('should not include stack trace in production mode', () => {
+      // Use production adapter (dev: false)
+      const adapter = new PinoAdapter();
+      
+      // In production, there should be no serializers configured
+      expect(pino).toHaveBeenCalledWith({});
+    });
+
+    it('should not include stack trace when not in debug level', async () => {
+      vi.doMock('$app/environment', () => ({
+        dev: true
+      }));
+      
+      vi.resetModules();
+      const { PinoAdapter: PinoAdapterDev } = await import('$lib/logging/internal/adapters/pino.js');
+      
+      const mockPinoWithInfoLevel = {
+        ...mockPinoInstance,
+        level: 'info'
+      };
+      
+      const pino = (await import('pino')).default;
+      pino.mockReturnValue(mockPinoWithInfoLevel);
+      
+      const adapter = new PinoAdapterDev();
+      const pinoConfig = pino.mock.calls[pino.mock.calls.length - 1][0];
+      const serializer = pinoConfig.serializers?.err;
+      
+      const error = new Error('Test error');
+      error.stack = 'Error: Test error\n    at test.js:1:1';
+      
+      const result = serializer.call({ pino: mockPinoWithInfoLevel }, error);
+      
+      expect(result).toEqual({
+        errorChain: [{
+          name: 'Error',
+          message: 'Test error'
+        }]
+      });
     });
   });
 
