@@ -15,15 +15,40 @@ export class PinoAdapter {
    * @param {Object} [options] - Pino configuration options
    */
   constructor(options = {}) {
-    const defaultOptions = dev ? {
-      level: 'debug',
-      transport: {
-        target: 'pino-pretty',
-        options: {
-          colorize: true
+    const defaultOptions = dev
+      ? {
+          level: 'debug',
+          serializers: {
+            err: (err) => {
+              const chain = [];
+              let current = err;
+              let isFirst = true;
+
+              while (current) {
+                const serialized = {
+                  name: current.name,
+                  message: current.message,
+                  ...(isFirst &&
+                    this.pino.level === 'debug' && {
+                      stack: current.stack
+                    })
+                };
+                chain.push(serialized);
+                current = current.cause;
+                isFirst = false;
+              }
+
+              return { errorChain: chain };
+            }
+          },
+          transport: {
+            target: 'pino-pretty',
+            options: {
+              colorize: true
+            }
+          }
         }
-      }
-    } : {};
+      : {};
 
     this.pino = pino({ ...defaultOptions, ...options });
   }

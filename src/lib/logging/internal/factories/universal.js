@@ -1,7 +1,6 @@
 /**
  * Universal logger factory that auto-detects environment
  */
-
 import { browser } from '$app/environment';
 import { createServerLogger } from './server.js';
 import { createClientLogger } from './client.js';
@@ -12,7 +11,7 @@ import { createClientLogger } from './client.js';
  * @param {string} serviceName - Name of the service
  * @param {string} [level] - Initial log level
  * @param {Object} [options] - Additional options
- * @returns {Logger} Configured logger instance
+ * @returns {import('../unified-logger').Logger} Configured logger instance
  */
 export function createLogger(serviceName, level, options = {}) {
   if (browser) {
