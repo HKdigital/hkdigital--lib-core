@@ -13,9 +13,9 @@ import { default as TailwindTypography } from '@tailwindcss/typography';
  *
  *   let { children } = $props();
  *
- *   import { DESIGN, CLAMPING } from '$lib/design/design-config.js';
+ *   import { DESIGN, CLAMPING } from '$lib/design/config/design-config.js';
  *
- *   import { rootDesignVarsHTML } from '@hkdigital/lib-sveltekit/util/design-system/index.js';
+ *   import { rootDesignVarsHTML } from '@hkdigital/lib-core/design/utils/root-vars.js';
  * </script>
  *
  * <svelte:head>
@@ -35,7 +35,7 @@ import {
   outlineOffset
 } from './src/lib/design/tailwind-theme-extend.js';
 
-import { customUtilitiesPlugin } from './src/lib/util/design-system/skeleton.js';
+import { customUtilitiesPlugin } from './src/lib/design/plugins/skeleton.js';
 
 /** @type {import('tailwindcss').Config} \*/
 export default {

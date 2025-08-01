@@ -5,9 +5,9 @@
 
 	let { children } = $props();
 
-	import { DESIGN, CLAMPING } from '$lib/design/design-config.js';
+	import { DESIGN, CLAMPING } from '$lib/design/config/design-config.js';
 
-	import { rootDesignVarsHTML } from '$lib/util/design-system/index.js';
+	import { rootDesignVarsHTML } from '$lib/design/utils/root-vars.js';
 </script>
 
 <svelte:head>

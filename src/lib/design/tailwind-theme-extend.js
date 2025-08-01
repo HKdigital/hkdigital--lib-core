@@ -16,10 +16,10 @@
  *   let { children } = $props();
  *
  *   import { DESIGN, CLAMPING }
- *     from '$lib/design/design-config.js';
+ *     from '$lib/design/config/design-config.js';
  *
  *   import { rootDesignVarsHTML }
- *     from '@hkdigital/lib-sveltekit/util/design-system/index.js';
+ *     from '@hkdigital/lib-core/design/utils/root-vars.js';
  * </script>
  *
  * <svelte:head>
@@ -93,7 +93,7 @@ import {
   generateTextStyles,
   generateBorderRadiusStyles,
   generateWidthStyles
-} from '../util/design-system/tailwind.js';
+} from './generators/index.js';
 
 import {
   TEXT_POINT_SIZES,
@@ -104,7 +104,7 @@ import {
   RADIUS_SIZES,
   BORDER_WIDTH_SIZES,
   STROKE_WIDTH_SIZES
-} from './design-config.js';
+} from './config/design-config.js';
 
 /* == Internals */
 

@@ -2,7 +2,7 @@
   import { DebugPanelDesignScaling } from '$lib/primitives/debug/index.js';
 
   import { onMount } from 'svelte';
-  import { DESIGN, CLAMPING } from '$lib/design/design-config.js';
+  import { DESIGN, CLAMPING } from '$lib/design/config/design-config.js';
   import {
     enableScalingUI,
     getAllRootScalingVars
