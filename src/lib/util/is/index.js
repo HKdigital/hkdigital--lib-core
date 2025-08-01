@@ -16,7 +16,7 @@ const objectToString = Object.prototype.toString;
  *
  * @return {boolean} true if the value looks like an array
  */
-export function isArrayLike(item) {
+export function arrayLike(item) {
 	if (!(item instanceof Object)) {
 		return false;
 	}
@@ -35,9 +35,10 @@ export function isArrayLike(item) {
  *
  * @returns {boolean} true if the value is an Arguments object
  */
-export function isArguments(value) {
+function argumentsCheck(value) {
 	return objectToString.call(value) === '[object Arguments]';
 }
+export { argumentsCheck as arguments };
 
 /**
  * Check if a value is an array that only contains primitives
@@ -47,13 +48,13 @@ export function isArguments(value) {
  *
  * @return {boolean} true if the value is an array of primitives
  */
-export function isArrayOfPrimitives(arr) {
-	if (!Array.isArray(arr)) {
+export function arrayOfPrimitives(value) {
+	if (!Array.isArray(value)) {
 		return false;
 	}
 
-	for (let j = 0, n = arr.length; j < n; j = j + 1) {
-		if (arr[j] instanceof Object) {
+	for (let j = 0, n = value.length; j < n; j = j + 1) {
+		if (value[j] instanceof Object) {
 			// current value is not a primitive
 			return false;
 		}
@@ -70,8 +71,11 @@ export function isArrayOfPrimitives(arr) {
  *
  * @returns {boolean} true if the value is async iterable
  */
-export function isAsyncIterator(value) {
-	if (!(value instanceof Object) || typeof value[Symbol.asyncIterator] !== 'function') {
+export function asyncIterator(value) {
+	if (
+		!(value instanceof Object) ||
+		typeof value[Symbol.asyncIterator] !== 'function'
+	) {
 		return false;
 	}
 
@@ -90,7 +94,7 @@ export function isAsyncIterator(value) {
  *
  * @returns {boolean} true if the value is an async function
  */
-export function isAsyncFunction(value) {
+export function asyncFunction(value) {
 	if (value instanceof AsyncFunction) {
 		return true;
 	}
@@ -107,8 +111,11 @@ export function isAsyncFunction(value) {
  *
  * @returns {boolean} true if the value is (not async) iterable
  */
-export function isIterable(value) {
-	if (!(value instanceof Object) || typeof value[Symbol.iterator] !== 'function') {
+export function iterable(value) {
+	if (
+		!(value instanceof Object) ||
+		typeof value[Symbol.iterator] !== 'function'
+	) {
 		return false;
 	}
 
@@ -124,7 +131,7 @@ export function isIterable(value) {
  *
  * @returns {boolean} true if the value is an Object, but not a Promise
  */
-export function isObject(value) {
+export function object(value) {
 	if (!(value instanceof Object)) {
 		if (value && typeof value === 'object') {
 			// e.g. obj = Object.create(null);

@@ -19,11 +19,11 @@
 
 import * as v from 'valibot';
 
-import { isObject } from '../is/index.js';
+import * as is from '../is/index.js';
 
 /** Internals */
 
-const ObjectSchema = v.custom(isObject, `Invalid type: Expected object`);
+const ObjectSchema = v.custom(is.object, `Invalid type: Expected object`);
 
 /** Exports */
 
@@ -181,7 +181,7 @@ export function iterable(value) {
 export function store(value) {
 	v.parse(
 		v.custom((value) => {
-			if (!isObject(value) || typeof value.subscribe !== 'function') {
+			if (!is.object(value) || typeof value.subscribe !== 'function') {
 				return false;
 			}
 
@@ -205,7 +205,7 @@ export function store(value) {
 export function objectNoArray(value) {
 	v.parse(
 		v.custom((value) => {
-			if (!isObject(value) || value instanceof Array) {
+			if (!is.object(value) || value instanceof Array) {
 				return false;
 			}
 
@@ -224,7 +224,7 @@ export function objectNoArray(value) {
 export function objectNoFunction(value) {
 	v.parse(
 		v.custom((value) => {
-			if (!isObject(value) || typeof value === 'function') {
+			if (!is.object(value) || typeof value === 'function') {
 				return false;
 			}
 

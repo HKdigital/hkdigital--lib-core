@@ -8,7 +8,7 @@ import { toArrayPath } from '../array/index.js';
 
 import { toStringPath } from '../string/index.js';
 
-import { isIterable } from '../is/index.js';
+import * as is from '../is/index.js';
 
 import { iterateObjectPaths, iterateObjectEntries } from '../iterate/index.js';
 
@@ -42,54 +42,39 @@ export { PATH_SEPARATOR };
 
 /**
  * Returns true
- * - if the object has no (iterable) key value pairs
+ * - if the object has no enumerable key value pairs
  * - if the object is an empty array
  *
  * @param {object} obj
  *
  * @return {boolean}
  *   true if the object has no key value pairs or the supplied object
- *   is `falsey`
+ *   is falsy
  */
 export function isEmpty(obj) {
 	if (!obj) {
-		// object is null or other falsey value
+		// object is null or other falsy value
 		return true;
 	}
 
 	expect.object(obj);
 
-	if (/*obj instanceof Array && */ 0 === obj.length) {
-		return true;
-	}
-
-	for (const key in obj) {
-		return false;
-	}
-
-	return true;
+	return Object.keys(obj).length === 0;
 }
 
 // -----------------------------------------------------------------------------
 
 /**
- * Get the number of (iterable) key value pairs in the specified object
+ * Get the number of enumerable key value pairs in the specified object
  *
  * @param {object} obj
  *
- * @return {number} number of iterable key value pairs
+ * @return {number} number of enumerable key value pairs
  */
-export function objectSize(obj) {
+export function size(obj) {
 	expect.object(obj);
 
-	let count = 0;
-
-	// eslint-disable-next-line no-unused-vars
-	for (const _key in obj) {
-		count = count + 1;
-	}
-
-	return count;
+	return Object.keys(obj).length;
 }
 
 // -----------------------------------------------------------------------------
@@ -108,46 +93,33 @@ export function objectSize(obj) {
 export function exportNotNull(obj, onlyKeys) {
 	expect.object(obj);
 
-	// if( onlyKeys )
-	// {
-	//   expect.array( onlyKeys );
-	// }
-
-	const newObj = {};
-
 	const onlyKeysSet = onlyKeys ? new Set(onlyKeys) : null;
 
-	for (const key in obj) {
-		const value = obj[key];
-
-		if (value !== null && value !== undefined) {
-			if (onlyKeysSet && !onlyKeysSet.has(key)) {
-				continue;
-			}
-
-			newObj[key] = value;
-		}
-	} // end for
-
-	return newObj;
+	return Object.fromEntries(
+		Object.entries(obj).filter(([key, value]) => {
+			if (value === null || value === undefined) return false;
+			return !onlyKeysSet || onlyKeysSet.has(key);
+		})
+	);
 }
 
 // -----------------------------------------------------------------------------
 
 /**
- * Returns a shallow copy of the object without the properties that
- * are `private`
- * - Private properties are properties that start with an underscore
- *   `_`.
+ * Create a shallow copy of the object's public properties. Properties that
+ * start with an underscore are considered 'internal' properties and are not
+ * exported.
+ * - This method can e.g. be used to export a data object without it's
+ *   'internal' properties
  *
  * @param {object} obj
  *
  * @param {string[]} [keepKeys]
- *   If specified, the sprecified private keys will be exported (e.g. `_id`)
+ *   If specified, the specified private keys will be exported (e.g. `_id`)
  *
- * @returns {object} new object without the null properties
+ * @returns {object} new object without properties that start with an underscore
  */
-export function exportNotPrivate(obj, keepKeys) {
+export function exportPublic(obj, keepKeys) {
 	expect.object(obj);
 
 	const newObj = {};
@@ -172,6 +144,83 @@ export function exportNotPrivate(obj, keepKeys) {
 	} // end for
 
 	return newObj;
+}
+
+// -----------------------------------------------------------------------------
+
+/**
+ * Creates a copy of an object or array that contains only primitive values
+ * - Nested objects and arrays are completely removed
+ * - Only string, number, boolean, null, undefined values are kept
+ *
+ * @param {object|array} objectOrArray
+ *
+ * @returns {object|array} new object or array with only primitive values
+ */
+export function exportNotNested(objectOrArray) {
+	expect.object(objectOrArray);
+
+	if (Array.isArray(objectOrArray)) {
+		// obj is an array
+
+		let isShallow = true;
+
+		for (let j = 0, n = objectOrArray.length; j < n; j = j + 1) {
+			const value = objectOrArray[j];
+
+			if (value instanceof Object) {
+				isShallow = false;
+				break;
+			}
+		} // end for
+
+		if (isShallow) {
+			// objectOrArray is already shallow -> nothing to do
+			return objectOrArray;
+		}
+
+		const outputArray = [];
+
+		for (let j = 0, n = objectOrArray.length; j < n; j = j + 1) {
+			const value = objectOrArray[j];
+
+			if (!(value instanceof Object)) {
+				outputArray.push(value);
+			}
+		} // end for
+
+		return outputArray;
+	} else {
+		// obj is a not an array
+
+		let isShallow = true;
+
+		for (const key in objectOrArray) {
+			const value = objectOrArray[key];
+
+			if (value instanceof Object) {
+				isShallow = false;
+				break;
+			}
+		} // end for
+
+		if (isShallow) {
+			// objectOrArray is already shallow -> nothing to do
+			return objectOrArray;
+		}
+
+		const outputObj = {};
+
+		for (const key in objectOrArray) {
+			const value = objectOrArray[key];
+
+			if (!(value instanceof Object)) {
+				outputObj[key] = value;
+			}
+		} // end for
+
+		return outputObj;
+	}
 }
 
 // -----------------------------------------------------------------------------
@@ -511,7 +560,9 @@ export function objectGetWithThrow(obj, path, parseFn) {
 		const { value: parsedValue, error } = parseFn(value);
 
 		if (error) {
-			throw new Error(`Invalid value found at path [${toStringPath(path)}]`, { cause: error });
+			throw new Error(`Invalid value found at path [${toStringPath(path)}]`, {
+				cause: error
+			});
 		}
 
 		value = parsedValue;
@@ -604,11 +655,14 @@ export function objectDiff(objBefore, objAfter, options = {}, _recursion) {
 
 	const ignoreAdd = undefined === options.ignoreAdd ? false : options.ignoreAdd;
 
-	const ignoreUpdate = undefined === options.ignoreUpdate ? false : options.ignoreUpdate;
+	const ignoreUpdate =
+		undefined === options.ignoreUpdate ? false : options.ignoreUpdate;
 
-	const ignoreDelete = undefined === options.ignoreDelete ? false : options.ignoreDelete;
+	const ignoreDelete =
+		undefined === options.ignoreDelete ? false : options.ignoreDelete;
 
-	const ignorePrivate = undefined === options.ignorePrivate ? true : options.ignorePrivate;
+	const ignorePrivate =
+		undefined === options.ignorePrivate ? true : options.ignorePrivate;
 
 	let deleteValue = null;
 
@@ -686,11 +740,14 @@ export function patchObject(obj, changes, options = {}) {
 
 	const ignoreAdd = undefined === options.ignoreAdd ? false : options.ignoreAdd;
 
-	const ignoreUpdate = undefined === options.ignoreUpdate ? false : options.ignoreUpdate;
+	const ignoreUpdate =
+		undefined === options.ignoreUpdate ? false : options.ignoreUpdate;
 
-	const ignoreDelete = undefined === options.ignoreDelete ? false : options.ignoreDelete;
+	const ignoreDelete =
+		undefined === options.ignoreDelete ? false : options.ignoreDelete;
 
-	const ignorePrivate = undefined === options.ignorePrivate ? true : options.ignorePrivate;
+	const ignorePrivate =
+		undefined === options.ignorePrivate ? true : options.ignorePrivate;
 
 	for (let j = 0, n = changes.length; j < n; j = j + 1) {
 		const change = changes[j];
@@ -826,9 +883,13 @@ export function getPrototypeNames(obj) {
  *        { someArray.0.name: 1 }
  *
  * @param {object} [options]
- * @param {object} [options.shallowLeaves=false]
- *   If set to true, the values of the leaves of the tree will be converted
- *   to shallow objects if the leaves are nested objects.
+ * @param {boolean} [options.shallowLeaves=false]
+ *   If true, when extracted leaf values are objects, they are filtered to
+ *   contain only primitive properties. Nested objects and arrays within
+ *   the leaves are removed.
+ *
+ *   Example: { profile: { name: "John", settings: {...} } }
+ *   becomes: { profile: { name: "John" } }
  *
  * @return {object}
  *   nested object with the values that were found or defaultValues
@@ -868,7 +929,7 @@ export function getTree(obj, tree, options) {
 		} else {
 			// Set shallow leave value instead of nested object
 
-			const shallowLeaveValue = shallowClone(leaveValue);
+			const shallowLeaveValue = exportNotNested(leaveValue);
 			objectSet(result, arrPath, shallowLeaveValue);
 		}
 	} // end for
@@ -880,20 +941,21 @@ export function getTree(obj, tree, options) {
 
 /**
  * Deep clone an object or any kind of other variable
- * - Recursively clone all nested properties
- * - Properties in the prototype chain are cloned too, but all copied into a
- *   single prototype object
- * - This method works on objects, but also on any other JS variable type
- * - If a value cannot be cloned, a reference is returned. o.a. for
- *   - Error objects
- *   - Browser objects
- *   - Functions
  *
  * @param {any} objectToBeCloned - Variable to clone
  *
  * @returns {any} cloned output
  */
 export function clone(objectToBeCloned, _seenObjects) {
+	if (!_seenObjects) {
+		try {
+			return structuredClone(objectToBeCloned);
+		// eslint-disable-next-line no-unused-vars
+		} catch (error) {
+			// Fall back to custom implementation for unsupported types
+		}
+	}
+
 	// const startTime = Date.now();
 
 	// -- Return references for all variables that are not objects
@@ -1035,91 +1097,6 @@ export function setReadOnlyProperty(obj, propertyName, value) {
 
 // -----------------------------------------------------------------------------
 
-/**
- * Returns a clone of a (nested) object that has a maximum depth
- *
- * @param {object|array} obj
- *
- * @returns {object|array} shallow object or array
- */
-export function shallowClone(objectOrArray) {
-	expect.object(objectOrArray);
-
-	if (Array.isArray(objectOrArray)) {
-		// obj is an array
-
-		let isShallow = true;
-
-		for (let j = 0, n = objectOrArray.length; j < n; j = j + 1) {
-			const value = objectOrArray[j];
-
-			if (value instanceof Object) {
-				isShallow = false;
-				break;
-			}
-		} // end for
-
-		if (isShallow) {
-			// objectOrArray is already shallow -> nothing to do
-			return objectOrArray;
-		}
-
-		const outputArray = [];
-
-		for (let j = 0, n = objectOrArray.length; j < n; j = j + 1) {
-			const value = objectOrArray[j];
-
-			if (!(value instanceof Object)) {
-				outputArray.push(value);
-			}
-			// else {
-			//   //outputArray.push( null );
-			//   // outputArray.push( $removed );
-			// }
-		} // end for
-
-		return outputArray;
-	} else {
-		// obj is a not an array
-
-		let isShallow = true;
-
-		for (const key in objectOrArray) {
-			const value = objectOrArray[key];
-
-			if (value instanceof Object) {
-				isShallow = false;
-				break;
-			}
-			// else {
-			//   // outputObj[ key ] = null;
-			//   // outputObj[ key ] = $removed;
-			// }
-		} // end for
-
-		if (isShallow) {
-			// objectOrArray is already shallow -> nothing to do
-			return objectOrArray;
-		}
-
-		const outputObj = {};
-
-		for (const key in objectOrArray) {
-			const value = objectOrArray[key];
-
-			if (!(value instanceof Object)) {
-				outputObj[key] = value;
-			}
-			// else {
-			//   // outputObj[ key ] = null;
-			//   // outputObj[ key ] = $removed;
-			// }
-		} // end for
-
-		return outputObj;
-	}
-}
-
 // -----------------------------------------------------------------------------
 
 /**
@@ -1131,7 +1108,10 @@ export function shallowClone(objectOrArray) {
  *
  * @param {object} [obj] - Input object
  *
- * @param {object|iterable} updateData - Data to update
+ * @param {object|Iterable} updateData - Data to update
+ *
+ * @param {Object} [options]
+ * @param {boolean} [options.replaceArrays=false]
  *
  * Note that if using path-value pairs, the order of the pairs is relevant:
  *   {
@@ -1153,7 +1133,7 @@ export function updateObject(obj = null, updateData = null, options) {
 
 	let pathValuePairs;
 
-	if (!isIterable(updateData)) {
+	if (!is.iterable(updateData)) {
 		// Convert updateData to path-value pairs (iterable)
 
 		const walkArrays = options && options.replaceArrays ? true : false;
@@ -1243,7 +1223,9 @@ export function ensureArrayPath(path) {
 		// Nothing to do
 		return path;
 	} else {
-		throw new Error('Missing or invalid parameter [path] (expected string or array)');
+		throw new Error(
+			'Missing or invalid parameter [path] (expected string or array)'
+		);
 	}
 }
 
@@ -1260,11 +1242,11 @@ export function ensureArrayPath(path) {
  *   Object to create the parent objects in
  *
  * @param {string[]} arrPath
- *   The path that specified which parent oobjects to create
+ *   The path that specified which parent objects to create
  *
  * @returns {object} the input object with the created object properties
  */
-export function _ensureParent(obj, arrPath) {
+function _ensureParent(obj, arrPath) {
 	// console.log("_ensureParent (1)", { obj, arrPath } );
 
 	let current = obj;
@@ -1293,7 +1275,9 @@ export function _ensureParent(obj, arrPath) {
 
 				if (Number.isNaN(nextKeyAsInt)) {
 					// console.log("CHECK", { obj, arrPath, j, current, nextKey } );
-					throw new Error(`Cannot set property [${nextKey}] ` + 'on data node of type [Array]');
+					throw new Error(
+						`Cannot set property [${nextKey}] ` + 'on data node of type [Array]'
+					);
 				}
 			}
 		} else {
@@ -1322,7 +1306,7 @@ export function _ensureParent(obj, arrPath) {
  *
  * @returns {object|array|null} parent object or null if not found
  */
-export function _getParent(obj, arrPath) {
+function _getParent(obj, arrPath) {
 	let current = obj;
 
 	for (let j = 0, n_1 = arrPath.length - 1; j < n_1; j = j + 1) {

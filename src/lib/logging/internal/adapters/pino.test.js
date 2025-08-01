@@ -638,6 +638,42 @@ describe('PinoAdapter', () => {
         ]
       });
     });
+
+    it('should clean project root from stack traces in debug mode', async () => {
+      vi.doMock('$app/environment', () => ({
+        dev: true
+      }));
+      
+      vi.resetModules();
+      const { PinoAdapter: PinoAdapterDev } = await import('$lib/logging/internal/adapters/pino.js');
+      
+      const mockPinoWithDebugLevel = {
+        ...mockPinoInstance,
+        level: 'debug'
+      };
+      
+      const pino = (await import('pino')).default;
+      pino.mockReturnValue(mockPinoWithDebugLevel);
+      
+      const adapter = new PinoAdapterDev();
+      const pinoConfig = pino.mock.calls[pino.mock.calls.length - 1][0];
+      const serializer = pinoConfig.serializers?.err;
+      
+      const error = new Error('Test error');
+      // Mock stack trace with project root path (similar to process.cwd())
+      const projectRoot = process.cwd();
+      error.stack = `Error: Test error
+    at testFunction (${projectRoot}/src/components/Button.js:10:5)
+    at handler (${projectRoot}/src/routes/api/test.js:25:10)
+    at process.nextTick (/some/external/path/lib.js:100:20)`;
+      
+      const result = serializer.call({ pino: mockPinoWithDebugLevel }, error);
+      
+      expect(result.errorChain[0].stack).toEqual(`Error: Test error
+    at testFunction (src/components/Button.js:10:5)
+    at handler (src/routes/api/test.js:25:10)
+    at process.nextTick (/some/external/path/lib.js:100:20)`);
+    });
   });
 
   describe('adapter instance reuse', () => {

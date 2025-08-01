@@ -9,12 +9,16 @@ import { dev } from '$app/environment';
  * Pino adapter that bridges Logger events to pino
  */
 export class PinoAdapter {
+  #projectRoot = null;
+
   /**
    * Create a new PinoAdapter
    *
    * @param {Object} [options] - Pino configuration options
    */
   constructor(options = {}) {
+    // Determine project root once for stack trace cleaning
+    this.#projectRoot = import.meta.env.VITE_PROJECT_ROOT || process.cwd();
     const baseOptions = {
       serializers: {
         err: (err) => {
@@ -23,12 +27,13 @@ export class PinoAdapter {
           let isFirst = true;
 
           while (current) {
+            /** @type {import('./typedef').ErrorSummary} */
             const serialized = {
               name: current.name,
               message: current.message,
               ...(isFirst &&
                 this.pino.level === 'debug' && {
-                  stack: current.stack
+                  stack: this.#cleanStackTrace(current.stack)
                 })
             };
 
@@ -63,6 +68,28 @@ export class PinoAdapter {
       : {};
 
     this.pino = pino({ ...baseOptions, ...devOptions, ...options });
+  }
+
+  /**
+   * Clean stack trace by removing project root path
+   *
+   * @param {string} stack - Original stack trace
+   * @returns {string} Cleaned stack trace
+   */
+  #cleanStackTrace(stack) {
+    if (!stack || !this.#projectRoot) {
+      return stack;
+    }
+
+    // Escape special regex characters in the project root path
+    const escapedRoot = this.#projectRoot.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    
+    // Replace project root path with relative path, but only after "at " to avoid 
+    // accidental replacements in error messages or other parts of the stack
+    // Match the project root followed by a path separator
+    const regex = new RegExp(`(\\s+at\\s+.*\\()${escapedRoot}[\\/\\\\]`, 'g');
+    
+    return stack.replace(regex, '$1');
   }
 
   /**

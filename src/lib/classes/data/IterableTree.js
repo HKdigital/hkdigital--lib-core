@@ -6,20 +6,9 @@ import { PATH_SEPARATOR } from '../../util/object/index.js';
 
 /* ------------------------------------------------------------------ Typedef */
 
-/**
- * @typedef {object} Options
- * @property {boolean} walkArrays
- * @property {boolean} ignoreEmptyObjectLeaves
- * @property {boolean} expandPathKeys
- * @property {boolean} outputIntermediateNodes
- */
-
 /* ------------------------------------------------------------------ Exports */
 
 export default class IterableTree {
-	/**
-	 * @type {Options}
-	 */
 	#options;
 
 	/**
@@ -29,11 +18,8 @@ export default class IterableTree {
 	 * - Iterates "own properties" only (not inherited properties)
 	 *
 	 * @param {object} obj - Object to iterate
-	 * @param {Options} [options]
+	 * @param {import('./typedef.js').IterableTreeOptions} [options]
 	 * @param {string[]} [_parentArrPath]
-	 *
-	 *
-	 * @return {Iterator} iterable object
 	 */
 	constructor(obj, options, _parentArrPath) {
 		//super( ...arguments );
@@ -68,7 +54,7 @@ export default class IterableTree {
 		const obj = this.obj;
 		const parentArrPath = this._parentArrPath;
 
-		const options = this.options;
+		const options = this.#options;
 
 		let { expandPathKeys, ignoreEmptyObjectLeaves, outputIntermediateNodes } = this.#options;
 

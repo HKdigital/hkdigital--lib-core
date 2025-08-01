@@ -33,7 +33,8 @@ import {
 	MINUTE_MS,
 	HOUR_MS,
 	DAY_MS,
-	TIME_2025_01_01 } from '$lib/constants/time/index.js';
+	TIME_2025_01_01
+} from '$lib/constants/time/index.js';
 
 import * as expect from '$lib/util/expect';
 import { HkPromise } from '$lib/classes/promise/index.js';
@@ -226,19 +227,21 @@ export function getWeekNumber(dateOrTimestamp) {
  *
  * @returns {string} name of the month in the specified locale
  */
-export function getMonthName(dateOrTimestamp, locale = 'nl-NL',
-    options = { month: 'long' }) {
+export function getMonthName(
+	dateOrTimestamp,
+	locale = 'nl-NL',
+	options = { month: 'long' }
+) {
+	const date = toDate(dateOrTimestamp);
 
-  const date = toDate(dateOrTimestamp);
+	// Create formatter with provided locale and options
+	// @ts-ignore - TypeScript kan hier strikter zijn dan nodig met de options
+	const formatter = new Intl.DateTimeFormat(locale, {
+		month: options?.month || 'long',
+		...(options?.timeZone ? { timeZone: options.timeZone } : {})
+	});
 
-  // Create formatter with provided locale and options
-  // @ts-ignore - TypeScript kan hier strikter zijn dan nodig met de options
-  const formatter = new Intl.DateTimeFormat(locale, {
-    month: options?.month || 'long',
-    ...(options?.timeZone ? { timeZone: options.timeZone } : {})
-  });
-
-  return formatter.format(date);
+	return formatter.format(date);
 }
 
 /**
@@ -255,19 +258,21 @@ export function getMonthName(dateOrTimestamp, locale = 'nl-NL',
  *
  * @returns {string} name of the day in the specified locale
  */
-export function getDayName(dateOrTimestamp, locale = 'nl-NL',
-    options = { weekday: 'long' }) {
+export function getDayName(
+	dateOrTimestamp,
+	locale = 'nl-NL',
+	options = { weekday: 'long' }
+) {
+	const date = toDate(dateOrTimestamp);
 
-  const date = toDate(dateOrTimestamp);
+	// Create formatter with provided locale and options
+	// @ts-ignore - TypeScript kan hier strikter zijn dan nodig met de options
+	const formatter = new Intl.DateTimeFormat(locale, {
+		weekday: options?.weekday || 'long',
+		...(options?.timeZone ? { timeZone: options.timeZone } : {})
+	});
 
-  // Create formatter with provided locale and options
-  // @ts-ignore - TypeScript kan hier strikter zijn dan nodig met de options
-  const formatter = new Intl.DateTimeFormat(locale, {
-    weekday: options?.weekday || 'long',
-    ...(options?.timeZone ? { timeZone: options.timeZone } : {})
-  });
-
-  return formatter.format(date);
+	return formatter.format(date);
 }
 
 /**

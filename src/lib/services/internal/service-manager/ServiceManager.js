@@ -110,7 +110,7 @@ export class ServiceManager extends EventEmitter {
       logConfig: config.logConfig || {}
     };
 
-    this._setupLogging();
+    this.#setupLogging();
   }
 
   /**
@@ -140,7 +140,7 @@ export class ServiceManager extends EventEmitter {
     };
 
     // Track dependents
-    entry.dependencies.forEach(dep => {
+    entry.dependencies.forEach((dep) => {
       const depEntry = this.services.get(dep);
       if (depEntry) {
         depEntry.dependents.add(name);
@@ -175,7 +175,7 @@ export class ServiceManager extends EventEmitter {
         entry.instance = new entry.ServiceClass(name);
 
         // Apply log level
-        const logLevel = this._getServiceLogLevel(name);
+        const logLevel = this.#getServiceLogLevel(name);
         if (logLevel) {
           entry.instance.setLogLevel(logLevel);
         }
@@ -224,8 +224,7 @@ export class ServiceManager extends EventEmitter {
 
     // Start dependencies first
     for (const dep of entry.dependencies) {
-      if (!await this.isRunning(dep)) {
-
+      if (!(await this.isRunning(dep))) {
         this.logger.debug(`Starting dependency '${dep}' for '${name}'`);
 
         const started = await this.startService(dep);
@@ -309,7 +308,7 @@ export class ServiceManager extends EventEmitter {
     this.logger.info('Starting all services');
 
     // Sort by priority and dependencies
-    const sorted = this._topologicalSort();
+    const sorted = this.#topologicalSort();
     const results = new Map();
 
     for (const name of sorted) {
@@ -347,7 +346,7 @@ export class ServiceManager extends EventEmitter {
     };
 
     // Stop in reverse order
-    const sorted = this._topologicalSort().reverse();
+    const sorted = this.#topologicalSort().reverse();
     const results = new Map();
 
     // Handle global timeout if specified
@@ -362,7 +361,7 @@ export class ServiceManager extends EventEmitter {
       try {
         // Race between stopping all services and timeout
         await Promise.race([
-          this._stopAllSequentially(sorted, results, stopOptions),
+          this.#stopAllSequentially(sorted, results, stopOptions),
           timeoutPromise
         ]);
       } catch (error) {
@@ -380,31 +379,12 @@ export class ServiceManager extends EventEmitter {
       }
     } else {
       // No timeout, just stop sequentially
-      await this._stopAllSequentially(sorted, results, stopOptions);
+      await this.#stopAllSequentially(sorted, results, stopOptions);
     }
 
     return Object.fromEntries(results);
   }
 
-  /**
-   * Stop services sequentially
-   *
-   * @private
-   * @param {string[]} serviceNames - Ordered list of service names
-   * @param {Map<string, boolean>} results - Results map to populate
-   * @param {StopOptions} options - Stop options
-   */
-  async _stopAllSequentially(serviceNames, results, options) {
-    for (const name of serviceNames) {
-      try {
-        const success = await this.stopService(name, options);
-        results.set(name, success);
-      } catch (error) {
-        this.logger.error(`Error stopping '${name}'`, error);
-        results.set(name, false);
-      }
-    }
-  }
 
   /**
    * Get health status for all services
@@ -492,58 +472,10 @@ export class ServiceManager extends EventEmitter {
     return services;
   }
 
-  // Private methods
-
-  /**
-   * Setup logging configuration based on config.dev
-   *
-   * @private
-   */
-  _setupLogging() {
-    // Set default log levels based on config.debug flag
-    if (this.config.debug) {
-      this.config.logConfig.defaultLevel = DEBUG;
-    } else {
-      this.config.logConfig.defaultLevel = WARN;
-    }
-
-    // Apply config
-    if (this.config.logConfig.globalLevel) {
-      this.logger.setLevel(this.config.logConfig.globalLevel);
-    }
-  }
-
-  /**
-   * Get the appropriate log level for a service
-   *
-   * @private
-   * @param {string} name - Service name
-   *
-   * @returns {string|undefined} Log level or undefined
-   */
-  _getServiceLogLevel(name) {
-    const config = this.config.logConfig;
-
-    // Check in order of precedence:
-    // 1. Global level (overrides everything)
-    if (config.globalLevel) {
-      return config.globalLevel;
-    }
-
-    // 2. Service-specific level
-    if (config.serviceLevels?.[name]) {
-      return config.serviceLevels[name];
-    }
-
-    // 3. Don't use defaultLevel as it might be too restrictive
-    // Return undefined to let the service use its own default
-    return undefined;
-  }
 
   /**
    * Attach event listeners to forward service events
    *
-   * @private
    * @param {string} name - Service name
    * @param {import('../service-base/typedef.js').ServiceInstance} instance
    *   Service instance
@@ -569,15 +501,77 @@ export class ServiceManager extends EventEmitter {
     });
   }
 
+  // Internal methods
+
+  /**
+   * Setup logging configuration based on config.dev
+   */
+  #setupLogging() {
+    // Set default log levels based on config.debug flag
+    if (this.config.debug) {
+      this.config.logConfig.defaultLevel = DEBUG;
+    } else {
+      this.config.logConfig.defaultLevel = WARN;
+    }
+
+    // Apply config
+    if (this.config.logConfig.globalLevel) {
+      this.logger.setLevel(this.config.logConfig.globalLevel);
+    }
+  }
+
+  /**
+   * Get the appropriate log level for a service
+   *
+   * @param {string} name - Service name
+   *
+   * @returns {string|undefined} Log level or undefined
+   */
+  #getServiceLogLevel(name) {
+    const config = this.config.logConfig;
+
+    // Check in order of precedence:
+    // 1. Global level (overrides everything)
+    if (config.globalLevel) {
+      return config.globalLevel;
+    }
+
+    // 2. Service-specific level
+    if (config.serviceLevels?.[name]) {
+      return config.serviceLevels[name];
+    }
+
+    // 3. Don't use defaultLevel as it might be too restrictive
+    // Return undefined to let the service use its own default
+    return undefined;
+  }
+
+  /**
+   * Stop services sequentially
+   *
+   * @param {string[]} serviceNames - Ordered list of service names
+   * @param {Map<string, boolean>} results - Results map to populate
+   * @param {StopOptions} options - Stop options
+   */
+  async #stopAllSequentially(serviceNames, results, options) {
+    for (const name of serviceNames) {
+      try {
+        const success = await this.stopService(name, options);
+        results.set(name, success);
+      } catch (error) {
+        this.logger.error(`Error stopping '${name}'`, error);
+        results.set(name, false);
+      }
+    }
+  }
+
   /**
    * Sort services by dependencies using topological sort
-   *
-   * @private
    *
    * @returns {string[]} Service names in dependency order
    * @throws {Error} If circular dependencies are detected
    */
-  _topologicalSort() {
+  #topologicalSort() {
     const sorted = [];
     const visited = new Set();
     const visiting = new Set();
