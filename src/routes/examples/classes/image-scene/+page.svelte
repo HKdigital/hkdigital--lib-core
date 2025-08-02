@@ -25,9 +25,9 @@
 
       // Define image sources
 
-      imageScene.defineImage({ label: ARMY_GREEN, imageMeta: ArmyGreen });
+      imageScene.defineImage({ label: ARMY_GREEN, imageSource: ArmyGreen });
 
-      imageScene.defineImage({ label: ELECTRIC_BLUE, imageMeta: ElectricBlue });
+      imageScene.defineImage({ label: ELECTRIC_BLUE, imageSource: ElectricBlue });
 
       imageScene.load();
     }

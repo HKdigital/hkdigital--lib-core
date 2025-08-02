@@ -53,7 +53,7 @@
 
 <div class="justify-self-stretch self-stretch grid">
   <ImageBox
-    imageMeta={ElectricBlue}
+    imageSource={ElectricBlue}
     fit="cover"
     position="center center"
     onProgress={progressListener}

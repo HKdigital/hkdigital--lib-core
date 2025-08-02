@@ -62,7 +62,7 @@
 
 <div class="justify-self-stretch self-stretch grid" class:invisible={!show}>
   <ImageBox
-    imageMeta={ElectricBlue}
+    imageSource={ElectricBlue}
     fit="cover"
     position="center center"
     onProgress={progressListener}
@@ -96,7 +96,7 @@
     </div>
   {:else}
     <div class="z-0">
-      <ImageBox imageMeta={ElectricBlue} fit="cover" position="center center" />
+      <ImageBox imageSource={ElectricBlue} fit="cover" position="center center" />
     </div>
 
     <div class="p-8 text-center z-1">

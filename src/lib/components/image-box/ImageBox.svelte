@@ -14,8 +14,8 @@
 	 *   overflow?: string,
 	 *   fit?: 'contain' | 'cover' | 'fill',
 	 *   position?: import('$lib/media/typedef.js').ObjectPosition,
-	 *   imageMeta?: import('$lib/typedef').ImageSource,
-	 *   imageLoader?: import('$lib/classes/svelte/image/index.js').ImageLoader,
+	 *   imageSource?: import('$lib/media/typedef.js').ImageSource,
+	 *   imageLoader?: import('$lib/media/image.js').ImageLoader,
 	 *   alt?: string,
 	 *   id?: string|Symbol
 	 *   onProgress?: (progress: import('$lib/classes/svelte/network-loader/typedef.js').LoadingProgress, id: string|Symbol) => void,
@@ -37,7 +37,7 @@
 		position = 'left top',
 
 		// Image data
-		imageMeta,
+		imageSource,
 		imageLoader,
 
 		// Accessibility
@@ -74,14 +74,14 @@
 
 	$effect(() => {
 		// Setup variants loader for responsive images
-		if (Array.isArray(imageMeta) && !imageLoader && !variantsLoader) {
-			variantsLoader = new ImageVariantsLoader(imageMeta, {
+		if (Array.isArray(imageSource) && !imageLoader && !variantsLoader) {
+			variantsLoader = new ImageVariantsLoader(imageSource, {
 				devicePixelRatio: window.devicePixelRatio
 			});
 		}
 		// Handle single image meta
-		else if (imageMeta && !variantsLoader) {
-			imageMeta_ = toSingleImageMeta(imageMeta);
+		else if (imageSource && !variantsLoader) {
+			imageMeta_ = toSingleImageMeta(imageSource);
 		}
 	});
 
@@ -107,7 +107,7 @@
 	});
 
 	$effect(() => {
-		if (!imageMeta && imageLoader && !imageLoader_) {
+		if (!imageSource && imageLoader && !imageLoader_) {
 			imageLoader_ = imageLoader;
 			imageMeta_ = imageLoader.imageMeta;
 		}
@@ -115,7 +115,7 @@
 
 	$effect(() => {
 		if (imageMeta_ && !imageLoader_) {
-			imageLoader_ = new ImageLoader({ imageMeta: imageMeta_ });
+			imageLoader_ = new ImageLoader({ imageSource: imageMeta_ });
 		}
 	});
 

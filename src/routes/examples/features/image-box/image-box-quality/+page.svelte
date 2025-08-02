@@ -8,7 +8,7 @@
 </script>
 
 <!-- <ImageBox
-  imageMeta={TrailerEmpty}
+  imageSource={TrailerEmpty}
   fit="contain"
   position="top left"
   width="w-[800px]"
@@ -21,7 +21,7 @@
 <img src={BumperOrg} class="image-org" alt="" />
 
 <ImageBox
-  imageMeta={Bumper}
+  imageSource={Bumper}
   fit="contain"
   position="top left"
   width="w-[800px]"
@@ -32,7 +32,7 @@
 />
 
 <ImageBox
-  imageMeta={BumperJpg}
+  imageSource={BumperJpg}
   fit="contain"
   position="top left"
   width="w-[800px]"

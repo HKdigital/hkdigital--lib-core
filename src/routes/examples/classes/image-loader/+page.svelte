@@ -13,17 +13,17 @@
 
   let imageLoader = $state();
 
-  const imageMeta = ArmyGreen;
+  const imageSource = ArmyGreen;
 
   onMount(() => {
     // @ts-ignore
-    const url = imageMeta.src;
+    const url = imageSource.src;
 
     if (!url) {
       throw new Error('Missing image url');
     }
 
-    imageLoader = new ImageLoader({ imageMeta });
+    imageLoader = new ImageLoader({ imageSource });
 
     imageLoader.load();
   });

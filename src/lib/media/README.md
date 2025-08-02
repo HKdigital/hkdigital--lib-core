@@ -18,9 +18,9 @@ Loads single images with chunked streaming and loading states.
 ```javascript
 import { ImageLoader } from '$lib/media/image.js';
 
-// Create image loader with metadata
-const imageMeta = { src: '/path/to/image.jpg', width: 800, height: 600 };
-const imageLoader = new ImageLoader({ imageMeta });
+// Create image loader with single image or responsive variants
+const imageSource = { src: '/path/to/image.jpg', width: 800, height: 600 };
+const imageLoader = new ImageLoader({ imageSource });
 
 // Start loading
 imageLoader.load();
@@ -47,14 +47,14 @@ import { ImageVariantsLoader } from '$lib/media/image.js';
 const loader = new ImageVariantsLoader();
 
 // Load responsive variants
-const imageMeta = [
+const imageSource = [
   { src: '/image-400.jpg', width: 400, height: 300 },
   { src: '/image-800.jpg', width: 800, height: 600 },
   { src: '/image-1200.jpg', width: 1200, height: 900 }
 ];
 
 await loader.load({
-  imageMeta,
+  imageSource,
   containerWidth: 600,
   containerHeight: 400,
   fit: 'cover', // or 'contain', 'fill'
@@ -209,14 +209,14 @@ All loaders implement consistent loading state management:
   import { ImageBox } from '$lib/components/index.js';
   
   // ImageBox uses ImageVariantsLoader internally
-  const imageMeta = [
+  const imageSource = [
     { src: '/image-400.jpg', width: 400, height: 300 },
     { src: '/image-800.jpg', width: 800, height: 600 }
   ];
 </script>
 
 <ImageBox 
-  {imageMeta}
+  imageSource={imageSource}
   width="600px"
   height="400px"
   fit="cover"

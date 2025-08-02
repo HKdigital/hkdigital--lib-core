@@ -15,13 +15,13 @@
 <!-- Example that fits in an outer-box -->
 
 <div class="outer-box">
-	<ImageBox imageMeta={ArmyGreen} fit="contain" position="center center" />
+	<ImageBox imageSource={ArmyGreen} fit="contain" position="center center" />
 </div>
 
 <!-- Examples that has have width, height or aspect set -->
 
 <ImageBox
-	imageMeta={ArmyGreen}
+	imageSource={ArmyGreen}
 	fit="contain"
 	position="center center"
 	width="w-[200px]"
@@ -30,7 +30,7 @@
 />
 
 <ImageBox
-	imageMeta={ArmyGreen}
+	imageSource={ArmyGreen}
 	fit="cover"
 	position="right bottom"
 	width="w-[200px]"
@@ -39,7 +39,7 @@
 />
 
 <ImageBox
-	imageMeta={ArmyGreen}
+	imageSource={ArmyGreen}
 	fit="fill"
 	position="center center"
 	height="h-[200px]"
@@ -49,7 +49,7 @@
 
 <!-- Transparent image -->
 <ImageBox
-	imageMeta={TransparentLines}
+	imageSource={TransparentLines}
 	fit="contain"
 	position="center center"
 	height="h-[200px]"
@@ -60,7 +60,7 @@
 <!-- Or hack it using !important -->
 
 <!-- <ImageBox
-	imageMeta={ArmyGreen}
+	imageSource={ArmyGreen}
 	fit="contain"
 	position="center center"
 	classes="!w-[200px] !h-[200px] border-8 border-green-500"

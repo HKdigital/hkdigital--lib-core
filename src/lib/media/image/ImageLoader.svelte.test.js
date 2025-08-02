@@ -24,14 +24,14 @@ describe('ImageLoader', () => {
 		// @ts-ignore
 		fetch.mockResolvedValue(createPngResponse());
 
-		/** @type {import('./typedef.js').ImageMeta} */
-		const imageMeta = { src: 'http://localhost/mock-png', width: 0, height: 0 };
+		/** @type {import('../typedef.js').ImageSource} */
+		const imageSource = { src: 'http://localhost/mock-png', width: 0, height: 0 };
 
 		/** @type {ImageLoader} */
 		let imageLoader;
 
 		const cleanup = $effect.root(() => {
-			imageLoader = new ImageLoader({ imageMeta });
+			imageLoader = new ImageLoader({ imageSource });
 
 			expect(imageLoader.loaded).toEqual(false);
 

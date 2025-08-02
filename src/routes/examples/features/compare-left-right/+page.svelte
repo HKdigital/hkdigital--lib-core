@@ -66,7 +66,7 @@
 <CompareLeftRight width="w-[90vw]" height="h-[200px]">
   {#snippet leftContent()}
     <ImageBox
-      imageMeta={ArmyGreen}
+      imageSource={ArmyGreen}
       fit="contain"
       position="center center"
       width="w-full"
@@ -77,7 +77,7 @@
 
   {#snippet rightContent()}
     <ImageBox
-      imageMeta={ElectricBlue}
+      imageSource={ElectricBlue}
       fit="contain"
       position="center center"
       width="w-full"

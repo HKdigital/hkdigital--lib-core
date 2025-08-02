@@ -4,23 +4,23 @@
  * of sorted responsive image formats, so it should be the
  * largest image.
  *
- * @param {ImageMeta|ImageMeta[]} imageMeta
+ * @param {import('../../typedef.js').ImageSource} imageSource
  */
-export function toSingleImageMeta(imageMeta) {
-  if (Array.isArray(imageMeta)) {
-    if (!imageMeta.length) {
+export function toSingleImageMeta(imageSource) {
+  if (Array.isArray(imageSource)) {
+    if (!imageSource.length) {
       throw new Error('List of ImageMeta objects is empty');
     }
-    imageMeta = imageMeta[imageMeta.length - 1];
+    imageSource = imageSource[imageSource.length - 1];
   }
 
-  if (typeof imageMeta === 'object') {
-    return imageMeta;
-  } else if (!imageMeta) {
-    throw new Error('Missing [imageMeta]');
+  if (typeof imageSource === 'object') {
+    return imageSource;
+  } else if (!imageSource) {
+    throw new Error('Missing [imageSource]');
   }
 
-  throw new Error('Invalid value for parameter [imageMeta]');
+  throw new Error('Invalid value for parameter [imageSource]');
 }
 
 /**

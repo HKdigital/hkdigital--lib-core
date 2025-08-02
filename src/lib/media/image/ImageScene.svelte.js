@@ -22,10 +22,9 @@ import ImageLoader from './ImageLoader.svelte.js';
  */
 
 /**
- * @typedef {object} ImageSource
+ * @typedef {object} ImageSceneSource
  * @property {string} label
  * @property {ImageLoader} imageLoader
- * @property {ImageMeta} [imageMeta]
  */
 
 export default class ImageScene {
@@ -39,7 +38,7 @@ export default class ImageScene {
     return this.state === STATE_LOADED;
   });
 
-  /** @type {ImageSource[]} */
+  /** @type {ImageSceneSource[]} */
   #imageSources = $state([]);
 
   #progress = $derived.by(() => {
@@ -149,16 +148,16 @@ export default class ImageScene {
    *
    * @param {object} _
    * @param {string} _.label
-   * @param {ImageMeta|ImageMeta[]} _.imageMeta
+   * @param {import('../typedef.js').ImageSource} _.imageSource
    */
-  defineImage({ label, imageMeta }) {
+  defineImage({ label, imageSource }) {
     expect.notEmptyString(label);
 
     // expect.notEmptyString(url);
 
-    const imageLoader = new ImageLoader({ imageMeta });
+    const imageLoader = new ImageLoader({ imageSource });
 
-    this.#imageSources.push({ label, imageLoader, imageMeta });
+    this.#imageSources.push({ label, imageLoader });
   }
 
   /**
@@ -187,7 +186,7 @@ export default class ImageScene {
    *
    * @param {string} label
    *
-   * @returns {ImageSource}
+   * @returns {ImageSceneSource}
    */
   #getImageSource(label) {
     for (const source of this.#imageSources) {

@@ -16,7 +16,7 @@
 
 <div class="w-full aspect-video border-4 border-blue-500 relative">
   <ImageBox
-    imageMeta={ArmyGreenResponsive}
+    imageSource={ArmyGreenResponsive}
     fit="contain"
     position="center center"
     classes="border-2 border-red-500"
