@@ -2,7 +2,7 @@ import {
   NetworkLoader,
   ERROR_NOT_LOADED,
   ERROR_TRANSFERRED
-} from '$lib/classes/svelte/network-loader/index.js';
+} from '$lib/network/states/index.js';
 
 /**
  * AudioLoader instance

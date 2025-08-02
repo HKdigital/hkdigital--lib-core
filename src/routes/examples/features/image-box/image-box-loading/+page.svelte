@@ -3,7 +3,7 @@
 
   import { ImageBox } from '$lib/components/index.js';
 
-  /** @type {import('$lib/classes/svelte/network-loader/typedef.js').LoadingProgress} */
+  /** @type {import('$lib/network/typedef.js').LoadingProgress} */
   let progress = $state({ bytesLoaded: 0, size: 0, loaded: false });
 
   // console.log('ArmyGreenResponsive', ArmyGreenResponsive);

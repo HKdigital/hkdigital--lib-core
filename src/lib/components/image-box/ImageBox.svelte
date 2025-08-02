@@ -18,7 +18,7 @@
 	 *   imageLoader?: import('$lib/media/image.js').ImageLoader,
 	 *   alt?: string,
 	 *   id?: string|Symbol
-	 *   onProgress?: (progress: import('$lib/classes/svelte/network-loader/typedef.js').LoadingProgress, id: string|Symbol) => void,
+	 *   onProgress?: (progress: import('$lib/network/typedef.js').LoadingProgress, id: string|Symbol) => void,
 	 *   [attr: string]: any
 	 * }}
 	 */

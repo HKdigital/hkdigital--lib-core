@@ -4,7 +4,7 @@ import { toSingleImageMeta } from './utils/index.js';
 
 import {
   NetworkLoader
-} from '$lib/classes/svelte/network-loader/index.js';
+} from '$lib/network/states/index.js';
 
 /**
  * ImageLoader instance
