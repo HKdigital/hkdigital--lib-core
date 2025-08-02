@@ -3,58 +3,58 @@
 import * as v from 'valibot';
 
 import {
-	ValidateUrl,
-	ValidateUrlOrEmptyString,
-	ValidateUrlPath,
-	ValidateRelativeUrl,
-	ValidateAbsOrRelUrl
-} from '$lib/schemas/validate-url.js';
+	HumanUrl,
+	UrlOrEmptyString,
+	UrlPath,
+	RelativeUrl,
+	AbsOrRelUrl
+} from '$lib/valibot/parsers.js';
 
 // > Exports
 
 /**
- * Throws a validation error if value is not an url
+ * Throws a parse error if value is not a URL
  *
  * @param {any} value
  */
 export function url(value) {
-	v.parse(ValidateUrl, value);
+	v.parse(HumanUrl, value);
 }
 
 /**
- * Throws a validation error if value is not an url or
+ * Throws a parse error if value is not a URL or
  * an empty string
  *
  * @param {any} value
  */
 export function urlOrEmptyString(value) {
-	v.parse(ValidateUrlOrEmptyString, value);
+	v.parse(UrlOrEmptyString, value);
 }
 
 /**
- * Throws a validation error if value is not a relative url
+ * Throws a parse error if value is not a URL path
  *
  * @param {any} value
  */
 export function urlPath(value) {
-	v.parse(ValidateUrlPath, value);
+	v.parse(UrlPath, value);
 }
 
 /**
- * Throws a validation error if value is not a relative url
+ * Throws a parse error if value is not a relative URL
  *
  * @param {any} value
  */
 export function relativeUrl(value) {
-	v.parse(ValidateRelativeUrl, value);
+	v.parse(RelativeUrl, value);
 }
 
 /**
- * Throws a validation error if value is not an absolute
- * or relative url
+ * Throws a parse error if value is not an absolute
+ * or relative URL
  *
  * @param {any} value
  */
 export function absOrRelUrl(value) {
-	v.parse(ValidateAbsOrRelUrl, value);
+	v.parse(AbsOrRelUrl, value);
 }

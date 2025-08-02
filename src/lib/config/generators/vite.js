@@ -7,6 +7,7 @@ import { resolve } from 'path';
  * @param {object} [options] Configuration options
  * @param {boolean} [options.enableImagetools=true] Enable vite-imagetools plugin
  * @param {boolean} [options.enableVitest=true] Include Vitest configuration
+ * @param {boolean} [options.enableSvelteKit=true] Enable SvelteKit plugin
  * @param {object} [options.customDefines={}] Additional define values
  * @param {Array} [options.customPlugins=[]] Additional Vite plugins
  * @param {object} [options.imagetoolsOptions={}] Options for imagetools config
@@ -18,6 +19,7 @@ export async function generateViteConfig(options = {}) {
   const {
     enableImagetools = true,
     enableVitest = true,
+    enableSvelteKit = true,
     customDefines = {},
     customPlugins = [],
     imagetoolsOptions = {},
@@ -30,6 +32,19 @@ export async function generateViteConfig(options = {}) {
   );
 
   const plugins = [...customPlugins];
+
+  // Add SvelteKit plugin (provides $lib alias and other SvelteKit features)
+  if (enableSvelteKit) {
+    try {
+      const { sveltekit } = await import('@sveltejs/kit/vite');
+      plugins.push(sveltekit());
+    } catch (error) {
+      console.error(error);
+      console.warn(
+        '@sveltejs/kit/vite not found. Install it to enable SvelteKit support.'
+      );
+    }
+  }
 
   // Conditionally add imagetools
   if (enableImagetools) {

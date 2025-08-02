@@ -8,9 +8,9 @@ import {
 	RE_USERNAME,
 	RE_SURNAME,
 	RE_PHONENUMBER
-} from '../constants/regexp/index.js';
+} from '../../constants/regexp/index.js';
 
-// > Exports
+// > User Parsers
 
 export const Name = v.pipe(v.string(), v.trim(), v.regex(RE_NAME));
 

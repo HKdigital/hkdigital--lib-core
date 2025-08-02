@@ -2,10 +2,10 @@
 
 import * as v from 'valibot';
 
-// > Exports
+// > URL Parsers
 
 /**
- * Schema to validate an URL or empty string.
+ * Parser for URL or empty string.
  */
 export const UrlOrEmptyString = v.pipe(
 	v.pipe(v.string(), v.trim()),
@@ -13,7 +13,7 @@ export const UrlOrEmptyString = v.pipe(
 );
 
 /**
- * Schema to validate an url that may miss the protocol part
+ * Parser for URL that may miss the protocol part
  *
  * @note an empty string is not allowed!
  */
@@ -32,7 +32,7 @@ export const HumanUrl = v.pipe(
 );
 
 /**
- * Schema to validate url path, without a search and hash part
+ * Parser for URL path, without a search and hash part
  */
 export const UrlPath = v.pipe(
 	v.string(),
@@ -56,7 +56,7 @@ export const UrlPath = v.pipe(
 );
 
 /**
- * Schema to validate a url path, which consists of
+ * Parser for URL path, which consists of
  * a path and optionally search and hash parts
  */
 export const RelativeUrl = v.pipe(
@@ -85,7 +85,7 @@ export const RelativeUrl = v.pipe(
 );
 
 /**
- * Schema to validate an absolute or relative url
+ * Parser for absolute or relative URL
  *
  * @note an empty string is not allowed!
  */

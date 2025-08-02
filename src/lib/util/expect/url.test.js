@@ -45,7 +45,7 @@ describe('expect.urlOrEmptyString', () => {
 		try {
 			expect_.urlOrEmptyString(123);
 		} catch (e) {
-			expect(e.message).toEqual('Invalid type: Expected ("" | string) but received 123');
+			expect(e.message).toEqual('Invalid type: Expected string but received 123');
 		}
 
 		try {
@@ -143,7 +143,6 @@ describe('expect.absOrRelUrl', () => {
 		// > Positive test
 
 		expect_.absOrRelUrl('/');
-		expect_.absOrRelUrl('');
 		expect_.absOrRelUrl('/path/to?query');
 		expect_.absOrRelUrl('path/to');
 		expect_.absOrRelUrl('path/to?query#hash');
@@ -159,6 +158,12 @@ describe('expect.absOrRelUrl', () => {
 			expect_.absOrRelUrl(123);
 		} catch (e) {
 			expect(e.message).toEqual('Invalid type: Expected string but received 123');
+		}
+
+		try {
+			expect_.absOrRelUrl('');
+		} catch (e) {
+			expect(e.message).toEqual('Invalid URL: Received ""');
 		}
 
 		try {
