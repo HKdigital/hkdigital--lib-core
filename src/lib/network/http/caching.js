@@ -1,7 +1,5 @@
-import {
-  MemoryResponseCache,
-  IndexedDbCache
-} from '$lib/classes/cache';
+import MemoryResponseCache from '$lib/network/cache/MemoryResponseCache.js';
+import IndexedDbCache from '$lib/network/cache/IndexedDbCache.js';
 
 import { browser } from '$app/environment';
 

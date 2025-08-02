@@ -17,7 +17,7 @@ import {
 
 import * as expect from '$lib/util/expect/index.js';
 
-import { httpGet, loadResponseBuffer } from '$lib/util/http/index.js';
+import { httpGet, loadResponseBuffer } from '$lib/network/http.js';
 
 import { ERROR_NOT_LOADED, ERROR_TRANSFERRED } from './constants.js';
 

@@ -1,6 +1,6 @@
 import { ResponseError, HttpError } from '$lib/errors/index.js';
 import * as expect from '$lib/util/expect/index.js';
-import { toURL } from '$lib/util/http/url.js';
+import { toURL } from './url.js';
 
 import {
   WWW_AUTHENTICATE,
