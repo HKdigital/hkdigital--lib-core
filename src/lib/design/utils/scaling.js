@@ -1,4 +1,4 @@
-import { clamp } from '../css/clamp.js';
+import { clamp } from './clamp.js';
 
 /**
  * Manages responsive design scaling by calculating and applying scale factors

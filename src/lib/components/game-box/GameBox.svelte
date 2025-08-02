@@ -6,7 +6,7 @@
     getGameWidthOnPortrait
   } from './gamebox.util.js';
 
-  import { enableContainerScaling } from '$lib/util/design-system/index.js';
+  import { enableContainerScaling } from '$lib/design/index.js';
   // import { enableContainerScaling } from '@hkdigital/lib-sveltekit/util/design-system/index.js';
 
   /**

@@ -6,7 +6,7 @@
   import {
     enableScalingUI,
     getAllRootScalingVars
-  } from '$lib/util/design-system/index.js';
+  } from '$lib/design/index.js';
 
   /**
    * @type {{ children: import('svelte').Snippet,

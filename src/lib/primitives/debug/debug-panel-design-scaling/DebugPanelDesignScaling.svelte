@@ -4,7 +4,7 @@
   import {
     enableScalingUI,
     getAllRootScalingVars
-  } from '$lib/util/design-system/index.js';
+  } from '$lib/design/index.js';
 
   /**
    * Holds the current scaling values for the debug panel

@@ -176,6 +176,127 @@ Components use `data-` attributes with CSS custom properties:
 </button>
 ```
 
+## Utility Functions
+
+### CSS Variable Utilities
+
+```javascript
+import { 
+  getRootCssDesignWidth,
+  getRootCssDesignHeight,
+  getAllRootScalingVars
+} from '@hkdigital/lib-core/design';
+
+// Get current design dimensions
+const designWidth = getRootCssDesignWidth();   // 1024
+const designHeight = getRootCssDesignHeight(); // 768
+
+// Get all current scaling factors
+const scales = getAllRootScalingVars();
+// Returns: { scaleW, scaleH, scaleViewport, scaleUI, scaleTextBase, scaleTextHeading, scaleTextUI }
+```
+
+### Clamp Utilities
+
+```javascript
+import { clamp, getClampParams } from '@hkdigital/lib-core/design';
+
+// Mathematical clamp function
+const value = clamp(0.5, 0.3, 2.0); // Returns 0.5 (clamped between 0.5 and 2.0)
+
+// Extract clamp parameters from CSS variables
+const params = getClampParams('scale-ui');
+// Returns: { min: 0.3, max: 2.0 }
+```
+
+### Component State Classes
+
+```javascript
+import { toStateClasses } from '@hkdigital/lib-core/design';
+
+// Generate state classes from object
+const classes = toStateClasses({
+  selected: true,
+  loading: false,
+  error: true,
+  disabled: false
+});
+// Returns: "state-selected state-error"
+```
+
+```html
+<!-- Usage in components -->
+<button class={toStateClasses({ selected, disabled, loading })}>
+  Button Text
+</button>
+```
+
+### Responsive Scaling
+
+#### Viewport-Based Scaling
+
+```javascript
+import { enableScalingUI } from '@hkdigital/lib-core/design';
+
+// Enable automatic viewport scaling
+const cleanup = enableScalingUI(DESIGN, CLAMPING);
+
+// Call cleanup when component is destroyed
+onDestroy(cleanup);
+```
+
+#### Container-Based Scaling
+
+```javascript
+import { enableContainerScaling } from '@hkdigital/lib-core/design';
+
+let containerElement;
+
+// Enable scaling for specific container
+const cleanup = enableContainerScaling({
+  container: containerElement,
+  design: DESIGN,
+  clamping: CLAMPING,
+  useResizeObserver: true
+});
+
+// Optional custom dimension getter
+const cleanupCustom = enableContainerScaling({
+  container: containerElement,
+  design: DESIGN,
+  clamping: CLAMPING,
+  getDimensions: () => ({ width: 800, height: 600 })
+});
+```
+
+```svelte
+<!-- Svelte component example -->
+<script>
+  import { onMount, onDestroy } from 'svelte';
+  import { enableContainerScaling, DESIGN, CLAMPING } from '@hkdigital/lib-core/design';
+  
+  let containerElement;
+  let cleanup;
+  
+  onMount(() => {
+    cleanup = enableContainerScaling({
+      container: containerElement,
+      design: DESIGN,
+      clamping: CLAMPING
+    });
+  });
+  
+  onDestroy(() => {
+    cleanup?.();
+  });
+</script>
+
+<div bind:this={containerElement} class="scaled-container">
+  <!-- Content that scales with container -->
+  <div class="p-20up text-base-md">Responsive content</div>
+</div>
+```
+
 ## Advanced Usage
 
 ### Custom Design Configuration
@@ -273,7 +394,7 @@ If migrating from the old structure:
 ```javascript
 // OLD
 import { DESIGN } from '$lib/design/design-config.js';
-import { customUtilitiesPlugin } from '$lib/util/design-system/skeleton.js';
+import { customUtilitiesPlugin } from '$lib/design/skeleton.js';
 
 // NEW
 import { DESIGN, customUtilitiesPlugin } from '@hkdigital/lib-core/design';

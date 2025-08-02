@@ -5,7 +5,7 @@
     getRootCssDesignHeight,
     getClampParams,
     clamp
-  } from '$lib/util/design-system/index.js';
+  } from '$lib/design/index.js';
 
   /**
    * Virtual viewport component that creates a container with its own scaling

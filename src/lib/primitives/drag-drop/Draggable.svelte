@@ -1,7 +1,7 @@
 <script>
   import { browser } from '$app/environment';
 
-  import { toStateClasses } from '$lib/util/design-system/index.js';
+  import { toStateClasses } from '$lib/design/index.js';
   import { createOrGetDragState } from './drag-state.svelte.js';
   import { DragController } from './DragController.js';
   import { onDestroy } from 'svelte';

@@ -48,7 +48,7 @@ export default class IterableTree {
 	/**
 	 * Get an iterator to iterate over all object [ path, value ] entries
 	 *
-	 * @returns {Iterator} object entries iterator
+	 * @returns {Iterable<[string[], any]>} iterable that yields [path, value] pairs
 	 */
 	*entries() {
 		const obj = this.obj;
@@ -56,7 +56,8 @@ export default class IterableTree {
 
 		const options = this.#options;
 
-		let { expandPathKeys, ignoreEmptyObjectLeaves, outputIntermediateNodes } = this.#options;
+		let { expandPathKeys, ignoreEmptyObjectLeaves, outputIntermediateNodes } =
+			this.#options;
 
 		if (parentArrPath) {
 			// Never expand keys if not in root object
@@ -163,7 +164,7 @@ export default class IterableTree {
 	/**
 	 * Get an iterator to iterate over all object paths
 	 *
-	 * @returns {Iterator} object path iterator
+	 * @returns {Iterable<string[]>} iterable that yields path arrays
 	 */
 	*paths() {
 		for (const entry of this.entries()) {
@@ -177,7 +178,7 @@ export default class IterableTree {
 	 * Get an iterator to iterate over all values at the leaves of the paths in
 	 * the object
 	 *
-	 * @returns {Iterator} object value iterator
+	 * @returns {Iterable<any>} iterable that yields leaf values
 	 */
 	*values() {
 		for (const entry of this.entries()) {
@@ -188,9 +189,21 @@ export default class IterableTree {
 	// -------------------------------------------------------------------- Method
 
 	/**
+	 * Make the class iterable by implementing Symbol.iterator
+	 * Defaults to iterating over entries (path-value pairs)
+	 *
+	 * @returns {Iterable<[string[], any]>} iterable that yields [path, value] pairs
+	 */
+	*[Symbol.iterator]() {
+		yield* this.entries();
+	}
+
+	// -------------------------------------------------------------------- Method
+
+	/**
 	 * Returns true if the iterator should recurse into the specified value
 	 *
-	 * @param {string} value
+	 * @param {any} value
 	 *
 	 * @return {boolean} true if the value should be iterated
 	 */

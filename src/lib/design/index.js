@@ -73,9 +73,25 @@ export {
 // Framework integration tools
 
 export { customUtilitiesPlugin } from './plugins/skeleton.js';
-export { rootDesignVarsHTML } from './utils/root-vars.js';
 
-// === Themes ===
-// Complete styling systems (public - other projects can use or extend)
+// === Utilities ===
+// Essential utility functions for design system implementation
 
-export * from './themes/index.js';
+export { 
+  rootDesignVarsHTML,
+  getRootCssDesignWidth,
+  getRootCssDesignHeight,
+  getAllRootScalingVars
+} from './utils/root-vars.js';
+
+export { 
+  getClampParams,
+  clamp
+} from './utils/clamp.js';
+
+export { toStateClasses } from './utils/states.js';
+
+export {
+  enableContainerScaling,
+  enableScalingUI
+} from './utils/scaling.js';

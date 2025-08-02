@@ -110,7 +110,7 @@ export function iterateObjectEntries(obj, options = {}) {
  * @param {object} obj - Object to iterate
  * @param {IterableTreeOptions & { depthFirst: boolean}} [options]
  *
- * @return {Iterator} iterator object
+ * @return {Iterable<string[]>} iterable object that yields path arrays
  */
 export function iterateObjectPaths(obj, options) {
 	let objectIterator;
@@ -140,7 +140,7 @@ export function iterateObjectPaths(obj, options) {
  * @param {object} obj - Object to iterate
  * @param {IterableTreeOptions} [options] - Iteration options
  *
- * @return {Iterator} iterator object
+ * @return {Iterable<any>} iterator object
  */
 export function iterateObjectValues(obj, options) {
 	const objectIterator = new IterableTree(obj, options);
