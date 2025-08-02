@@ -1,4 +1,4 @@
-import { defineStateContext } from '../../util/svelte/state-context';
+import { defineStateContext } from '$lib/util/svelte/state-context/index.js';
 
 import { browser } from '$app/environment';
 

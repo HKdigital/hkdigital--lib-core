@@ -1,8 +1,8 @@
-import { calculateEffectiveWidth } from '$lib/util/image/index.js';
+import { calculateEffectiveWidth } from './utils/index.js';
 
 import ImageLoader from './ImageLoader.svelte.js';
 
-/** @typedef {import('$lib/typedef/image.js').ImageMeta} ImageMeta */
+/** @typedef {import('../typedef.js').ImageMeta} ImageMeta */
 
 export default class ImageVariantsLoader {
   /** @type {number} */

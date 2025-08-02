@@ -32,6 +32,14 @@ This is a modern SvelteKit library built with Svelte 5 and Skeleton.dev v3 compo
 - English for all documentation and comments
 - No dollar signs in variable names (reserved for Svelte)
 
+## Import Path Conventions
+- Use `$lib/domain/...` imports for cross-domain references (e.g., `$lib/media/image.js`, `$lib/network/http.js`)
+- Use relative imports (`./` or `../`) when staying within the same main folder under `$lib`
+- Examples:
+  - ✅ `import { ImageLoader } from '$lib/media/image.js'` (from components to media)
+  - ✅ `import ImageLoader from './ImageLoader.svelte.js'` (within media/image folder)
+  - ❌ `import something from '../../media/image.js'` (cross-domain relative import)
+
 ## Accessibility Requirements
 - Proper ARIA roles, states, and properties
 - Descriptive aria-labels for interactive elements

@@ -1,6 +1,6 @@
 /** @typedef {import('./typedef.js').ImageMeta} ImageMeta */
 
-import { toSingleImageMeta } from '$lib/util/image/index.js';
+import { toSingleImageMeta } from './utils/index.js';
 
 import {
   NetworkLoader

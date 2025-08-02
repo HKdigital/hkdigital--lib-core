@@ -34,9 +34,9 @@
 
 /* ------------------------------------------------------------------ Imports */
 
-import * as expect from '../../util/expect/index.js';
+import * as expect from '$lib/util/expect/index.js';
 
-import { noop } from '../../util/function/index.js';
+import { noop } from '$lib/util/function/index.js';
 
 import { PromiseError } from '$lib/errors/promise.js';
 

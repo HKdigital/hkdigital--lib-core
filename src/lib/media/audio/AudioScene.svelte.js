@@ -12,7 +12,7 @@ import {
 	LOADED
 } from '$lib/classes/svelte/loading-state-machine/index.js';
 
-import AudioLoader from '$lib/classes/svelte/audio/AudioLoader.svelte.js';
+import AudioLoader from './AudioLoader.svelte.js';
 
 /**
  * @typedef {object} SourceConfig

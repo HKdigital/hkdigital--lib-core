@@ -1,7 +1,7 @@
 <script>
-	import { ImageLoader } from '$lib/classes/svelte/image/index.js';
-	import { ImageVariantsLoader } from '$lib/classes/svelte/image/index.js';
-	import { toSingleImageMeta } from '$lib/util/image/index.js';
+	import { ImageLoader } from '$lib/media/image.js';
+	import { ImageVariantsLoader } from '$lib/media/image.js';
+	import { toSingleImageMeta } from '$lib/media/image/utils/index.js';
 
 	/**
 	 * @type {{
@@ -13,7 +13,7 @@
 	 *   aspect?: string,
 	 *   overflow?: string,
 	 *   fit?: 'contain' | 'cover' | 'fill',
-	 *   position?: import('$lib/typedef/image.js').ObjectPosition,
+	 *   position?: import('$lib/media/typedef.js').ObjectPosition,
 	 *   imageMeta?: import('$lib/typedef').ImageSource,
 	 *   imageLoader?: import('$lib/classes/svelte/image/index.js').ImageLoader,
 	 *   alt?: string,
