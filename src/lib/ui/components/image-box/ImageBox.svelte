@@ -115,7 +115,7 @@
 
 	$effect(() => {
 		if (imageMeta_ && !imageLoader_) {
-			imageLoader_ = new ImageLoader({ imageSource: imageMeta_ });
+			imageLoader_ = new ImageLoader(imageMeta_);
 		}
 	});
 

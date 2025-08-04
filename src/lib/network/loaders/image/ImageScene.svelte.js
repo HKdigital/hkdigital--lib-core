@@ -155,7 +155,7 @@ export default class ImageScene {
 
     // expect.notEmptyString(url);
 
-    const imageLoader = new ImageLoader({ imageSource });
+    const imageLoader = new ImageLoader(imageSource);
 
     this.#imageSources.push({ label, imageLoader });
   }

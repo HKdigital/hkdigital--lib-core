@@ -23,7 +23,7 @@
       throw new Error('Missing image url');
     }
 
-    imageLoader = new ImageLoader({ imageSource });
+    imageLoader = new ImageLoader(imageSource);
 
     imageLoader.load();
   });

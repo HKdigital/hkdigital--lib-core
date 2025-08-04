@@ -31,7 +31,7 @@ describe('ImageLoader', () => {
 		let imageLoader;
 
 		const cleanup = $effect.root(() => {
-			imageLoader = new ImageLoader({ imageSource });
+			imageLoader = new ImageLoader(imageSource);
 
 			expect(imageLoader.loaded).toEqual(false);
 

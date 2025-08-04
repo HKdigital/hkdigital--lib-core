@@ -71,9 +71,7 @@ export default class ImageVariantsLoader {
         this.#imageLoader.unload();
       }
 
-      this.#imageLoader = new ImageLoader({
-        imageMeta: newVariant
-      });
+      this.#imageLoader = new ImageLoader(newVariant);
 
 
       this.#imageLoader.load();
