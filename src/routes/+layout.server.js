@@ -16,7 +16,7 @@ export async function load({ url }) {
 
     const folders = await scanRouteFolders({
       dirPath: import.meta.dirname,
-      maxDepth: 3,
+      maxDepth: 4,
       skipFolders: new Set(['assets', '_todo'])
     });
 
