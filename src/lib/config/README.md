@@ -30,6 +30,7 @@ Generates a complete Vite configuration with HKdigital defaults.
 **Options:**
 - `enableImagetools` (boolean, default: `true`) - Include vite-imagetools plugin
 - `enableVitest` (boolean, default: `true`) - Include Vitest test configuration
+- `enableSvelteKit` (boolean, default: `true`) - Include SvelteKit plugin
 - `customDefines` (object, default: `{}`) - Additional define values
 - `customPlugins` (array, default: `[]`) - Additional Vite plugins
 - `imagetoolsOptions` (object, default: `{}`) - Options passed to imagetools config

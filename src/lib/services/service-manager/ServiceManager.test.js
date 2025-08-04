@@ -11,7 +11,7 @@ import {
   RUNNING,
   STOPPED,
   ERROR
-} from '$lib/services/internal/service-base/index.js';
+} from '$lib/services/service-base/index.js';
 
 // Mock service classes
 class MockServiceA extends ServiceBase {
