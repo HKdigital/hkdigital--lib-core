@@ -4,7 +4,7 @@
 
   import { Star, ExclamationTriangle, CheckCircle } from '@steeze-ui/heroicons';
 
-  import { HkIcon } from '$lib/primitives/icons/index.js';
+  import { HkIcon } from '$lib/ui/primitives/icons/index.js';
 
   import {
     PRISTINE,

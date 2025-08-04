@@ -1,5 +1,5 @@
 <script>
-  import { GridLayers } from '$lib/primitives/layout/index.js';
+  import { GridLayers } from '$lib/ui/primitives/layout/index.js';
 </script>
 
 <GridLayers classes="m-20up border-8 w-[500px] h-[500px]">

@@ -3,9 +3,9 @@
 
   import ElectricBlue from '../../../../assets/images/electric-blue.jpg?preset=gradient&responsive';
 
-  import { ImageBox } from '$lib/components/index.js';
+  import { ImageBox } from '$lib/ui/components/index.js';
 
-  import { TextButton } from '$lib/primitives/buttons/index.js';
+  import { TextButton } from '$lib/ui/primitives/buttons/index.js';
 
   import { SLIDE_HELLO } from '../config/labels.js';
 

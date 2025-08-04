@@ -1,5 +1,5 @@
 <script>
-  import { GridLayers } from '$lib/primitives/layout/index.js';
+  import { GridLayers } from '$lib/ui/primitives/layout/index.js';
 
   import Slideshow from './Slideshow.svelte';
 

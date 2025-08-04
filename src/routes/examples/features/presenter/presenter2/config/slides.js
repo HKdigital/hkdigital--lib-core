@@ -8,7 +8,7 @@ import {
   OUTRO_FADE_OUT
 } from './transitions.js';
 
-/** @typedef {import('$lib/components/presenter/index.js').Slide} Slide */
+/** @typedef {import('$lib/ui/components/presenter/index.js').Slide} Slide */
 
 /** @type {Slide[]} */
 export let slides = [

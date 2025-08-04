@@ -1,5 +1,5 @@
 <script>
-  import { Panel } from '$lib/primitives/panels/index.js';
+  import { Panel } from '$lib/ui/primitives/panels/index.js';
 </script>
 
 <div class="p-20up">

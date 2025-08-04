@@ -1,5 +1,5 @@
 <script>
-  import { DropZone } from '$lib/primitives/drag-drop/index.js';
+  import { DropZone } from '$lib/ui/primitives/drag-drop/index.js';
 
   /**
    * @type {{
@@ -7,9 +7,10 @@
    *   group?: string,
    *   disabled?: boolean,
    *   accepts?: (item: any) => boolean,
-   *   fillContainer?: boolean,
-   *   aspectRatio?: string,
-   *   overflow?: 'auto' | 'hidden' | 'visible' | 'scroll',
+   *   minHeight?: string,
+   *   maxHeight?: string,
+   *   gap?: string,
+   *   direction?: 'vertical' | 'horizontal',
    *   base?: string,
    *   classes?: string,
    *   children?: import('svelte').Snippet,
@@ -51,9 +52,10 @@
     group = 'default',
     disabled = false,
     accepts = () => true,
-    fillContainer = true,
-    aspectRatio = '',
-    overflow = 'hidden',
+    minHeight = 'min-h-[200px]',
+    maxHeight = '',
+    gap = 'gap-2',
+    direction = 'vertical',
     base = '',
     classes = '',
     children,
@@ -70,35 +72,39 @@
     ...attrs
   } = $props();
 
-  // Build overflow classes based on prop
-  let overflowClasses = $derived.by(() => {
-    switch (overflow) {
-      case 'auto':
-        return 'overflow-auto';
-      case 'scroll':
-        return 'overflow-scroll';
-      case 'visible':
-        return 'overflow-visible';
-      case 'hidden':
-      default:
-        return 'overflow-hidden';
+  // Build flex layout classes based on direction
+  let layoutClasses = $derived.by(() => {
+    const layoutParts = ['flex'];
+
+    if (direction === 'vertical') {
+      layoutParts.push('flex-col');
+    } else {
+      layoutParts.push('flex-row', 'flex-wrap');
     }
+
+    if (gap) {
+      layoutParts.push(gap);
+    }
+
+    return layoutParts.join(' ');
   });
 
   // Combine all classes for the drop zone
   let combinedClasses = $derived(
-    `${overflowClasses} ${aspectRatio} ${classes}`.trim()
+    `${layoutClasses} ${classes}`.trim()
   );
 </script>
 
 <DropZone
   data-component="drop-zone"
-  data-type="area"
+  data-type="list"
   {zone}
   {group}
   {disabled}
   {accepts}
-  heightMode={fillContainer ? 'fill' : 'fixed'}
+  {minHeight}
+  {maxHeight}
+  heightMode="flexible"
   {base}
   classes={combinedClasses}
   {contextKey}

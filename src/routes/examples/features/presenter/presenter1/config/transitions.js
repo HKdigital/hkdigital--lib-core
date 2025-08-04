@@ -2,9 +2,9 @@ import {
   TRANSITION_CSS,
   FADE_IN,
   FADE_OUT
-} from '$lib/components/presenter/index.js';
+} from '$lib/ui/components/presenter/index.js';
 
-/** @typedef {import('$lib/components/presenter/typedef.js').Transition} Transition */
+/** @typedef {import('$lib/ui/components/presenter/typedef.js').Transition} Transition */
 
 /** @type {Transition[]} */
 export const INTRO_FADE_IN = [

@@ -1,5 +1,5 @@
 <script>
-  import { TextButton } from '$lib/primitives/buttons/index.js';
+  import { TextButton } from '$lib/ui/primitives/buttons/index.js';
 </script>
 
 <div class="p-20up">

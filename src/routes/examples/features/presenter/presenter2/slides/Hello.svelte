@@ -1,11 +1,11 @@
 <script>
   import ElectricBlue from '../../../../assets/images/electric-blue.jpg?preset=gradient&responsive';
 
-  import { GridLayers } from '$lib/primitives/layout/index.js';
+  import { GridLayers } from '$lib/ui/primitives/layout/index.js';
 
-  import { ImageBox } from '$lib/components/index.js';
+  import { ImageBox } from '$lib/ui/components/index.js';
 
-  import { TextButton } from '$lib/primitives/buttons/index.js';
+  import { TextButton } from '$lib/ui/primitives/buttons/index.js';
 
   import { SLIDE_WORLD } from '../config/labels.js';
 

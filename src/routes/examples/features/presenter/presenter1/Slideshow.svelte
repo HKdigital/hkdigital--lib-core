@@ -6,7 +6,7 @@
    */
   let { color } = $props();
 
-  import { Presenter } from '$lib/components/presenter/index.js';
+  import { Presenter } from '$lib/ui/components/presenter/index.js';
 
   import { slides } from './config/slides.js';
   import { fade } from 'svelte/transition';

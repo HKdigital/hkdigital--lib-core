@@ -1,7 +1,7 @@
 <script>
   import { toStateClasses } from '$lib/design/index.js';
   import { createOrGetDragState } from './drag-state.svelte.js';
-  import { GridLayers } from '$lib/primitives/layout';
+  import { GridLayers } from '$lib/ui/primitives/layout';
   import { generateLocalId } from '$lib/util/unique';
   import {
     READY,

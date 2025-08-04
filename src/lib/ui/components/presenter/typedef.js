@@ -1,6 +1,6 @@
 /**
  * @typedef {{
- *     type: (import('$lib/components/presenter/constants').TRANSITION_CSS),
+ *     type: (import('$lib/ui/components/presenter/constants').TRANSITION_CSS),
  *     property: string,
  *     from: string,
  *     to: string,
@@ -12,7 +12,7 @@
 
 /**
  * @typedef {{
- *     type: (import('$lib/components/presenter/constants').FADE_IN),
+ *     type: (import('$lib/ui/components/presenter/constants').FADE_IN),
  *     from?: string,
  *     to?: string,
  *     delay?: number
@@ -23,7 +23,7 @@
 
 /**
  * @typedef {{
- *     type: (import('$lib/components/presenter/constants').FADE_OUT),
+ *     type: (import('$lib/ui/components/presenter/constants').FADE_OUT),
  *     from?: string,
  *     to?: string,
  *     delay?: number

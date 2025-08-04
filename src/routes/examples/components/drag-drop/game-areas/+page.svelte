@@ -9,7 +9,7 @@
   //   AudiRs6AvantEmptyRadiator
   // } from '$lib/assets/autoschadeherstel/bg';
 
-  import { DragDropContext } from '$lib/primitives/drag-drop/index.js';
+  import { DragDropContext } from '$lib/ui/primitives/drag-drop/index.js';
 
   import GameBoard from './GameBoard.svelte';
   import GameModel from './GameModel.svelte.js';

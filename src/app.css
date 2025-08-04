@@ -4,12 +4,12 @@
 @import 'tailwindcss';
 
 /* Import theme classes and styles */
-@import './lib/themes/hkdev/theme.css' layer(theme);
+@import './lib/design/themes/hkdev/theme.css' layer(theme);
 
-/*@import '$lib/themes/hkdev/debug.css';*/
-@import '$lib/themes/hkdev/globals.css';
-@import '$lib/themes/hkdev/components.css' layer(components);
-@import '$lib/themes/hkdev/responsive.css';
+/*@import '$lib/design/themes/hkdev/debug.css';*/
+@import '$lib/design/themes/hkdev/globals.css';
+@import '$lib/design/themes/hkdev/components.css' layer(components);
+@import '$lib/design/themes/hkdev/responsive.css';
 
 @import '@skeletonlabs/skeleton' source('../node_modules/@skeletonlabs/skeleton-svelte/dist');
 @import '@skeletonlabs/skeleton/optional/presets' source('../node_modules/@skeletonlabs/skeleton-svelte/dist');

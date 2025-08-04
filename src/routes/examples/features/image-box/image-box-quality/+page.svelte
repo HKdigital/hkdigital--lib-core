@@ -3,7 +3,7 @@
 
   // import { TrailerEmpty } from '../../../assets/images.js';
 
-  import { ImageBox } from '$lib/components/index.js';
+  import { ImageBox } from '$lib/ui/components/index.js';
 
 </script>
 
