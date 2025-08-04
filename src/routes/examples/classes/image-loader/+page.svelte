@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
 
-  import { ImageLoader } from '$lib/media/image.js';
+  import { ImageLoader } from '$lib/network/loaders.js';
 
   import ArmyGreen from '../../assets/images/army-green.jpg?preset=gradient';
 

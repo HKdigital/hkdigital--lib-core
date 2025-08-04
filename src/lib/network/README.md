@@ -1,12 +1,13 @@
 # Network
 
-Network utilities for HTTP requests, responses, and caching.
+Network utilities for HTTP requests, responses, caching, and specialized media loaders.
 
 ## Quick Start
 
 ```javascript
 import * as http from '$lib/network/http.js';
 import * as cache from '$lib/network/cache.js';
+import * as loaders from '$lib/network/loaders.js';
 ```
 
 ## HTTP Utilities
@@ -93,6 +94,36 @@ if (cached && !cache.isExpired(cached)) {
 }
 ```
 
+## Media Loaders
+
+Advanced network-based loaders for media assets with loading state management and streaming support. See the [loaders documentation](./loaders/README.md) for detailed usage examples.
+
+```javascript
+import { ImageLoader, AudioLoader, ImageScene } from '$lib/network/loaders.js';
+
+// Load a single image with progress tracking
+const imageLoader = new ImageLoader({ imageSource: { src: '/image.jpg' } });
+imageLoader.load();
+
+// Load multiple images as a scene
+const scene = new ImageScene();
+scene.defineImage({ label: 'hero', imageSource: heroImage });
+scene.load();
+```
+
+## Network State Management
+
+For managing loading states across network operations:
+
+```javascript
+import { NetworkLoader } from '$lib/network/states/index.js';
+
+// Base class for custom network loaders
+class CustomLoader extends NetworkLoader {
+  // Implementation
+}
+```
+
 ## Available Exports
 
 ### HTTP (`$lib/network/http.js`)
@@ -108,6 +139,18 @@ if (cached && !cache.isExpired(cached)) {
 - `MemoryResponseCache` - In-memory response caching
 - `IndexedDbCache` - Persistent browser storage caching
 - Cache-related type definitions
+
+### Loaders (`$lib/network/loaders.js`)
+- `ImageLoader` - Single image loading with progress tracking
+- `ImageVariantsLoader` - Responsive image variants loading
+- `ImageScene` - Multi-image loading and management
+- `AudioLoader` - Audio data loading and processing
+- `AudioScene` - Multi-audio loading and management
+- Media utilities and type definitions
+
+### States (`$lib/network/states/`)
+- `NetworkLoader` - Base class for network-based loaders
+- Loading state management and progress tracking
 
 ## Error Handling
 

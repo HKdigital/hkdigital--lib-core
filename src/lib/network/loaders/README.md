@@ -1,22 +1,22 @@
-# Media
+# Media Loaders
 
-Advanced media loading and processing components for audio and images with loading state management, streaming support, and responsive image handling.
+Advanced media loading and processing classes for audio and images with loading state management, streaming support, and responsive image handling.
 
 ## Quick Start
 
 ```javascript
-import * as image from '$lib/media/image.js';
-import * as audio from '$lib/media/audio.js';
+import * as image from '$lib/network/loaders.js';
+import * as audio from '$lib/network/loaders.js';
 ```
 
-## Image Components
+## Image Loaders
 
 ### ImageLoader
 
 Loads single images with chunked streaming and loading states.
 
 ```javascript
-import { ImageLoader } from '$lib/media/image.js';
+import { ImageLoader } from '$lib/network/loaders.js';
 
 // Create image loader with single image or responsive variants
 const imageSource = { src: '/path/to/image.jpg', width: 800, height: 600 };
@@ -42,7 +42,7 @@ if (imageLoader.loaded) {
 Loads responsive image variants, automatically selecting the best size for container dimensions.
 
 ```javascript
-import { ImageVariantsLoader } from '$lib/media/image.js';
+import { ImageVariantsLoader } from '$lib/network/loaders.js';
 
 const loader = new ImageVariantsLoader();
 
@@ -64,10 +64,10 @@ await loader.load({
 
 ### ImageScene
 
-High-level component that manages multiple image sources with loading states.
+High-level loader that manages multiple image sources with loading states.
 
 ```javascript
-import { ImageScene } from '$lib/media/image.js';
+import { ImageScene } from '$lib/network/loaders.js';
 
 const imageScene = new ImageScene();
 
@@ -91,7 +91,7 @@ imageScene.state; // 'initial', 'loading', 'loaded', 'error'
 Loads audio files with streaming support and loading state management.
 
 ```javascript
-import { AudioLoader } from '$lib/media/audio.js';
+import { AudioLoader } from '$lib/network/loaders.js';
 
 const audioLoader = new AudioLoader({
   url: '/path/to/audio.mp3'
@@ -112,7 +112,7 @@ if (audioLoader.loaded) {
 Manages multiple audio sources with scene-based loading.
 
 ```javascript
-import { AudioScene } from '$lib/media/audio.js';
+import { AudioScene } from '$lib/network/loaders.js';
 
 const audioScene = new AudioScene();
 
@@ -134,7 +134,7 @@ audioScene.load('background');
 import { 
   toSingleImageMeta, 
   calculateEffectiveWidth 
-} from '$lib/media/image/utils/index.js';
+} from '$lib/network/loaders/image/utils/index.js';
 
 // Extract single image from array of variants
 const imageMeta = toSingleImageMeta([
@@ -167,7 +167,7 @@ All loaders implement consistent loading state management:
 
 ```svelte
 <script>
-  import { ImageLoader } from '$lib/media/image.js';
+  import { ImageLoader } from '$lib/network/loaders.js';
   import { onMount } from 'svelte';
 
   let imageLoader = $state();
@@ -240,16 +240,16 @@ try {
 
 ## Available Exports
 
-### Image (`$lib/media/image.js`)
+### Image (`$lib/network/loaders.js`)
 - `ImageLoader` - Single image loading with streaming
 - `ImageVariantsLoader` - Responsive image variant selection
 
-### Audio (`$lib/media/audio.js`) 
+### Audio (`$lib/network/loaders.js`) 
 - `AudioLoader` - Audio file loading with streaming
 - `AudioScene` - Multi-source audio management
 
-### Utilities (`$lib/media/image/utils/`)
+### Utilities (`$lib/network/loaders/image/utils/`)
 - `toSingleImageMeta()` - Extract single image from variants
 - `calculateEffectiveWidth()` - Calculate optimal image dimensions
 
-All components provide built-in loading states, error handling, and memory management with automatic cleanup of object URLs.
+All loaders provide built-in loading states, error handling, and memory management with automatic cleanup of object URLs.

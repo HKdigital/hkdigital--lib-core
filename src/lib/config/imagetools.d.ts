@@ -1,5 +1,5 @@
-type ImageMeta = import('$lib/media/typedef.js').ImageMeta;
-type ImageSource = import('$lib/media/typedef.js').ImageSource;
+type ImageMeta = import('$lib/network/typedef.js').ImageMeta;
+type ImageSource = import('$lib/network/typedef.js').ImageSource;
 
 declare module '*?responsive' {
   const out: ImageMeta[];

@@ -1,7 +1,7 @@
 <script>
-	import { ImageLoader } from '$lib/media/image.js';
-	import { ImageVariantsLoader } from '$lib/media/image.js';
-	import { toSingleImageMeta } from '$lib/media/image/utils/index.js';
+	import { ImageLoader } from '$lib/network/loaders.js';
+	import { ImageVariantsLoader } from '$lib/network/loaders.js';
+	import { toSingleImageMeta } from '$lib/network/loaders/image/utils/index.js';
 
 	/**
 	 * @type {{
@@ -13,9 +13,9 @@
 	 *   aspect?: string,
 	 *   overflow?: string,
 	 *   fit?: 'contain' | 'cover' | 'fill',
-	 *   position?: import('$lib/media/typedef.js').ObjectPosition,
-	 *   imageSource?: import('$lib/media/typedef.js').ImageSource,
-	 *   imageLoader?: import('$lib/media/image.js').ImageLoader,
+	 *   position?: import('$lib/network/typedef.js').ObjectPosition,
+	 *   imageSource?: import('$lib/network/typedef.js').ImageSource,
+	 *   imageLoader?: import('$lib/network/loaders.js').ImageLoader,
 	 *   alt?: string,
 	 *   id?: string|Symbol
 	 *   onProgress?: (progress: import('$lib/network/typedef.js').LoadingProgress, id: string|Symbol) => void,

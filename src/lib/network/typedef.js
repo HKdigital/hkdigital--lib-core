@@ -7,3 +7,4 @@
 export * from './http/typedef.js';
 export * from './cache/typedef.js';
 export * from './states/typedef.js';
+export * from './loaders/typedef.js';
