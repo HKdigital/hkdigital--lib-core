@@ -55,7 +55,7 @@
 
 <div class="justify-self-stretch self-stretch grid" class:invisible={!show}>
   <ImageBox
-    {imageMeta}
+    imageSource={imageMeta}
     {fit}
     {position}
     onProgress={progressListener}
