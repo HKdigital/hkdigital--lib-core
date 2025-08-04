@@ -18,20 +18,21 @@ All regular expressions use the `v` flag (Unicode Sets mode) for consistent Unic
 ### Available Constants
 
 From `text.js`:
-- `LLCHAR` - Latin script characters: `\p{Script=Latin}`
-- `NUMBER` - Decimal digits: `\p{Nd}`
-- `LLCHAR_NUMBER` - Combination of Latin characters and numbers
+- `LCHAR` - Latin script characters: `\p{Script=Latin}`
+- `LNUMBER` - Latin decimal digits: `[0-9]`
+- `LCHAR_LNUMBER` - Combination of Latin characters and Latin decimal numbers
 - `EMOJI` - RGI Emoji: `\p{RGI_Emoji}`
-- `PUNCTUATION` - Punctuation marks: `\p{Punctuation}$+<=>\\^`\\|~`
+- `PUNCT` - Basic punctuation marks: `\p{Punctuation}`
+- `PUNCT_RICH` - All Unicode punctuation: `\p{P}`
 
 ## Usage Examples
 
 ### Basic Usage
 ```js
-import { LCHAR, NUMBER } from '$lib/constants/regexp/text.js';
+import { LCHAR, LNUMBER } from '$lib/constants/regexp/text.js';
 
 // Use with 'v' flag for Unicode Sets mode
-const re = new RegExp(`^(?:${LCHAR}|${NUMBER})+$`, 'v');
+const re = new RegExp(`^(?:${LCHAR}|${LNUMBER})+$`, 'v');
 ```
 
 ### Character Classes vs Groups

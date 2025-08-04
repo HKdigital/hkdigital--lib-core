@@ -6,18 +6,21 @@ import { DetailedError } from "$lib/errors/generic.js";
  * to the originating Error
  * - The originating Error is set as `cause` property
  *
- * @param {string} message - Additional message to prepend
- * @param {Error|string} error - Original error
+ * @param {string} message - New error message
+ * @param {Error|string} originalError
  * @param {string|Object.<string, any>|null} [details]
+ *   New error details (a DetailError will be thrown)
  *
  * @throws {DetailedError}
  * @returns {never} This function never returns
  */
-export function rethrow(message, error, details ) {
-  if (!(error instanceof Error)) {
+export function rethrow(message, originalError, details ) {
+  let error;
+
+  if (!(originalError instanceof Error)) {
     // Convert non-Error values to Error objects
-    error = new Error(String(error));
+    error = new Error(String(originalError));
   }
 
-  throw new DetailedError(message, details, error );
+  throw new DetailedError(message, details, error ?? originalError );
 }

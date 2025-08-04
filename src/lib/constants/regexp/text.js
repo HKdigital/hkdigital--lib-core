@@ -41,9 +41,9 @@
  */
 
 export const LCHAR = '\\p{Script=Latin}';
-export const NUMBER = '\\p{Nd}';
-export const LCHAR_NUMBER = `${LCHAR}${NUMBER}`;
+export const LNUMBER = '[0-9]';
+export const LCHAR_LNUMBER = `${LCHAR}|${LNUMBER}`;
 
 export const EMOJI = '\\p{RGI_Emoji}';
-export const PUNCTUATION = '\\p{Punctuation}$+<=>\\^`\\|~';
-export const PUNCT = PUNCTUATION;
+export const PUNCT = '\\p{Punctuation}';
+export const PUNCT_RICH = '\\p{P}';

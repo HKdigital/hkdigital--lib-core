@@ -4,7 +4,7 @@ Collection of Valibot validation parsers for common data types and formats.
 
 ## Overview
 
-This module provides pre-configured Valibot parsers for validating and transforming common data types like URLs and user information.
+This module provides pre-configured Valibot parsers for validating and transforming common data types like URLs, emails, and user information.
 
 ## Parsers
 
@@ -15,6 +15,11 @@ This module provides pre-configured Valibot parsers for validating and transform
 - `UrlPath` - Extracts and validates URL pathname
 - `RelativeUrl` - Validates relative URLs with path, search, and hash
 - `AbsOrRelUrl` - Validates absolute or relative URLs
+
+### Email Parsers
+
+- `Email` - Validates email addresses with normalization (trim and lowercase)
+- `LatinEmail` - Validates email addresses with Latin characters only (trim and lowercase)
 
 ### User Parsers
 
@@ -27,10 +32,16 @@ This module provides pre-configured Valibot parsers for validating and transform
 ## Usage
 
 ```js
-import { v, HumanUrl, Name } from '$lib/valibot/index.js';
+import { v, HumanUrl, Email, LatinEmail, Name } from '$lib/valibot/index.js';
 
 // Validates and transforms URL (throws error if invalid)
 const result = v.parse(HumanUrl, 'example.com'); // Returns 'https://example.com'
+
+// Validates and normalizes email (throws error if invalid)
+const emailResult = v.parse(Email, '  TEST@Example.COM  '); // Returns 'test@example.com'
+
+// Validates Latin-only email (throws error if invalid or contains non-Latin chars)
+const latinEmailResult = v.parse(LatinEmail, 'User@Domain.ORG'); // Returns 'user@domain.org'
 
 // Validates name (throws error if invalid)
 const nameResult = v.parse(Name, 'John');
