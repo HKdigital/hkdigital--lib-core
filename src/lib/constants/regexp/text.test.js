@@ -1,12 +1,12 @@
 import { describe, it, expect } from 'vitest';
 
-import { CHAR, NUMBER, CHAR_NUMBER, EMOJI, PUNCT } from './text.js';
+import { LCHAR, NUMBER, LCHAR_NUMBER, EMOJI, PUNCT } from './text.js';
 
 // > Test
 
-describe('Regexp part {CHAR}', () => {
+describe('Regexp part {LCHAR}', () => {
   it('should match latin characters', () => {
-    const re = new RegExp(`^[${CHAR}]$`, 'u');
+    const re = new RegExp(`^(?:${LCHAR})$`, 'v');
 
     const cases = ['a', 'A', 'z', 'Z', 'š', 'œ', 'þ', 'ß', 'ë'];
 
@@ -16,7 +16,7 @@ describe('Regexp part {CHAR}', () => {
   });
 
   it('should not match other characters', () => {
-    const re = new RegExp(`^[${CHAR}]$`, 'u');
+    const re = new RegExp(`^(?:${LCHAR})$`, 'v');
 
     const cases = ['1', '😄', '+', '.'];
 
@@ -30,7 +30,7 @@ describe('Regexp part {CHAR}', () => {
 
 describe('Regexp part {NUMBER}', () => {
   it('should match numbers', () => {
-    const re = new RegExp(`^[${NUMBER}]$`, 'u');
+    const re = new RegExp(`^(?:${NUMBER})$`, 'v');
 
     const cases = ['1', '0'];
 
@@ -40,7 +40,7 @@ describe('Regexp part {NUMBER}', () => {
   });
 
   it('should not match other characters', () => {
-    const re = new RegExp(`^[${NUMBER}]$`, 'u');
+    const re = new RegExp(`^(?:${NUMBER})$`, 'v');
 
     const cases = ['a', '😄', 'I', 'V', '-1', '+', '.'];
 
@@ -52,9 +52,9 @@ describe('Regexp part {NUMBER}', () => {
 
 // > Test
 
-describe('Regexp part {CHAR_NUMBER}', () => {
+describe('Regexp part {LCHAR_NUMBER}', () => {
   it('should match latin characters and numbers', () => {
-    const re = new RegExp(`^[${CHAR_NUMBER}]$`, 'u');
+    const re = new RegExp(`^(?:${LCHAR}|${NUMBER})$`, 'v');
 
     const cases = ['a', 'A', 'z', 'Z', 'š', 'œ', 'þ', 'ß'];
 
@@ -64,7 +64,7 @@ describe('Regexp part {CHAR_NUMBER}', () => {
   });
 
   it('should not match other characters', () => {
-    const re = new RegExp(`^[${CHAR_NUMBER}]$`, 'u');
+    const re = new RegExp(`^(?:${LCHAR}|${NUMBER})$`, 'v');
 
     const cases = ['😄', '+', '.'];
 
@@ -104,8 +104,8 @@ describe('Regexp part {EMOJI}', () => {
 // > Test
 
 describe('Regexp part {PUNCT}', () => {
-  it('should match Punctuation charaPUNCTcters', () => {
-    const re = new RegExp(`^[${PUNCT}]$`, 'u');
+  it('should match Punctuation characters', () => {
+    const re = new RegExp(`^[${PUNCT}]$`, 'v');
 
     const cases = '!"#$%&\'()*+,-./:;<=>?@[\\]^_`{|}~“‘’”';
 

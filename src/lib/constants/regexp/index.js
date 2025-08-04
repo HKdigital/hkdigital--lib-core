@@ -12,7 +12,7 @@
  * such a some emoji, you must use the flag 'v'.
  *
  * @eg
- * const re = new RegExp('^[${Latin_Number}]', 'u');
+ * const re = new RegExp('^(?:${Latin_Number})', 'v');
  *
  * @eg
  * const re = new RegExp('^[${Symbols_Emoji}]', 'v');
@@ -28,4 +28,4 @@
  */
 export * from './text.js';
 export * from './user.js';
-export * from './web.js';
+export * from './url.js';

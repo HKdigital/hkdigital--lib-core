@@ -1,7 +1,8 @@
-import * as v from 'valibot';
+import * as valibot from 'valibot';
 
 // export * from './date.js';
 
 export * from './parsers.js';
 
-export default v;
+export { valibot as v };
+export default valibot;

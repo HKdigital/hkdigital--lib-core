@@ -2,6 +2,8 @@
 
 import * as v from 'valibot';
 
+import { URL_SLUG } from '$lib/constants/regexp/index.js';
+
 // > URL Parsers
 
 /**
@@ -93,3 +95,17 @@ export const AbsOrRelUrl = v.union([
 	v.pipe(v.string(), v.trim(), v.url()),
 	v.pipe(v.string(), v.nonEmpty(), RelativeUrl)
 ]);
+
+/**
+ * Parser for URL slug (e.g., "my-blog-post", "user-123")
+ * 
+ * @note Must start and end with Latin characters or numbers
+ * @note Hyphens are allowed between character groups
+ * @note Automatically converts to lowercase
+ */
+export const Slug = v.pipe(
+	v.string(),
+	v.trim(),
+	v.toLowerCase(),
+	v.regex(new RegExp(URL_SLUG, 'v'), 'Must be a valid URL slug')
+);

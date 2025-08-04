@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 import * as v from 'valibot';
 
-import { UrlOrEmptyString, HumanUrl, UrlPath, RelativeUrl, AbsOrRelUrl } from './url.js';
+import { UrlOrEmptyString, HumanUrl, UrlPath, RelativeUrl, AbsOrRelUrl, Slug } from './url.js';
 
 describe('UrlOrEmptyString', () => {
 	it('should parse an url or empty string', () => {
@@ -132,6 +132,63 @@ describe('AbsOrRelUrl', () => {
 			expect(v.parse(AbsOrRelUrl, '')).toEqual('');
 		} catch (e) {
 			expect(e.message).toEqual('Invalid URL: Received ""');
+		}
+	});
+});
+
+describe('Slug', () => {
+	it('should parse and transform valid URL slugs', () => {
+		// > Positive test - lowercase transformation
+		expect(v.parse(Slug, 'hello')).toEqual('hello');
+		expect(v.parse(Slug, 'Hello')).toEqual('hello');
+		expect(v.parse(Slug, 'HELLO')).toEqual('hello');
+		expect(v.parse(Slug, 'Hello-World')).toEqual('hello-world');
+		expect(v.parse(Slug, 'MY-BLOG-POST')).toEqual('my-blog-post');
+		
+		// > Positive test - trim whitespace
+		expect(v.parse(Slug, '  hello-world  ')).toEqual('hello-world');
+		expect(v.parse(Slug, '\thello\t')).toEqual('hello');
+		
+		// > Positive test - valid patterns
+		expect(v.parse(Slug, 'user-123')).toEqual('user-123');
+		expect(v.parse(Slug, 'product-abc-123')).toEqual('product-abc-123');
+		expect(v.parse(Slug, 'a')).toEqual('a');
+		expect(v.parse(Slug, '1')).toEqual('1');
+		expect(v.parse(Slug, 'abc123')).toEqual('abc123');
+	});
+
+	it('should throw on invalid URL slugs', () => {
+		// > Negative test - invalid patterns
+		const invalidCases = [
+			'',
+			'-hello',
+			'hello-',
+			'hello--world',
+			'hello_world',
+			'hello world',
+			'hello.world',
+			'hello/world',
+			'hello@world',
+			'hello#world',
+			'hello?world'
+		];
+
+		for (const invalidSlug of invalidCases) {
+			try {
+				v.parse(Slug, invalidSlug);
+				expect.fail(`Expected ${invalidSlug} to throw, but it didn't`);
+			} catch (e) {
+				expect(e.message).toContain('Must be a valid URL slug');
+			}
+		}
+	});
+
+	it('should throw on non-string input', () => {
+		try {
+			v.parse(Slug, 123);
+			expect.fail('Expected non-string input to throw');
+		} catch (e) {
+			expect(e.message).toContain('Invalid type: Expected string');
 		}
 	});
 });

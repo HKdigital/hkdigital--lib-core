@@ -35,9 +35,13 @@ This is a modern SvelteKit library built with Svelte 5 and Skeleton.dev v3 compo
 ## Import Path Conventions
 - Use `$lib/domain/...` imports for cross-domain references (e.g., `$lib/media/image.js`, `$lib/network/http.js`)
 - Use relative imports (`./` or `../`) when staying within the same main folder under `$lib`
+- **Always include file extensions** (`.js`, `.svelte`) in import statements
+- **Always use `/index.js`** for directory imports instead of directory-only paths - this ensures compatibility outside the library
 - Examples:
   - ✅ `import { ImageLoader } from '$lib/media/image.js'` (from components to media)
   - ✅ `import ImageLoader from './ImageLoader.svelte.js'` (within media/image folder)
+  - ✅ `import { v, HumanUrl } from '$lib/valibot/index.js'` (explicit index.js)
+  - ❌ `import { v, HumanUrl } from '$lib/valibot'` (missing /index.js)
   - ❌ `import something from '../../media/image.js'` (cross-domain relative import)
 
 ## Accessibility Requirements

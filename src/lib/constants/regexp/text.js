@@ -11,7 +11,7 @@
  * import { Latin_Char_Number as lcn } from './latin.js';
  * export const User_Username = `^[${lcn}]+${lcn}_-]{1,38}[${lcn}]$`;
  *
- * const re = new RegExp('^[${Latin_Number}]', 'u');
+ * const re = new RegExp('^(?:${Latin_Number})', 'v');
  *
  * Emoji:
  *
@@ -40,9 +40,9 @@
  *      wiki/Unicode_character_property#General_Category
  */
 
-export const CHAR = '\\p{Script=Latin}';
+export const LCHAR = '\\p{Script=Latin}';
 export const NUMBER = '\\p{Nd}';
-export const CHAR_NUMBER = `${CHAR}${NUMBER}`;
+export const LCHAR_NUMBER = `${LCHAR}${NUMBER}`;
 
 export const EMOJI = '\\p{RGI_Emoji}';
 export const PUNCTUATION = '\\p{Punctuation}$+<=>\\^`\\|~';

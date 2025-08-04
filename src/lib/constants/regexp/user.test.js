@@ -61,7 +61,7 @@ describe('Regexp {RE_FULLNAME}', () => {
   });
 
   it('should not match other characters', () => {
-    const re = new RegExp(RE_FULLNAME);
+    const re = RE_FULLNAME;
 
     const cases = [
       'John',
