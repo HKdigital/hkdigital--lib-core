@@ -138,9 +138,6 @@ importers:
       vitest:
         specifier: ^3.2.2
         version: 3.2.2(jiti@2.4.2)(jsdom@26.1.0)(lightningcss@1.30.1)(sugarss@4.0.1(postcss@8.5.4))(yaml@2.6.0)
-      zod:
-        specifier: ^3.24.2
-        version: 3.24.2
 
 packages:
 
@@ -2985,9 +2982,6 @@ packages:
 
   zimmerframe@1.1.2:
     resolution: {integrity: sha512-rAbqEGa8ovJy4pyBxZM70hg4pE6gDgaQ0Sl9M3enG3I0d6H4XSAM3GeNGLKnsBpuijUow064sf7ww1nutC5/3w==}
-
-  zod@3.24.2:
-    resolution: {integrity: sha512-lY7CDW43ECgW9u1TcT3IoXHflywfVqDYze4waEz812jR/bZ8FHDsl7pFQoSZTz5N+2NqRXs8GBwnAwo3ZNxqhQ==}
 
 snapshots:
 
@@ -5928,5 +5922,3 @@ snapshots:
   yocto-queue@0.1.0: {}
 
   zimmerframe@1.1.2: {}
-
-  zod@3.24.2: {}

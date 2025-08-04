@@ -45,7 +45,7 @@
   });
 </script>
 
-{#if imageMeta}
+{#if imageSource}
   <button
     onclick={() => {
       imageLoader?.unload();
@@ -56,8 +56,8 @@
   <br />
   <img
     src={objectURL}
-    width={imageMeta.width}
-    height={imageMeta.height}
+    width={imageSource.width}
+    height={imageSource.height}
     alt=""
   />
 {/if}
