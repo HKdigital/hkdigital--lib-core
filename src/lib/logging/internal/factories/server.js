@@ -1,7 +1,7 @@
-import { Logger } from '$lib/logging/internal/unified-logger';
+import { Logger } from '$lib/logging/internal/logger/index.js';
 
 import { PinoAdapter } from '$lib/logging/internal/adapters/pino.js';
-import { INFO } from '$lib/logging/internal/unified-logger/constants.js';
+import { INFO } from '$lib/logging/internal/constants.js';
 
 /**
  * Create a server-side logger with pino adapter

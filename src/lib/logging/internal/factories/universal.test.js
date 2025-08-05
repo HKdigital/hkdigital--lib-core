@@ -2,7 +2,7 @@
  * @fileoverview Unit tests for universal logger factory
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { INFO, DEBUG } from '$lib/logging/internal/unified-logger/constants.js';
+import { INFO, DEBUG } from '$lib/logging/internal/constants.js';
 
 // Mock modules before any imports that use them
 vi.mock('$app/environment', () => ({

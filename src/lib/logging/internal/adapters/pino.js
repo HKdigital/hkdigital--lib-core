@@ -55,19 +55,37 @@ export class PinoAdapter {
       }
     };
 
-    const devOptions = dev
-      ? {
-          level: 'debug',
-          transport: {
-            target: 'pino-pretty',
-            options: {
-              colorize: true
-            }
+    // Add error handling for missing pino-pretty in dev
+    if (dev) {
+      const devOptions = {
+        level: 'debug',
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            colorize: true
           }
         }
-      : {};
+      };
 
-    this.pino = pino({ ...baseOptions, ...devOptions, ...options });
+      try {
+        this.pino = pino({ ...baseOptions, ...devOptions, ...options });
+      } catch (error) {
+        if (error.message.includes('pino-pretty')) {
+          const errorMessage = `
+╭─────────────────────────────────────────────────────────────╮
+│                     Missing Dependency                      │
+├─────────────────────────────────────────────────────────────┤
+│  'pino-pretty' is required for development logging          │
+│  Install it with: pnpm add -D pino-pretty                   │
+╰─────────────────────────────────────────────────────────────╯`;
+          console.error(errorMessage);
+          throw new Error('pino-pretty is required for development mode');
+        }
+        throw error;
+      }
+    } else {
+      this.pino = pino({ ...baseOptions, ...options });
+    }
   }
 
   /**

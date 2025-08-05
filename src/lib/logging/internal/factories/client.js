@@ -1,6 +1,6 @@
-import { Logger } from '$lib/logging/internal/unified-logger';
+import { Logger } from '$lib/logging/internal/logger/index.js';
 import { ConsoleAdapter } from '$lib/logging/internal/adapters/console.js';
-import { INFO } from '$lib/logging/internal/unified-logger/constants.js';
+import { INFO } from '$lib/logging/internal/constants.js';
 
 /**
  * Create a client-side logger with console adapter

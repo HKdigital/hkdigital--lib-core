@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ServiceManager } from './ServiceManager.js';
-import { DEBUG, INFO, WARN } from '$lib/logging/internal/unified-logger';
+import { DEBUG, INFO, WARN } from '$lib/logging/index.js';
 import {
   ServiceBase,
   NOT_CREATED,

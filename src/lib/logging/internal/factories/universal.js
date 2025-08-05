@@ -11,7 +11,7 @@ import { createClientLogger } from './client.js';
  * @param {string} serviceName - Name of the service
  * @param {string} [level] - Initial log level
  * @param {Object} [options] - Additional options
- * @returns {import('../unified-logger').Logger} Configured logger instance
+ * @returns {import('../logger').Logger} Configured logger instance
  */
 export function createLogger(serviceName, level, options = {}) {
   if (browser) {

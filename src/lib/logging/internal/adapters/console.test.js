@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ConsoleAdapter } from '$lib/logging/internal/adapters/console.js';
-import { DEBUG, INFO, WARN, ERROR } from '$lib/logging/internal/unified-logger/constants.js';
+import { DEBUG, INFO, WARN, ERROR } from '$lib/logging/internal/constants.js';
 
 describe('ConsoleAdapter', () => {
   let adapter;
