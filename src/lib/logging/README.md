@@ -13,7 +13,7 @@ pnpm add -D pino-pretty
 ```javascript
 import { createServerLogger,
          createClientLogger,
-         createLogger } from '$lib/logging/index.js';
+         createLogger } from '@hkdigital/lib-core/logging/index.js';
 
 // Server-side logging (uses pino)
 const serverLogger = createServerLogger('app');
@@ -36,7 +36,7 @@ logger.error('Error message', { error: new Error('Something went wrong') });
 ### Server-side logging (src/hooks.server.js)
 
 ```javascript
-import { createServerLogger } from '$lib/logging/index.js';
+import { createServerLogger } from '@hkdigital/lib-core/logging/index.js';
 
 let logger;
 
@@ -107,7 +107,7 @@ export async function handle({ event, resolve }) {
 ### Client-side logging (src/hooks.client.js)
 
 ```javascript
-import { createClientLogger } from '$lib/logging/index.js';
+import { createClientLogger } from '@hkdigital/lib-core/logging/index.js';
 
 const logger = createClientLogger('client');
 
