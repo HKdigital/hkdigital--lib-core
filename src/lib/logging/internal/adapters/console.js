@@ -1,4 +1,4 @@
-import { LEVELS } from '$lib/logging/internal/constants.js';
+import { LEVELS } from '$lib/logging/constants.js';
 
 /**
  * (Browser) console adapter that uses native DevTools styling
