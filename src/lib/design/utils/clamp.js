@@ -1,4 +1,4 @@
-import { getRootCssVar } from '$lib/util/css/index.js';
+import { getRootCssVar } from './root-vars.js';
 
 /**
  * Cache to that ensures we parse CSS clamp parameters only once

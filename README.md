@@ -88,10 +88,19 @@ For detailed configuration options, see the [config documentation](./src/lib/con
 
 ### Import JS, Svelte files and Typedefs
 
-Most subfolders have an index.js that export all functionality and typedefs.
+Main folders in lib have an index.js, but may also have a more specific export file e.g. http.js or cache.js (@see $lib/network).
 
-```svelte
-import { CHAR } from '@hkdigital/lib-core/constants/regexp/index.js';
+Main folders (should) have a typedef.js that can be used in JSdoc comments.
+
+```js
+// Import Latin char constant for use in regular expressions
+import { LCHAR } from '@hkdigital/lib-core/constants/regexp/index.js';
+```
+
+```js
+/**
+ * @param {import('@hkdigital/lib-core/network/typedef.js').JsonGetOptions} JsonGetOptions
+ */
 ```
 
 ### Import CSS

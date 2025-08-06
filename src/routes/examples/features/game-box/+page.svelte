@@ -1,6 +1,5 @@
 <script>
-  import { DESIGN, CLAMPING } from '$lib/design/config/design-config.js';
-
+  import { designTokens } from '$lib/design/index.js';
   import { GameBox } from '$lib/ui/components/index.js';
 </script>
 
@@ -12,9 +11,9 @@
   marginBottom={20}
   aspectOnLandscape={16 / 9}
   aspectOnPortrait={1 / 1}
-  designLandscape={DESIGN}
+  designLandscape={designTokens.DESIGN}
   designPortrait={{ width: 1080, height: 1080 }}
-  clamping={CLAMPING}
+  clamping={designTokens.CLAMPING}
   enableScaling={true}
 >
   {#snippet snippetLandscape()}

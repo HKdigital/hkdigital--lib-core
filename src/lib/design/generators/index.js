@@ -1,4 +1,93 @@
 /**
+ * Generate complete Tailwind CSS theme extensions from design configuration
+ *
+ * Takes design configuration objects and generates complete Tailwind theme extensions.
+ * Users can define their own design-config.js with custom values and pass them here.
+ *
+ * @param {Object} designConfig - Design configuration object
+ * @param {Object} designConfig.TEXT_POINT_SIZES - Array of text point sizes for spacing
+ * @param {Object} designConfig.VIEWPORT_POINT_SIZES - Array of viewport point sizes
+ * @param {Object} designConfig.TEXT_BASE_SIZES - Base text size configurations
+ * @param {Object} designConfig.TEXT_HEADING_SIZES - Heading text size configurations
+ * @param {Object} designConfig.TEXT_UI_SIZES - UI text size configurations
+ * @param {Object} designConfig.RADIUS_SIZES - Border radius configurations
+ * @param {Object} designConfig.BORDER_WIDTH_SIZES - Border width configurations
+ * @param {Object} designConfig.STROKE_WIDTH_SIZES - Stroke width configurations
+ *
+ * @returns {Object} Complete Tailwind theme extension object
+ *
+ * @example Basic usage
+ * ```javascript
+ * // your-project/src/lib/design/design-config.js
+ * export const DESIGN = { width: 1440, height: 900 };
+ * export const TEXT_BASE_SIZES = {
+ *   sm: { size: 12, lineHeight: 1.3 },
+ *   md: { size: 16, lineHeight: 1.4 }
+ * };
+ * // ... other exports
+ *
+ * // your-project/tailwind.config.js
+ * import { generateTailwindThemeExtensions } from '@hkdigital/lib-core/design/index.js';
+ * import { customUtilitiesPlugin } from '@hkdigital/lib-core/design/index.js';
+ * import * as designConfig from './src/lib/design/design-config.js';
+ *
+ * export default {
+ *   theme: {
+ *     extend: generateTailwindThemeExtensions(designConfig)
+ *   },
+ *   plugins: [customUtilitiesPlugin]
+ * };
+ * ```
+ */
+export function generateTailwindThemeExtensions({
+  TEXT_POINT_SIZES,
+  VIEWPORT_POINT_SIZES,
+  TEXT_BASE_SIZES,
+  TEXT_HEADING_SIZES,
+  TEXT_UI_SIZES,
+  RADIUS_SIZES,
+  BORDER_WIDTH_SIZES,
+  STROKE_WIDTH_SIZES
+}) {
+  const textBasedSpacing = generateTextBasedSpacing(TEXT_POINT_SIZES);
+  const viewportBasedSpacing = generateViewportBasedSpacing(VIEWPORT_POINT_SIZES);
+
+  return {
+    spacing: {
+      ...viewportBasedSpacing,
+      ...textBasedSpacing
+    },
+
+    fontSize: {
+      ...textBasedSpacing,
+      ...generateTextStyles(TEXT_BASE_SIZES, 'base'),
+      ...generateTextStyles(TEXT_HEADING_SIZES, 'heading'),
+      ...generateTextStyles(TEXT_UI_SIZES, 'ui')
+    },
+
+    borderRadius: {
+      ...generateBorderRadiusStyles(RADIUS_SIZES)
+    },
+
+    borderWidth: {
+      ...generateWidthStyles(BORDER_WIDTH_SIZES, 'width')
+    },
+
+    strokeWidth: {
+      ...generateWidthStyles(STROKE_WIDTH_SIZES, 'width')
+    },
+
+    outlineWidth: {
+      ...generateWidthStyles(STROKE_WIDTH_SIZES, '')
+    },
+
+    outlineOffset: {
+      ...generateWidthStyles(STROKE_WIDTH_SIZES, '')
+    }
+  };
+}
+
+/**
  * Generates text-based spacing units with with different scaling
  * units (ut, bt, ht)
  *

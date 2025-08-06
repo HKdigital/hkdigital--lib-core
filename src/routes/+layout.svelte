@@ -5,13 +5,11 @@
 
 	let { children } = $props();
 
-	import { DESIGN, CLAMPING } from '$lib/design/config/design-config.js';
-
-	import { rootDesignVarsHTML } from '$lib/design/utils/root-vars.js';
+	import { designTokens, designTokensToRootCssVars } from '$lib/design/index.js';
 </script>
 
 <svelte:head>
-	{@html rootDesignVarsHTML(DESIGN, CLAMPING)}
+	{@html designTokensToRootCssVars(designTokens)}
 </svelte:head>
 
 {@render children()}

@@ -12,7 +12,7 @@ The `vite.js` provides generators for common Vite setups used across HKdigital p
 // vite.config.js
 import { defineConfig } from 'vitest/config';
 import { sveltekit } from '@sveltejs/kit/vite';
-import { generateViteConfig } from '@hkdigital/lib-sveltekit/config/vite.js';
+import { generateViteConfig } from '@hkdigital/lib-core/config/vite.js';
 
 export default defineConfig(
   await generateViteConfig({
@@ -106,7 +106,7 @@ pnpm add -D vite-imagetools
 For TypeScript and JavaScript projects using VS Code or other TypeScript-aware editors, add to your `app.d.ts`:
 
 ```typescript
-import '@hkdigital/lib-sveltekit/config/imagetools.d.ts';
+import '@hkdigital/lib-core/config/imagetools.d.ts';
 ```
 
 **Why this is needed:**
@@ -157,7 +157,7 @@ import { resolve } from 'path';
 import {
   generateDefaultDirectives,
   generateResponseConfigs
-} from '@hkdigital/lib-sveltekit/config/imagetools-config.js';
+} from '@hkdigital/lib-core/config/imagetools-config.js';
 
 const packageJson = JSON.parse(
   readFileSync(resolve('./package.json'), 'utf-8')
@@ -189,7 +189,7 @@ export default defineConfig({
 // vite.config.js
 import { defineConfig } from 'vitest/config';
 import { sveltekit } from '@sveltejs/kit/vite';
-import { generateViteConfig } from '@hkdigital/lib-sveltekit/config/vite.js';
+import { generateViteConfig } from '@hkdigital/lib-core/config/vite.js';
 
 export default defineConfig(
   await generateViteConfig()
