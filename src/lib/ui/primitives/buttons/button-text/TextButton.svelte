@@ -16,6 +16,6 @@
   } = $props();
 </script>
 
-<Button type="text" {...attrs}>
+<Button type="text" data-type="text" {...attrs}>
   {@render children()}
 </Button>

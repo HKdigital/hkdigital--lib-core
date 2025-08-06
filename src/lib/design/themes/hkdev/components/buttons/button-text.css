@@ -1,32 +1,26 @@
-@define-mixin component-button-text {
 
-  /* @note using CSS vars defined in the parent button postcss */
+/* Type-based styling for text buttons */
+[data-component='button'][data-type='text'] {
+  /* Typography settings */
+  @apply font-ui text-ui-md;
+  @apply uppercase;
+  @apply whitespace-nowrap;
 
-  /* Type-based styling for text buttons */
-  [data-component="button"][data-type="text"] {
+  /* Size settings */
 
-    /* Typography settings */
-    @apply font-ui text-ui-md;
-    @apply uppercase;
-    @apply whitespace-nowrap;
-
-    /* Size settings */
-
-    &[data-size="md"] {
-      @apply rounded-sm;
-      @apply py-8ut px-16ut;
-      min-width: var(--btn-min-width);
-      min-height: var(--btn-min-height);
-    }
-
-    /* Role-specific text adjustments */
-    &[data-role="primary"] {
-      @apply font-extrabold;
-    }
-
-    &[data-role="secondary"] {
-      @apply font-bold;
-    }
+  &[data-size='md'] {
+    @apply rounded-sm;
+    @apply py-8ut px-16ut;
+    min-width: var(--btn-min-width);
+    min-height: var(--btn-min-height);
   }
 
+  /* Role-specific text adjustments */
+  &[data-role='primary'] {
+    @apply font-extrabold;
+  }
+
+  &[data-role='secondary'] {
+    @apply font-bold;
+  }
 }

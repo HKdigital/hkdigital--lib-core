@@ -35,12 +35,8 @@ export class ConsoleAdapter {
     const styles = this._getStyles(level);
     const prefix = `%c[${source}]`;
 
-    // Merge context with details
-    const logData = details
-      ? { ...this.context, ...details }
-      : Object.keys(this.context).length > 0
-        ? this.context
-        : undefined;
+    // Process details for better error formatting
+    const logData = this._processLogData(details);
 
     if (logData) {
       console[this._getConsoleMethod(level)](prefix, styles, message, logData);
