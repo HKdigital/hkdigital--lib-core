@@ -5,9 +5,11 @@ import * as v from 'valibot';
  *
  * @param {any} value
  */
-export function string(value) {
+export function expect_string(value) {
 	v.parse(v.string(), value);
 }
+
+export { expect_string as string };
 
 /**
  * Throws a validation error if value is not a boolean

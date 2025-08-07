@@ -11,7 +11,7 @@
   /**
    * Client-side function that triggers an expect validation error
    */
-  function triggerClientExpectError() {
+  function thisFunctionExpects123toBeAString() {
     try {
       // This will always fail and trigger an expect error
       expect.string(123);
@@ -22,16 +22,16 @@
 
   let clientResult = $state(null);
 
-  function handleClientError() {
+  function doSomethingWrong() {
     try {
-      triggerClientExpectError();
+      thisFunctionExpects123toBeAString();
       clientResult = {
         success: true,
         message: 'No error occurred (unexpected)'
       };
     } catch (error) {
       // Send output to client logger
-      logger.error('The triggered error was', error);
+      logger.error('Caught test exception', error);
 
       clientResult = {
         success: false,
@@ -93,7 +93,7 @@
     <div class="card p-16up mt-20up">
       <h2 class="type-heading-h3 mb-12bt">Client logger</h2>
       
-      <TextButton onclick={handleClientError}>
+      <TextButton onclick={doSomethingWrong}>
         Generate client expect error
       </TextButton>
 

@@ -142,6 +142,7 @@ export class PinoAdapter {
         // details has an error property
         logData.err = details.error;
         // Include other details except the error
+        // eslint-disable-next-line no-unused-vars
         const { error, ...otherDetails } = details;
         if (Object.keys(otherDetails).length > 0) {
           logData.details = otherDetails;

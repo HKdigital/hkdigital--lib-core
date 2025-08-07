@@ -25,6 +25,12 @@ This is a modern SvelteKit library built with Svelte 5 and Skeleton.dev v3 compo
 - Snippet props typed as `import('svelte').Snippet`
 - Private methods use hash prefix (`#methodName`)
 
+## JavaScript Class Patterns
+- Use modern ES private methods with hash prefix: `#methodName()` instead of `_methodName()`
+- Private fields also use hash prefix: `#privateField`
+- Apply this to all JavaScript classes, not just Svelte components
+- Never use `@private` in JSDoc for methods that start with `#` - the hash already indicates privacy
+
 ## Development Standards
 - Readable code over concise code
 - Explicit error handling with try/catch for async operations
