@@ -1,6 +1,7 @@
 import { expect, rethrow } from '$lib/util/index.js';
 import { HkPromise } from '$lib/classes/promise/index.js';
 import { httpGet } from '$lib/network/http/index.js';
+import { v } from '$lib/valibot/index.js';
 
 /**
  * Test functions for generating various types of errors for logging demonstration
@@ -121,4 +122,16 @@ export function throwRethrowChainError() {
   }
   
   level1Function();
+}
+
+/**
+ * Raw valibot validation error (without expect wrapper)
+ */
+export function throwRawValibotError() {
+  // This calls valibot.parse directly, not through expect_*
+  const schema = v.string();
+  const invalidValue = 456;
+  
+  // This will throw a ValiError directly from our valibotParser wrapper
+  return v.parse(schema, invalidValue);
 }

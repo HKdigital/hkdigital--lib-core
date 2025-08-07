@@ -9,7 +9,8 @@
     throwHkPromiseTimeout,
     throwHttpException,
     throwExpectError,
-    throwRethrowChainError
+    throwRethrowChainError,
+    throwRawValibotError
   } from '$lib/logging/test-errors.js';
 
   let { data, form } = $props();
@@ -51,6 +52,7 @@
   const testHttpException = () => handleClientTest('HTTP exception', throwHttpException);
   const testExpectError = () => handleClientTest('expect validation', throwExpectError);
   const testRethrowChain = () => handleClientTest('rethrow chain', throwRethrowChainError);
+  const testRawValibotError = () => handleClientTest('raw valibot', throwRawValibotError);
 </script>
 
 <div class="container mx-auto p-20up" data-page>
@@ -71,7 +73,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-20up">
     <!-- Server error button -->
     <div class="card p-16up">
-      <h2 class="type-heading-h3 mb-20up">Server logger</h2>
+      <h2 class="type-heading-h3 my-20up">Server logger</h2>
       
       <form method="POST" action="?/triggerServerError" use:enhance>
         <TextButton data-role="secondary" data-size="sm" buttonType="submit">
@@ -102,7 +104,7 @@
 
     <!-- Client error buttons -->
     <div class="card p-16up">
-      <h2 class="type-heading-h3 mb-20up">Client logger</h2>
+      <h2 class="type-heading-h3 my-20up">Client logger</h2>
       
       <div class="grid grid-cols-1 gap-20up w-200up">
         <TextButton data-role="secondary" data-size="sm" onclick={testSimpleError}>
@@ -131,6 +133,10 @@
 
         <TextButton data-role="secondary" data-size="sm" onclick={testRethrowChain}>
           Rethrow error
+        </TextButton>
+
+        <TextButton data-role="secondary" data-size="sm" onclick={testRawValibotError}>
+          Raw valibot error
         </TextButton>
       </div>
 

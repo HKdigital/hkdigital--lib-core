@@ -3,7 +3,8 @@
  */
 
 import pino from 'pino';
-import { dev } from '$app/environment';
+import { dev, building } from '$app/environment';
+import { detectErrorMeta, findRelevantFrameIndex } from './formatting.js';
 
 /**
  * Pino adapter that bridges Logger events to pino
@@ -36,6 +37,18 @@ export class PinoAdapter {
               })
             };
 
+            // Add error metadata for structured logging
+            if (current.stack) {
+              // Convert cleaned stack string to array format expected by formatting functions
+              const cleanedStackString = this.#cleanStackTrace(current.stack);
+              const cleanedStackArray = cleanedStackString.split('\n')
+                .map(line => line.trim())
+                .filter(line => line && line !== current.name + ': ' + current.message);
+
+              const errorMeta = detectErrorMeta(current, cleanedStackArray);
+              serialized.meta = errorMeta;
+            }
+
             // Include HttpError-specific properties
             if (current.status !== undefined) {
               serialized.status = current.status;
@@ -56,6 +69,7 @@ export class PinoAdapter {
 
     // Add error handling for missing pino-pretty in dev
     if (dev) {
+      // Use basic pino-pretty options (no custom functions to avoid SSR serialization)
       const devOptions = {
         level: 'debug',
         transport: {

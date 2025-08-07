@@ -1,5 +1,12 @@
 import { dev } from '$app/environment';
 import { LEVELS } from '$lib/logging/constants.js';
+import {
+  findRelevantFrameIndex,
+  detectErrorMeta,
+  formatErrorDisplay,
+  isMeaningfulFunctionName,
+  parseFunctionName
+} from './formatting.js';
 
 /**
  * (Browser) console adapter that uses native DevTools styling
@@ -197,12 +204,13 @@ export class ConsoleAdapter {
       } else {
         // Single error - keep as simple object
         const cleanedStack = this.#cleanStackTrace(details.stack);
-        const relevantFrameIndex = this.#findRelevantFrameIndex(details, cleanedStack);
+        const relevantFrameIndex = findRelevantFrameIndex(details, cleanedStack);
+        const errorMeta = detectErrorMeta(details, cleanedStack);
         logData.error = {
           name: details.name,
           message: details.message,
           stack: cleanedStack,
-          errorType: this.#detectErrorType(details, cleanedStack),
+          errorType: formatErrorDisplay(errorMeta),
           ...(relevantFrameIndex >= 0 && { relevantFrameIndex })
         };
       }
@@ -213,12 +221,13 @@ export class ConsoleAdapter {
       } else {
         // Single error - keep as simple object
         const cleanedStack = this.#cleanStackTrace(details.error.stack);
-        const relevantFrameIndex = this.#findRelevantFrameIndex(details.error, cleanedStack);
+        const relevantFrameIndex = findRelevantFrameIndex(details.error, cleanedStack);
+        const errorMeta = detectErrorMeta(details.error, cleanedStack);
         logData.error = {
           name: details.error.name,
           message: details.error.message,
           stack: cleanedStack,
-          errorType: this.#detectErrorType(details.error, cleanedStack),
+          errorType: formatErrorDisplay(errorMeta),
           ...(relevantFrameIndex >= 0 && { relevantFrameIndex })
         };
       }
@@ -258,13 +267,14 @@ export class ConsoleAdapter {
         errorObj.stack = this.#cleanStackTrace(current.stack);
 
         // Find and mark the most relevant frame for highlighting
-        const relevantFrameIndex = this.#findRelevantFrameIndex(current, errorObj.stack);
+        const relevantFrameIndex = findRelevantFrameIndex(current, errorObj.stack);
         if (relevantFrameIndex >= 0) {
           errorObj.relevantFrameIndex = relevantFrameIndex;
         }
 
-        // Detect error type for display
-        errorObj.errorType = this.#detectErrorType(current, errorObj.stack);
+        // Detect error metadata for display
+        const errorMeta = detectErrorMeta(current, errorObj.stack);
+        errorObj.errorType = formatErrorDisplay(errorMeta);
       }
 
       // Include additional properties like details, status
@@ -283,240 +293,6 @@ export class ConsoleAdapter {
     return chain;
   }
 
-  /**
-   * Find the most relevant frame index for highlighting
-   */
-  #findRelevantFrameIndex(error, cleanedStack) {
-    if (error.name === 'ValiError') {
-      // Look for expect_ function, user code is right after
-      const expectIndex = cleanedStack.findIndex(frame => frame.includes('expect_'));
-      if (expectIndex >= 0 && expectIndex + 1 < cleanedStack.length) {
-        return expectIndex + 1;
-      }
-    }
-
-    if (error.name === 'DetailedError') {
-      // Look for rethrow, user code is right after
-      const rethrowIndex = cleanedStack.findIndex(frame => frame.includes('rethrow@'));
-      if (rethrowIndex >= 0 && rethrowIndex + 1 < cleanedStack.length) {
-        return rethrowIndex + 1;
-      }
-    }
-
-    if (error.name === 'PromiseError') {
-      // Look for HkPromise methods, user code is right after
-      const hkPromiseIndex = cleanedStack.findIndex(frame => 
-        frame.includes('reject@') || 
-        frame.includes('tryReject@') || 
-        frame.includes('setTimeout@') || 
-        frame.includes('cancel@') || 
-        frame.includes('tryCancel@')
-      );
-      if (hkPromiseIndex >= 0 && hkPromiseIndex + 1 < cleanedStack.length) {
-        return hkPromiseIndex + 1;
-      }
-    }
-
-    if (error.name === 'HttpError') {
-      // Find the last frame containing http-request.js, then highlight the next one
-      let lastHttpIndex = -1;
-      for (let i = 0; i < cleanedStack.length; i++) {
-        if (cleanedStack[i].includes('network/http/http-request.js')) {
-          lastHttpIndex = i;
-        }
-      }
-      if (lastHttpIndex >= 0 && lastHttpIndex + 1 < cleanedStack.length) {
-        return lastHttpIndex + 1;
-      }
-    }
-
-    // Default to first frame
-    return 0;
-  }
-
-  /**
-   * Detect error type for display purposes with function name
-   */
-  #detectErrorType(error, cleanedStack) {
-    const userFunctionName = this.#extractUserFunctionName(error, cleanedStack);
-    const functionSuffix = userFunctionName ? ` in ${userFunctionName}` : '';
-
-    // Check if it's a rethrow error
-    if (error.name === 'DetailedError') {
-      return `rethrow${functionSuffix}`;
-    }
-
-    // Check if it's a PromiseError (HkPromise)
-    if (error.name === 'PromiseError') {
-      // Determine the specific HkPromise method that caused the error
-      const hkPromiseMethod = this.#getHkPromiseMethod(cleanedStack);
-      if (hkPromiseMethod) {
-        return `hkpromise.${hkPromiseMethod}${functionSuffix}`;
-      }
-      return `hkpromise${functionSuffix}`;
-    }
-
-    // Check if it's an HttpError
-    if (error.name === 'HttpError') {
-      // Determine the specific HTTP method that caused the error
-      const httpMethod = this.#getHttpMethod(cleanedStack);
-      if (httpMethod) {
-        return `${httpMethod}${functionSuffix}`;
-      }
-      return `http${functionSuffix}`;
-    }
-
-    // Check if it's an expect error by looking at the first stack frame
-    if (error.name === 'ValiError' && cleanedStack.length > 0) {
-      const firstFrame = cleanedStack[0];
-      if (firstFrame.startsWith('expect_')) {
-        return `expect${functionSuffix}`;
-      }
-      if (firstFrame.startsWith('valibotParseWrapper@')) {
-        return `validation${functionSuffix}`;
-      }
-    }
-
-    // Default case
-    return `error${functionSuffix}`;
-  }
-
-  /**
-   * Get the specific HkPromise method that caused the error
-   */
-  #getHkPromiseMethod(cleanedStack) {
-    const hkPromiseFrame = cleanedStack.find(frame => 
-      frame.includes('reject@') || 
-      frame.includes('tryReject@') || 
-      frame.includes('setTimeout@') || 
-      frame.includes('cancel@') || 
-      frame.includes('tryCancel@')
-    );
-    
-    if (!hkPromiseFrame) return null;
-    
-    if (hkPromiseFrame.includes('reject@')) return 'reject';
-    if (hkPromiseFrame.includes('tryReject@')) return 'tryReject';
-    if (hkPromiseFrame.includes('setTimeout@')) return 'setTimeout';
-    if (hkPromiseFrame.includes('cancel@')) return 'cancel';
-    if (hkPromiseFrame.includes('tryCancel@')) return 'tryCancel';
-    
-    return null;
-  }
-
-  /**
-   * Get the specific HTTP method that caused the error
-   */
-  #getHttpMethod(cleanedStack) {
-    const httpFrame = cleanedStack.find(frame => 
-      frame.includes('network/http/http-request.js')
-    );
-    
-    if (!httpFrame) return null;
-    
-    if (httpFrame.includes('httpGet@')) return 'httpGet';
-    if (httpFrame.includes('httpPost@')) return 'httpPost';
-    if (httpFrame.includes('httpPut@')) return 'httpPut';
-    if (httpFrame.includes('httpDelete@')) return 'httpDelete';
-    if (httpFrame.includes('httpPatch@')) return 'httpPatch';
-    if (httpFrame.includes('httpOptions@')) return 'httpOptions';
-    if (httpFrame.includes('httpRequest@')) return 'httpRequest';
-    
-    return null;
-  }
-
-  /**
-   * Extract user function name from stack trace
-   */
-  #extractUserFunctionName(error, cleanedStack) {
-    if (error.name === 'DetailedError' && cleanedStack.length > 1) {
-      // For rethrow errors, look for the frame after rethrow
-      const rethrowIndex = cleanedStack.findIndex(frame => frame.includes('rethrow@'));
-      if (rethrowIndex >= 0 && rethrowIndex + 1 < cleanedStack.length) {
-        return this.#parseFunctionName(cleanedStack[rethrowIndex + 1]);
-      }
-    }
-
-    if (error.name === 'PromiseError' && cleanedStack.length > 1) {
-      // For PromiseError, look for the frame after HkPromise methods
-      const hkPromiseIndex = cleanedStack.findIndex(frame => 
-        frame.includes('reject@') || 
-        frame.includes('tryReject@') || 
-        frame.includes('setTimeout@') || 
-        frame.includes('cancel@') || 
-        frame.includes('tryCancel@')
-      );
-      if (hkPromiseIndex >= 0 && hkPromiseIndex + 1 < cleanedStack.length) {
-        return this.#parseFunctionName(cleanedStack[hkPromiseIndex + 1]);
-      }
-    }
-
-    if (error.name === 'HttpError' && cleanedStack.length > 1) {
-      // For HttpError, find the last frame containing http-request.js, then take the next one
-      let lastHttpIndex = -1;
-      for (let i = 0; i < cleanedStack.length; i++) {
-        if (cleanedStack[i].includes('network/http/http-request.js')) {
-          lastHttpIndex = i;
-        }
-      }
-      if (lastHttpIndex >= 0 && lastHttpIndex + 1 < cleanedStack.length) {
-        return this.#parseFunctionName(cleanedStack[lastHttpIndex + 1]);
-      }
-    }
-
-    if (error.name === 'ValiError' && cleanedStack.length > 1) {
-      // For validation errors, look for the frame after expect_ or validation wrapper
-      const expectIndex = cleanedStack.findIndex(frame => frame.startsWith('expect_'));
-      if (expectIndex >= 0 && expectIndex + 1 < cleanedStack.length) {
-        return this.#parseFunctionName(cleanedStack[expectIndex + 1]);
-      }
-      
-      const validationIndex = cleanedStack.findIndex(frame => frame.startsWith('valibotParseWrapper@'));
-      if (validationIndex >= 0 && validationIndex + 1 < cleanedStack.length) {
-        return this.#parseFunctionName(cleanedStack[validationIndex + 1]);
-      }
-    }
-
-    // Find the first meaningful function name (skip anonymous functions and framework code)
-    for (let i = 0; i < cleanedStack.length; i++) {
-      const functionName = this.#parseFunctionName(cleanedStack[i]);
-      if (functionName && this.#isMeaningfulFunctionName(functionName)) {
-        return functionName;
-      }
-    }
-
-    return null;
-  }
-
-  /**
-   * Check if function name is meaningful (not anonymous or framework code)
-   */
-  #isMeaningfulFunctionName(functionName) {
-    // Skip empty names, anonymous functions, and framework/internal functions
-    if (!functionName || 
-        functionName === '' || 
-        functionName.includes('<') || 
-        functionName.includes('/') ||
-        functionName.startsWith('async ') ||
-        functionName === 'async' ||
-        functionName === 'Promise' ||
-        functionName === 'new Promise' ||
-        functionName.includes('internal') ||
-        functionName.includes('node_modules')) {
-      return false;
-    }
-    
-    return true;
-  }
-
-  /**
-   * Parse function name from stack frame
-   */
-  #parseFunctionName(frame) {
-    // Frame format: "functionName@file:line:col"
-    const match = frame.match(/^([^@]+)@/);
-    return match ? match[1] : null;
-  }
 
   /**
    * Clean stack trace for browser display and convert to array
