@@ -41,7 +41,7 @@ import {
   ERROR,
   LEVELS,
   LOG
-} from './constants.js';
+} from '$lib/logging/constants.js';
 
 /**
  * Logger class for consistent logging
@@ -157,7 +157,7 @@ export default class Logger extends EventEmitter {
    * forwarded to this logger.
    *
    * @param {string} eventName
-   * @param {import('./typedef.js').LogEventData} eventData
+   * @param {import('$lib/logging/typedef.js').LogEventData} eventData
    */
   logFromEvent(eventName, eventData) {
     const level = eventData.level;
@@ -205,7 +205,7 @@ export default class Logger extends EventEmitter {
   /**
    * Internal event loggin method
    *
-   * @param {import('./typedef.js').LogEvent} logEvent
+   * @param {import('$lib/logging/typedef.js').LogEvent} logEvent
    */
   #logEvent(logEvent) {
     // Emit as both specific level event and generic 'log' event

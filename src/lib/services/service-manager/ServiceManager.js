@@ -71,7 +71,7 @@ import {
   CREATED,
   RUNNING,
   DESTROYED
-} from '$lib/services/internal/service-base/constants.js';
+} from '$lib/services/service-base/constants.js';
 
 /**
  * @typedef {import('./typedef.js').ServiceConstructor} ServiceConstructor

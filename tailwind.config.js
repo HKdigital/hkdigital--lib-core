@@ -1,5 +1,3 @@
-import { default as TailwindTypography } from '@tailwindcss/typography';
-
 /**
  * The following tailwind theme extensions require CSS custom
  * properties (variables) to be set at the root level
@@ -13,57 +11,31 @@ import { default as TailwindTypography } from '@tailwindcss/typography';
  *
  *   let { children } = $props();
  *
- *   import { DESIGN, CLAMPING } from '$lib/design/config/design-config.js';
- *
- *   import { rootDesignVarsHTML } from '@hkdigital/lib-core/design/utils/root-vars.js';
+ *   import { designTokens, designTokensToRootCssVars } from '@hkdigital/lib-core/design/index.js';
  * </script>
  *
  * <svelte:head>
- *   {@html rootDesignVarsHTML(DESIGN, CLAMPING)}
+ *   {@html designTokensToRootCssVars(designTokens)}
  * </svelte:head>
  *
  * {@render children()}
  *
  */
 import {
-  spacing,
-  fontSize,
-  borderRadius,
-  borderWidth,
-  strokeWidth,
-  outlineWidth,
-  outlineOffset
-} from './src/lib/design/tailwind-theme-extend.js';
+  generateTailwindThemeExtensions,
+  designTokens,
+  customUtilitiesPlugin
+} from './src/lib/design/index.js';
 
-import { customUtilitiesPlugin } from './src/lib/design/plugins/skeleton.js';
+const themeExtensions = generateTailwindThemeExtensions(designTokens);
 
-/** @type {import('tailwindcss').Config} \*/
 export default {
   content: ['./src/**/*.{html,js,svelte,ts}'],
   darkMode: 'selector',
   theme: {
-    extend: {
-      spacing,
-      fontSize,
-      borderRadius,
-      borderWidth,
-      strokeWidth,
-      outlineWidth,
-      outlineOffset
-    }
+    extend: themeExtensions
   },
-  plugins: [
-    TailwindTypography,
-    customUtilitiesPlugin,
-  ]
+  plugins: [customUtilitiesPlugin]
 };
 
-// console.log('tailwind > theme > extend', JSON.stringify({
-//   spacing,
-//   fontSize,
-//   borderRadius,
-//   borderWidth,
-//   strokeWidth,
-//   outlineWidth,
-//   outlineOffset
-// }, null, 2));
+// console.log('tailwind > theme > extend', JSON.stringify(themeExtensions, null, 2));

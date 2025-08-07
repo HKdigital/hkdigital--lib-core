@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
-  import { DESIGN, CLAMPING } from '$lib/design/config/design-config.js';
   import {
+    designTokens,
     enableScalingUI,
     getAllRootScalingVars
   } from '$lib/design/index.js';
@@ -54,7 +54,7 @@
     let cleanup;
 
     if (data?.scalingEnabled) {
-      cleanup = enableScalingUI(DESIGN, CLAMPING);
+      cleanup = enableScalingUI(designTokens.DESIGN, designTokens.CLAMPING);
     } else {
       cleanup = () => {};
     }
@@ -107,10 +107,10 @@
     </div>
     <div class="grid grid-cols-2 gap-x-2 gap-y-0.5">
       <div class="text-gray-400">Design Width:</div>
-      <div>{DESIGN.width}px</div>
+      <div>{designTokens.DESIGN.width}px</div>
 
       <div class="text-gray-400">Design Height:</div>
-      <div>{DESIGN.height}px</div>
+      <div>{designTokens.DESIGN.height}px</div>
 
       <div class="text-gray-400">Window:</div>
       <div id="window-size">...</div>
@@ -140,12 +140,12 @@
     <div class="mt-1 pt-1 border-t border-gray-600 text-gray-400">
       <div>Clamping:</div>
       <div class="grid grid-cols-3 text-2xs">
-        <div>UI: {CLAMPING.ui.min} - {CLAMPING.ui.max}</div>
+        <div>UI: {designTokens.CLAMPING.ui.min} - {designTokens.CLAMPING.ui.max}</div>
         <div>
-          Content: {CLAMPING.textBase.min} - {CLAMPING.textBase.max}
+          Content: {designTokens.CLAMPING.textBase.min} - {designTokens.CLAMPING.textBase.max}
         </div>
         <div>
-          Heading: {CLAMPING.textHeading.min} - {CLAMPING.textHeading.max}
+          Heading: {designTokens.CLAMPING.textHeading.min} - {designTokens.CLAMPING.textHeading.max}
         </div>
       </div>
     </div>

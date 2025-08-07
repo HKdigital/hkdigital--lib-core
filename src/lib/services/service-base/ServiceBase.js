@@ -51,7 +51,7 @@
  */
 
 import { EventEmitter } from '$lib/classes/event-emitter';
-import { Logger, INFO } from '$lib/logging/internal/unified-logger';
+import { Logger, INFO } from '$lib/logging/internal/logger';
 
 import {
   CREATED,

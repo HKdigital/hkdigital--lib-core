@@ -7,7 +7,7 @@
   } from './gamebox.util.js';
 
   import { enableContainerScaling } from '$lib/design/index.js';
-  // import { enableContainerScaling } from '@hkdigital/lib-sveltekit/util/design-system/index.js';
+  // import { enableContainerScaling } from '@hkdigital/lib-core/design/index.js';
 
   /**
    * @typedef {{

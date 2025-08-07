@@ -59,7 +59,7 @@
  * @property {string} state - Current state
  * @property {boolean} healthy - Health status
  * @property {Error|null} error - Last error
- * @property {import('$lib/logging/internal/unified-logger').Logger} logger - Service logger
+ * @property {import('$lib/logging/internal/logger').Logger} logger - Service logger
  * @property {(config?: *) => Promise<boolean>} initialize
  * @property {() => Promise<boolean>} start
  * @property {(options?: StopOptions) => Promise<boolean>} stop

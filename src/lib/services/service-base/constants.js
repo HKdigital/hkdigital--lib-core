@@ -39,72 +39,60 @@
 
 /**
  * Service has not been created yet
- * @const {string}
  */
 export const NOT_CREATED = 'not-created';
 
 /**
  * Service has been created but not initialized
- * @const {string}
  */
 export const CREATED = 'created';
 
 /**
  * Service is currently initializing
- * @const {string}
  */
 export const INITIALIZING = 'initializing';
 
 /**
  * Service has been initialized and is ready to start
- * @const {string}
  */
 export const INITIALIZED = 'initialized';
 
 /**
  * Service is currently starting up
- * @const {string}
  */
 export const STARTING = 'starting';
 
 /**
  * Service is running and operational
- * @const {string}
  */
 export const RUNNING = 'running';
 
 /**
  * Service is currently shutting down
- * @const {string}
  */
 export const STOPPING = 'stopping';
 
 /**
  * Service has been stopped
- * @const {string}
  */
 export const STOPPED = 'stopped';
 
 /**
  * Service is being destroyed and cleaned up
- * @const {string}
  */
 export const DESTROYING = 'destroying';
 
 /**
  * Service has been destroyed and cannot be used
- * @const {string}
  */
 export const DESTROYED = 'destroyed';
 
 /**
  * Service encountered an error and is not operational
- * @const {string}
  */
 export const ERROR = 'error';
 
 /**
  * Service is attempting to recover from an error
- * @const {string}
  */
 export const RECOVERING = 'recovering';

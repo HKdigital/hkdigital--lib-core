@@ -33,8 +33,9 @@
  *   ]
  * };
  *
- * @param {Object} api - Tailwind plugin API
- * @param {Function} api.addUtilities - Function to add utilities
+ * @param {object} _ - Tailwind plugin API
+ * @param {function} _.addUtilities - Function to add utilities
+ * @param {*} _.theme
  */
 export function customUtilitiesPlugin({ addUtilities, theme }) {
   const fontFamilyUtilities = {

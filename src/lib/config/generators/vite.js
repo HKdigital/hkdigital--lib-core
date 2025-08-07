@@ -62,10 +62,16 @@ export async function generateViteConfig(options = {}) {
         })
       );
     } catch (error) {
-      console.error(error);
-      console.warn(
-        'vite-imagetools not found. Install it to enable imagetools support.'
-      );
+      const errorMessage = `
+╭─────────────────────────────────────────────────────────────╮
+│                     Missing Dependency                      │
+├─────────────────────────────────────────────────────────────┤
+│  'vite-imagetools' is required when enableImagetools: true  │
+│  Install it with: pnpm add -D vite-imagetools               │
+│  Or set enableImagetools: false                             │
+╰─────────────────────────────────────────────────────────────╯`;
+      console.error(errorMessage);
+      throw new Error('vite-imagetools is required when enableImagetools: true');
     }
   }
 

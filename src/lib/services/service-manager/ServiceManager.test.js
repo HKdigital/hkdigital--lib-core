@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ServiceManager } from './ServiceManager.js';
-import { DEBUG, INFO, WARN } from '$lib/logging/internal/unified-logger';
+import { DEBUG, INFO, WARN } from '$lib/logging/index.js';
 import {
   ServiceBase,
   NOT_CREATED,
@@ -11,7 +11,7 @@ import {
   RUNNING,
   STOPPED,
   ERROR
-} from '$lib/services/internal/service-base/index.js';
+} from '$lib/services/service-base/index.js';
 
 // Mock service classes
 class MockServiceA extends ServiceBase {

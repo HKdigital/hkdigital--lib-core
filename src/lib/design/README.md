@@ -9,19 +9,17 @@ A comprehensive, responsive design system built for SvelteKit applications. This
 ```javascript
 // tailwind.config.js
 import { 
-  spacing, 
-  fontSize, 
-  borderRadius, 
+  generateTailwindThemeExtensions,
+  designTokens,
   customUtilitiesPlugin 
 } from '@hkdigital/lib-core/design/index.js';
 
+const themeExtensions = generateTailwindThemeExtensions(designTokens);
+
+/** @type {import('tailwindcss').Config} \*/
 export default {
   theme: {
-    extend: {
-      spacing,
-      fontSize,
-      borderRadius
-    }
+    extend: themeExtensions
   },
   plugins: [
     customUtilitiesPlugin
@@ -29,14 +27,14 @@ export default {
 };
 ```
 
-```svelte
+```html
 <!-- +layout.svelte -->
 <script>
-  import { DESIGN, CLAMPING, rootDesignVarsHTML } from '@hkdigital/lib-core/design';
+  import { designTokens, designTokensToRootCssVars } from '@hkdigital/lib-core/design/index.js';
 </script>
 
 <svelte:head>
-  {@html rootDesignVarsHTML(DESIGN, CLAMPING)}
+  {@html designTokensToRootCssVars(designTokens)}
 </svelte:head>
 
 {@render children()}
@@ -185,7 +183,7 @@ import {
   getRootCssDesignWidth,
   getRootCssDesignHeight,
   getAllRootScalingVars
-} from '@hkdigital/lib-core/design';
+} from '@hkdigital/lib-core/design/index.js';
 
 // Get current design dimensions
 const designWidth = getRootCssDesignWidth();   // 1024
@@ -199,7 +197,7 @@ const scales = getAllRootScalingVars();
 ### Clamp Utilities
 
 ```javascript
-import { clamp, getClampParams } from '@hkdigital/lib-core/design';
+import { clamp, getClampParams } from '@hkdigital/lib-core/design/index.js';
 
 // Mathematical clamp function
 const value = clamp(0.5, 0.3, 2.0); // Returns 0.5 (clamped between 0.5 and 2.0)
@@ -212,7 +210,7 @@ const params = getClampParams('scale-ui');
 ### Component State Classes
 
 ```javascript
-import { toStateClasses } from '@hkdigital/lib-core/design';
+import { toStateClasses } from '@hkdigital/lib-core/design/index.js';
 
 // Generate state classes from object
 const classes = toStateClasses({
@@ -236,10 +234,10 @@ const classes = toStateClasses({
 #### Viewport-Based Scaling
 
 ```javascript
-import { enableScalingUI } from '@hkdigital/lib-core/design';
+import { enableScalingUI, designTokens } from '@hkdigital/lib-core/design/index.js';
 
 // Enable automatic viewport scaling
-const cleanup = enableScalingUI(DESIGN, CLAMPING);
+const cleanup = enableScalingUI(designTokens.DESIGN, designTokens.CLAMPING);
 
 // Call cleanup when component is destroyed
 onDestroy(cleanup);
@@ -248,23 +246,23 @@ onDestroy(cleanup);
 #### Container-Based Scaling
 
 ```javascript
-import { enableContainerScaling } from '@hkdigital/lib-core/design';
+import { enableContainerScaling, designTokens } from '@hkdigital/lib-core/design/index.js';
 
 let containerElement;
 
 // Enable scaling for specific container
 const cleanup = enableContainerScaling({
   container: containerElement,
-  design: DESIGN,
-  clamping: CLAMPING,
+  design: designTokens.DESIGN,
+  clamping: designTokens.CLAMPING,
   useResizeObserver: true
 });
 
 // Optional custom dimension getter
 const cleanupCustom = enableContainerScaling({
   container: containerElement,
-  design: DESIGN,
-  clamping: CLAMPING,
+  design: designTokens.DESIGN,
+  clamping: designTokens.CLAMPING,
   getDimensions: () => ({ width: 800, height: 600 })
 });
 ```
@@ -273,7 +271,7 @@ const cleanupCustom = enableContainerScaling({
 <!-- Svelte component example -->
 <script>
   import { onMount, onDestroy } from 'svelte';
-  import { enableContainerScaling, DESIGN, CLAMPING } from '@hkdigital/lib-core/design';
+  import { enableContainerScaling, designTokens } from '@hkdigital/lib-core/design/index.js';
   
   let containerElement;
   let cleanup;
@@ -281,8 +279,8 @@ const cleanupCustom = enableContainerScaling({
   onMount(() => {
     cleanup = enableContainerScaling({
       container: containerElement,
-      design: DESIGN,
-      clamping: CLAMPING
+      design: designTokens.DESIGN,
+      clamping: designTokens.CLAMPING
     });
   });
   
@@ -302,59 +300,107 @@ const cleanupCustom = enableContainerScaling({
 ### Custom Design Configuration
 
 ```javascript
-// your-project/src/lib/design/design-config.js
-import { 
-  generateTextBasedSpacing,
-  generateTextStyles 
-} from '@hkdigital/lib-core/design';
+// your-project/src/lib/design/design-tokens.js
+export const designTokens = {
+  DESIGN: {
+    width: 1440,
+    height: 900
+  },
 
-// Custom design dimensions
-export const CUSTOM_DESIGN = {
-  width: 1440,
-  height: 900
+  CLAMPING: {
+    ui: { min: 0.4, max: 1.8 },
+    textBase: { min: 0.8, max: 1.4 },
+    textHeading: { min: 0.8, max: 2.0 },
+    textUi: { min: 0.6, max: 1.2 }
+  },
+
+  TEXT_POINT_SIZES: [4, 8, 12, 16, 20, 24, 32],
+  VIEWPORT_POINT_SIZES: [10, 20, 30, 40, 50, 100, 200],
+
+  TEXT_BASE_SIZES: {
+    sm: { size: 12, lineHeight: 1.4 },
+    md: { size: 16, lineHeight: 1.4 },
+    lg: { size: 20, lineHeight: 1.4 }
+  },
+
+  TEXT_HEADING_SIZES: {
+    h1: { size: 36, lineHeight: 1.2 },
+    h2: { size: 30, lineHeight: 1.2 },
+    h3: { size: 26, lineHeight: 1.2 }
+  },
+
+  TEXT_UI_SIZES: {
+    sm: { size: 12, lineHeight: 1.2 },
+    md: { size: 14, lineHeight: 1.2 },
+    lg: { size: 16, lineHeight: 1.2 }
+  },
+
+  RADIUS_SIZES: {
+    none: '0px',
+    sm: { size: 8 },
+    md: { size: 16 },
+    lg: { size: 24 },
+    full: '9999px'
+  },
+
+  BORDER_WIDTH_SIZES: {
+    thin: { size: 1 },
+    normal: { size: 2 },
+    thick: { size: 3 }
+  },
+
+  STROKE_WIDTH_SIZES: {
+    thin: { size: 1 },
+    normal: { size: 2 },
+    thick: { size: 3 }
+  }
 };
 
-// Custom text sizes
-export const CUSTOM_TEXT_SIZES = {
-  sm: { size: 12, lineHeight: 1.4 },
-  md: { size: 16, lineHeight: 1.4 },
-  lg: { size: 20, lineHeight: 1.4 }
-};
+// your-project/tailwind.config.js
+import { generateTailwindThemeExtensions, customUtilitiesPlugin } from '@hkdigital/lib-core/design/index.js';
+import { designTokens } from './src/lib/design/design-tokens.js';
 
-// Generate custom extensions
-export const customSpacing = generateTextBasedSpacing([8, 12, 16, 24, 32]);
-export const customFontSize = generateTextStyles(CUSTOM_TEXT_SIZES, 'base');
+const themeExtensions = generateTailwindThemeExtensions(designTokens);
+
+export default {
+  theme: {
+    extend: themeExtensions
+  },
+  plugins: [customUtilitiesPlugin]
+};
 ```
 
 ### Available Generator Functions
 
+Individual generator functions are available for advanced customization:
+
 ```javascript
 import {
-  generateTextBasedSpacing,      // ut/bt/ht spacing units
-  generateViewportBasedSpacing,  // up/wp/hp spacing units
-  generateTextStyles,            // Complete typography styles
-  generateBorderRadiusStyles,    // Border radius with scaling
-  generateWidthStyles            // Border/stroke width with scaling
-} from '@hkdigital/lib-core/design';
+  generateTailwindThemeExtensions, // Complete theme extension generator
+  generateTextBasedSpacing,        // ut/bt/ht spacing units
+  generateViewportBasedSpacing,    // up/wp/hp spacing units
+  generateTextStyles,              // Complete typography styles
+  generateBorderRadiusStyles,      // Border radius with scaling
+  generateWidthStyles              // Border/stroke width with scaling
+} from '@hkdigital/lib-core/design/index.js';
+
+// Example: Generate only spacing for a custom configuration
+const customSpacing = generateTextBasedSpacing([4, 8, 12, 16, 24]);
 ```
 
-### Configuration Objects
+### Default Design Tokens
 
-All configuration objects are exported for customization:
+The default design tokens are available for reference or as a starting point:
 
 ```javascript
-import {
-  DESIGN,                 // { width: 1024, height: 768 }
-  CLAMPING,              // Min/max scale bounds
-  TEXT_POINT_SIZES,      // [1, 2, 4, 6, 8, 10, ...]
-  VIEWPORT_POINT_SIZES,  // [1, 2, 4, 5, 6, 10, ...]
-  TEXT_BASE_SIZES,       // { sm: {...}, md: {...}, lg: {...} }
-  TEXT_HEADING_SIZES,    // { h1: {...}, h2: {...}, ... }
-  TEXT_UI_SIZES,         // { sm: {...}, md: {...}, lg: {...} }
-  RADIUS_SIZES,          // Border radius configurations
-  BORDER_WIDTH_SIZES,    // Border width configurations
-  STROKE_WIDTH_SIZES     // Stroke width configurations
-} from '@hkdigital/lib-core/design';
+import { designTokens } from '@hkdigital/lib-core/design/index.js';
+
+console.log(designTokens.DESIGN);                // { width: 1024, height: 768 }
+console.log(designTokens.CLAMPING);              // Min/max scale bounds
+console.log(designTokens.TEXT_POINT_SIZES);      // [1, 2, 4, 6, 8, 10, ...]
+console.log(designTokens.VIEWPORT_POINT_SIZES);  // [1, 2, 4, 5, 6, 10, ...]
+console.log(designTokens.TEXT_BASE_SIZES);       // { sm: {...}, md: {...}, lg: {...} }
+// ... and all other token configurations
 ```
 
 ## Best practices
@@ -393,11 +439,35 @@ If migrating from the old structure:
 
 ```javascript
 // OLD
-import { DESIGN } from '$lib/design/design-config.js';
-import { customUtilitiesPlugin } from '$lib/design/skeleton.js';
+import {
+  spacing,
+  fontSize,
+  borderRadius,
+  customUtilitiesPlugin
+} from '@hkdigital/lib-core/design/index.js';
+
+export default {
+  theme: {
+    extend: { spacing, fontSize, borderRadius }
+  },
+  plugins: [customUtilitiesPlugin]
+};
 
 // NEW
-import { DESIGN, customUtilitiesPlugin } from '@hkdigital/lib-core/design';
+import {
+  generateTailwindThemeExtensions,
+  designTokens,
+  customUtilitiesPlugin
+} from '@hkdigital/lib-core/design/index.js';
+
+const themeExtensions = generateTailwindThemeExtensions(designTokens);
+
+export default {
+  theme: {
+    extend: themeExtensions
+  },
+  plugins: [customUtilitiesPlugin]
+};
 ```
 
 ---

@@ -31,10 +31,9 @@ export class PinoAdapter {
             const serialized = {
               name: current.name,
               message: current.message,
-              ...(isFirst &&
-                this.pino.level === 'debug' && {
-                  stack: this.#cleanStackTrace(current.stack)
-                })
+              ...(isFirst && {
+                stack: this.#cleanStackTrace(current.stack)
+              })
             };
 
             // Include HttpError-specific properties
@@ -55,23 +54,41 @@ export class PinoAdapter {
       }
     };
 
-    const devOptions = dev
-      ? {
-          level: 'debug',
-          transport: {
-            target: 'pino-pretty',
-            options: {
-              colorize: true
-            }
+    // Add error handling for missing pino-pretty in dev
+    if (dev) {
+      const devOptions = {
+        level: 'debug',
+        transport: {
+          target: 'pino-pretty',
+          options: {
+            colorize: true
           }
         }
-      : {};
+      };
 
-    this.pino = pino({ ...baseOptions, ...devOptions, ...options });
+      try {
+        this.pino = pino({ ...baseOptions, ...devOptions, ...options });
+      } catch (error) {
+        if (error.message.includes('pino-pretty')) {
+          const errorMessage = `
+╭─────────────────────────────────────────────────────────────╮
+│                     Missing Dependency                      │
+├─────────────────────────────────────────────────────────────┤
+│  'pino-pretty' is required for development logging          │
+│  Install it with: pnpm add -D pino-pretty                   │
+╰─────────────────────────────────────────────────────────────╯`;
+          console.error(errorMessage);
+          throw new Error('pino-pretty is required for development mode');
+        }
+        throw error;
+      }
+    } else {
+      this.pino = pino({ ...baseOptions, ...options });
+    }
   }
 
   /**
-   * Clean stack trace by removing project root path
+   * Clean stack trace by removing project root path and simplifying node_modules
    *
    * @param {string} stack - Original stack trace
    * @returns {string} Cleaned stack trace
@@ -81,15 +98,26 @@ export class PinoAdapter {
       return stack;
     }
 
+    let cleaned = stack;
+
     // Escape special regex characters in the project root path
     const escapedRoot = this.#projectRoot.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     
-    // Replace project root path with relative path, but only after "at " to avoid 
-    // accidental replacements in error messages or other parts of the stack
-    // Match the project root followed by a path separator
-    const regex = new RegExp(`(\\s+at\\s+.*\\()${escapedRoot}[\\/\\\\]`, 'g');
-    
-    return stack.replace(regex, '$1');
+    // Replace project root path with relative path, handling file:// protocol
+    // Match both regular paths and file:// URLs
+    const rootRegex = new RegExp(`(\\s+at\\s+.*\\()(file://)?${escapedRoot}[\\/\\\\]`, 'g');
+    cleaned = cleaned.replace(rootRegex, '$1');
+
+    // Simplify pnpm paths: node_modules/.pnpm/package@version_deps/node_modules/package
+    // becomes: node_modules/package
+    const pnpmRegex = /node_modules\/\.pnpm\/([^@\/]+)@[^\/]+\/node_modules\/\1/g;
+    cleaned = cleaned.replace(pnpmRegex, 'node_modules/$1');
+
+    // Also handle cases where the package name might be different in the final path
+    const pnpmRegex2 = /node_modules\/\.pnpm\/[^\/]+\/node_modules\/([^\/]+)/g;
+    cleaned = cleaned.replace(pnpmRegex2, 'node_modules/$1');
+
+    return cleaned;
   }
 
   /**

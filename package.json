@@ -1,6 +1,6 @@
 {
 	"name": "@hkdigital/lib-core",
-	"version": "0.3.11",
+	"version": "0.3.10",
 	"author": {
 		"name": "HKdigital",
 		"url": "https://hkdigital.nl"
@@ -8,7 +8,7 @@
 	"license": "ISC",
 	"repository": {
 		"type": "git",
-		"url": "git+https://github.com/HKdigital/hkdigital--lib-sveltekit.git"
+		"url": "git+https://github.com/HKdigital/hkdigital--lib-core.git"
 	},
 	"keywords": [
 		"component-library",

@@ -2,8 +2,8 @@
   import { DebugPanelDesignScaling } from '$lib/ui/primitives/debug/index.js';
 
   import { onMount } from 'svelte';
-  import { DESIGN, CLAMPING } from '$lib/design/config/design-config.js';
   import {
+    designTokens,
     enableScalingUI,
     getAllRootScalingVars
   } from '$lib/design/index.js';
@@ -35,7 +35,7 @@
     let cleanup;
 
     if (data?.scalingEnabled) {
-      cleanup = enableScalingUI(DESIGN, CLAMPING);
+      cleanup = enableScalingUI(designTokens.DESIGN, designTokens.CLAMPING);
     } else {
       cleanup = () => {};
     }
