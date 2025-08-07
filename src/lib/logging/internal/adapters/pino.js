@@ -4,7 +4,7 @@
 
 import pino from 'pino';
 import { dev, building } from '$app/environment';
-import { detectErrorMeta, findRelevantFrameIndex } from './formatting.js';
+import { detectErrorMeta, findRelevantFrameIndex, formatErrorDisplay } from './formatting.js';
 
 /**
  * Pino adapter that bridges Logger events to pino
@@ -37,7 +37,7 @@ export class PinoAdapter {
               })
             };
 
-            // Add error metadata for structured logging
+            // Add error metadata for structured logging and terminal display
             if (current.stack) {
               // Convert cleaned stack string to array format expected by formatting functions
               const cleanedStackString = this.#cleanStackTrace(current.stack);
@@ -46,7 +46,16 @@ export class PinoAdapter {
                 .filter(line => line && line !== current.name + ': ' + current.message);
 
               const errorMeta = detectErrorMeta(current, cleanedStackArray);
+              const relevantFrameIndex = findRelevantFrameIndex(current, cleanedStackArray);
+              
               serialized.meta = errorMeta;
+              serialized.errorType = formatErrorDisplay(errorMeta);
+              
+              // Include stack frames for terminal display
+              serialized.stackFrames = cleanedStackArray.slice(0, 9).map((frame, index) => {
+                const marker = index === relevantFrameIndex ? '→' : ' ';
+                return `${index}${marker} ${frame}`;
+              });
             }
 
             // Include HttpError-specific properties
@@ -69,13 +78,13 @@ export class PinoAdapter {
 
     // Add error handling for missing pino-pretty in dev
     if (dev) {
-      // Use basic pino-pretty options (no custom functions to avoid SSR serialization)
       const devOptions = {
         level: 'debug',
         transport: {
           target: 'pino-pretty',
           options: {
-            colorize: true
+            colorize: true,
+            ignore: 'hostname,pid'
           }
         }
       };
@@ -83,7 +92,7 @@ export class PinoAdapter {
       try {
         this.pino = pino({ ...baseOptions, ...devOptions, ...options });
       } catch (error) {
-        if (error.message.includes('pino-pretty')) {
+        if (error.message.includes('Cannot find module') && error.message.includes('pino-pretty')) {
           const errorMessage = `
 ╭─────────────────────────────────────────────────────────────╮
 │                     Missing Dependency                      │

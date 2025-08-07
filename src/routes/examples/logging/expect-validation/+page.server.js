@@ -1,19 +1,22 @@
 
 import { createServerLogger } from '$lib/logging/index.js';
-import { throwExpectError } from '$lib/logging/test-errors.js';
 
-const logger = createServerLogger('test-logger');
+const logger = createServerLogger('page-server-logger');
+
+import { throwExpectError } from '$lib/logging/test-errors.js';
 
 export const actions = {
   triggerServerError: async () => {
     try {
+      logger.info('hello');
+
       throwExpectError();
       return {
         success: true,
         message: 'No error occurred (unexpected)'
       };
     } catch (error) {
-      // Send output to server logger
+      // Send output to server logger via locals
       logger.error('Server expect error test', error);
 
       return {

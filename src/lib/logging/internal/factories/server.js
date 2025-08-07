@@ -1,7 +1,7 @@
 import { Logger } from '$lib/logging/internal/logger/index.js';
-
 import { PinoAdapter } from '$lib/logging/internal/adapters/pino.js';
 import { INFO } from '$lib/logging/constants.js';
+// import { expectNoSSRContext } from '$lib/util/ssr/index.js';
 
 /**
  * Create a server-side logger with pino adapter
@@ -12,6 +12,9 @@ import { INFO } from '$lib/logging/constants.js';
  * @returns {Logger} Configured logger instance
  */
 export function createServerLogger(name, level = INFO, pinoOptions = {}) {
+  // Guard against SSR serialization issues
+  // expectNoSSRContext();
+
   const logger = new Logger(name, level);
   const adapter = new PinoAdapter(pinoOptions);
 
