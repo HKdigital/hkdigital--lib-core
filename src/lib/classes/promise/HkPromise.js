@@ -48,6 +48,10 @@ import { PromiseError } from '$lib/errors/promise.js';
  * HkPromise extends the default javascript Promise class
  * - Exposes methods to interact with the state of the
  *   promise, such as 'resolve' and 'reject'
+ * 
+ * @template T
+ * @extends {Promise<T>}
+ * @implements {PromiseLike<T>}
  */
 export default class HkPromise extends Promise {
 	// Private fields using modern JavaScript syntax
@@ -62,7 +66,7 @@ export default class HkPromise extends Promise {
 	#hasThen = false;
 
 	/**
-	 * @param {(resolveFn?:function, rejectFn?:function)=>void} [initFn]
+	 * @param {(resolveFn?: (value: T | PromiseLike<T>) => void, rejectFn?: (reason?: any) => void) => void} [initFn]
 	 */
 	constructor(initFn) {
 		let _resolveFn;
@@ -364,21 +368,27 @@ export default class HkPromise extends Promise {
 	/**
 	 * Register a callback that is called when the promise resolves
 	 *
-	 * @param {...any} args - Callback functions and options
+	 * @template TResult1
+	 * @template TResult2
+	 * @param {((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null} [onfulfilled]
+	 * @param {((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null} [onrejected]
+	 * @returns {Promise<TResult1 | TResult2>}
 	 */
-	then(...args) {
+	then(onfulfilled, onrejected) {
 		this.#hasThen = true;
 
-		return super.then(...args);
+		return super.then(onfulfilled, onrejected);
 	}
 
 	/**
 	 * Register a callback that is called when the promise rejects, is
 	 * cancelled or times out
 	 *
-	 * @param {...any} args - Callback functions and options
+	 * @template TResult
+	 * @param {((reason: any) => TResult | PromiseLike<TResult>) | undefined | null} [onrejected]
+	 * @returns {Promise<T | TResult>}
 	 */
-	catch(...args) {
-		return super.catch(...args);
+	catch(onrejected) {
+		return super.catch(onrejected);
 	}
 } // end class

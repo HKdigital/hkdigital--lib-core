@@ -2,14 +2,31 @@
 /* Type-based styling for text buttons */
 [data-component='button'][data-type='text'] {
   /* Typography settings */
-  @apply font-ui text-ui-md;
+  @apply type-ui-md-dark;
   @apply uppercase;
   @apply whitespace-nowrap;
 
   /* Size settings */
 
+  &[data-size='sm'] {
+    @apply rounded-sm;
+    @apply type-ui-sm-dark;
+    @apply py-2ut px-8ut;
+    min-width: var(--btn-min-width);
+    min-height: var(--btn-min-height);
+  }
+
   &[data-size='md'] {
     @apply rounded-sm;
+    @apply type-ui-md-dark;
+    @apply py-4ut px-8ut;
+    min-width: var(--btn-min-width);
+    min-height: var(--btn-min-height);
+  }
+
+  &[data-size='lg'] {
+    @apply rounded-sm;
+    @apply type-ui-lg-dark;
     @apply py-8ut px-16ut;
     min-width: var(--btn-min-width);
     min-height: var(--btn-min-height);
@@ -17,10 +34,12 @@
 
   /* Role-specific text adjustments */
   &[data-role='primary'] {
+    color: var(--btn-primary-text);
     @apply font-extrabold;
   }
 
   &[data-role='secondary'] {
+    color: var(--btn-secondary-text);
     @apply font-bold;
   }
 }

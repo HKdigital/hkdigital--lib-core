@@ -31,7 +31,7 @@ export class PinoAdapter {
             const serialized = {
               name: current.name,
               message: current.message,
-              ...(isFirst && {
+              ...(isFirst && this.pino.level === 'debug' && {
                 stack: this.#cleanStackTrace(current.stack)
               })
             };

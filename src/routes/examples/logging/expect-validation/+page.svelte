@@ -1,75 +1,86 @@
 <script>
-  import { expect, rethrow } from '$lib/util/index.js';
   import { createClientLogger } from '$lib/logging/index.js';
   import { TextButton } from '$lib/ui/primitives/index.js';
   import { enhance } from '$app/forms';
+  import {
+    throwSimpleError,
+    throwErrorInSubFunction,
+    throwPromiseRejection,
+    throwHkPromiseTimeout,
+    throwHttpException,
+    throwExpectError,
+    throwRethrowChainError
+  } from '$lib/logging/test-errors.js';
 
   let { data, form } = $props();
 
   const logger = createClientLogger('test-logger');
 
+  let clientResults = $state({});
+
   /**
-   * Client-side function that triggers an expect validation error
+   * Generic error handler for client tests
    */
-  function thisFunctionExpects123toBeAString() {
+  async function handleClientTest(testName, testFunction) {
     try {
-      // This will always fail and trigger an expect error
-      expect.string(123);
-    } catch (e) {
-      rethrow('triggerClientExpectError failed', e);
-    }
-  }
-
-  let clientResult = $state(null);
-
-  function doSomethingWrong() {
-    try {
-      thisFunctionExpects123toBeAString();
-      clientResult = {
+      await testFunction();
+      clientResults[testName] = {
         success: true,
-        message: 'No error occurred (unexpected)'
+        message: 'No error occurred (unexpected)',
+        timestamp: new Date().toLocaleTimeString()
       };
     } catch (error) {
       // Send output to client logger
-      logger.error('Caught test exception', error);
+      logger.error(`Client ${testName} test error`, error);
 
-      clientResult = {
+      clientResults[testName] = {
         success: false,
-        message: 'Client expect error logged',
+        message: `Client ${testName} error logged`,
         error: error.message,
-        errorType: error.constructor.name
+        errorType: error.constructor.name,
+        timestamp: new Date().toLocaleTimeString()
       };
     }
   }
+
+  // Test functions
+  const testSimpleError = () => handleClientTest('simple error', throwSimpleError);
+  const testErrorInSubFunction = () => handleClientTest('nested error', throwErrorInSubFunction);
+  const testPromiseRejection = () => handleClientTest('promise rejection', throwPromiseRejection);
+  const testHkPromiseTimeout = () => handleClientTest('HkPromise timeout', throwHkPromiseTimeout);
+  const testHttpException = () => handleClientTest('HTTP exception', throwHttpException);
+  const testExpectError = () => handleClientTest('expect validation', throwExpectError);
+  const testRethrowChain = () => handleClientTest('rethrow chain', throwRethrowChainError);
 </script>
 
 <div class="container mx-auto p-20up" data-page>
-  <h1 class="type-heading-h1 mb-20up">Logger with expect errors</h1>
+  <h1 class="type-heading-h1 mb-20up">Logger error testing</h1>
   
   <div class="card p-16up mb-16up">
     <p class="type-base-md mb-12bt">
-      This example demonstrates how the logger handles <code class="code">expect</code> 
-      validation errors on both server and client side.
+      This example demonstrates how the logger handles various types of errors
+      with enhanced stack trace detection and error type identification.
     </p>
     
     <p class="type-base-sm text-surface-600">
-      Check your server console and browser console to see the logged errors.
+      Check your server console and browser console to see the logged errors with
+      function names and error types (rethrow, expect, validation, etc.).
     </p>
   </div>
 
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-20up">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-20up">
     <!-- Server error button -->
-    <div class="card p-16up mt-20up">
-      <h2 class="type-heading-h3 mb-12bt">Server logger</h2>
+    <div class="card p-16up">
+      <h2 class="type-heading-h3 mb-20up">Server logger</h2>
       
       <form method="POST" action="?/triggerServerError" use:enhance>
-        <TextButton buttonType="submit">
-          Generate server expect error
+        <TextButton data-role="secondary" data-size="sm" buttonType="submit">
+          Server expect error
         </TextButton>
       </form>
 
       {#if form}
-        <div class="mt-12up mt-20up">
+        <div class="mt-20up">
           <div class="alert {form.success ? 'variant-filled-success' : 'variant-filled-error'}">
             <div class="alert-message">
               <h3 class="type-ui-md font-semibold">
@@ -89,31 +100,65 @@
       {/if}
     </div>
 
-    <!-- Client error button -->
-    <div class="card p-16up mt-20up">
-      <h2 class="type-heading-h3 mb-12bt">Client logger</h2>
+    <!-- Client error buttons -->
+    <div class="card p-16up">
+      <h2 class="type-heading-h3 mb-20up">Client logger</h2>
       
-      <TextButton onclick={doSomethingWrong}>
-        Generate client expect error
-      </TextButton>
+      <div class="grid grid-cols-1 gap-20up w-200up">
+        <TextButton data-role="secondary" data-size="sm" onclick={testSimpleError}>
+          Simple error
+        </TextButton>
 
-      {#if clientResult}
-        <div class="mt-12up mt-20up">
-          <div class="alert {clientResult.success ? 'variant-filled-success' : 'variant-filled-error'}">
-            <div class="alert-message">
-              <h3 class="type-ui-md font-semibold">
-                {clientResult.success ? '✅' : '❌'} {clientResult.message}
-              </h3>
-              {#if clientResult.error}
-                <p class="type-ui-sm mt-4up">
-                  <strong>Error:</strong> {clientResult.error}
+        <TextButton data-role="secondary" data-size="sm" onclick={testErrorInSubFunction}>
+          Nested error
+        </TextButton>
+
+        <TextButton data-role="secondary" data-size="sm" onclick={testPromiseRejection}>
+          Promise rejection
+        </TextButton>
+
+        <TextButton data-role="secondary" data-size="sm" onclick={testHkPromiseTimeout}>
+          HkPromise timeout
+        </TextButton>
+
+        <TextButton data-role="secondary" data-size="sm" onclick={testHttpException}>
+          httpGet exception
+        </TextButton>
+
+        <TextButton data-role="secondary" data-size="sm" onclick={testExpectError}>
+          Expect fails
+        </TextButton>
+
+        <TextButton data-role="secondary" data-size="sm" onclick={testRethrowChain}>
+          Rethrow error
+        </TextButton>
+      </div>
+
+      <!-- Results display -->
+      {#if Object.keys(clientResults).length > 0}
+        <div class="mt-20up">
+          <h3 class="type-heading-h4 mb-20up">Test results</h3>
+
+          {#each Object.entries(clientResults) as [testName, result]}
+            <div class="alert {result.success ? 'variant-filled-success' : 'variant-filled-error'} mb-20up">
+              <div class="alert-message">
+                <h4 class="type-ui-md font-semibold">
+                  {result.success ? '✅' : '❌'} {testName} - {result.message}
+                </h4>
+                {#if result.error}
+                  <p class="type-ui-sm mt-4up">
+                    <strong>Error:</strong> {result.error}
+                  </p>
+                  <p class="type-ui-sm">
+                    <strong>Type:</strong> {result.errorType}
+                  </p>
+                {/if}
+                <p class="type-ui-xs text-surface-500 mt-4up">
+                  {result.timestamp}
                 </p>
-                <p class="type-ui-sm">
-                  <strong>Type:</strong> {clientResult.errorType}
-                </p>
-              {/if}
+              </div>
             </div>
-          </div>
+          {/each}
         </div>
       {/if}
     </div>

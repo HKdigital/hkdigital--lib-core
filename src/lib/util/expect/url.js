@@ -17,9 +17,11 @@ import {
  *
  * @param {any} value
  */
-export function url(value) {
+export function expect_url(value) {
 	v.parse(HumanUrl, value);
 }
+
+export { expect_url as url };
 
 /**
  * Throws a parse error if value is not a URL or
@@ -27,27 +29,33 @@ export function url(value) {
  *
  * @param {any} value
  */
-export function urlOrEmptyString(value) {
+export function expect_urlOrEmptyString(value) {
 	v.parse(UrlOrEmptyString, value);
 }
+
+export { expect_urlOrEmptyString as urlOrEmptyString };
 
 /**
  * Throws a parse error if value is not a URL path
  *
  * @param {any} value
  */
-export function urlPath(value) {
+export function expect_urlPath(value) {
 	v.parse(UrlPath, value);
 }
+
+export { expect_urlPath as urlPath };
 
 /**
  * Throws a parse error if value is not a relative URL
  *
  * @param {any} value
  */
-export function relativeUrl(value) {
+export function expect_relativeUrl(value) {
 	v.parse(RelativeUrl, value);
 }
+
+export { expect_relativeUrl as relativeUrl };
 
 /**
  * Throws a parse error if value is not an absolute
@@ -55,6 +63,8 @@ export function relativeUrl(value) {
  *
  * @param {any} value
  */
-export function absOrRelUrl(value) {
+export function expect_absOrRelUrl(value) {
 	v.parse(AbsOrRelUrl, value);
 }
+
+export { expect_absOrRelUrl as absOrRelUrl };
