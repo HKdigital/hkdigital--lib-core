@@ -10,8 +10,8 @@
     CANNOT_DROP
   } from '$lib/constants/states/drop.js';
 
-  /** @typedef {import('$lib/typedef').DragData} DragData */
-  /** @typedef {import('$lib/typedef').DropData} DropData */
+  /** @typedef {import('$lib/ui/typedef.js').DragData} DragData */
+  /** @typedef {import('$lib/ui/typedef.js').DropData} DropData */
 
   /**
    * @type {{

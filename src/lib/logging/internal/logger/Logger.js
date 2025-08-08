@@ -32,7 +32,7 @@
  * logger.setLevel(DEBUG); // Now debug messages will also be logged
  */
 
-import { EventEmitter } from '$lib/classes/event-emitter';
+import { EventEmitter } from '$lib/generic/events.js';
 
 import {
   DEBUG,
@@ -43,7 +43,7 @@ import {
   LOG
 } from '$lib/logging/constants.js';
 
-import { DetailedError } from '$lib/errors/index.js';
+import { DetailedError } from '$lib/generic/errors.js';
 import { LoggerError } from '$lib/logging/errors.js';
 
 import { toArray } from '$lib/util/array/index.js';

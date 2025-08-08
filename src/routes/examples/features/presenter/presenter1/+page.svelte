@@ -11,7 +11,7 @@
     LABEL_OPAQUE_PURPLE,
     LABEL_SUNSET_ORANGE,
     LABEL_TOMATO_RED
-  } from '$lib/assets/autospuiten/labels.js';
+  } from '../../../assets/autospuiten/labels.js';
 
   let colorLabels = [
     LABEL_RUSTY,

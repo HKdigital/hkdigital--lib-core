@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from 'vitest';
 
 import { HkPromise } from './index.js';
-import { PromiseError } from '$lib/errors/promise.js';
+import { PromiseError } from '$lib/generic/errors.js';
 
 describe('HkPromise - Basic functionality', () => {
 	it('should be a Promise', () => {

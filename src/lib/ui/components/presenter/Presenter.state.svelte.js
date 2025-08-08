@@ -4,7 +4,7 @@ import { findFirst } from '$lib/util/array/index.js';
 
 import { untrack } from 'svelte';
 
-import { HkPromise } from '$lib/classes/promise/index.js';
+import { HkPromise } from '$lib/generic/promises.js';
 
 import { STAGE_BEFORE, STAGE_SHOW } from './constants.js';
 

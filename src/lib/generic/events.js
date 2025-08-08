@@ -1,1 +1,1 @@
-export { default as EventEmitter } from '$lib/events/classes/EventEmitter.js';
+export { default as EventEmitter } from './events/classes/EventEmitter.js';

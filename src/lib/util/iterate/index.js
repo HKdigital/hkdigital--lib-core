@@ -3,10 +3,10 @@
 import * as expect from '../expect/index.js';
 import { smallestFirst, largestFirst } from '../compare/index.js';
 
-import IterableTree from '$lib/classes/data/IterableTree.js';
+import { IterableTree } from '$lib/generic/data.js';
 
 /**
- * @typedef {import('$lib/classes/data/typedef.js').IterableTreeOptions} IterableTreeOptions
+ * @typedef {import('$lib/generic/typedef.js').IterableTreeOptions} IterableTreeOptions
  */
 
 /* ------------------------------------------------------------------ Exports */

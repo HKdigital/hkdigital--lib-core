@@ -38,7 +38,7 @@ import * as expect from '$lib/util/expect/index.js';
 
 import { noop } from '$lib/util/function/index.js';
 
-import { PromiseError } from '$lib/errors/promise.js';
+import { PromiseError } from '$lib/generic/errors.js';
 
 /* ---------------------------------------------------------------- Internals */
 

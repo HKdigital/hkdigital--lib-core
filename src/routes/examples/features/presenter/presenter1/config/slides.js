@@ -8,7 +8,7 @@ import {
   LABEL_OPAQUE_PURPLE,
   LABEL_SUNSET_ORANGE,
   LABEL_TOMATO_RED
-} from '$lib/assets/autospuiten/labels.js';
+} from '../../../../assets/autospuiten/labels.js';
 
 import {
   Rusty,
@@ -18,7 +18,7 @@ import {
   OpaquePurple,
   SunsetOrange,
   TomatoRed
-} from '$lib/assets/autospuiten/car-paint-picker.js';
+} from '../../../../assets/autospuiten/car-paint-picker.js';
 
 import { INTRO_FADE_IN_SLIDE_UP, OUTRO_FADE_OUT } from './transitions.js';
 

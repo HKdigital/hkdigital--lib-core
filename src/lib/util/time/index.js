@@ -37,7 +37,7 @@ import {
 } from '$lib/constants/time/index.js';
 
 import * as expect from '$lib/util/expect';
-import { HkPromise } from '$lib/classes/promise/index.js';
+import { HkPromise } from '$lib/generic/promises.js';
 
 /**
  * Returns a promise that resolves after a specified timeout

@@ -1,5 +1,5 @@
 import { expect, rethrow } from '$lib/util/index.js';
-import { HkPromise } from '$lib/classes/promise/index.js';
+import { HkPromise } from '$lib/generic/promises.js';
 import { httpGet } from '$lib/network/http/index.js';
 import { v } from '$lib/valibot/index.js';
 

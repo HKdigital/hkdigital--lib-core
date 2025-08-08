@@ -11,7 +11,7 @@
 
   import Item from './Item.svelte';
 
-  /** @typedef {import('$lib/typedef').DropData} DropData */
+  /** @typedef {import('$lib/ui/typedef.js').DropData} DropData */
 
   // Color mapping for item types
   const typeBorders = {

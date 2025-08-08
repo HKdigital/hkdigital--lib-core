@@ -2,7 +2,7 @@ import { METHOD_GET, METHOD_POST } from '$lib/constants/http/methods.js';
 
 import { APPLICATION_JSON } from '$lib/constants/mime/application.js';
 import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
-import { ResponseError } from '$lib/errors/index.js';
+import { ResponseError } from '$lib/network/errors.js';
 
 import * as expect from '$lib/util/expect/index.js';
 

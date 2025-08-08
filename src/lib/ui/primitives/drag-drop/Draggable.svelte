@@ -12,7 +12,7 @@
     DROPPING
   } from '$lib/constants/states/drag.js';
 
-  /** @typedef {import('$lib/typedef').SimulatedDragEvent} SimulatedDragEvent */
+  /** @typedef {import('$lib/ui/typedef.js').SimulatedDragEvent} SimulatedDragEvent */
 
   /**
    * @type {{

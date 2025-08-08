@@ -1,7 +1,7 @@
 // drag-state.svelte.js
 import { defineStateContext } from '$lib/util/svelte/state-context/index.js';
 
-/** @typedef {import('$lib/typedef').SimulatedDragEvent} SimulatedDragEvent */
+/** @typedef {import('$lib/ui/typedef.js').SimulatedDragEvent} SimulatedDragEvent */
 
 class DragState {
   // Existing draggables map
