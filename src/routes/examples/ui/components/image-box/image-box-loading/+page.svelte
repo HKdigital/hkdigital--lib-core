@@ -1,11 +1,15 @@
 <script>
-  import ArmyGreenResponsive from '../../../assets/images/army-green.jpg?preset=gradient&responsive';
+  import ArmyGreenResponsive from '../../../../assets/images/army-green.jpg?preset=gradient&responsive';
+
   import { ImageBox } from '$lib/ui/components/index.js';
 
   /** @type {import('$lib/network/typedef.js').LoadingProgress} */
   let progress = $state({ bytesLoaded: 0, size: 0, loaded: false });
 
-  const handleProgress = (p) => {
+  // console.log('ArmyGreenResponsive', ArmyGreenResponsive);
+
+  const handleProgress = (p, id) => {
+    // console.log('id', id);
     progress = p;
   };
 </script>

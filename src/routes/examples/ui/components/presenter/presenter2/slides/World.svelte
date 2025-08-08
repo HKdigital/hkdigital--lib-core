@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
 
-  import ElectricBlue from '../../../../assets/images/electric-blue.jpg?preset=gradient&responsive';
+  import ElectricBlue from '../../../../../assets/images/electric-blue.jpg?preset=gradient&responsive';
 
   import { ImageBox } from '$lib/ui/components/index.js';
 

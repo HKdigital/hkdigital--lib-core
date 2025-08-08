@@ -1,5 +1,5 @@
 <script>
-  import { BumperOrg, BumperJpg, Bumper } from '../../../assets/images.js';
+  import { BumperOrg, BumperJpg, Bumper } from '../../../../assets/images.js';
 
   // import { TrailerEmpty } from '../../../assets/images.js';
 

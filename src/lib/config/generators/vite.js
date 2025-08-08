@@ -11,6 +11,7 @@ import { resolve } from 'path';
  * @param {object} [options.customDefines={}] Additional define values
  * @param {Array} [options.customPlugins=[]] Additional Vite plugins
  * @param {object} [options.imagetoolsOptions={}] Options for imagetools config
+ * @param {object} [options.aliases={}] Additional path aliases
  * @param {string} [options.packageJsonPath='./package.json'] Path to package.json
  *
  * @returns {Promise<object>} Vite configuration object
@@ -23,6 +24,7 @@ export async function generateViteConfig(options = {}) {
     customDefines = {},
     customPlugins = [],
     imagetoolsOptions = {},
+    aliases = {},
     packageJsonPath = './package.json'
   } = options;
 
@@ -83,6 +85,11 @@ export async function generateViteConfig(options = {}) {
         new Date().toISOString()
       ),
       ...customDefines
+    },
+    resolve: {
+      alias: {
+        ...aliases
+      }
     }
   };
 

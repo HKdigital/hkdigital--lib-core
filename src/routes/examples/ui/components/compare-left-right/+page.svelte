@@ -4,15 +4,15 @@
 
   // Raw images
 
-  import ArmyGreenRaw from '../../assets/images/army-green.jpg?raw';
+  import ArmyGreenRaw from '../../../assets/images/army-green.jpg?raw';
 
-  import ElectricBlueRaw from '../../assets/images/electric-blue.jpg?raw';
+  import ElectricBlueRaw from '../../../assets/images/electric-blue.jpg?raw';
 
   // Imagebox images
 
-  import ArmyGreen from '../../assets/images/army-green.jpg?preset=gradient';
+  import ArmyGreen from '../../../assets/images/army-green.jpg?preset=gradient';
 
-  import ElectricBlue from '../../assets/images/electric-blue.jpg?preset=gradient';
+  import ElectricBlue from '../../../assets/images/electric-blue.jpg?preset=gradient';
 
   import { ImageBox } from '$lib/ui/components/index.js';
 </script>

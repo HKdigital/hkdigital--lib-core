@@ -1,5 +1,5 @@
 <script>
-  import ElectricBlue from '../../../../assets/images/electric-blue.jpg?preset=gradient&responsive';
+  import ElectricBlue from '../../../../../assets/images/electric-blue.jpg?preset=gradient&responsive';
 
   import { GridLayers } from '$lib/ui/primitives/layout/index.js';
 
