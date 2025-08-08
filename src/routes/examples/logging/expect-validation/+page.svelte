@@ -11,7 +11,7 @@
     throwExpectError,
     throwRethrowChainError,
     throwRawValibotError
-  } from '$lib/logging/test-errors.js';
+  } from '$lib/logging/internal/test-errors.js';
 
   let { data, form } = $props();
 

@@ -12,7 +12,7 @@ import {
   throwExpectError,
   throwRethrowChainError,
   throwRawValibotError
-} from '$lib/logging/test-errors.js';
+} from '$lib/logging/internal/test-errors.js';
 
 /**
  * Generic error handler for server actions
