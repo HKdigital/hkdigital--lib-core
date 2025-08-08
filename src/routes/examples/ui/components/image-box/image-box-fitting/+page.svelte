@@ -1,11 +1,11 @@
 <script>
 	import { onMount, untrack } from 'svelte';
 
-	import ArmyGreen from '../../../../assets/images/army-green.jpg?preset=gradient';
+	import ArmyGreen from '$examples/assets/images/army-green.jpg?preset=gradient';
 
-	import ElectricBlue from '../../../../assets/images/electric-blue.jpg?preset=gradient';
+	import ElectricBlue from '$examples/assets/images/electric-blue.jpg?preset=gradient';
 
-	import { TransparentLines } from '../../../../assets/images.js';
+	import { TransparentLines } from '$examples/assets/images.js';
 
 	// console.log('ElectricBlue', ElectricBlue);
 

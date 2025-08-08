@@ -1,7 +1,7 @@
 <script>
-  import { BumperOrg, BumperJpg, Bumper } from '../../../../assets/images.js';
+  import { BumperOrg, BumperJpg, Bumper } from '$examples/assets/images.js';
 
-  // import { TrailerEmpty } from '../../../assets/images.js';
+  // import { TrailerEmpty } from '$examples/assets/images.js';
 
   import { ImageBox } from '$lib/ui/components/index.js';
 

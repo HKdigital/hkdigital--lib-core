@@ -1,5 +1,5 @@
 <script>
-  import ArmyGreenResponsive from '../../../../assets/images/army-green.jpg?preset=gradient&responsive';
+  import ArmyGreenResponsive from '$examples/assets/images/army-green.jpg?preset=gradient&responsive';
   import { ImageBox } from '$lib/ui/components/index.js';
 
   /** @type {import('$lib/network/typedef.js').LoadingProgress} */

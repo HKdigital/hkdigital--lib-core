@@ -7,7 +7,7 @@
 
   // console.log(ArmyGreen);
 
-  import ElectricBlue from '../../assets/images/electric-blue.jpg?preset=gradient';
+  import ElectricBlue from '$examples/assets/images/electric-blue.jpg?preset=gradient';
 
   console.log('ElectricBlue', ElectricBlue);
 

@@ -8,7 +8,7 @@ import {
   LABEL_OPAQUE_PURPLE,
   LABEL_SUNSET_ORANGE,
   LABEL_TOMATO_RED
-} from '../../../../../assets/images/vw-golf-mk1-17.js';
+} from '$examples/assets/images/vw-golf-mk1-17.js';
 
 import {
   Rusty,
@@ -18,7 +18,7 @@ import {
   OpaquePurple,
   SunsetOrange,
   TomatoRed
-} from '../../../../../assets/images/vw-golf-mk1-17.js';
+} from '$examples/assets/images/vw-golf-mk1-17.js';
 
 import { INTRO_FADE_IN_SLIDE_UP, OUTRO_FADE_OUT } from './transitions.js';
 
