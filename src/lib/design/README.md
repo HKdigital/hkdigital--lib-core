@@ -18,11 +18,14 @@ const themeExtensions = generateTailwindThemeExtensions(designTokens);
 
 /** @type {import('tailwindcss').Config} \*/
 export default {
+  // Include @hkdigital libraries in content so Tailwind processes
+  // their design system classes and components for proper styling
   content: [
     './node_modules/@hkdigital/**/*.{html,js,svelte}',
     './src/**/*.{html,js,svelte}'
   ],
   theme: {
+    // Extend Tailwind's default theme using the design system tokens
     extend: themeExtensions
   },
   plugins: [
