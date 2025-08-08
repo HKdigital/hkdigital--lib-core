@@ -1,10 +1,15 @@
 /**
  * Pino adapter for server-side logging
  */
-
 import pino from 'pino';
-import { dev, building } from '$app/environment';
-import { detectErrorMeta, findRelevantFrameIndex, formatErrorDisplay } from './formatting.js';
+import { dev } from '$app/environment';
+
+import {
+  detectErrorMeta,
+  findRelevantFrameIndex,
+  formatErrorDisplay,
+  parseFunctionName
+} from './formatting.js';
 
 /**
  * Pino adapter that bridges Logger events to pino
@@ -22,40 +27,85 @@ export class PinoAdapter {
     this.#projectRoot = import.meta.env.VITE_PROJECT_ROOT || process.cwd();
     const baseOptions = {
       serializers: {
-        err: (err) => {
+        errors: (err) => {
+
+          /** @type {import('./typedef').ErrorSummary[]} */
           const chain = [];
+          let loggedAt = null;
+
           let current = err;
           let isFirst = true;
 
-          while (current) {
+          while (current && current instanceof Error) {
+            // Check if this is the first error and it's a LoggerError - extract logging context
+            if (isFirst && current.name === 'LoggerError') {
+              if (current.stack) {
+                const cleanedStackString = this.#cleanStackTrace(current.stack);
+                const cleanedStackArray = cleanedStackString
+                  .split('\n')
+                  .map((line) => line.trim())
+                  .filter(
+                    (line) =>
+                      line && line !== current.name + ': ' + current.message
+                  );
+
+                // For LoggerError, we know it's a logger.error call, so find the relevant frame
+                const loggerErrorIndex = cleanedStackArray.findIndex(frame =>
+                  (frame.includes('Logger.error') && frame.includes('logger/Logger.js')) ||
+                  (frame.includes('error@') && frame.includes('logger/Logger.js'))
+                );
+
+                if (loggerErrorIndex >= 0 && loggerErrorIndex + 1 < cleanedStackArray.length) {
+                  const relevantFrame = cleanedStackArray[loggerErrorIndex + 1];
+
+                  // Extract function name from the relevant frame
+                  // const functionName = parseFunctionName(relevantFrame);
+
+                  // const errorType = functionName ? `logger.error in ${functionName}` : 'logger.error';
+                  loggedAt = relevantFrame.slice(3); // remove "at "
+                }
+              }
+
+              // Skip the LoggerError and move to the actual error
+              current = current.cause;
+              isFirst = false;
+              continue;
+            }
             /** @type {import('./typedef').ErrorSummary} */
             const serialized = {
               name: current.name,
-              message: current.message,
-              ...(isFirst && this.pino.level === 'debug' && {
-                stack: this.#cleanStackTrace(current.stack)
-              })
+              message: current.message
             };
 
             // Add error metadata for structured logging and terminal display
             if (current.stack) {
               // Convert cleaned stack string to array format expected by formatting functions
               const cleanedStackString = this.#cleanStackTrace(current.stack);
-              const cleanedStackArray = cleanedStackString.split('\n')
-                .map(line => line.trim())
-                .filter(line => line && line !== current.name + ': ' + current.message);
+              const cleanedStackArray = cleanedStackString
+                .split('\n')
+                .map((line) => line.trim())
+                .filter(
+                  (line) =>
+                    line && line !== current.name + ': ' + current.message
+                );
 
               const errorMeta = detectErrorMeta(current, cleanedStackArray);
-              const relevantFrameIndex = findRelevantFrameIndex(current, cleanedStackArray);
-              
+              const relevantFrameIndex = findRelevantFrameIndex(
+                current,
+                cleanedStackArray
+              );
+
               serialized.meta = errorMeta;
               serialized.errorType = formatErrorDisplay(errorMeta);
-              
+
               // Include stack frames for terminal display
-              serialized.stackFrames = cleanedStackArray.slice(0, 9).map((frame, index) => {
-                const marker = index === relevantFrameIndex ? '→' : ' ';
-                return `${index}${marker} ${frame}`;
-              });
+              serialized.stackFrames = cleanedStackArray
+                .slice(0, 9)
+                .map((frame, index) => {
+                  const marker = index === relevantFrameIndex ? '→' : ' ';
+
+                  return `${marker} ${frame}`;
+                });
             }
 
             // Include HttpError-specific properties
@@ -71,13 +121,13 @@ export class PinoAdapter {
             isFirst = false;
           }
 
-          return { errorChain: chain };
+          return loggedAt ? { chain, loggedAt } : chain;
         }
       }
     };
 
     // Add error handling for missing pino-pretty in dev
-    if (dev) {
+    if ( dev) {
       const devOptions = {
         level: 'debug',
         transport: {
@@ -92,7 +142,10 @@ export class PinoAdapter {
       try {
         this.pino = pino({ ...baseOptions, ...devOptions, ...options });
       } catch (error) {
-        if (error.message.includes('Cannot find module') && error.message.includes('pino-pretty')) {
+        if (
+          error.message.includes('Cannot find module') &&
+          error.message.includes('pino-pretty')
+        ) {
           const errorMessage = `
 ╭─────────────────────────────────────────────────────────────╮
 │                     Missing Dependency                      │
@@ -124,16 +177,23 @@ export class PinoAdapter {
     let cleaned = stack;
 
     // Escape special regex characters in the project root path
-    const escapedRoot = this.#projectRoot.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    
+    const escapedRoot = this.#projectRoot.replace(
+      /[.*+?^${}()|[\]\\]/g,
+      '\\$&'
+    );
+
     // Replace project root path with relative path, handling file:// protocol
     // Match both regular paths and file:// URLs
-    const rootRegex = new RegExp(`(\\s+at\\s+.*\\()(file://)?${escapedRoot}[\\/\\\\]`, 'g');
+    const rootRegex = new RegExp(
+      `(\\s+at\\s+.*\\()(file://)?${escapedRoot}[\\/\\\\]`,
+      'g'
+    );
     cleaned = cleaned.replace(rootRegex, '$1');
 
     // Simplify pnpm paths: node_modules/.pnpm/package@version_deps/node_modules/package
     // becomes: node_modules/package
-    const pnpmRegex = /node_modules\/\.pnpm\/([^@\/]+)@[^\/]+\/node_modules\/\1/g;
+    const pnpmRegex =
+      /node_modules\/\.pnpm\/([^@\/]+)@[^\/]+\/node_modules\/\1/g;
     cleaned = cleaned.replace(pnpmRegex, 'node_modules/$1');
 
     // Also handle cases where the package name might be different in the final path
@@ -160,10 +220,10 @@ export class PinoAdapter {
     if (details) {
       if (details instanceof Error) {
         // details is directly an error
-        logData.err = details;
+        logData.errors = details;
       } else if (details.error instanceof Error) {
         // details has an error property
-        logData.err = details.error;
+        logData.errors = details.error;
         // Include other details except the error
         // eslint-disable-next-line no-unused-vars
         const { error, ...otherDetails } = details;
@@ -174,6 +234,12 @@ export class PinoAdapter {
         // No error found in details, include all details
         logData.details = details;
       }
+    }
+
+    // Check if we have loggedAt info from the serializer
+    if (logData.errors && typeof logData.errors === 'object' && logData.errors.loggedAt) {
+      logData.loggedAt = logData.errors.loggedAt;
+      logData.errors = logData.errors.chain;
     }
 
     this.pino[level](logData, message);

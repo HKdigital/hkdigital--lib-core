@@ -32,7 +32,8 @@
       };
     } catch (error) {
       // Send output to client logger
-      logger.error(`Client ${testName} test error`, error);
+      // logger.error(`Test [${testName}]`, error);
+      logger.error(error);
 
       clientResults[testName] = {
         success: false,
@@ -71,15 +72,59 @@
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-20up">
-    <!-- Server error button -->
+    <!-- Server error buttons -->
     <div class="card p-16up">
       <h2 class="type-heading-h3 my-20up">Server logger</h2>
       
-      <form method="POST" action="?/triggerServerError" use:enhance>
-        <TextButton data-role="secondary" data-size="sm" buttonType="submit">
-          Server expect error
-        </TextButton>
-      </form>
+      <div class="grid grid-cols-1 gap-20up w-200up">
+        <form method="POST" action="?/triggerSimpleError" use:enhance>
+          <TextButton data-role="secondary" data-size="sm" buttonType="submit">
+            Simple error
+          </TextButton>
+        </form>
+
+        <form method="POST" action="?/triggerNestedError" use:enhance>
+          <TextButton data-role="secondary" data-size="sm" buttonType="submit">
+            Nested error
+          </TextButton>
+        </form>
+
+        <form method="POST" action="?/triggerPromiseRejection" use:enhance>
+          <TextButton data-role="secondary" data-size="sm" buttonType="submit">
+            Promise rejection
+          </TextButton>
+        </form>
+
+        <form method="POST" action="?/triggerHkPromiseTimeout" use:enhance>
+          <TextButton data-role="secondary" data-size="sm" buttonType="submit">
+            HkPromise timeout
+          </TextButton>
+        </form>
+
+        <form method="POST" action="?/triggerHttpException" use:enhance>
+          <TextButton data-role="secondary" data-size="sm" buttonType="submit">
+            httpGet exception
+          </TextButton>
+        </form>
+
+        <form method="POST" action="?/triggerExpectError" use:enhance>
+          <TextButton data-role="secondary" data-size="sm" buttonType="submit">
+            Expect fails
+          </TextButton>
+        </form>
+
+        <form method="POST" action="?/triggerRethrowChain" use:enhance>
+          <TextButton data-role="secondary" data-size="sm" buttonType="submit">
+            Rethrow error
+          </TextButton>
+        </form>
+
+        <form method="POST" action="?/triggerRawValibotError" use:enhance>
+          <TextButton data-role="secondary" data-size="sm" buttonType="submit">
+            Raw valibot error
+          </TextButton>
+        </form>
+      </div>
 
       {#if form}
         <div class="mt-20up">

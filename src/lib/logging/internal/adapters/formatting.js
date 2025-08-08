@@ -13,6 +13,16 @@
  * @returns {number} Index of the most relevant frame to highlight
  */
 export function findRelevantFrameIndex(error, cleanedStack) {
+  // Check if this is a LoggerError - look for Logger.error call
+  if (error.name === 'LoggerError') {
+    const loggerErrorIndex = cleanedStack.findIndex(frame => 
+      frame.includes('Logger.error') && frame.includes('logger/Logger.js')
+    );
+    if (loggerErrorIndex >= 0 && loggerErrorIndex + 1 < cleanedStack.length) {
+      return loggerErrorIndex + 1;
+    }
+  }
+
   if (error.name === 'ValiError') {
     // Look for expect_ function first, user code is right after (handle Node.js format)
     const expectIndex = cleanedStack.findIndex(frame => 
@@ -30,6 +40,16 @@ export function findRelevantFrameIndex(error, cleanedStack) {
   }
 
   if (error.name === 'DetailedError') {
+    // Check if this DetailedError was created by Logger.error - look for Logger.error call first
+    // Handle both Firefox format (error@file) and Node.js format (at Logger.error (file))
+    const loggerErrorIndex = cleanedStack.findIndex(frame => 
+      (frame.includes('Logger.error') && frame.includes('logger/Logger.js')) ||
+      (frame.includes('error@') && frame.includes('logger/Logger.js'))
+    );
+    if (loggerErrorIndex >= 0 && loggerErrorIndex + 1 < cleanedStack.length) {
+      return loggerErrorIndex + 1;
+    }
+    
     // Look for rethrow, user code is right after (handle both Firefox and Node.js format)
     const rethrowIndex = cleanedStack.findIndex(frame => 
       frame.includes('rethrow@') || frame.includes('at rethrow (')
@@ -81,8 +101,35 @@ export function detectErrorMeta(error, cleanedStack) {
   const userFunctionName = extractUserFunctionName(error, cleanedStack);
   const relevantFrameIndex = findRelevantFrameIndex(error, cleanedStack);
 
+  // Check if it's a LoggerError
+  if (error.name === 'LoggerError') {
+    return {
+      category: 'logger',
+      method: 'logger.error',
+      origin: userFunctionName,
+      relevantFrameIndex
+    };
+  }
+
   // Check if it's a rethrow error
   if (error.name === 'DetailedError') {
+    // Check if this DetailedError was created by Logger.error
+    const cleanedStackArray = cleanedStack || [];
+    const loggerErrorIndex = cleanedStackArray.findIndex(frame => 
+      (frame.includes('Logger.error') && frame.includes('logger/Logger.js')) ||
+      (frame.includes('error@') && frame.includes('logger/Logger.js'))
+    );
+    
+    if (loggerErrorIndex >= 0) {
+      return {
+        category: 'logger',
+        method: 'logger.error',
+        origin: userFunctionName,
+        relevantFrameIndex
+      };
+    }
+    
+    // Otherwise it's a regular rethrow error
     return {
       category: 'rethrow',
       method: 'rethrow',
@@ -215,7 +262,26 @@ export function getHttpMethod(cleanedStack) {
  * @returns {string|null} User function name or null
  */
 export function extractUserFunctionName(error, cleanedStack) {
+  // Check if this is a LoggerError - look for the frame after Logger.error
+  if (error.name === 'LoggerError' && cleanedStack.length > 1) {
+    const loggerErrorIndex = cleanedStack.findIndex(frame => 
+      frame.includes('Logger.error') && frame.includes('logger/Logger.js')
+    );
+    if (loggerErrorIndex >= 0 && loggerErrorIndex + 1 < cleanedStack.length) {
+      return parseFunctionName(cleanedStack[loggerErrorIndex + 1]);
+    }
+  }
+
   if (error.name === 'DetailedError' && cleanedStack.length > 1) {
+    // Check if this DetailedError was created by Logger.error - look for the frame after Logger.error
+    const loggerErrorIndex = cleanedStack.findIndex(frame => 
+      (frame.includes('Logger.error') && frame.includes('logger/Logger.js')) ||
+      (frame.includes('error@') && frame.includes('logger/Logger.js'))
+    );
+    if (loggerErrorIndex >= 0 && loggerErrorIndex + 1 < cleanedStack.length) {
+      return parseFunctionName(cleanedStack[loggerErrorIndex + 1]);
+    }
+    
     // For rethrow errors, look for the frame after rethrow (handle both formats)
     const rethrowIndex = cleanedStack.findIndex(frame => 
       frame.includes('rethrow@') || frame.includes('at rethrow (')

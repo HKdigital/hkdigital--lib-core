@@ -43,6 +43,11 @@ import {
   LOG
 } from '$lib/logging/constants.js';
 
+import { DetailedError } from '$lib/errors/index.js';
+import { LoggerError } from '$lib/logging/errors.js';
+
+import { toArray } from '$lib/util/array/index.js';
+
 /**
  * Logger class for consistent logging
  * @extends EventEmitter
@@ -99,6 +104,7 @@ export default class Logger extends EventEmitter {
    *
    * @param {string} message - Log message
    * @param {*} [details] - Additional details
+   *
    * @returns {boolean} True if the log was emitted
    */
   info(message, details) {
@@ -110,6 +116,7 @@ export default class Logger extends EventEmitter {
    *
    * @param {string} message - Log message
    * @param {*} [details] - Additional details
+   *
    * @returns {boolean} True if the log was emitted
    */
   warn(message, details) {
@@ -119,12 +126,41 @@ export default class Logger extends EventEmitter {
   /**
    * Log an error message
    *
-   * @param {string} message - Log message
-   * @param {*} [details] - Additional details
+   * @param {Error|string} originalErrorOrMessage
+   * @param {Error} [originalError]
+   *
    * @returns {boolean} True if the log was emitted
    */
-  error(message, details) {
-    return this.#log(ERROR, message, details);
+  error(originalErrorOrMessage, originalError) {
+
+    if( originalErrorOrMessage instanceof Error )
+    {
+      // params: {error} originalErrorOrMessage
+      const loggerError = new LoggerError(originalErrorOrMessage);
+
+      const message = originalErrorOrMessage.message;
+
+      return this.#log(ERROR, message, loggerError);
+    }
+    else if( typeof originalErrorOrMessage === 'string' && originalError instanceof Error ) {
+      // params: {string} message, {error} originalError
+      const detailedError = new DetailedError(
+        originalErrorOrMessage,
+        null,
+        originalError
+      );
+
+      return this.#log(ERROR, detailedError.message, detailedError);
+    }
+    else {
+      // wrong params
+      const detailedError = new DetailedError(
+        'Invalid parameters supplied to Logger.error',
+        toArray(arguments)
+      );
+
+      return this.#log(ERROR, detailedError.message, detailedError);
+    }
   }
 
   /**
@@ -132,7 +168,6 @@ export default class Logger extends EventEmitter {
    *
    * @param {string} namespace
    *   Namespace of the context (needed for chaining contexts)
-   *
    * @param {Object} additionalContext - Additional context data
    *
    * @returns {Logger} New logger instance with merged context

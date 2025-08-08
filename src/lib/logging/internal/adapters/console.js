@@ -119,9 +119,9 @@ export class ConsoleAdapter {
 
         // Log any other properties
         // eslint-disable-next-line no-unused-vars
-        const { error, errors, ...otherData } = logData;
-        if (Object.keys(otherData).length > 0) {
-          console.log('Additional data:', otherData);
+        const { error, errors, loggedAt } = logData;
+        if (loggedAt) {
+          console.log('Logged at:', loggedAt);
         }
       } else {
         // Production mode or non-error data - use compact format
@@ -199,8 +199,13 @@ export class ConsoleAdapter {
     if (details instanceof Error) {
       if (details.cause) {
         // Error has a cause chain - serialize to array
-        //logData.errors = this.#serializeErrorChain(details);
-        logData.errors = this.#serializeErrorChain(details);
+        const serialized = this.#serializeErrorChain(details);
+        if (serialized.loggedAt) {
+          logData.loggedAt = serialized.loggedAt;
+          logData.errors = serialized.chain;
+        } else {
+          logData.errors = serialized;
+        }
       } else {
         // Single error - keep as simple object
         const cleanedStack = this.#cleanStackTrace(details.stack);
@@ -217,7 +222,13 @@ export class ConsoleAdapter {
     } else if (details.error instanceof Error) {
       if (details.error.cause) {
         // Error has a cause chain - serialize to array
-        logData.errors = this.#serializeErrorChain(details.error);
+        const serialized = this.#serializeErrorChain(details.error);
+        if (serialized.loggedAt) {
+          logData.loggedAt = serialized.loggedAt;
+          logData.errors = serialized.chain;
+        } else {
+          logData.errors = serialized;
+        }
       } else {
         // Single error - keep as simple object
         const cleanedStack = this.#cleanStackTrace(details.error.stack);
@@ -252,11 +263,35 @@ export class ConsoleAdapter {
    */
   #serializeErrorChain(err) {
     const chain = [];
+    let loggedAt = null;
 
     let current = err;
-    // let isFirst = true;
+    let isFirst = true;
 
     while (current) {
+      // Check if this is the first error and it's a LoggerError - extract logging context
+      if (isFirst && current.name === 'LoggerError') {
+        if (current.stack) {
+          const cleanedStack = this.#cleanStackTrace(current.stack);
+
+          // For LoggerError, we know it's a logger.error call, so find the relevant frame
+          const loggerErrorIndex = cleanedStack.findIndex(frame =>
+            (frame.includes('Logger.error') && frame.includes('logger/Logger.js')) ||
+            (frame.includes('error@') && frame.includes('logger/Logger.js'))
+          );
+
+          if (loggerErrorIndex >= 0 && loggerErrorIndex + 1 < cleanedStack.length) {
+            const relevantFrame = cleanedStack[loggerErrorIndex + 1];
+            // Remove the "at " prefix for cleaner output
+            loggedAt = relevantFrame.replace(/^\d+→?\s*/, '').replace(/^at\s+/, '');
+          }
+        }
+
+        // Skip the LoggerError and move to the actual error
+        current = current.cause;
+        isFirst = false;
+        continue;
+      }
       const errorObj = {
         name: current.name || 'Unknown',
         message: current.message || 'No message'
@@ -287,10 +322,10 @@ export class ConsoleAdapter {
 
       chain.push(errorObj);
       current = /** @type {Error} */ (current.cause);
-      // isFirst = false;
+      isFirst = false;
     }
 
-    return chain;
+    return loggedAt ? { chain, loggedAt } : chain;
   }
 
 

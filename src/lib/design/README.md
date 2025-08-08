@@ -18,6 +18,10 @@ const themeExtensions = generateTailwindThemeExtensions(designTokens);
 
 /** @type {import('tailwindcss').Config} \*/
 export default {
+  content: [
+    './node_modules/@hkdigital/**/*.{html,js,svelte}',
+    './src/**/*.{html,js,svelte}'
+  ],
   theme: {
     extend: themeExtensions
   },
