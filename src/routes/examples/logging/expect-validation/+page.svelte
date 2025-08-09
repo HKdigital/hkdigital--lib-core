@@ -59,7 +59,7 @@
 <div class="container mx-auto p-20up" data-page>
   <h1 class="type-heading-h1 mb-20up">Logger error testing</h1>
   
-  <div class="card p-16up mb-16up">
+  <div class="card p-20up mb-20up">
     <p class="type-base-md mb-12bt">
       This example demonstrates how the logger handles various types of errors
       with enhanced stack trace detection and error type identification.
@@ -73,7 +73,7 @@
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-20up">
     <!-- Server error buttons -->
-    <div class="card p-16up">
+    <div class="card p-20up">
       <h2 class="type-heading-h3 my-20up">Server logger</h2>
       
       <div class="grid grid-cols-1 gap-20up w-200up">
@@ -148,7 +148,7 @@
     </div>
 
     <!-- Client error buttons -->
-    <div class="card p-16up">
+    <div class="card p-20up">
       <h2 class="type-heading-h3 my-20up">Client logger</h2>
       
       <div class="grid grid-cols-1 gap-20up w-200up">

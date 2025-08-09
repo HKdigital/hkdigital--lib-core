@@ -29,6 +29,7 @@ export default {
     extend: themeExtensions
   },
   plugins: [
+    // Generate custom utility classes like 'type-heading-h2'
     customUtilitiesPlugin
   ]
 };
@@ -46,6 +47,70 @@ export default {
 
 {@render children()}
 ```
+
+## Using Design System Classes in External CSS
+
+When using design system utilities like `p-16up`, `bg-surface-300`, or `border-primary-500` in external CSS files (loaded via `<style src="./style.css"></style>`), you **must** include the `@reference` directive at the top of your CSS file.
+
+**SVELTE preprocess**
+You need svelte preprocess to process external CSS files in your svelte files!
+
+```html
+<div data-page>
+  <p>Hello there!</p>
+</div>
+
+<style src="./style.css"></style>
+```
+
+### ✅ Correct Usage
+
+```css
+/* style.css */
+@reference '../../app.css';
+
+[data-page] {
+  & .my-component {
+    @apply p-16up bg-surface-300 border border-primary-500;
+  }
+}
+```
+
+### ❌ Common Mistake
+
+```css
+/* style.css - MISSING @reference directive */
+[data-page] {
+  & .my-component {
+    @apply p-16up bg-surface-300; /* ERROR: Cannot apply unknown utility class */
+  }
+}
+```
+
+### Path Resolution
+
+The `@reference` path must be relative to your CSS file's location:
+
+E.g. `/src/routes/examples/style.css` → `@reference '../../app.css'`
+
+```svelte
+<style>
+  [data-page] {
+    & .my-component {
+      @apply p-16up bg-surface-300 border border-primary-500;
+    }
+  }
+</style>
+```
+
+### Troubleshooting
+
+If you see errors like:
+- `Cannot apply unknown utility class 'p-16up'`
+- `Cannot apply unknown utility class 'bg-surface-300'`
+- `Are you using CSS modules or similar and missing @reference?`
+
+**Solution**: Add `@reference` directive with the correct relative path to your `app.css` file.
 
 ## Core Concepts
 
@@ -166,6 +231,9 @@ Available for all text point sizes: `1ut/bt/ht`, `2ut/bt/ht`, `4ut/bt/ht`, `6ut/
 ```
 
 **Auto Contrast**: Each color includes automatic contrast colors for accessibility. Use `text-{color}-contrast-{shade}` for optimal readability.
+
+**Skeleton**
+This library is based on both Tailwind and Skeleton. See [Skeleton Design Colors](https://www.skeleton.dev/docs/design/colors).
 
 ## Component Styling
 

@@ -1,4 +1,5 @@
-@layer theme, base, components, utilities;
+/* Layers decides what css goes first.*/
+@layer theme, base, utilities, components;
 
 /* Insert tailwind classes and styles */
 @import 'tailwindcss';
@@ -6,15 +7,16 @@
 /* Import theme classes and styles */
 @import './lib/design/themes/hkdev/theme.css' layer(theme);
 
-/*@import '$lib/design/themes/hkdev/debug.css';*/
-@import '$lib/design/themes/hkdev/globals.css';
-@import '$lib/design/themes/hkdev/components.css' layer(components);
-@import '$lib/design/themes/hkdev/responsive.css';
+/*@import './lib/design/themes/hkdev/debug.css';*/
+@import './lib/design/themes/hkdev/globals.css';
+@import './lib/design/themes/hkdev/components.css' layer(components);
+@import './lib/design/themes/hkdev/responsive.css';
 
 @import '@skeletonlabs/skeleton' source('../node_modules/@skeletonlabs/skeleton-svelte/dist');
 @import '@skeletonlabs/skeleton/optional/presets' source('../node_modules/@skeletonlabs/skeleton-svelte/dist');
 
 @config "../tailwind.config.js";
+
 /* Import common CSS */
 
 /*@import "./lib/css/utilities.css";*/

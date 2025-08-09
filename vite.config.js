@@ -6,6 +6,7 @@ export default defineConfig(
 	await generateViteConfig({
 		enableImagetools: true,
 		aliases: {
+			'$src': resolve('./src'),
 			'$examples': resolve('./src/routes/examples')
 		}
 	})
