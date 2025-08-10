@@ -1,1 +1,1 @@
-export * from './primitives/drag-drop/typedef.js';
+export * from './components/drag-drop/typedef.js';

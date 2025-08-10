@@ -3,9 +3,9 @@
     Draggable,
     DropZoneArea,
     DragDropContext
-  } from '$lib/ui/primitives/drag-drop';
+  } from '$lib/ui/components.js';
 
-  import { GridLayers } from '$lib/ui/primitives/layout/index.js';
+  import { GridLayers } from '$lib/ui/components.js';
 
   import Recyclable from './Recyclable.js';
 

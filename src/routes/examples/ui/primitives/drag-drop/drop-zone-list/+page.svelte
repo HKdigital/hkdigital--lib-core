@@ -3,7 +3,7 @@
     Draggable,
     DropZoneList,
     DragDropContext
-  } from '$lib/ui/primitives/drag-drop';
+  } from '$lib/ui/components.js';
 
   // Available tasks in the source list
   let items = $state([

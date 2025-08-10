@@ -1,5 +1,7 @@
-import { defineStateContext } from '$lib/util/svelte/state-context/index.js';
-import { nav } from '$lib/states/navigation.svelte.js';
+
+import { defineStateContext } from '$lib/state/context.js';
+
+import { nav } from '$lib/browser/navigation.js';
 
 import { goto } from '$app/navigation';
 

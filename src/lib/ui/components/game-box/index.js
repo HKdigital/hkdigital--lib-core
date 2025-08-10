@@ -1,0 +1,1 @@
+export { default as GameBox } from './GameBox.svelte';

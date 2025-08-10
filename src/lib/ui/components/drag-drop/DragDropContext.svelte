@@ -5,7 +5,7 @@
 
   /**
    * @type {{
-   *   contextKey?: import('$lib/typedef').ContextKey,
+   *   contextKey?: import('$lib/state/context/typedef.js').ContextKey,
    *   base?: string,
    *   classes?: string,
    *   children: import('svelte').Snippet,

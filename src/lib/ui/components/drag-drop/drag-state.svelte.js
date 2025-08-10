@@ -1,5 +1,5 @@
 // drag-state.svelte.js
-import { defineStateContext } from '$lib/util/svelte/state-context/index.js';
+import { defineStateContext } from '$lib/state/context.js';
 
 /** @typedef {import('$lib/ui/typedef.js').SimulatedDragEvent} SimulatedDragEvent */
 
@@ -216,7 +216,7 @@ class DragState {
 
   /**
    * @param {string} draggableId
-   * @param {import('$lib/typedef/drag.js').DragData} dragData
+   * @param {import('./typedef.js').DragData} dragData
    */
   start(draggableId, dragData) {
     // console.debug('DragState.start called:', draggableId, dragData);
@@ -257,7 +257,7 @@ class DragState {
    * Get a drag data by draggable id
    *
    * @param {string} draggableId
-   * @returns {import('$lib/typedef/drag.js').DragData|undefined}
+   * @returns {import('./typedef.js').DragData|undefined}
    */
   getDraggableById(draggableId) {
     return this.draggables.get(draggableId);
@@ -303,7 +303,7 @@ class DragState {
 
   /**
    * Get the most recently started drag operation (convenience method)
-   * @returns {import('$lib/typedef/drag.js').DragData|undefined}
+   * @returns {import('./typedef.js').DragData|undefined}
    */
   get current() {
     const entries = Array.from(this.draggables.entries());

@@ -1,5 +1,5 @@
 <script>
-  import { Draggable, DropZoneArea } from '$lib/ui/primitives/drag-drop/index.js';
+  import { Draggable, DropZoneArea } from '$lib/ui/components.js';
 
   import GameItem from './GameItem.svelte';
 

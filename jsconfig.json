@@ -12,5 +12,8 @@
 		// "moduleResolution": "NodeNext"
 		// "strict": true,
 		"moduleResolution": "bundler"
-	}
+	},
+	"exclude": [
+		"**/*.test.js"
+	]
 }

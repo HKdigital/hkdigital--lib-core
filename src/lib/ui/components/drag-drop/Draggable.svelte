@@ -32,7 +32,7 @@
    *     element: HTMLElement,
    *     rect: DOMRect
    *   }]>,
-   *   contextKey?: import('$lib/typedef').ContextKey,
+   *   contextKey?: import('$lib/state/context/typedef.js').ContextKey,
    *   isDragging?: boolean,
    *   isDropping?: boolean,
    *   isDragPreview?: boolean,

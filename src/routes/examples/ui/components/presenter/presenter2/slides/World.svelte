@@ -9,8 +9,6 @@
 
   import { SLIDE_HELLO } from '../config/labels.js';
 
-  // import GridLayers from '$lib/primitives/layout/grid-layers/GridLayers.svelte';
-
   /**
    * @type {{
    *   title?: string,

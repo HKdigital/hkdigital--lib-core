@@ -1,7 +1,7 @@
 <script>
   import ElectricBlue from '$examples/assets/images/electric-blue.jpg?preset=gradient&responsive';
 
-  import { GridLayers } from '$lib/ui/primitives/layout/index.js';
+  import { GridLayers } from '$lib/ui/components.js';
 
   import { ImageBox } from '$lib/ui/components/index.js';
 

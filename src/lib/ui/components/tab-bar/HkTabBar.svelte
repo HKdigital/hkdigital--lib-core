@@ -8,7 +8,7 @@
 
 	import { createOrGetState } from './HkTabBar.state.svelte';
 
-	import { HkGridArea } from '../area/index.js';
+	import { HkGridArea } from '$lib/ui/primitives.js';
 
 	/**
 	 * @type {{

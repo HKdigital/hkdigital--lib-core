@@ -1,6 +1,6 @@
 <script>
   import { createClientLogger } from '$lib/logging/index.js';
-  import { TextButton } from '$lib/ui/primitives/index.js';
+  import { TextButton } from '$lib/ui/primitives.js';
   import { enhance } from '$app/forms';
   import {
     throwSimpleError,

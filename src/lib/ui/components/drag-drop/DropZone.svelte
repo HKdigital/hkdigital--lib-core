@@ -1,7 +1,7 @@
 <script>
   import { toStateClasses } from '$lib/design/index.js';
   import { createOrGetDragState } from './drag-state.svelte.js';
-  import { GridLayers } from '$lib/ui/primitives/layout';
+  import { GridLayers } from '$lib/ui/components.js';
   import { generateLocalId } from '$lib/util/unique';
   import {
     READY,
@@ -25,7 +25,7 @@
    *   maxHeight?: string,
    *   heightMode?: 'fixed' | 'flexible' | 'fill',
    *   children?: import('svelte').Snippet,
-   *   contextKey?: import('$lib/typedef').ContextKey,
+   *   contextKey?: import('$lib/state/context/typedef.js').ContextKey,
    *   dropPreviewSnippet?: import('svelte').Snippet<[DragData]>,
    *   isDragOver?: boolean,
    *   canDrop?: boolean,

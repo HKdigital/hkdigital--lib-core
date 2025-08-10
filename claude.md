@@ -143,13 +143,13 @@ When examples require custom CSS beyond the design system:
 ### UI Components
 - Always use components from `$lib/ui/primitives/` when available
 - Prefer the `Button` component over raw `<button>` elements
-- Import from the index: `import { Button } from '$lib/ui/primitives/index.js'`
+- Import from the index: `import { Button } from '$lib/ui/primitives.js'`
 - Use snippet syntax: `<Button>{content}</Button>` instead of slot syntax
 
 ### Example Template
 ```svelte
 <script>
-  import { Button } from '$lib/ui/primitives/index.js';
+  import { Button } from '$lib/ui/primitives.js';
 </script>
 
 <div class="container mx-auto p-20up" data-page>

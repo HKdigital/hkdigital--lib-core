@@ -1,5 +1,5 @@
 <script>
-  import { DropZone } from '$lib/ui/primitives/drag-drop/index.js';
+  import { DropZone } from './index.js';
 
   /**
    * @type {{
@@ -14,8 +14,8 @@
    *   base?: string,
    *   classes?: string,
    *   children?: import('svelte').Snippet,
-   *   contextKey?: import('$lib/typedef').ContextKey,
-   *   dropPreviewSnippet?: import('svelte').Snippet<[import('$lib/typedef').DragData]>,
+   *   contextKey?: import('$lib/state/context/typedef.js').ContextKey,
+   *   dropPreviewSnippet?: import('svelte').Snippet<[import('$lib/ui/components/drag-drop/typedef.js').DragData]>,
    *   isDragOver?: boolean,
    *   canDrop?: boolean,
    *   onDragEnter?: (detail: {
@@ -31,7 +31,7 @@
    *     event: DragEvent,
    *     zone: string
    *   }) => void,
-   *   onDrop?: (detail: import('$lib/typedef').DropData) => any | Promise<any>,
+   *   onDrop?: (detail: import('$lib/ui/components/drag-drop/typedef.js').DropData) => any | Promise<any>,
    *   onDropStart?: (detail: {
    *     event: DragEvent,
    *     zone: string,

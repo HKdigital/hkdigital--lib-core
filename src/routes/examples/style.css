@@ -1,10 +1,6 @@
 @reference '../../app.css';
 
 [data-page] {
-  & .examples-navigator {
-    @apply max-w-screen-xl mx-auto p-20up;
-  }
-
   & .navigation-columns {
     @apply grid items-start gap-4;
     grid-template-columns: 200px 200px 200px;
