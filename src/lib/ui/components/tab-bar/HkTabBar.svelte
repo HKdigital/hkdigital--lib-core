@@ -19,7 +19,7 @@
 	 *   margin?: string,
 	 *   classes?: string,
 	 *   style?: string,
-	 *   contextKey?: Symbol | string,
+	 *   contextKey?: import('$lib/state/context/typedef.js').ContextKey,
 	 *   children: import('svelte').Snippet,
 	 *   onmount?: function,
 	 *   domElem?: HTMLElement

@@ -17,7 +17,7 @@
    *   boxMargin?: string,
    *   boxClasses?: string,
    *   boxAttrs?: { [attr: string]: * },
-   *   contextKey?: Symbol | string
+   *   contextKey?: import('$lib/state/context/typedef.js').ContextKey
    * } & { [attr: string]: any }}
    */
   let {

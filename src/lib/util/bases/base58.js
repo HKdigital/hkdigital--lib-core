@@ -122,7 +122,7 @@ export function isBase58( str )
  */
 export function base58toNumber( str, exceptionValue )
 {
-  expect.string( str, 'Missing or invalid parameter [str]' );
+  expect.string( 'Missing or invalid parameter [str]' );
 
   let num = BigInt(0);
 
