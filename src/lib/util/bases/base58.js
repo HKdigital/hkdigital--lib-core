@@ -114,15 +114,15 @@ export function isBase58( str )
  *
  * @param {string} str - String to decode
  *
- * @param {number} [exceptionValue]
+ * @param {bigint} [exceptionValue]
  *   If specified, the exceptionValue will be returned instead of
  *   throwing an exception
  *
- * @returns {number} decoded decimal numerical representation
+ * @returns {bigint} decoded decimal numerical representation
  */
 export function base58toNumber( str, exceptionValue )
 {
-  expect.string( str, 'Missing or invalid parameter [str]' );
+  expect.string( 'Missing or invalid parameter [str]' );
 
   let num = BigInt(0);
 

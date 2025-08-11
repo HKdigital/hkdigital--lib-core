@@ -1,7 +1,8 @@
 import * as expect from '$lib/util/expect/index.js';
 
+import { LoadingStateMachine } from '$lib/state/classes.js';
+
 import {
-	LoadingStateMachine,
 	STATE_INITIAL,
 	STATE_LOADING,
 	STATE_UNLOADING,
@@ -10,7 +11,7 @@ import {
 	STATE_ERROR,
 	LOAD,
 	LOADED
-} from '$lib/classes/svelte/loading-state-machine/index.js';
+} from '$lib/state/classes/loading-state-machine/constants.js';
 
 import AudioLoader from './AudioLoader.svelte.js';
 

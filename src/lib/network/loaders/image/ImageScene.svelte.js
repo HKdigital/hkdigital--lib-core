@@ -2,8 +2,9 @@
 
 import * as expect from '$lib/util/expect/index.js';
 
+import { LoadingStateMachine } from '$lib/state/classes.js';
+
 import {
-  LoadingStateMachine,
   STATE_INITIAL,
   STATE_LOADING,
   STATE_UNLOADING,
@@ -12,7 +13,7 @@ import {
   STATE_ERROR,
   LOAD,
   LOADED
-} from '$lib/classes/svelte/loading-state-machine/index.js';
+} from '$lib/state/classes/loading-state-machine/constants.js';
 
 import ImageLoader from './ImageLoader.svelte.js';
 
@@ -148,7 +149,7 @@ export default class ImageScene {
    *
    * @param {object} _
    * @param {string} _.label
-   * @param {import('../typedef.js').ImageSource} _.imageSource
+   * @param {import('$lib/config/typedef.js').ImageSource} _.imageSource
    */
   defineImage({ label, imageSource }) {
     expect.notEmptyString(label);
@@ -188,7 +189,7 @@ export default class ImageScene {
    *
    * @returns {ImageSceneSource}
    */
-  #getImageSource(label) {
+  #getImageSceneSource(label) {
     for (const source of this.#imageSources) {
       if (label === source.label) {
         return source;
@@ -213,7 +214,7 @@ export default class ImageScene {
    * @returns {ImageLoader}
    */
   getImageLoader(label) {
-    const source = this.#getImageSource(label);
+    const source = this.#getImageSceneSource(label);
 
     return source.imageLoader;
   }
@@ -226,9 +227,9 @@ export default class ImageScene {
    * @returns {ImageMeta}
    */
   getImageMeta(label) {
-    const source = this.#getImageSource(label);
+    const source = this.#getImageSceneSource(label);
 
-    return source.imageMeta;
+    return source.imageLoader.imageMeta;
   }
 
   /**
@@ -241,7 +242,7 @@ export default class ImageScene {
    * @returns {string}
    */
   getObjectURL(label) {
-    const source = this.#getImageSource(label);
+    const source = this.#getImageSceneSource(label);
 
     return source.imageLoader.getObjectURL();
   }

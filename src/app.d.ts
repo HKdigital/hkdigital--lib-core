@@ -5,7 +5,9 @@ import '$lib/config/imagetools.d.ts';
 declare global {
 	namespace App {
 		// interface Error {}
-		// interface Locals {}
+		interface Locals {
+			logger: import('$lib/logging/internal/logger/index.js').Logger;
+		}
 		// interface PageData {}
 		// interface PageState {}
 		// interface Platform {}

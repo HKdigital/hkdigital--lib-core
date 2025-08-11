@@ -1,41 +1,52 @@
 
 import { createServerLogger } from '$lib/logging/index.js';
 
-import { rethrow, expect } from '$lib/util/index.js';
+const logger = createServerLogger('page-server-logger');
 
-const logger = createServerLogger('test-logger');
+import {
+  throwSimpleError,
+  throwErrorInSubFunction,
+  throwPromiseRejection,
+  throwHkPromiseTimeout,
+  throwHttpException,
+  throwExpectError,
+  throwRethrowChainError,
+  throwRawValibotError
+} from '$lib/logging/internal/test-errors.js';
 
 /**
- * Server-side function that triggers an expect validation error
+ * Generic error handler for server actions
  */
-function triggerServerExpectError() {
+async function handleServerTest(testName, testFunction) {
   try {
-    // This will always fail and trigger an expect error
-    expect.string(123);
-  } catch( e )
-  {
-    rethrow('triggerServerExpectError failed', e );
+    await testFunction();
+    return {
+      success: true,
+      message: 'No error occurred (unexpected)'
+    };
+  } catch (error) {
+    // Send output to server logger
+    // logger.info(`Test info`);
+    // logger.error(`Test [${testName}]`, error);
+    logger.error(error);
+    // logger.error('ups');
+
+    return {
+      success: false,
+      message: `Server ${testName} error logged`,
+      error: error.message,
+      errorType: error.constructor.name
+    };
   }
 }
 
 export const actions = {
-  triggerServerError: async () => {
-    try {
-      triggerServerExpectError();
-      return {
-        success: true,
-        message: 'No error occurred (unexpected)'
-      };
-    } catch (error) {
-      // Send output to server logger
-      logger.error("The triggered error was ", error);
-
-      return {
-        success: false,
-        message: 'Server expect error logged',
-        error: error.message,
-        errorType: error.constructor.name
-      };
-    }
-  }
+  triggerSimpleError: () => handleServerTest('simple error', throwSimpleError),
+  triggerNestedError: () => handleServerTest('nested error', throwErrorInSubFunction),
+  triggerPromiseRejection: () => handleServerTest('promise rejection', throwPromiseRejection),
+  triggerHkPromiseTimeout: () => handleServerTest('HkPromise timeout', throwHkPromiseTimeout),
+  triggerHttpException: () => handleServerTest('HTTP exception', throwHttpException),
+  triggerExpectError: () => handleServerTest('expect validation', throwExpectError),
+  triggerRethrowChain: () => handleServerTest('rethrow chain', throwRethrowChainError),
+  triggerRawValibotError: () => handleServerTest('raw valibot', throwRawValibotError)
 };

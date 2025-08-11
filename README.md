@@ -3,7 +3,7 @@
 Core library that we use to power up our SvelteKit projects
 
 This is a library for [SvelteKit](https://svelte.dev/) projects.
-It contains common code and components that we use to create our projects.
+It contains common code, base components and documentation that help you with setting up a new project.
 
 ## Using the library
 
@@ -131,18 +131,18 @@ export default {
 To build your library:
 
 ```bash
-npm run package
+pnpm run package
 ```
 
-## Building the showcase app
+## Running the showcase app
 
-To create a production version of your showcase app:
+To use the showcase app that illustrates the code in this lib
 
 ```bash
-npm run build
+pnpm run dev
 ```
 
-You can preview the production build with `npm run preview`.
+You can preview the production build with `pnpm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
 

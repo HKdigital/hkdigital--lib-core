@@ -1,6 +1,6 @@
 {
 	"name": "@hkdigital/lib-core",
-	"version": "0.3.10",
+	"version": "0.3.15",
 	"author": {
 		"name": "HKdigital",
 		"url": "https://hkdigital.nl"
@@ -69,8 +69,7 @@
 			"svelte": "./dist/index.js",
 			"default": "./dist/index.js"
 		},
-		"./*": "./dist/*",
-		"./typedef": "./dist/typedef/index.js"
+		"./*": "./dist/*"
 	},
 	"peerDependencies": {
 		"@eslint/js": "^9.28.0",
@@ -97,6 +96,7 @@
 		"@testing-library/svelte": "^5.2.7",
 		"@testing-library/user-event": "^14.6.1",
 		"@types/eslint": "^9.6.1",
+		"@types/node": "^24.2.1",
 		"autoprefixer": "^10.4.21",
 		"eslint": "^9.28.0",
 		"eslint-config-prettier": "^10.1.5",

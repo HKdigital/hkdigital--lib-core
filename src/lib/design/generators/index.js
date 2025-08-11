@@ -83,8 +83,43 @@ export function generateTailwindThemeExtensions({
 
     outlineOffset: {
       ...generateWidthStyles(STROKE_WIDTH_SIZES, '')
+    },
+
+    colors: {
+      ...generateColorStyles()
+    },
+
+    borderColor: {
+      ...generateColorStyles()
     }
   };
+}
+
+/**
+ * Generates color styles using CSS variables
+ * Creates color classes for the design system theme
+ * @returns {Object} Color styles in Tailwind format
+ */
+function generateColorStyles() {
+  const shades = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 950];
+  const colorNames = ['primary', 'secondary', 'tertiary', 'surface', 'success', 'warning', 'error'];
+  const colors = {};
+
+  // Generate main color variations
+  for (const colorName of colorNames) {
+    colors[colorName] = {};
+    for (const shade of shades) {
+      colors[colorName][shade] = `rgb(var(--color-${colorName}-${shade}) / <alpha-value>)`;
+    }
+    
+    // Add contrast colors
+    for (const shade of shades) {
+      colors[`${colorName}-contrast`] = colors[`${colorName}-contrast`] || {};
+      colors[`${colorName}-contrast`][shade] = `rgb(var(--color-${colorName}-contrast-${shade}) / <alpha-value>)`;
+    }
+  }
+
+  return colors;
 }
 
 /**

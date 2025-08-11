@@ -1,4 +1,5 @@
 import * as expect from '$lib/util/expect/index.js';
+import { DetailedError } from '$lib/generic/errors.js';
 
 import { CONTENT_TYPE } from '$lib/constants/http/index.js';
 
@@ -19,7 +20,7 @@ import { APPLICATION_JSON } from '$lib/constants/mime/index.js';
  *
  * @param {object} response
  *
- * @returns {Error} error
+ * @returns {Promise<Error>} error
  */
 export async function getErrorFromResponse(response) {
 	expect.object(response);
@@ -77,21 +78,12 @@ export async function getErrorFromResponse(response) {
 			}
 		}
 	} else {
-		const tmp = await response.text();
-
-		if (tmp.length) {
-			message = tmp;
-		} else {
-			message = response.statusText;
-		}
+		// For non-JSON responses, always use status text (avoid HTML pages)
+		message = response.statusText || `HTTP ${response.status}`;
 	}
 	// console.log( "message", message );
 
-	const error = new Error(message);
-
-	if (details) {
-		error.details = details;
-	}
+	const error = new DetailedError(message, details);
 
 	return error;
 }

@@ -3,7 +3,7 @@
 
   /**
    * @type {{
-   *   imageMeta?: import('$lib/network/typedef.js').ImageSource,
+   *   imageMeta?: import('$lib/config/typedef.js').ImageSource,
    *   slideDuration?: number,
    *   nextSlideLabel?: string,
    *   presenter?: { gotoSlide: (name: string) => void, getCurrentSlideName: () => string },

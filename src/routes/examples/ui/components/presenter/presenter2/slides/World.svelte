@@ -1,15 +1,13 @@
 <script>
   import { onMount } from 'svelte';
 
-  import ElectricBlue from '../../../../assets/images/electric-blue.jpg?preset=gradient&responsive';
+  import ElectricBlue from '$examples/assets/images/electric-blue.jpg?preset=gradient&responsive';
 
   import { ImageBox } from '$lib/ui/components/index.js';
 
   import { TextButton } from '$lib/ui/primitives/buttons/index.js';
 
   import { SLIDE_HELLO } from '../config/labels.js';
-
-  // import GridLayers from '$lib/primitives/layout/grid-layers/GridLayers.svelte';
 
   /**
    * @type {{

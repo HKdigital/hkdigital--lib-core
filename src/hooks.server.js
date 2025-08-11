@@ -1,10 +1,10 @@
-import { createServerLogger } from '@hkdigital/lib-core/logging/index.js';
+import { createServerLogger } from '$lib/logging/index.js';
 
 let logger;
 
 // Initialize server logging and services
 export async function init() {
-  logger = createServerLogger('server-logger');
+  logger = createServerLogger('app-server-logger');
 
   try {
     logger.info('Initializing server');
@@ -35,6 +35,9 @@ export const handleError = ({ error, /* event, */ status, message }) => {
  * @type {import('@sveltejs/kit').Handle}
  */
 export async function handle({ event, resolve }) {
+  // Make logger available to all server routes via event.locals
+  event.locals.logger = logger;
+
   const response = await resolve(event);
   return response;
 }

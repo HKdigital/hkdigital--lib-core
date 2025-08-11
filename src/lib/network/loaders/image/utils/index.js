@@ -1,26 +1,23 @@
+import { expect } from '$lib/util/index.js';
+
 /**
  * Returns the unchanged image meta object or the last item of
  * an array of ImageMeta objects. This is assumed to be a list
  * of sorted responsive image formats, so it should be the
  * largest image.
  *
- * @param {import('../../typedef.js').ImageSource} imageSource
+ * @param {import('$lib/config/typedef.js').ImageSource} imageSource
  */
 export function toSingleImageMeta(imageSource) {
-  if (Array.isArray(imageSource)) {
-    if (!imageSource.length) {
-      throw new Error('List of ImageMeta objects is empty');
-    }
-    imageSource = imageSource[imageSource.length - 1];
+  expect.array(imageSource);
+
+  const imageMeta = imageSource[0];
+
+  if (typeof imageMeta !== 'object') {
+    throw new Error('Invalid value for parameter [imageSource]');
   }
 
-  if (typeof imageSource === 'object') {
-    return imageSource;
-  } else if (!imageSource) {
-    throw new Error('Missing [imageSource]');
-  }
-
-  throw new Error('Invalid value for parameter [imageSource]');
+  return imageMeta;
 }
 
 /**

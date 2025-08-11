@@ -24,7 +24,7 @@ describe('ImageLoader', () => {
 		// @ts-ignore
 		fetch.mockResolvedValue(createPngResponse());
 
-		/** @type {import('../typedef.js').ImageSource} */
+		/** @type {import('$lib/config/typedef.js').ImageSource} */
 		const imageSource = { src: 'http://localhost/mock-png', width: 0, height: 0 };
 
 		/** @type {ImageLoader} */

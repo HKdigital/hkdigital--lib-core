@@ -1,4 +1,4 @@
-import { TypeOrValueError } from '$lib/errors/index.js';
+import { TypeOrValueError } from '$lib/generic/errors.js';
 
 /**
  * Returns an URL instance

@@ -25,6 +25,12 @@ This is a modern SvelteKit library built with Svelte 5 and Skeleton.dev v3 compo
 - Snippet props typed as `import('svelte').Snippet`
 - Private methods use hash prefix (`#methodName`)
 
+## JavaScript Class Patterns
+- Use modern ES private methods with hash prefix: `#methodName()` instead of `_methodName()`
+- Private fields also use hash prefix: `#privateField`
+- Apply this to all JavaScript classes, not just Svelte components
+- Never use `@private` in JSDoc for methods that start with `#` - the hash already indicates privacy
+
 ## Development Standards
 - Readable code over concise code
 - Explicit error handling with try/catch for async operations
@@ -137,19 +143,19 @@ When examples require custom CSS beyond the design system:
 ### UI Components
 - Always use components from `$lib/ui/primitives/` when available
 - Prefer the `Button` component over raw `<button>` elements
-- Import from the index: `import { Button } from '$lib/ui/primitives/index.js'`
+- Import from the index: `import { Button } from '$lib/ui/primitives.js'`
 - Use snippet syntax: `<Button>{content}</Button>` instead of slot syntax
 
 ### Example Template
 ```svelte
 <script>
-  import { Button } from '$lib/ui/primitives/index.js';
+  import { Button } from '$lib/ui/primitives.js';
 </script>
 
 <div class="container mx-auto p-20up" data-page>
   <h1 class="type-heading-h1 mb-20up">Example Title</h1>
   
-  <div class="card p-16up mb-16up">
+  <div class="card p-20up mb-20up">
     <p class="type-base-md mb-12bt">Description text</p>
     <Button>
       Action
@@ -161,10 +167,116 @@ When examples require custom CSS beyond the design system:
 <style src="./style.css"></style>
 ```
 
+## Styling System & Tailwind CSS
+
+### Critical: Design System Spacing Values
+
+**IMPORTANT**: Only use spacing values that exist in the design system configuration. Invalid spacing utilities will cause build failures.
+
+#### Available Viewport-Based Spacing (`up` suffix)
+Valid values: `1up`, `2up`, `4up`, `5up`, `6up`, `10up`, `20up`, `30up`, `40up`, `50up`, `60up`, `70up`, `80up`, `90up`, `100up`, `120up`, `140up`, `160up`, `180up`, `200up`
+
+#### Available Text-Based Spacing (`ut`, `bt`, `ht` suffixes)  
+Valid values: `1ut/bt/ht`, `2ut/bt/ht`, `4ut/bt/ht`, `6ut/bt/ht`, `8ut/bt/ht`, `10ut/bt/ht`, `11ut/bt/ht`, `12ut/bt/ht`, `16ut/bt/ht`, `20ut/bt/ht`, `24ut/bt/ht`, `28ut/bt/ht`, `32ut/bt/ht`, `36ut/bt/ht`, `50ut/bt/ht`
+
+#### ❌ Common Invalid Values (Will Cause Build Failures)
+- `p-16up` (use `p-20up` instead)
+- `px-16up py-12up` (use `px-20up py-10up` instead)
+- `mb-16up` (use `mb-20up` instead)
+- Any spacing value not listed above
+
+### External CSS Files (`<style src="./style.css">`)
+
+When using external CSS files with `@apply` directives, you **MUST** include the `@reference` directive:
+
+#### ✅ Correct External CSS
+```css
+/* style.css */
+@reference '../../app.css';
+
+[data-page] {
+  & .my-component {
+    @apply p-20up bg-surface-300 border border-primary-500;
+  }
+}
+```
+
+#### ❌ Broken External CSS
+```css
+/* style.css - MISSING @reference */
+[data-page] {
+  & .my-component {
+    @apply p-20up bg-surface-300; /* ERROR: Cannot apply unknown utility class */
+  }
+}
+```
+
+### Path Resolution for @reference
+
+The `@reference` path must be relative to your CSS file's location:
+- From `/src/routes/examples/style.css` → `@reference '../../app.css'`
+- From `/src/routes/examples/ui/style.css` → `@reference '../../../app.css'`
+- From `/src/lib/components/style.css` → `@reference '../../app.css'`
+
+### Inline vs External CSS
+
+#### Inline Styles (No @reference needed)
+```svelte
+<style>
+  [data-page] {
+    & .my-component {
+      @apply p-20up bg-surface-300 border border-primary-500;
+    }
+  }
+</style>
+```
+
+#### External CSS (Requires @reference)
+```svelte
+<!-- Component.svelte -->
+<div class="my-component">Content</div>
+<style src="./style.css"></style>
+```
+
+### Troubleshooting Build Errors
+
+#### "Cannot apply unknown utility class 'p-XYZup'"
+1. Check if the spacing value exists in `VIEWPORT_POINT_SIZES` or `TEXT_POINT_SIZES`
+2. Replace with the nearest valid value (e.g., `16up` → `20up`)
+3. If using external CSS, verify `@reference` directive is present and path is correct
+
+#### "Are you using CSS modules or similar and missing @reference?"
+1. Add `@reference '../../app.css'` at the top of your external CSS file
+2. Verify the relative path from CSS file to `src/app.css` is correct
+3. Consider switching to inline styles if path resolution is problematic
+
+### Design System Integration
+
+#### Always Use Design System Classes
+- ✅ `type-heading-h1`, `type-base-md`, `type-ui-sm`
+- ✅ `p-20up`, `m-10up`, `gap-16up` (viewport-based)
+- ✅ `mb-16bt`, `mt-12ut` (text-based)
+- ✅ `bg-surface-300`, `text-primary-500`, `border-error-500`
+- ❌ Raw Tailwind: `text-lg`, `p-4`, `bg-gray-300`
+
+#### Color System
+All design system colors are available with contrast variants:
+- Base colors: `bg-primary-500`, `bg-surface-100`, `bg-error-500`
+- Contrast colors: `text-primary-contrast-500`, `text-surface-contrast-100`
+- Shades: `50`, `100`, `200`, `300`, `400`, `500`, `600`, `700`, `800`, `900`, `950`
+
+### CSS Architecture
+- Use `[data-page]` scoping for page-specific styles
+- Use `[data-component]` attributes for component identification  
+- Prefer CSS nesting with `&` selector
+- Layer styles: `@layer theme, base, utilities, components`
+
 ## What Not to Do
 - Don't use deprecated Svelte 4 syntax
 - Don't mix slot and snippet syntax
 - Don't use TypeScript syntax
 - Don't use CommonJS (require/module.exports)
 - Don't use underscore prefixes for private methods
+- Don't use invalid spacing values (e.g., `p-16up`, `mb-14up`) - check design system configuration
+- Don't use external CSS with `@apply` without the `@reference` directive
 - Don't modify unrelated code unless necessary

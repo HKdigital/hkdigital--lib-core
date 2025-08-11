@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { APPLICATION_JSON } from '$lib/constants/mime/application.js';
 import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
-import { ResponseError } from '$lib/errors/index.js';
+import { ResponseError } from '$lib/network/errors.js';
 
 import { jsonGet, jsonPost } from './json-request.js';
 import { createJsonFetchResponse } from './mocks.js';

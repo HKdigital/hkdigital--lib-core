@@ -83,7 +83,7 @@ export async function generateViteConfig(options = {}) {
         new Date().toISOString()
       ),
       ...customDefines
-    }
+    },
   };
 
   if (enableVitest) {

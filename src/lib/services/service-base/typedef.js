@@ -53,13 +53,14 @@
 
 /**
  * Base class interface that services must implement
+ * Allows additional custom properties and methods via Record<string, any>
  *
- * @typedef {Object} ServiceInstance
+ * @typedef {Object & Record<string, any>} ServiceInstance
  * @property {string} name - Service name
  * @property {string} state - Current state
  * @property {boolean} healthy - Health status
  * @property {Error|null} error - Last error
- * @property {import('$lib/logging/internal/logger').Logger} logger - Service logger
+ * @property {import('$lib/logging/index.js').Logger} logger - Service logger
  * @property {(config?: *) => Promise<boolean>} initialize
  * @property {() => Promise<boolean>} start
  * @property {(options?: StopOptions) => Promise<boolean>} stop

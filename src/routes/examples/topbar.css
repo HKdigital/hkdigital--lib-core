@@ -1,0 +1,27 @@
+@reference '../../app.css';
+
+[data-component="top-bar"] {
+  @apply bg-surface-100 border-surface-300 sticky top-0 z-10;
+  padding: 16up 0;
+  
+  & .container {
+    @apply max-w-screen-xl mx-auto flex justify-between items-center;
+    padding: 0 20up;
+  }
+  
+  & .scaling-toggle {
+    @apply flex items-center cursor-pointer;
+    gap: 8up;
+    
+    & input[type="checkbox"] {
+      @apply accent-primary-500;
+    }
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  [data-component="top-bar"] {
+    @apply bg-surface-800 border-surface-600;
+  }
+}

@@ -13,8 +13,8 @@
 	 *   aspect?: string,
 	 *   overflow?: string,
 	 *   fit?: 'contain' | 'cover' | 'fill',
-	 *   position?: import('$lib/network/typedef.js').ObjectPosition,
-	 *   imageSource?: import('$lib/network/typedef.js').ImageSource,
+	 *   position?: import('$lib/network/loaders/typedef.js').ObjectPosition,
+	 *   imageSource?: import('$lib/config/typedef.js').ImageSource,
 	 *   imageLoader?: import('$lib/network/loaders.js').ImageLoader,
 	 *   alt?: string,
 	 *   id?: string|Symbol

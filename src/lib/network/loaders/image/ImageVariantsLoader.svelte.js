@@ -2,14 +2,14 @@ import { calculateEffectiveWidth } from './utils/index.js';
 
 import ImageLoader from './ImageLoader.svelte.js';
 
-/** @typedef {import('../typedef.js').ImageMeta} ImageMeta */
+/** @typedef {import('$lib/config/typedef.js').ImageMeta} ImageMeta */
 
 export default class ImageVariantsLoader {
   /** @type {number} */
   #devicePixelRatio;
 
   /** @type {ImageMeta[]} */
-  #imagesMeta;
+  #imageSource;
 
   /** @type {ImageMeta|null} */
   #imageVariant = $state(null);
@@ -28,12 +28,13 @@ export default class ImageVariantsLoader {
   #loaded = $derived.by(() => this.#progress?.loaded || false);
 
   /**
-   * @param {ImageMeta[]} imagesMeta
+   * @param {ImageMeta[]} imageSource
    */
-  constructor(imagesMeta, { devicePixelRatio = 1 } = {}) {
+  constructor(imageSource, { devicePixelRatio = 1 } = {}) {
     this.#devicePixelRatio = devicePixelRatio ?? 1;
-    this.#imagesMeta = [...imagesMeta].sort((a, b) => a.width - b.width);
-    // console.debug("imagesMeta",imagesMeta);
+    // Keep images in large-to-small order (as provided)
+    this.#imageSource = [...imageSource];
+    // console.debug("imageSource",imageSource);
   }
 
   /**
@@ -45,7 +46,7 @@ export default class ImageVariantsLoader {
    * @param {'cover'|'contain'|'fill'} [params.fit='contain'] Fit mode
    */
   updateOptimalImageMeta({ containerWidth, containerHeight, fit = 'contain' }) {
-    const baseImage = this.#imagesMeta[0];
+    const baseImage = this.#imageSource[0];
     const imageAspectRatio = baseImage.width / baseImage.height;
 
     const effectiveWidth = calculateEffectiveWidth({
@@ -71,7 +72,7 @@ export default class ImageVariantsLoader {
         this.#imageLoader.unload();
       }
 
-      this.#imageLoader = new ImageLoader(newVariant);
+      this.#imageLoader = new ImageLoader([newVariant]);
 
 
       this.#imageLoader.load();
@@ -136,15 +137,15 @@ export default class ImageVariantsLoader {
     // Calculate the required width (container * DPR)
     const requiredWidth = containerWidth * this.#devicePixelRatio;
 
-    const imagesMeta = this.#imagesMeta;
+    const imagesMeta = this.#imageSource;
 
-    // Find the smallest image that's larger than our required width
-
-    const optimal = imagesMeta.find(
+    // Array is large-to-small, so find the last (smallest) image that's still >= required width
+    // This gives us the smallest image that's larger than our required width
+    const optimal = imagesMeta.findLast(
       (current) => current.width >= requiredWidth
     );
 
     // Fall back to the largest image if nothing is big enough
-    return optimal || imagesMeta[imagesMeta.length - 1];
+    return optimal || imagesMeta[0];
   }
 } // end class

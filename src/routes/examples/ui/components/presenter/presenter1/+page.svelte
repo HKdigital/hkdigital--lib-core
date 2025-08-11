@@ -1,5 +1,5 @@
 <script>
-  import { GridLayers } from '$lib/ui/primitives/layout/index.js';
+  import { GridLayers } from '$lib/ui/components.js';
 
   import Slideshow from './Slideshow.svelte';
 
@@ -11,7 +11,7 @@
     LABEL_OPAQUE_PURPLE,
     LABEL_SUNSET_ORANGE,
     LABEL_TOMATO_RED
-  } from '$lib/assets/autospuiten/labels.js';
+  } from '$examples/assets/images/vw-golf-mk1-17.js';
 
   let colorLabels = [
     LABEL_RUSTY,

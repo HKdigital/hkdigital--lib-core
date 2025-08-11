@@ -1,13 +1,13 @@
-type ImageMeta = import('$lib/network/typedef.js').ImageMeta;
-type ImageSource = import('$lib/network/typedef.js').ImageSource;
+type ImageMeta = import('$lib/config/typedef.js').ImageMeta;
+type ImageSource = import('$lib/config/typedef.js').ImageSource;
 
 declare module '*?responsive' {
-  const out: ImageMeta[];
+  const out: ImageSource;
   export default out;
 }
 
 declare module '*&responsive' {
-  const out: ImageMeta[];
+  const out: ImageSource;
   export default out;
 }
 
@@ -57,7 +57,7 @@ declare module '*?preset=savedata' {
 }
 
 declare module '*&preset=savedata' {
-  const out: IImageSource;
+  const out: ImageSource;
   export default out;
 }
 

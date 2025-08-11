@@ -135,7 +135,7 @@ export async function getCachedResponse(cacheKeyParams) {
  * @param {string} type Type of storage ('indexed-db', 'memory')
  * @param {Object} options Options for the storage adapter
  *
- * @returns {import('$lib/classes/cache').CacheStorage}
+ * @returns {import('$lib/network/cache.js').CacheStorage}
  */
 function createCacheStorage(type = 'indexed-db', options = {}) {
   switch (type) {

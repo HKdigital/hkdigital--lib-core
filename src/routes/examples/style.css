@@ -1,0 +1,73 @@
+@reference '../../app.css';
+
+[data-page] {
+  & .navigation-columns {
+    @apply grid items-start gap-4;
+    grid-template-columns: 200px 200px 200px;
+  }
+
+  & .column {
+    @apply border border-surface-300 rounded-md bg-surface-50 p-20up;
+    min-height: 400px;
+  }
+
+  & .column[data-column="main"] {
+    @apply bg-primary-50;
+  }
+
+  & .folder-list {
+    @apply flex flex-col gap-2;
+  }
+
+  & .folder-item {
+    @apply text-left bg-surface-100 border border-surface-300 rounded-sm cursor-pointer transition-all duration-200 text-base-md text-surface-900 px-20up py-10up;
+  }
+
+  & .folder-item:hover {
+    @apply bg-surface-200 border-primary-300;
+  }
+
+  & .folder-item.active {
+    @apply bg-primary-100 border-primary-400 text-primary-900 font-medium;
+  }
+
+  & .empty-state {
+    @apply text-center text-surface-500;
+    @apply p-20up;
+  }
+
+  /* Responsive design */
+  @media (max-width: 768px) {
+    & .navigation-columns {
+      @apply grid-cols-1;
+      gap: 1rem; /* 16up equivalent */
+    }
+    
+    & .column {
+      min-height: auto;
+    }
+  }
+
+  /* Dark mode support */
+  @media (prefers-color-scheme: dark) {
+    & .column {
+      @apply bg-surface-800 border-surface-600;
+    }
+
+    & .column[data-column="main"] {
+      @apply bg-primary-900;
+    }
+
+    & .folder-item {
+      @apply bg-surface-700 border-surface-600 text-surface-100;
+    }
+
+    & .folder-item:hover {
+      @apply bg-surface-600 border-primary-500;
+    }
+
+    & .folder-item.active {
+      @apply bg-primary-800 border-primary-500 text-primary-100;
+    }
+  }
+}

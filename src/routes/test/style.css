@@ -1,0 +1,6 @@
+@reference '../../app.css';
+
+[data-page]
+{
+  @apply m-20up border-primary-100 border bg-surface-300;
+}
