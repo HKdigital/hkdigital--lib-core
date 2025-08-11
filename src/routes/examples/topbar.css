@@ -16,6 +16,10 @@
       @apply accent-primary-500;
     }
   }
+
+  & .crumble-path {
+    @apply flex items-center;
+  }
 }
 
 /* Dark mode support */

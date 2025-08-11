@@ -6,15 +6,20 @@
   /**
    * @type {{
    *   scalingEnabled: boolean,
-   *   onchange?: (enabled: boolean) => void
+   *   onchange?: (enabled: boolean) => void,
+   *   crumblePath?: import('svelte').Snippet
    * }}
    */
-  let { scalingEnabled = $bindable(), onchange } = $props();
+  let { scalingEnabled = $bindable(), onchange, crumblePath } = $props();
 </script>
 
 <div class="examples-top-bar" data-component="top-bar">
   <div class="container">
-    <h1 class="type-heading-h2">Examples</h1>
+    {#if crumblePath}
+      <div class="crumble-path">
+        {@render crumblePath()}
+      </div>
+    {/if}
     
     <form 
       method="POST" 

@@ -1,0 +1,125 @@
+<script>
+  import { goto } from '$app/navigation';
+  import TopBar from '../examples/TopBar.svelte';
+  import Explorer from './Explorer.svelte';
+
+  /** @type {{ data: { navigationData: Object, scalingEnabled: boolean } }} */
+  let { data } = $props();
+
+  /** @type {boolean} */
+  let scalingEnabled = $state(data.scalingEnabled);
+
+  /** @type {string[]} */
+  let activeSegments = $state([]);
+
+  /** @type {(level: number) => void} */
+  let explorerNavigateToLevel;
+
+  /**
+   * Receive active segments from Explorer
+   * @param {string[]} segments
+   */
+  function handleActiveSegments(segments) {
+    activeSegments = [...segments];
+  }
+
+  /**
+   * Receive navigate function from Explorer
+   * @param {(level: number) => void} fn
+   */
+  function handleNavigateFunction(fn) {
+    explorerNavigateToLevel = fn;
+  }
+
+  /**
+   * Handle scaling change from TopBar
+   * @param {boolean} enabled
+   */
+  function handleScalingChange(enabled) {
+    scalingEnabled = enabled;
+  }
+
+  /**
+   * Handle breadcrumb navigation
+   * @param {number} level - Level to navigate back to
+   */
+  function handleBreadcrumbNavigation(level) {
+    if (explorerNavigateToLevel) {
+      explorerNavigateToLevel(level);
+    }
+  }
+
+  /**
+   * Navigate to an example using route parameters
+   * @param {string} path - Example path like "ui/components/image-box/image-box-fitting"
+   */
+  function navigateToExample(path) {
+    const segments = path.split('/');
+    const routePath = `/explorer/${segments.join('/')}`;
+    goto(routePath);
+  }
+</script>
+
+<div data-page>
+  <TopBar bind:scalingEnabled onchange={handleScalingChange}>
+    {#snippet crumblePath()}
+      <nav class="breadcrumb">
+        <button 
+          class="breadcrumb-item type-ui-sm"
+          onclick={() => handleBreadcrumbNavigation(0)}
+        >
+          examples
+        </button>
+        {#if activeSegments.length > 0}
+          {#each activeSegments as segment, index}
+            <span class="breadcrumb-separator">/</span>
+            <button 
+              class="breadcrumb-item type-ui-sm"
+              onclick={() => handleBreadcrumbNavigation(index + 1)}
+            >
+              {segment}
+            </button>
+          {/each}
+        {/if}
+      </nav>
+    {/snippet}
+  </TopBar>
+  
+  <Explorer 
+    navigationData={data.navigationData}
+    currentPath=""
+    onNavigate={navigateToExample}
+    onBreadcrumbNavigate={handleBreadcrumbNavigation}
+    getActiveSegments={handleActiveSegments}
+    rootName="examples"
+    getNavigateToLevelFunction={handleNavigateFunction}
+  />
+</div>
+
+<style>
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .breadcrumb-item {
+    background: transparent;
+    border: none;
+    color: var(--color-primary-500);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    font-size: 14px;
+  }
+
+  .breadcrumb-item:hover {
+    background-color: var(--color-surface-200);
+  }
+
+  .breadcrumb-separator {
+    color: var(--color-surface-400);
+    font-size: 14px;
+  }
+</style>

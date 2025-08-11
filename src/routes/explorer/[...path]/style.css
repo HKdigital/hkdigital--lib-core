@@ -1,0 +1,33 @@
+@reference '../../../app.css';
+
+[data-page] {
+  & .loading-example {
+    @apply p-40up text-center text-surface-600;
+  }
+
+  & .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  & .breadcrumb-item {
+    background: transparent;
+    border: none;
+    color: var(--color-primary-500);
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+    font-size: 14px;
+  }
+
+  & .breadcrumb-item:hover {
+    background-color: var(--color-surface-200);
+  }
+
+  & .breadcrumb-separator {
+    color: var(--color-surface-400);
+    font-size: 14px;
+  }
+}
