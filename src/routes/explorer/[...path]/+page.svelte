@@ -45,26 +45,11 @@
    * @param {number} level - Level to navigate back to
    */
   function handleBreadcrumbNavigation(level) {
-    if (level === 0) {
-      goto('/explorer');
-    } else {
-      if (explorerNavigateToLevel) {
-        explorerNavigateToLevel(level);
-      }
-      const newPath = activeSegments.slice(0, level).join('/');
-      goto(`/explorer/${newPath}`);
+    if (explorerNavigateToLevel) {
+      explorerNavigateToLevel(level);
     }
   }
 
-  /**
-   * Navigate to an example using route parameters
-   * @param {string} path - Example path like "ui/components/image-box/image-box-fitting"
-   */
-  function navigateToExample(path) {
-    const segments = path.split('/');
-    const routePath = `/explorer/${segments.join('/')}`;
-    goto(routePath);
-  }
 
   // Current path from URL parameters
   /** @type {string} */
@@ -112,8 +97,6 @@
     <Explorer 
       navigationData={data.navigationData}
       currentPath={currentPath}
-      onNavigate={navigateToExample}
-      onBreadcrumbNavigate={handleBreadcrumbNavigation}
       getActiveSegments={handleActiveSegments}
       rootName="examples"
       getNavigateToLevelFunction={handleNavigateFunction}

@@ -42,10 +42,28 @@
   /**
    * Handle breadcrumb navigation
    * @param {number} level - Level to navigate back to
+   * @param {string} [explorerPath] - Optional explorer path for URL updates
    */
-  function handleBreadcrumbNavigation(level) {
-    if (explorerNavigateToLevel) {
-      explorerNavigateToLevel(level);
+  function handleBreadcrumbNavigation(level, explorerPath) {
+    console.log('ROOT handleBreadcrumbNavigation called:', { level, explorerPath });
+    
+    // For root page breadcrumb navigation, only handle resetting to root locally
+    // Do not navigate URLs - we're already on the root page
+    
+    if (level === 0) {
+      console.log('ROOT: Level 0, resetting local state');
+      // Reset to root - just clear the interactive state, no URL change needed
+      if (explorerNavigateToLevel) {
+        explorerNavigateToLevel(level);
+      }
+    } else {
+      console.log('ROOT: Level > 0, navigating to catch-all route');
+      // For deeper levels from breadcrumbs, navigate to catch-all route
+      if (explorerPath !== undefined && explorerPath !== '') {
+        goto(`/explorer/${explorerPath}`);
+      } else if (explorerNavigateToLevel) {
+        explorerNavigateToLevel(level);
+      }
     }
   }
 
@@ -57,6 +75,14 @@
     const segments = path.split('/');
     const routePath = `/explorer/${segments.join('/')}`;
     goto(routePath);
+  }
+
+  /**
+   * Handle path changes from Explorer navigation
+   * @param {string} explorerPath - The new explorer path
+   */
+  function handlePathChange(explorerPath) {
+    goto(`/explorer/${explorerPath}`);
   }
 </script>
 
@@ -88,8 +114,6 @@
   <Explorer 
     navigationData={data.navigationData}
     currentPath=""
-    onNavigate={navigateToExample}
-    onBreadcrumbNavigate={handleBreadcrumbNavigation}
     getActiveSegments={handleActiveSegments}
     rootName="examples"
     getNavigateToLevelFunction={handleNavigateFunction}

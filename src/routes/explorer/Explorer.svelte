@@ -1,17 +1,17 @@
 <script>
+  import { goto } from '$app/navigation';
+
   /**
    * Reusable explorer component for navigating nested folder structures
    * @type {{
    *   navigationData: Object,
    *   currentPath: string,
-   *   onNavigate: (path: string) => void,
-   *   onBreadcrumbNavigate?: (level: number) => void,
    *   getActiveSegments?: (segments: string[]) => void,
-   *   rootName?: string,
-   *   getNavigateToLevelFunction?: (fn: (level: number) => void) => void
+   *   getNavigateToLevelFunction?: (fn: Function) => void,
+   *   rootName?: string
    * }}
    */
-  let { navigationData, currentPath = '', onNavigate, onBreadcrumbNavigate, getActiveSegments, rootName = 'Categories', getNavigateToLevelFunction } = $props();
+  let { navigationData, currentPath = '', getActiveSegments, getNavigateToLevelFunction, rootName = 'Categories' } = $props();
 
   /** @type {string[]} */
   let pathSegments = $derived(currentPath ? currentPath.split('/').filter(Boolean) : []);
@@ -21,6 +21,7 @@
 
   /** @type {string[]} */
   let activeSegments = $derived(interactiveSegments.length > 0 ? interactiveSegments : pathSegments);
+
 
   // Notify parent of active segments changes - only when they actually change
   let lastActiveSegments = [];
@@ -84,40 +85,32 @@
   function handleNavigation(level, itemName, isEndpoint) {
     // Build new path segments up to the selected level
     const newSegments = [...activeSegments.slice(0, level), itemName];
+    const fullPath = newSegments.join('/');
     
-    if (isEndpoint) {
-      // Navigate to the example
-      const fullPath = newSegments.join('/');
-      onNavigate(fullPath);
-    } else {
-      // Update interactive segments to show next level
-      interactiveSegments = newSegments;
-    }
+    // Always navigate to explorer URL - let the route system handle state
+    goto(`/explorer/${fullPath}`);
   }
 
   /**
    * Handle breadcrumb navigation
    * @param {number} level - Level to navigate back to
    */
-  function internalNavigateToLevel(level) {
-    // Get the current active segments (either interactive or path-based)
-    const currentSegments = interactiveSegments.length > 0 ? interactiveSegments : pathSegments;
-    
-    // Set interactive segments to the sliced version
+  function navigateToLevel(level) {
     if (level === 0) {
-      // Reset to root - clear all interactive segments
-      interactiveSegments = [];
+      // Navigate back to root explorer
+      goto('/explorer');
     } else {
       // Navigate to specific level
-      interactiveSegments = currentSegments.slice(0, level);
+      const currentSegments = interactiveSegments.length > 0 ? interactiveSegments : pathSegments;
+      const newSegments = currentSegments.slice(0, level);
+      const explorerPath = newSegments.join('/');
+      goto(`/explorer/${explorerPath}`);
     }
-    
-    onBreadcrumbNavigate?.(level);
   }
 
-  // Expose the navigate function to parent - call once on mount
+  // Expose the navigate function to parent
   if (getNavigateToLevelFunction) {
-    getNavigateToLevelFunction(internalNavigateToLevel);
+    getNavigateToLevelFunction(navigateToLevel);
   }
 </script>
 
