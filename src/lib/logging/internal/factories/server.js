@@ -19,6 +19,13 @@ export function createServerLogger(name, level = INFO, pinoOptions = {}) {
   const adapter = new PinoAdapter(pinoOptions);
 
   // Connect adapter to logger events
+  //
+  // @note pino might fail if:
+  //   pino tries to create a worker thread for pino-pretty before the
+  //   development environment is fully ready, causing the transport target
+  //   determination to fail
+  //   -> Stop and start the dev server
+  //
   logger.on('log', (logEvent) => adapter.handleLog(logEvent));
 
   return logger;

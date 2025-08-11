@@ -131,7 +131,7 @@ export default {
 To build your library:
 
 ```bash
-npm run package
+pnpm run package
 ```
 
 ## Running the showcase app
@@ -142,7 +142,7 @@ To use the showcase app that illustrates the code in this lib
 pnpm run dev
 ```
 
-You can preview the production build with `npm run preview`.
+You can preview the production build with `pnpm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
 
