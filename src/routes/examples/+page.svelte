@@ -100,9 +100,9 @@
   }
 </script>
 
-<TopBar bind:scalingEnabled onchange={handleScalingChange} />
+<div data-page>
+  <TopBar bind:scalingEnabled onchange={handleScalingChange} />
 
-<div class="examples-navigator" data-page>
   <div class="navigation-columns">
     <!-- First Column: Main Folders -->
     <div class="column" data-column="main">
