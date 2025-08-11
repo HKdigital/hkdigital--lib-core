@@ -35,9 +35,6 @@ export const handleError = ({ error, /* event, */ status, message }) => {
  * @type {import('@sveltejs/kit').Handle}
  */
 export async function handle({ event, resolve }) {
-  // Make logger available to all server routes via event.locals
-  event.locals.logger = logger;
-
   const response = await resolve(event);
   return response;
 }

@@ -110,16 +110,17 @@ export function throwRethrowChainError() {
   }
   
   function level2Function() {
-    try {
-      level3Function();
-    } catch (e) {
-      rethrow('Error in level2Function', e);
-    }
+    throw new Error('Original error at deepest level');
+    // try {
+    //   level3Function();
+    // } catch (e) {
+    //   rethrow('Error in level2Function', e);
+    // }
   }
   
-  function level3Function() {
-    throw new Error('Original error at deepest level');
-  }
+  // function level3Function() {
+  //   throw new Error('Original error at deepest level');
+  // }
   
   level1Function();
 }
