@@ -16,7 +16,7 @@ export default class ImageLoader extends NetworkLoader {
   #imageMeta;
 
   /**
-   * @param {import('../typedef.js').ImageSource} imageSource
+   * @param {import('$lib/config/typedef.js').ImageSource} imageSource
    */
   constructor(imageSource) {
     const imageMeta = toSingleImageMeta(imageSource);

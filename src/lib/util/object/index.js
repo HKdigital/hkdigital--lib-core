@@ -382,9 +382,8 @@ export function objectSet(obj, path, value) {
  * Removes a value at the specified object path from the object.
  * - All parent objects that remain empty will be removed too (recursively)
  *
- * @param {object} obj - Object to set the value in
+ * @param {object} obj - Object to delete the path from
  * @param {string|Array} path - Dot separated string path or array path
- * @param {any} value - value to set
  */
 export function deletePath(obj, path) {
 	expect.object(obj);
@@ -777,7 +776,7 @@ export function patchObject(obj, changes, options = {}) {
 			throw new Error(`Cannot set value [${path}=undefined]`);
 		}
 
-		if (ignoreAdd && Object._get(obj, path) === undefined) {
+		if (ignoreAdd && objectGet(obj, path) === undefined) {
 			// Ignore add
 			continue;
 		} else if (ignoreUpdate && objectGet(obj, path) !== undefined) {

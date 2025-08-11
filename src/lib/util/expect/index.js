@@ -181,7 +181,7 @@ export function iterable(value) {
 export function store(value) {
 	v.parse(
 		v.custom((value) => {
-			if (!is.object(value) || typeof value.subscribe !== 'function') {
+			if (!is.object(value) || typeof value?.subscribe !== 'function') {
 				return false;
 			}
 
@@ -240,7 +240,7 @@ export function objectNoFunction(value) {
  * @param {any} value
  */
 export function objectOrNull(value) {
-	v.parse(v.union([v.value(null), v.looseObject({})]), value);
+	v.parse(v.union([v.literal(null), v.looseObject({})]), value);
 }
 
 // objectOrUndefined

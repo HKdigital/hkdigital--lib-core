@@ -14,6 +14,8 @@
  * @property {string} [stack] Stack trace (in debug mode for first exception)
  * @property {number} [status] - HTTP status code (for HttpError instances)
  * @property {*} [details] - Additional error details (for HttpError instances)
+ * @property {string} [errorType] - Formatted error type for display
+ * @property {string[]} [stackFrames] - Cleaned stack frames for terminal display
  */
 
  export default {};

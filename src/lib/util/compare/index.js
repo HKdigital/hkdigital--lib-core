@@ -235,10 +235,9 @@ export function compareUsingPath(compareFn, a, b, path) {
  * Comparator that can be used for sorting using an object key
  *
  * @param {function} compareFn - Function to use to compare the values
- * @param {string|string[]} path - Object path
- *
- * @param {any} x - First value
- * @param {any} y - Second value
+ * @param {string} key - Object key or path
+ * @param {any} a - First value
+ * @param {any} b - Second value
  */
 export function compareUsingKey(compareFn, key, a, b) {
 	// @note assume a and b are objects

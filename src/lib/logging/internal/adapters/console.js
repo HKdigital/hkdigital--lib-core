@@ -202,10 +202,8 @@ export class ConsoleAdapter {
         const serialized = this.#serializeErrorChain(details);
         if (serialized.loggedAt) {
           logData.loggedAt = serialized.loggedAt;
-          logData.errors = serialized.chain;
-        } else {
-          logData.errors = serialized;
         }
+        logData.errors = serialized.chain;
       } else {
         // Single error - keep as simple object
         const cleanedStack = this.#cleanStackTrace(details.stack);
@@ -225,10 +223,8 @@ export class ConsoleAdapter {
         const serialized = this.#serializeErrorChain(details.error);
         if (serialized.loggedAt) {
           logData.loggedAt = serialized.loggedAt;
-          logData.errors = serialized.chain;
-        } else {
-          logData.errors = serialized;
         }
+        logData.errors = serialized.chain;
       } else {
         // Single error - keep as simple object
         const cleanedStack = this.#cleanStackTrace(details.error.stack);
@@ -256,10 +252,10 @@ export class ConsoleAdapter {
   }
 
   /**
-   * Serialize error chain into a simple array
+   * Serialize error chain into consumable log format
    *
-   * @param {Error|import('$lib/errors/generic.js').DetailedError} err
-   * @returns {Array} Array of error objects
+   * @param {Error} err
+   * @returns {{chain: import('./typedef.js').ErrorSummary[], loggedAt: string|null}} Object with error chain and optional logging location
    */
   #serializeErrorChain(err) {
     const chain = [];
@@ -288,7 +284,7 @@ export class ConsoleAdapter {
         }
 
         // Skip the LoggerError and move to the actual error
-        current = current.cause;
+        current = /** @type {Error} */ (current.cause);
         isFirst = false;
         continue;
       }
@@ -325,7 +321,7 @@ export class ConsoleAdapter {
       isFirst = false;
     }
 
-    return loggedAt ? { chain, loggedAt } : chain;
+    return { chain, loggedAt };
   }
 
 

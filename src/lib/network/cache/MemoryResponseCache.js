@@ -29,6 +29,7 @@
  * @property {number|null} expires - Expiration timestamp (null if no expiration)
  * @property {string|null} etag - ETag header if present
  * @property {string|null} lastModified - Last-Modified header if present
+ * @property {string|null} cacheVersion - Cache version identifier
  */
 
 /**
@@ -75,7 +76,8 @@ export default class MemoryResponseCache {
       timestamp: entry.timestamp,
       expires: entry.expires,
       etag: entry.etag,
-      lastModified: entry.lastModified
+      lastModified: entry.lastModified,
+      cacheVersion: entry.cacheVersion
     };
   }
 
@@ -104,7 +106,8 @@ export default class MemoryResponseCache {
       lastAccessed: now,
       expires,
       etag: response.headers.get('ETag'),
-      lastModified: response.headers.get('Last-Modified')
+      lastModified: response.headers.get('Last-Modified'),
+      cacheVersion: metadata.cacheVersion || null
     });
   }
 

@@ -149,7 +149,7 @@ export default class ImageScene {
    *
    * @param {object} _
    * @param {string} _.label
-   * @param {import('../typedef.js').ImageSource} _.imageSource
+   * @param {import('$lib/config/typedef.js').ImageSource} _.imageSource
    */
   defineImage({ label, imageSource }) {
     expect.notEmptyString(label);
@@ -189,7 +189,7 @@ export default class ImageScene {
    *
    * @returns {ImageSceneSource}
    */
-  #getImageSource(label) {
+  #getImageSceneSource(label) {
     for (const source of this.#imageSources) {
       if (label === source.label) {
         return source;
@@ -214,7 +214,7 @@ export default class ImageScene {
    * @returns {ImageLoader}
    */
   getImageLoader(label) {
-    const source = this.#getImageSource(label);
+    const source = this.#getImageSceneSource(label);
 
     return source.imageLoader;
   }
@@ -227,9 +227,9 @@ export default class ImageScene {
    * @returns {ImageMeta}
    */
   getImageMeta(label) {
-    const source = this.#getImageSource(label);
+    const source = this.#getImageSceneSource(label);
 
-    return source.imageMeta;
+    return source.imageLoader.imageMeta;
   }
 
   /**
@@ -242,7 +242,7 @@ export default class ImageScene {
    * @returns {string}
    */
   getObjectURL(label) {
-    const source = this.#getImageSource(label);
+    const source = this.#getImageSceneSource(label);
 
     return source.imageLoader.getObjectURL();
   }

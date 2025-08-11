@@ -31,7 +31,7 @@ export class HkTabBarSelectorState {
 	/**
 	 * Link the tab bar selector to a tab bar state
 	 *
-	 * @param {import('./HkTabBar.svelte').TabBarState} tabBarState
+	 * @param {import('./HkTabBar.state.svelte.js').HkTabBarState} tabBarState
 	 */
 	linkToTabBarState(tabBarState) {
 		// console.log('setBottomBar', bottomBarState);

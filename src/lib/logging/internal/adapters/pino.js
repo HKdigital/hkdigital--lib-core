@@ -109,11 +109,12 @@ export class PinoAdapter {
             }
 
             // Include HttpError-specific properties
-            if (current.status !== undefined) {
-              serialized.status = current.status;
+            const httpError = /** @type {import('$lib/network/errors.js').HttpError} */ (current);
+            if (httpError.status !== undefined) {
+              serialized.status = httpError.status;
             }
-            if (current.details !== undefined) {
-              serialized.details = current.details;
+            if (httpError.details !== undefined) {
+              serialized.details = httpError.details;
             }
 
             chain.push(serialized);

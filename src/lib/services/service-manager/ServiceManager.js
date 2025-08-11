@@ -63,7 +63,7 @@
  * });
  */
 
-import { EventEmitter } from '$lib/classes/event-emitter';
+import { EventEmitter } from '$lib/generic/events.js';
 import { Logger, DEBUG, INFO, WARN } from '$lib/logging/index.js';
 
 import {
@@ -160,7 +160,7 @@ export class ServiceManager extends EventEmitter {
    *
    * @param {string} name - Service name
    *
-   * @returns {import('./typedef.js').ServiceInstance|null}
+   * @returns {import('../service-base/typedef.js').ServiceInstance|null}
    *   Service instance or null if not found
    */
   get(name) {

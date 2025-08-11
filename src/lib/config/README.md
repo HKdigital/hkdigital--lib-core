@@ -50,7 +50,7 @@ export default defineConfig(
       'import.meta.env.VITE_API_URL': JSON.stringify('https://api.example.com')
     },
     imagetoolsOptions: {
-      widths: [640, 1024, 1536, 1920]
+      widths: [1920, 1536, 1024, 640]
     }
   })
 );

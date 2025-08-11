@@ -70,5 +70,5 @@ export function measureTargetLayer(container, layerId) {
   // Calculate total height including margins
   const height = rect.height > 0 ? rect.height + marginTop + marginBottom : 0;
   
-  return { element: layerElement, height };
+  return { element: /** @type {HTMLElement} */ (layerElement), height };
 }

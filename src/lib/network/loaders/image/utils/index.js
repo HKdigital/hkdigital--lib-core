@@ -6,7 +6,7 @@ import { expect } from '$lib/util/index.js';
  * of sorted responsive image formats, so it should be the
  * largest image.
  *
- * @param {import('../../typedef.js').ImageSource} imageSource
+ * @param {import('$lib/config/typedef.js').ImageSource} imageSource
  */
 export function toSingleImageMeta(imageSource) {
   expect.array(imageSource);

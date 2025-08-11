@@ -194,7 +194,7 @@ export function detectErrorMeta(error, cleanedStack) {
 /**
  * Format error metadata for console display
  * 
- * @param {{category: string, method: string, origin: string|null}} errorMeta - Error metadata
+ * @param {{category: string, method: string, origin?: string|null}} errorMeta - Error metadata
  * @returns {string} Formatted display string (e.g., "httpGet in myFunction")
  */
 export function formatErrorDisplay(errorMeta) {

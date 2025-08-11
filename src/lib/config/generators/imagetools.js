@@ -1,9 +1,12 @@
 const DEFAULT_WIDTHS = [1920, 1536, 1024, 640];
 
+const DEFAULT_THUMBNAIL_WIDTH = 150;
+
 const DEFAULT_PRESETS = {
 	default: {
 		format: 'avif',
-		quality: '90'
+		quality: '90',
+		as: 'metadata'
 	},
 	render: {
 		format: 'jpg',
@@ -44,6 +47,7 @@ const DEFAULT_PRESETS = {
  *
  * @param {object} [options]
  * @param {number[]} [options.widths=DEFAULT_WIDTHS]
+ * @param {number[]} [options.thumbnailWidth=DEFAULT_THUMBNAIL_WIDTH]
  *
  * @returns {(
  *   entries: [string, string[]][]
@@ -74,8 +78,11 @@ export function generateResponseConfigs(options) {
 
 		const widths = options?.widths ?? DEFAULT_WIDTHS;
 
-		// Always include a thumbnail version (150px width) plus the main image(s)
-		const thumbnailConfig = { ...configPairs, w: '150' };
+		// Always include the main image(s) and a thumbnail version
+		const thumbnailConfig = {
+			...configPairs,
+			w: String(options?.thumbnailWidth ?? DEFAULT_THUMBNAIL_WIDTH)
+		};
 
 		if (!responsiveConfig) {
 			// Directive 'responsive' was not set => return original + thumbnail

@@ -129,7 +129,8 @@ export function iterable(value) {
  *
  * @param {any} value
  *
- * @returns {boolean} true if the value is an Object, but not a Promise
+ * @returns {value is object}
+ *   True if the value is an Object, but not a Promise
  */
 export function object(value) {
 	if (!(value instanceof Object)) {

@@ -50,8 +50,9 @@
  * }
  */
 
-import { EventEmitter } from '$lib/classes/event-emitter';
-import { Logger, INFO } from '$lib/logging/internal/logger';
+import { EventEmitter } from '$lib/generic/events.js';
+import { Logger, INFO } from '$lib/logging/index.js';
+import { DetailedError } from '$lib/generic/errors.js';
 
 import {
   CREATED,
@@ -117,9 +118,11 @@ export class ServiceBase extends EventEmitter {
    * @returns {Promise<boolean>} True if initialization succeeded
    */
   async initialize(config = {}) {
-    if (this.state !== CREATED &&
-        this.state !== STOPPED &&
-        this.state !== DESTROYED) {
+    if (
+      this.state !== CREATED &&
+      this.state !== STOPPED &&
+      this.state !== DESTROYED
+    ) {
       this.logger.warn(`Cannot initialize from state: ${this.state}`);
       return false;
     }
@@ -443,18 +446,19 @@ export class ServiceBase extends EventEmitter {
    * @param {Error} error - Error that occurred
    */
   _setError(operation, error) {
-    this.error = error;
+    const detailedError = new DetailedError(`${operation} failed`, {
+      cause: error
+    });
+
+    this.error = detailedError;
     this._setState(ERROR_STATE);
     this._setHealthy(false);
 
-    this.logger.error(`${operation} failed`, {
-      error: error.message,
-      stack: error.stack
-    });
+    this.logger.error(detailedError);
 
     this.emit('error', {
       operation,
-      error
+      error: detailedError
     });
   }
 }

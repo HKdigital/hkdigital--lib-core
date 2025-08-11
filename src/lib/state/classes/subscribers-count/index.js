@@ -1,1 +1,1 @@
-export { default as SubScribersCount } from './SubScribersCount.svelte';
+export { default as SubScribersCount } from './SubscribersCount.js';

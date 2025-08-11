@@ -1,16 +1,4 @@
 /**
- * @typedef {object} ImageMeta
- * @property {string} src
- * @property {number} width
- * @property {number} height
- */
-
-/**
- * @typedef {ImageMeta[]} ImageSource
- * Array of ImageMeta objects (always array format)
- */
-
-/**
  * @typedef {"center" | "top" | "bottom" | "left" | "right" |
  *          "left top" | "left center" | "left bottom" |
  *          "center top" | "center center" | "center bottom" |

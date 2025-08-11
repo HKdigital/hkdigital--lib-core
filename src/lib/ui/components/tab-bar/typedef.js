@@ -1,6 +1,6 @@
 /**
  * @typedef {object} Tab
- * @property {import('../icon/typedef.js').IconSource} icon
+ * @property {import('$lib/ui/typedef.js').IconSource} icon
  * @property {string} [label]
  *
  * @property {string} [route]

@@ -77,7 +77,7 @@ export function* map(iterable, transformFn) {
  * @param {boolean} [options.depthFirst=true]
  *   If true, use depth-first traversal, otherwise breadth-first
  *
- * @return {Iterator} iterator object
+ * @return {Iterable<[string[], any]>} iterable that yields [path, value] pairs
  */
 export function iterateObjectEntries(obj, options = {}) {
 	let objectIterator;
@@ -108,11 +108,11 @@ export function iterateObjectEntries(obj, options = {}) {
  * the object
  *
  * @param {object} obj - Object to iterate
- * @param {IterableTreeOptions & { depthFirst: boolean}} [options]
+ * @param {import('$lib/generic/data/classes/typedef.js').IterableTreeOptions} [options]
  *
  * @return {Iterable<string[]>} iterable object that yields path arrays
  */
-export function iterateObjectPaths(obj, options) {
+export function iterateObjectPaths(obj, options = {}) {
 	let objectIterator;
 
 	const depthFirst =

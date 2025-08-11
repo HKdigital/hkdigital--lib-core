@@ -61,13 +61,13 @@
 
 /**
  * Result of health check for all services
- * @typedef {Object<string, HealthStatus>} HealthCheckResult
+ * @typedef {Object<string, import('../service-base/typedef.js').HealthStatus>} HealthCheckResult
  */
 
 /**
  * Service class constructor type
  *
- * @typedef {new (name: string, options?: ServiceOptions) => ServiceInstance} ServiceConstructor
+ * @typedef {new (name: string, options?: import('../service-base/typedef.js').ServiceOptions) => import('../service-base/typedef.js').ServiceInstance} ServiceConstructor
  */
 
 // ============================================================================
@@ -79,7 +79,7 @@
  *
  * @typedef {Object} ServiceEntry
  * @property {ServiceConstructor} ServiceClass - Service class constructor
- * @property {ServiceInstance|null} instance - Service instance (lazy-created)
+ * @property {import('../service-base/typedef.js').ServiceInstance|null} instance - Service instance (lazy-created)
  * @property {*} config - Service configuration
  * @property {string[]} dependencies - Service dependencies
  * @property {Set<string>} dependents - Services that depend on this one

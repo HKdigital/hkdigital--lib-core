@@ -44,22 +44,29 @@ Loads responsive image variants, automatically selecting the best size for conta
 ```javascript
 import { ImageVariantsLoader } from '$lib/network/loaders.js';
 
-const loader = new ImageVariantsLoader();
-
-// Load responsive variants
+// Responsive image variants (array of ImageMeta)
 const imageSource = [
   { src: '/image-400.jpg', width: 400, height: 300 },
   { src: '/image-800.jpg', width: 800, height: 600 },
   { src: '/image-1200.jpg', width: 1200, height: 900 }
 ];
 
-await loader.load({
-  imageSource,
-  containerWidth: 600,
-  containerHeight: 400,
-  fit: 'cover', // or 'contain', 'fill'
+const loader = new ImageVariantsLoader(imageSource, {
   devicePixelRatio: window.devicePixelRatio
 });
+
+// Set optimal image variant for container
+loader.setOptimalImageVariant({
+  containerWidth: 600,
+  containerHeight: 400,
+  fit: 'cover' // or 'contain', 'fill'
+});
+
+// Access the selected variant and loader
+if (loader.loaded) {
+  const objectURL = loader.getObjectURL();
+  // Use objectURL in img src
+}
 ```
 
 ### ImageScene

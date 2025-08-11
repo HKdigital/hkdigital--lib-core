@@ -1,4 +1,4 @@
-import { theme as themeStore } from '$lib/stores/index.js';
+import { theme as themeStore } from '$lib/state/stores.js';
 
 /**
  * Set meta them color for the current theme

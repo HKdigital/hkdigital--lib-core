@@ -37,7 +37,7 @@
           type="checkbox" 
           name="scalingEnabled" 
           bind:checked={scalingEnabled}
-          onchange={(e) => e.target.form.requestSubmit()}
+          onchange={(e) => /** @type {HTMLInputElement} */ (e.target).form.requestSubmit()}
         />
         <span class="type-ui-sm">Enable Design Scaling</span>
       </label>

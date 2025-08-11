@@ -4,7 +4,7 @@ import { writable } from 'svelte/store';
 import * as v from 'valibot';
 import { AbsOrRelUrl } from '$lib/valibot/index.js';
 
-import SubscribersCount from '../stores/SubscribersCount.js';
+import { SubscribersCount } from '$lib/state/classes.js';
 
 // > Class
 
