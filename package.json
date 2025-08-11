@@ -69,8 +69,7 @@
 			"svelte": "./dist/index.js",
 			"default": "./dist/index.js"
 		},
-		"./*": "./dist/*",
-		"./typedef": "./dist/typedef/index.js"
+		"./*": "./dist/*"
 	},
 	"peerDependencies": {
 		"@eslint/js": "^9.28.0",
