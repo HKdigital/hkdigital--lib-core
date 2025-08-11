@@ -5,11 +5,12 @@
 
   import ArmyGreen from '$examples/assets/images/army-green.jpg?preset=gradient';
 
-  // console.log(ArmyGreen);
+  // console.log('ArmyGreen', ArmyGreen);
 
-  import ElectricBlue from '$examples/assets/images/electric-blue.jpg?preset=gradient';
+  // import ElectricBlue from '$examples/assets/images/electric-blue.jpg?preset=gradient';
 
-  console.log('ElectricBlue', ElectricBlue);
+  // console.log('ElectricBlue', ElectricBlue);
+
 
   let imageLoader = $state();
 
@@ -17,7 +18,7 @@
 
   onMount(() => {
     // @ts-ignore
-    const url = imageSource.src;
+    const url = imageSource[0].src;
 
     if (!url) {
       throw new Error('Missing image url');
@@ -56,8 +57,8 @@
   <br />
   <img
     src={objectURL}
-    width={imageSource.width}
-    height={imageSource.height}
+    width={imageSource[0].width}
+    height={imageSource[0].height}
     alt=""
   />
 {/if}

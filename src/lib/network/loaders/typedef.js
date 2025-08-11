@@ -6,8 +6,8 @@
  */
 
 /**
- * @typedef {ImageMeta | ImageMeta[]} ImageSource
- * Single ImageMeta object or array of ImageMeta objects
+ * @typedef {ImageMeta[]} ImageSource
+ * Array of ImageMeta objects (always array format)
  */
 
 /**

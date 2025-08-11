@@ -1,4 +1,4 @@
-const DEFAULT_WIDTHS = [640, 1024, 1536, 1920];
+const DEFAULT_WIDTHS = [1920, 1536, 1024, 640];
 
 const DEFAULT_PRESETS = {
 	default: {
@@ -70,21 +70,27 @@ export function generateResponseConfigs(options) {
 
 		// @ts-ignore
 		const responsiveConfig = entries.find(([key]) => key === 'responsive');
-
-		if (!responsiveConfig) {
-			// Directive 'responsive' was not set => return original config
-
-			return [configPairs];
-
-			// Alternative: by returning undefined, the default resolveConfig is used
-			// return undefined;
-		}
+		// console.log('responsiveConfig found:', !!responsiveConfig);
 
 		const widths = options?.widths ?? DEFAULT_WIDTHS;
 
-		return widths.map((w) => {
+		// Always include a thumbnail version (150px width) plus the main image(s)
+		const thumbnailConfig = { ...configPairs, w: '150' };
+
+		if (!responsiveConfig) {
+			// Directive 'responsive' was not set => return original + thumbnail
+			const originalConfig = configPairs; // No 'w' means original dimensions
+			// console.log('Returning original + thumbnail configs:', [originalConfig, thumbnailConfig]);
+			return [originalConfig, thumbnailConfig];
+		}
+
+		// Directive 'responsive' was set => return responsive widths + thumbnail
+		const responsiveConfigs = widths.map((w) => {
 			return { ...configPairs, w: String(w) };
 		});
+		const result = [...responsiveConfigs, thumbnailConfig];
+		// console.log('Returning responsive + thumbnail configs:', result);
+		return result;
 	};
 }
 

@@ -32,7 +32,8 @@ export default class ImageVariantsLoader {
    */
   constructor(imagesMeta, { devicePixelRatio = 1 } = {}) {
     this.#devicePixelRatio = devicePixelRatio ?? 1;
-    this.#imagesMeta = [...imagesMeta].sort((a, b) => a.width - b.width);
+    // Keep images in large-to-small order (as provided)
+    this.#imagesMeta = [...imagesMeta];
     // console.debug("imagesMeta",imagesMeta);
   }
 
@@ -138,13 +139,13 @@ export default class ImageVariantsLoader {
 
     const imagesMeta = this.#imagesMeta;
 
-    // Find the smallest image that's larger than our required width
-
-    const optimal = imagesMeta.find(
+    // Array is large-to-small, so find the last (smallest) image that's still >= required width
+    // This gives us the smallest image that's larger than our required width
+    const optimal = imagesMeta.findLast(
       (current) => current.width >= requiredWidth
     );
 
     // Fall back to the largest image if nothing is big enough
-    return optimal || imagesMeta[imagesMeta.length - 1];
+    return optimal || imagesMeta[0];
   }
 } // end class
