@@ -72,15 +72,15 @@
 		"./*": "./dist/*"
 	},
 	"peerDependencies": {
-		"@eslint/js": "^9.28.0",
+		"@eslint/js": "^9.33.0",
 		"@skeletonlabs/skeleton": "^3.1.7",
 		"@steeze-ui/heroicons": "^2.4.2",
-		"@sveltejs/kit": "^2.21.2",
-		"eslint-plugin-import": "^2.31.0",
-		"pino": "^9.7.0",
-		"pino-pretty": "^13.0.0",
-		"runed": "^0.23.1",
-		"svelte": "^5.33.16",
+		"@sveltejs/kit": "^2.28.0",
+		"eslint-plugin-import": "^2.32.0",
+		"pino": "^9.8.0",
+		"pino-pretty": "^13.1.1",
+		"runed": "^0.31.1",
+		"svelte": "^5.38.1",
 		"svelte-preprocess": "^6.0.3",
 		"valibot": "^1.1.0",
 		"vite-imagetools": "^8.0.0"
