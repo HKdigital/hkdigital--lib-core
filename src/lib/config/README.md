@@ -56,49 +56,19 @@ export default defineConfig(
 );
 ```
 
-#### `generateViteDefines(options)`
-
-Generates only the define configuration (no plugins).
-
-**Options:**
-- `packageJsonPath` (string, default: `'./package.json'`) - Path to package.json
-- `customDefines` (object, default: `{}`) - Additional define values
-
-**Example:**
-```javascript
-export default defineConfig({
-  plugins: [sveltekit()],
-  define: generateViteDefines({
-    customDefines: {
-      'import.meta.env.VITE_API_URL': JSON.stringify(process.env.API_URL)
-    }
-  })
-});
-```
-
-#### `generateVitestConfig(options)`
-
-Generates only the Vitest test configuration.
-
-**Options:**
-- `additionalPatterns` (array, default: `[]`) - Additional test file patterns
-
-**Example:**
-```javascript
-export default defineConfig({
-  plugins: [sveltekit()],
-  test: generateVitestConfig({
-    additionalPatterns: ['tests/**/*.integration.js']
-  })
-});
-```
 
 ## Imagetools Configuration
 
-When `enableImagetools: true`, the following dependencies are required in your project:
+When `enableImagetools: true`, install the imagetools dependency:
 
+**For projects/applications:**
 ```bash
 pnpm add -D vite-imagetools
+```
+
+**For other libraries:**
+```bash
+pnpm add -D --save-peer vite-imagetools
 ```
 
 ### TypeScript Support

@@ -9,39 +9,70 @@ It contains common code, base components and documentation that help you with se
 
 ### Install
 
-The library can be installed as a normal NPM library.
-
+**For projects/applications:**
 ```bash
 pnpm add @hkdigital/lib-core
 ```
 
+**For other libraries:**
+```bash
+pnpm add -D --save-peer @hkdigital/lib-core
+```
+
 ### Peer Dependencies
 
-This library requires certain peer dependencies depending on which features you use:
-
-**For development logging:**
+Install peer dependencies:
 ```bash
-pnpm add -D pino-pretty
+# Core framework and utilities
+pnpm add @sveltejs/kit svelte svelte-preprocess runed valibot
+
+# UI components and icons
+pnpm add @steeze-ui/heroicons
+
+# Logging
+pnpm add pino pino-pretty
+
+# Linting
+pnpm add @eslint/js eslint-plugin-import
 ```
 
-**For Vite config generators with imagetools:**
-```bash
-pnpm add -D vite-imagetools
-```
+### Design System & Configuration
 
-#### Tailwind
+This library includes a complete design system with Tailwind CSS integration. Basic setup requires:
 
-Components in this package use [tailwindcss](https://tailwindcss.com/).
+1. **Tailwind config** - Include library files in content scanning:
+   ```js
+   // tailwind.config.js
+   export default {
+     content: [
+       './node_modules/@hkdigital/**/*.{html,js,svelte,ts}',
+       './src/**/*.{html,js,svelte,ts}',
+   ```
 
-To compile tailwind classes inside this package, you must add the package location to your tailwindcss plugin configuration.
+2. **Design tokens** - Apply CSS variables in your layout:
+   ```js
+   // src/routes/+layout.svelte
+   import { designTokensToRootCssVars } from '@hkdigital/lib-core/design';
+   designTokensToRootCssVars();
+   ```
 
-```
-// tailwind.config.js
-export default {
-  content: [
-    './node_modules/@hkdigital/**/*.{html,js,svelte,ts}',
-    './src/**/*.{html,js,svelte,ts}',
-```
+3. **Vite configuration** - Use the provided config generator:
+   ```js
+   // vite.config.js
+   import { defineConfig } from 'vitest/config';
+   import { generateViteConfig } from '@hkdigital/lib-core/config/vite.js';
+
+   export default defineConfig(
+     await generateViteConfig({
+       enableImagetools: true,
+       enableVitest: true
+     })
+   );
+   ```
+
+For detailed setup guides see:
+- **Design system**: [src/lib/design/README.md](./src/lib/design/README.md)
+- **Vite configuration**: [src/lib/config/README.md](./src/lib/config/README.md)
 
 ### Update
 
@@ -52,39 +83,17 @@ in the '@hkdigital' namespace.
 pnpm upgrade:hk
 ```
 
-### The package.json scripts:
+### Available scripts
 
 ```bash
-pnpm add -D npm-check-updates
-pnpm add -D npm-check-updates
+pnpm run dev         # Start development server
+pnpm run build       # Build the library
+pnpm run check       # Type checking and validation
+pnpm run test        # Run unit tests
+pnpm run upgrade:hk  # Update all @hkdigital/... packages
+pnpm run upgrade:all # Update all packages
+pnpm run publish:npm # Version bump and publish to npm
 ```
-
-```js
-"scripts": {
-  "upgrade:hk": "run-s upgrade:hk:update pnpm:install",
-  "upgrade:hk:update": "ncu --dep dev,optional,peer,prod '@hkdigital/*' -u",
-  "pnpm:install": "pnpm install"
-}
-```
-
-### Vite Configuration
-
-The library provides configuration generators for Vite that include common HKdigital project settings:
-
-```javascript
-// vite.config.js
-import { defineConfig } from 'vitest/config';  
-import { generateViteConfig } from '@hkdigital/lib-core/config/vite.js';
-
-export default defineConfig(
-  await generateViteConfig({
-    enableImagetools: true,
-    enableVitest: true
-  })
-);
-```
-
-For detailed configuration options, see the [config documentation](./src/lib/config/README.md).
 
 ### Import JS, Svelte files and Typedefs
 
@@ -112,18 +121,6 @@ For example:
 ```css
 /* src/app.css */
 @import '../node_modules/@hkdigital/lib-core/dist/css/utilities.css';
-```
-
-### Enable tailwind processing
-
-Allow the tailwind CSS processor to work on the library inside node_modules
-
-```js
-// tailwind.config.js
-export default {
-  content: [
-    './node_modules/@hkdigital/**/*.{html,js,svelte,ts}',
-    './src/**/*.{html,js,svelte,ts}',
 ```
 
 ## Building the library

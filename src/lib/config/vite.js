@@ -1,5 +1,3 @@
 export { 
-  generateViteConfig,
-  generateViteDefines,
-  generateVitestConfig
+  generateViteConfig
 } from './generators/vite.js';
