@@ -22,10 +22,10 @@ export async function load({ url }) {
     // Transform the folders data for multi-level navigation
     const navigationData = buildNavigationStructure(folders);
 
-    return { 
-      folders, 
-      navigationData, 
-      scalingEnabled 
+    return {
+      folders,
+      navigationData,
+      scalingEnabled
     };
   } catch (err) {
     console.error('Error in explorer load function:', err);
@@ -42,17 +42,17 @@ export async function load({ url }) {
  */
 function buildNavigationStructure(folders) {
   const structure = {};
-  
+
   for (const folder of folders) {
     const pathParts = folder.path.split('/');
-    
+
     // Build nested structure dynamically
     let current = structure;
-    
+
     for (let i = 0; i < pathParts.length; i++) {
       const part = pathParts[i];
       const isLastPart = i === pathParts.length - 1;
-      
+
       if (!current[part]) {
         current[part] = {
           name: part,
@@ -62,17 +62,17 @@ function buildNavigationStructure(folders) {
           displayName: part
         };
       }
-      
+
       // If this is the final part in the path, check if it's actually an endpoint (has a +page.svelte)
       if (isLastPart) {
         current[part].isEndpoint = true;
         current[part].fullPath = folder.path;
         current[part].displayName = folder.displayName || part;
       }
-      
+
       current = current[part].children;
     }
   }
-  
+
   return structure;
 }

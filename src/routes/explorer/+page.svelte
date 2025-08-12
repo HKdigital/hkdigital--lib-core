@@ -45,11 +45,14 @@
    * @param {string} [explorerPath] - Optional explorer path for URL updates
    */
   function handleBreadcrumbNavigation(level, explorerPath) {
-    console.log('ROOT handleBreadcrumbNavigation called:', { level, explorerPath });
-    
+    console.log('ROOT handleBreadcrumbNavigation called:', {
+      level,
+      explorerPath
+    });
+
     // For root page breadcrumb navigation, only handle resetting to root locally
     // Do not navigate URLs - we're already on the root page
-    
+
     if (level === 0) {
       console.log('ROOT: Level 0, resetting local state');
       // Reset to root - just clear the interactive state, no URL change needed
@@ -66,31 +69,13 @@
       }
     }
   }
-
-  /**
-   * Navigate to an example using route parameters
-   * @param {string} path - Example path like "ui/components/image-box/image-box-fitting"
-   */
-  function navigateToExample(path) {
-    const segments = path.split('/');
-    const routePath = `/explorer/${segments.join('/')}`;
-    goto(routePath);
-  }
-
-  /**
-   * Handle path changes from Explorer navigation
-   * @param {string} explorerPath - The new explorer path
-   */
-  function handlePathChange(explorerPath) {
-    goto(`/explorer/${explorerPath}`);
-  }
 </script>
 
 <div data-page>
   <TopBar bind:scalingEnabled onchange={handleScalingChange}>
     {#snippet crumblePath()}
       <nav class="breadcrumb">
-        <button 
+        <button
           class="breadcrumb-item type-ui-sm"
           onclick={() => handleBreadcrumbNavigation(0)}
         >
@@ -99,7 +84,7 @@
         {#if activeSegments.length > 0}
           {#each activeSegments as segment, index}
             <span class="breadcrumb-separator">/</span>
-            <button 
+            <button
               class="breadcrumb-item type-ui-sm"
               onclick={() => handleBreadcrumbNavigation(index + 1)}
             >
@@ -110,8 +95,8 @@
       </nav>
     {/snippet}
   </TopBar>
-  
-  <Explorer 
+
+  <Explorer
     navigationData={data.navigationData}
     currentPath=""
     getActiveSegments={handleActiveSegments}

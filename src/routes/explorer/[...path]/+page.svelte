@@ -50,7 +50,6 @@
     }
   }
 
-
   // Current path from URL parameters
   /** @type {string} */
   const currentPath = $derived($page.params.path || '');
@@ -68,7 +67,7 @@
   <TopBar bind:scalingEnabled onchange={handleScalingChange}>
     {#snippet crumblePath()}
       <nav class="breadcrumb">
-        <button 
+        <button
           class="breadcrumb-item type-ui-sm"
           onclick={() => handleBreadcrumbNavigation(0)}
         >
@@ -77,7 +76,7 @@
         {#if activeSegments.length > 0}
           {#each activeSegments as segment, index}
             <span class="breadcrumb-separator">/</span>
-            <button 
+            <button
               class="breadcrumb-item type-ui-sm"
               onclick={() => handleBreadcrumbNavigation(index + 1)}
             >
@@ -88,15 +87,15 @@
       </nav>
     {/snippet}
   </TopBar>
-  
+
   {#if data.isValidExample}
     <div class="loading-example">
       <p class="type-base-md">Redirecting to example...</p>
     </div>
   {:else}
-    <Explorer 
+    <Explorer
       navigationData={data.navigationData}
-      currentPath={currentPath}
+      {currentPath}
       getActiveSegments={handleActiveSegments}
       rootName="examples"
       getNavigateToLevelFunction={handleNavigateFunction}

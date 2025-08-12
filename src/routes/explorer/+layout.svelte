@@ -1,12 +1,12 @@
 <script>
   /**
-   * @type {{ 
+   * @type {{
    *   children: import('svelte').Snippet,
-   *   data: { 
-   *     navigationData: Object, 
-   *     scalingEnabled: boolean, 
-   *     folders: Array 
-   *   } 
+   *   data: {
+   *     navigationData: Object,
+   *     scalingEnabled: boolean,
+   *     folders: Array
+   *   }
    * }}
    */
   let { children, data } = $props();

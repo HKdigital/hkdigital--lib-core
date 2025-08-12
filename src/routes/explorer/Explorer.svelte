@@ -11,22 +11,34 @@
    *   rootName?: string
    * }}
    */
-  let { navigationData, currentPath = '', getActiveSegments, getNavigateToLevelFunction, rootName = 'Categories' } = $props();
+  let {
+    navigationData,
+    currentPath = '',
+    getActiveSegments,
+    getNavigateToLevelFunction,
+    rootName = 'Categories'
+  } = $props();
 
   /** @type {string[]} */
-  let pathSegments = $derived(currentPath ? currentPath.split('/').filter(Boolean) : []);
+  let pathSegments = $derived(
+    currentPath ? currentPath.split('/').filter(Boolean) : []
+  );
 
   /** @type {string[]} */
   let interactiveSegments = $state([]);
 
   /** @type {string[]} */
-  let activeSegments = $derived(interactiveSegments.length > 0 ? interactiveSegments : pathSegments);
-
+  let activeSegments = $derived(
+    interactiveSegments.length > 0 ? interactiveSegments : pathSegments
+  );
 
   // Notify parent of active segments changes - only when they actually change
   let lastActiveSegments = [];
   $effect(() => {
-    if (getActiveSegments && JSON.stringify(activeSegments) !== JSON.stringify(lastActiveSegments)) {
+    if (
+      getActiveSegments &&
+      JSON.stringify(activeSegments) !== JSON.stringify(lastActiveSegments)
+    ) {
       lastActiveSegments = [...activeSegments];
       getActiveSegments(activeSegments);
     }
@@ -36,11 +48,11 @@
   let breadcrumbColumns = $derived.by(() => {
     const columns = [];
     let current = navigationData;
-    
+
     // Root column
     columns.push({
       title: rootName,
-      items: Object.values(current).map(item => ({
+      items: Object.values(current).map((item) => ({
         name: item.name,
         displayName: item.displayName || item.name,
         isEndpoint: item.isEndpoint,
@@ -52,16 +64,16 @@
     // Build columns for each path segment
     for (let i = 0; i < activeSegments.length; i++) {
       const segment = activeSegments[i];
-      
+
       if (current[segment]) {
         current = current[segment].children;
-        
+
         if (Object.keys(current).length > 0) {
           const nextSegment = activeSegments[i + 1];
-          
+
           columns.push({
             title: segment,
-            items: Object.values(current).map(item => ({
+            items: Object.values(current).map((item) => ({
               name: item.name,
               displayName: item.displayName || item.name,
               isEndpoint: item.isEndpoint,
@@ -86,7 +98,7 @@
     // Build new path segments up to the selected level
     const newSegments = [...activeSegments.slice(0, level), itemName];
     const fullPath = newSegments.join('/');
-    
+
     // Always navigate to explorer URL - let the route system handle state
     goto(`/explorer/${fullPath}`);
   }
@@ -101,7 +113,8 @@
       goto('/explorer');
     } else {
       // Navigate to specific level
-      const currentSegments = interactiveSegments.length > 0 ? interactiveSegments : pathSegments;
+      const currentSegments =
+        interactiveSegments.length > 0 ? interactiveSegments : pathSegments;
       const newSegments = currentSegments.slice(0, level);
       const explorerPath = newSegments.join('/');
       goto(`/explorer/${explorerPath}`);
@@ -126,7 +139,8 @@
               class="folder-item"
               class:active={item.isSelected}
               class:endpoint={item.isEndpoint}
-              onclick={() => handleNavigation(column.level, item.name, item.isEndpoint)}
+              onclick={() =>
+                handleNavigation(column.level, item.name, item.isEndpoint)}
             >
               {item.displayName}
             </button>
@@ -147,7 +161,6 @@
   .explorer-container {
     padding: 20px;
   }
-
 
   .navigation-columns {
     display: grid;

@@ -8,12 +8,12 @@ export const actions = {
   toggleScaling: async ({ request, cookies }) => {
     const data = await request.formData();
     const scalingEnabled = data.get('scalingEnabled') === 'on';
-    
+
     cookies.set('scalingEnabled', scalingEnabled.toString(), {
       path: '/',
       maxAge: 60 * 60 * 24 * 30
     });
-    
+
     return {
       success: true,
       scalingEnabled
@@ -24,7 +24,7 @@ export const actions = {
 export async function load({ params, cookies }) {
   try {
     const scalingEnabled = cookies.get('scalingEnabled') === 'true';
-    
+
     // Get the path from route parameters
     const pathSegments = params.path ? params.path.split('/') : [];
     const requestedPath = pathSegments.join('/');
@@ -37,9 +37,11 @@ export async function load({ params, cookies }) {
     });
 
     const navigationData = buildNavigationStructure(folders);
-    
+
     // Check if the requested path is a valid example
-    const matchingExample = folders.find(folder => folder.path === requestedPath);
+    const matchingExample = folders.find(
+      (folder) => folder.path === requestedPath
+    );
     const isValidExample = !!matchingExample;
 
     return {
@@ -64,17 +66,17 @@ export async function load({ params, cookies }) {
  */
 function buildNavigationStructure(folders) {
   const structure = {};
-  
+
   for (const folder of folders) {
     const pathParts = folder.path.split('/');
-    
+
     // Build nested structure dynamically
     let current = structure;
-    
+
     for (let i = 0; i < pathParts.length; i++) {
       const part = pathParts[i];
       const isLastPart = i === pathParts.length - 1;
-      
+
       if (!current[part]) {
         current[part] = {
           name: part,
@@ -84,17 +86,17 @@ function buildNavigationStructure(folders) {
           displayName: part
         };
       }
-      
+
       // If this is the final part in the path, check if it's actually an endpoint (has a +page.svelte)
       if (isLastPart) {
         current[part].isEndpoint = true;
         current[part].fullPath = folder.path;
         current[part].displayName = folder.displayName || part;
       }
-      
+
       current = current[part].children;
     }
   }
-  
+
   return structure;
 }
