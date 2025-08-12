@@ -48,6 +48,126 @@ export default {
 {@render children()}
 ```
 
+## CSS Architecture & app.css
+
+### Overview
+
+The design system is orchestrated through `src/app.css`, which serves as the central CSS coordination file. Understanding its structure is essential for proper integration and troubleshooting.
+
+### app.css Structure
+
+When using this design system in your project, your `src/app.css` should follow this structure:
+
+```css
+/* your-project/src/app.css */
+
+/* 1. CSS Layers - Controls style precedence */
+@layer theme, base, utilities, components;
+
+/* 2. Tailwind CSS Core */
+@import 'tailwindcss';
+
+/* 3. HKdigital Design System Theme */
+@import '../node_modules/@hkdigital/lib-core/dist/design/themes/hkdev/theme.css' layer(theme);
+/*@import '../node_modules/@hkdigital/lib-core/dist/design/themes/hkdev/debug.css';*/
+@import '../node_modules/@hkdigital/lib-core/dist/design/themes/hkdev/globals.css';
+@import '../node_modules/@hkdigital/lib-core/dist/design/themes/hkdev/components.css' layer(components);
+@import '../node_modules/@hkdigital/lib-core/dist/design/themes/hkdev/responsive.css';
+
+/* 4. Skeleton UI Framework */
+@import '@skeletonlabs/skeleton' source('../node_modules/@skeletonlabs/skeleton-svelte/dist');
+@import '@skeletonlabs/skeleton/optional/presets' source('../node_modules/@skeletonlabs/skeleton-svelte/dist');
+
+/* 5. Tailwind Configuration Reference */
+@config "../tailwind.config.js";
+
+/* 6. Optional HKdigital Utilities */
+/*@import '../node_modules/@hkdigital/lib-core/dist/css/utilities.css';*/
+
+/* 7. Optional Project-specific CSS */
+/*@import './css/custom.css';*/
+
+/* 8. Optional Font Imports */
+/*@import url(/fonts/unbounded/unbounded.css);
+@import url(/fonts/mulish/mulish.css);*/
+```
+
+**Available Optional Imports**:
+- **Debug styles**: `debug.css` - Development debugging helpers
+- **Additional utilities**: `utilities.css` - Extra utility classes beyond Tailwind
+- **Custom fonts**: Project-specific typography files
+
+**Path Structure**: All HKdigital lib-core imports use the `../node_modules/@hkdigital/lib-core/dist/` prefix for consuming projects.
+
+### CSS Layer System
+
+The `@layer` directive ensures proper style precedence:
+
+1. **theme**: Design system color tokens and CSS variables
+2. **base**: Reset styles, typography defaults
+3. **utilities**: Tailwind utility classes (spacing, colors, etc.)
+4. **components**: Component-specific styling
+
+This layering prevents style conflicts and ensures predictable cascade behavior.
+
+### Key Roles
+
+**Central Reference Point**:
+- External CSS files use `@reference '../../app.css'` to access design system utilities
+- Provides single source of truth for all CSS dependencies
+
+**Design System Integration**:
+- Loads theme CSS files that define design tokens as CSS custom properties
+- Integrates with `tailwind.config.js` via `@config` directive
+- Enables responsive scaling system through imported theme files
+
+**Framework Coordination**:
+- Combines Tailwind CSS utilities with Skeleton UI components
+- Manages style precedence through layer system
+- Ensures consistent styling across the entire application
+
+### Common Integration Points
+
+**In SvelteKit Layout**:
+```javascript
+// src/routes/+layout.svelte
+import '../app.css';  // Loads entire design system
+```
+
+**In Tailwind Config**:
+```javascript
+// tailwind.config.js
+// References app.css through @config directive
+export default {
+  content: ['./src/**/*.{html,js,svelte}'],
+  // ... theme extensions from design tokens
+};
+```
+
+**For External CSS**:
+```css
+/* any-external-file.css */
+@reference '../../app.css';  /* Path to app.css */
+
+.my-component {
+  @apply p-20up bg-surface-300;  /* Now accessible */
+}
+```
+
+### Troubleshooting
+
+**Build Errors with External CSS**:
+- Missing `@reference` directive → Add `@reference` with correct path to app.css
+- Wrong path in `@reference` → Verify relative path from CSS file to `src/app.css`
+
+**Style Precedence Issues**:
+- Custom styles being overridden → Check CSS layer placement
+- Theme variables not available → Ensure proper import order in app.css
+
+**Design System Classes Not Working**:
+- Classes not generated → Verify `tailwind.config.js` references correct design tokens
+- CSS custom properties missing → Check theme files are properly imported
+
 ## Using Design System Classes in External CSS
 
 When using design system utilities like `p-16up`, `bg-surface-300`, or `border-primary-500` in external CSS files (loaded via `<style src="./style.css"></style>`), you **must** include the `@reference` directive at the top of your CSS file.

@@ -1,4 +1,4 @@
-@reference '../../../../app.css';
+@reference '../../../app.css';
 
 [data-component="top-bar"] {
   @apply bg-surface-100 border-surface-300 sticky top-0 z-10;

@@ -36,11 +36,11 @@ To use this explorer in another library:
 
 1. Copy the entire `explorer` folder to your `src/routes/` directory
 2. Update `config.js` with your folder settings
-3. Ensure you have the required dev components in `$lib/ui/dev/explorer/`
+3. The required components are now included in `components/` subfolder
 
-### Required Dev Components
+### Included Components
 
-The explorer requires these components in `$lib/ui/dev/explorer/`:
+The explorer includes these components in `components/`:
 
 - `Explorer.svelte` - Main navigation component with external link icons
 - `TopBar.svelte` - Top navigation with breadcrumbs and scaling toggle
@@ -67,16 +67,15 @@ routes/explorer/
 ├── +layout.server.js           # Navigation data loading
 ├── +page.svelte                # Root explorer page
 ├── +page.server.js             # Root page server logic
+├── components/                  # Explorer components (included)
+│   ├── Explorer.svelte         # Main explorer component
+│   ├── TopBar.svelte           # Top navigation component
+│   ├── topbar.css              # TopBar styles
+│   └── index.js                # Export file
 └── [...path]/
     ├── +page.svelte            # Dynamic route handler
     ├── +page.server.js         # Dynamic route server logic (with redirect)
     └── style.css               # Page-specific styles
-
-lib/ui/dev/explorer/
-├── Explorer.svelte             # Main explorer component
-├── TopBar.svelte              # Top navigation component
-├── topbar.css                 # TopBar styles
-└── index.js                   # Export file
 ```
 
 ## How It Works

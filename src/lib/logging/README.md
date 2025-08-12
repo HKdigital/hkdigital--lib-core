@@ -12,8 +12,7 @@ pnpm add -D pino-pretty
 
 ```javascript
 import { createServerLogger,
-         createClientLogger,
-         createLogger } from '@hkdigital/lib-core/logging/index.js';
+         createClientLogger } from '@hkdigital/lib-core/logging/index.js';
 
 // Server-side logging (uses pino)
 const serverLogger = createServerLogger('app');
@@ -21,14 +20,11 @@ const serverLogger = createServerLogger('app');
 // Client-side logging (uses console)
 const clientLogger = createClientLogger('app'); 
 
-// Universal logger (works on both server and client)
-const logger = createLogger('app');
-
 // Log at different levels
-logger.debug('Debug info', { data: 'details' });
-logger.info('Info message');
-logger.warn('Warning message');
-logger.error('Error message', { error: new Error('Something went wrong') });
+serverLogger.debug('Debug info', { data: 'details' });
+serverLogger.info('Info message');
+serverLogger.warn('Warning message');
+serverLogger.error('Error message', { error: new Error('Something went wrong') });
 ```
 
 ## SvelteKit Integration

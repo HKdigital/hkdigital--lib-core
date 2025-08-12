@@ -26,7 +26,10 @@ pnpm add -D --save-peer @hkdigital/lib-core
 # Core framework and utilities
 pnpm add @sveltejs/kit svelte svelte-preprocess runed valibot
 
-# UI components and icons
+# UI framework and components
+pnpm add @skeletonlabs/skeleton
+
+# UI icons
 pnpm add @steeze-ui/heroicons
 
 # Logging
@@ -34,12 +37,15 @@ pnpm add pino pino-pretty
 
 # Linting
 pnpm add @eslint/js eslint-plugin-import
+
+# Image processing
+pnpm add vite-imagetools
 ```
 
 **For other libraries**, install as dev dependencies and declare as peer dependencies:
 ```bash
 # Install as dev dependencies and peer dependencies
-pnpm add -D --save-peer @sveltejs/kit svelte svelte-preprocess runed valibot @steeze-ui/heroicons pino pino-pretty @eslint/js eslint-plugin-import
+pnpm add -D --save-peer @sveltejs/kit svelte svelte-preprocess runed valibot @skeletonlabs/skeleton @steeze-ui/heroicons pino pino-pretty @eslint/js eslint-plugin-import vite-imagetools
 ```
 
 ### Design System & Configuration
@@ -126,9 +132,18 @@ This library includes a complete design system with Tailwind CSS integration. Ba
    export default config;
    ```
 
+### Logging System
+
+The library includes a comprehensive logging system that provides:
+
+- **Server-side**: Structured JSON logging with pino and beautiful terminal formatting via pino-pretty
+- **Client-side**: Enhanced console logging with structured data display in browser inspector
+- **Consistent API**: Same logging interface for both server and client environments
+
 For detailed setup guides see:
 - **Design system**: [src/lib/design/README.md](./src/lib/design/README.md)
 - **Vite configuration**: [src/lib/config/README.md](./src/lib/config/README.md)
+- **Logging system**: [src/lib/logging/README.md](./src/lib/logging/README.md)
 
 ### Update
 
