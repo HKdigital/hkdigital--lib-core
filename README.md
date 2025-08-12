@@ -132,6 +132,50 @@ This library includes a complete design system with Tailwind CSS integration. Ba
    export default config;
    ```
 
+5. **TypeScript support for imagetools** - Add image import definitions to `app.d.ts`:
+   ```typescript
+   // src/app.d.ts
+   import '@hkdigital/lib-core/config/imagetools.d.ts';
+
+   // See https://svelte.dev/docs/kit/types#app.d.ts
+   // for information about these interfaces
+   declare global {
+     namespace App {
+       // interface Error {}
+       // interface Locals {}
+       // interface PageData {}
+       // interface PageState {}
+       // interface Platform {}
+     }
+   }
+
+   export {};
+   ```
+
+   **What this enables:**
+   - Type definitions for image imports with query parameters (e.g., `hero.jpg?preset=photo`)
+   - IntelliSense and autocompletion for imagetools directives in your editor
+   - Prevents TypeScript errors when importing processed images
+   - Works for both TypeScript and JavaScript projects (VS Code uses TypeScript for JS intellisense)
+
+   **Available presets:**
+   - `default` - AVIF format, 90% quality
+   - `photo` - JPG format, 95% quality, returns metadata
+   - `render` - JPG format, 95% quality, returns metadata
+   - `gradient` - JPG format, 95% quality, returns metadata
+   - `drawing` - AVIF format, 90% quality, returns metadata
+   - `savedata` - AVIF format, 85% quality, returns metadata
+   - `blur` - AVIF format, 50% quality with blur effect, returns metadata
+
+   **Usage examples:**
+   ```javascript
+   // Basic usage
+   import heroImage from '$lib/assets/hero.jpg?preset=photo';
+
+   // Responsive images
+   import heroResponsive from '$lib/assets/hero.jpg?preset=photo&responsive';
+   ```
+
 ### Logging System
 
 The library includes a comprehensive logging system that provides:

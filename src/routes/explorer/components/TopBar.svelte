@@ -1,8 +1,6 @@
 <script>
   import { enhance } from '$app/forms';
 
-  import { Panel } from '$hklib-core/ui/primitives.js';
-
   /**
    * @type {{
    *   scalingEnabled: boolean,
