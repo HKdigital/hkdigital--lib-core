@@ -35,27 +35,18 @@ export const FOLDER_PATH = '../examples';
 To use this explorer in another library:
 
 1. Copy the entire `explorer` folder to your `src/routes/` directory
-2. Update `config.js` with your folder settings
-3. The required components are now included in `components/` subfolder
-
-### Included Components
-
-The explorer includes these components in `components/`:
-
-- `Explorer.svelte` - Main navigation component with external link icons
-- `TopBar.svelte` - Top navigation with breadcrumbs and scaling toggle
-- `topbar.css` - Styles for the TopBar component
-- `index.js` - Export file for easier imports
+2. Update the folder path to explore in `config.js`
+3. Add the `$hklib-core` alias to your `svelte.config.js`:
+   ```javascript
+   alias: {
+     '$hklib-core': '@hkdigital/lib-core'
+   }
+   ```
 
 ### Styling
 
 The explorer uses the HKdigital Design System for consistent theming. 
 Key features include:
-
-- External link icons on endpoint items instead of borders
-- Hover states with primary color scheme
-- Responsive grid layout for navigation columns
-- Design system spacing and typography classes
 
 ## File Structure
 

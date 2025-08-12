@@ -1,6 +1,5 @@
 import { error, redirect } from '@sveltejs/kit';
-import { scanRouteFolders } from '$lib/util/sveltekit/index.js';
-import { FOLDER_NAME as DEFAULT_FOLDER_NAME } from '../config.js';
+import { scanRouteFolders } from '$hklib-core/util/sveltekit/index.js';
 
 /**
  * Handles form actions for persistent scaling toggle
@@ -30,7 +29,7 @@ export async function load({ params, cookies }) {
     const pathSegments = params.path ? params.path.split('/') : [];
     
     // Extract folder name from first segment, fallback to config
-    const FOLDER_NAME = pathSegments[0] || DEFAULT_FOLDER_NAME;
+    const FOLDER_NAME = pathSegments[0];
     
     // Remove folder name from path segments to get actual content path
     const contentPathSegments = pathSegments.slice(1);

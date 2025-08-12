@@ -13,7 +13,8 @@ const config = {
 		adapter: adapter(),
 		alias: {
 			$src: 'src',
-			$examples: 'src/routes/examples'
+			$examples: 'src/routes/examples',
+			'$hklib-core': 'src/lib'
 		}
 	}
 };
