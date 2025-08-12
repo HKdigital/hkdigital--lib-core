@@ -43,17 +43,45 @@ This library includes a complete design system with Tailwind CSS integration. Ba
 1. **Tailwind config** - Include library files in content scanning:
    ```js
    // tailwind.config.js
+   import { 
+     generateTailwindThemeExtensions,
+     designTokens,
+     customUtilitiesPlugin 
+   } from '@hkdigital/lib-core/design/index.js';
+
+   const themeExtensions = generateTailwindThemeExtensions(designTokens);
+
+   /** @type {import('tailwindcss').Config} */
    export default {
+     // Include @hkdigital libraries in content so Tailwind processes
+     // their design system classes and components for proper styling
      content: [
-       './node_modules/@hkdigital/**/*.{html,js,svelte,ts}',
-       './src/**/*.{html,js,svelte,ts}',
+       './node_modules/@hkdigital/**/*.{html,js,svelte}',
+       './src/**/*.{html,js,svelte}'
+     ],
+     theme: {
+       // Extend Tailwind's default theme using the design system tokens
+       extend: themeExtensions
+     },
+     plugins: [
+       // Generate custom utility classes like 'type-heading-h2'
+       customUtilitiesPlugin
+     ]
+   };
    ```
 
 2. **Design tokens** - Apply CSS variables in your layout:
-   ```js
-   // src/routes/+layout.svelte
-   import { designTokensToRootCssVars } from '@hkdigital/lib-core/design';
-   designTokensToRootCssVars();
+   ```html
+   <!-- src/routes/+layout.svelte -->
+   <script>
+     import { designTokens, designTokensToRootCssVars } from '@hkdigital/lib-core/design/index.js';
+   </script>
+
+   <svelte:head>
+     {@html designTokensToRootCssVars(designTokens)}
+   </svelte:head>
+
+   {@render children()}
    ```
 
 3. **Vite configuration** - Use the provided config generator:
@@ -68,6 +96,28 @@ This library includes a complete design system with Tailwind CSS integration. Ba
        enableVitest: true
      })
    );
+   ```
+
+4. **Svelte configuration** - Configure preprocessing and useful path aliases:
+   ```js
+   // svelte.config.js
+   import { sveltePreprocess } from 'svelte-preprocess';
+   import adapter from '@sveltejs/adapter-auto';
+
+   /** @type {import('@sveltejs/kit').Config} */
+   const config = {
+     // Enable preprocessing for external CSS files in Svelte components
+     preprocess: sveltePreprocess({}),
+     kit: {
+       adapter: adapter(),
+       alias: {
+         $src: 'src',
+         $examples: 'src/routes/examples'
+       }
+     }
+   };
+
+   export default config;
    ```
 
 For detailed setup guides see:
