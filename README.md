@@ -21,7 +21,7 @@ pnpm add -D --save-peer @hkdigital/lib-core
 
 ### Peer Dependencies
 
-Install peer dependencies:
+**For projects/applications**, install peer dependencies:
 ```bash
 # Core framework and utilities
 pnpm add @sveltejs/kit svelte svelte-preprocess runed valibot
@@ -34,6 +34,12 @@ pnpm add pino pino-pretty
 
 # Linting
 pnpm add @eslint/js eslint-plugin-import
+```
+
+**For other libraries**, install as dev dependencies and declare as peer dependencies:
+```bash
+# Install as dev dependencies and peer dependencies
+pnpm add -D --save-peer @sveltejs/kit svelte svelte-preprocess runed valibot @steeze-ui/heroicons pino pino-pretty @eslint/js eslint-plugin-import
 ```
 
 ### Design System & Configuration
