@@ -1,10 +1,9 @@
 <script>
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
-  import TopBar from '../../examples/TopBar.svelte';
-  import Explorer from '../Explorer.svelte';
+  import { TopBar, Explorer } from '$lib/ui/dev/explorer/index.js';
 
-  /** @type {{ data: { navigationData: Object, scalingEnabled: boolean, examplePath: string, isValidExample: boolean } }} */
+  /** @type {{ data: { navigationData: Object, scalingEnabled: boolean, currentPath: string, FOLDER_NAME: string } }} */
   let { data } = $props();
 
   /** @type {boolean} */
@@ -43,24 +42,24 @@
   /**
    * Handle breadcrumb navigation
    * @param {number} level - Level to navigate back to
+   * @param {string} [explorerPath] - Optional explorer path for URL updates
    */
-  function handleBreadcrumbNavigation(level) {
-    if (explorerNavigateToLevel) {
+  function handleBreadcrumbNavigation(level, explorerPath) {
+    if (level === 0) {
+      // Navigate back to folder root
+      goto(`/explorer/${data.FOLDER_NAME}/`);
+    } else if (explorerPath !== undefined && explorerPath !== '') {
+      goto(`/explorer/${data.FOLDER_NAME}/${explorerPath}`);
+    } else if (explorerNavigateToLevel) {
       explorerNavigateToLevel(level);
     }
   }
 
-  // Current path from URL parameters
+  // Current path from URL parameters - handle both root and subdirectory cases
   /** @type {string} */
   const currentPath = $derived($page.params.path || '');
 
-  // If this is a valid example, redirect to the actual example
-  $effect(() => {
-    if (data.isValidExample && data.examplePath) {
-      // Redirect to the actual example
-      window.location.href = `/examples/${data.examplePath}`;
-    }
-  });
+
 </script>
 
 <div data-page>
@@ -71,7 +70,7 @@
           class="breadcrumb-item type-ui-sm"
           onclick={() => handleBreadcrumbNavigation(0)}
         >
-          examples
+          {data.FOLDER_NAME}
         </button>
         {#if activeSegments.length > 0}
           {#each activeSegments as segment, index}
@@ -88,19 +87,14 @@
     {/snippet}
   </TopBar>
 
-  {#if data.isValidExample}
-    <div class="loading-example">
-      <p class="type-base-md">Redirecting to example...</p>
-    </div>
-  {:else}
-    <Explorer
-      navigationData={data.navigationData}
-      {currentPath}
-      getActiveSegments={handleActiveSegments}
-      rootName="examples"
-      getNavigateToLevelFunction={handleNavigateFunction}
-    />
-  {/if}
+  <Explorer
+    navigationData={data.navigationData}
+    currentPath={data.currentPath}
+    getActiveSegments={handleActiveSegments}
+    rootName={data.FOLDER_NAME}
+    folderName={data.FOLDER_NAME}
+    getNavigateToLevelFunction={handleNavigateFunction}
+  />
 </div>
 
 <style src="./style.css"></style>

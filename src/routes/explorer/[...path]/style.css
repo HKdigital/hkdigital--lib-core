@@ -1,10 +1,6 @@
 @reference '../../../app.css';
 
 [data-page] {
-  & .loading-example {
-    @apply p-40up text-center text-surface-600;
-  }
-
   & .breadcrumb {
     display: flex;
     align-items: center;

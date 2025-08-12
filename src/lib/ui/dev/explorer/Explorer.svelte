@@ -8,7 +8,8 @@
    *   currentPath: string,
    *   getActiveSegments?: (segments: string[]) => void,
    *   getNavigateToLevelFunction?: (fn: Function) => void,
-   *   rootName?: string
+   *   rootName?: string,
+   *   folderName?: string
    * }}
    */
   let {
@@ -16,7 +17,8 @@
     currentPath = '',
     getActiveSegments,
     getNavigateToLevelFunction,
-    rootName = 'Categories'
+    rootName = 'Categories',
+    folderName
   } = $props();
 
   /** @type {string[]} */
@@ -32,7 +34,7 @@
     interactiveSegments.length > 0 ? interactiveSegments : pathSegments
   );
 
-  // Notify parent of active segments changes - only when they actually change
+  // Notify parent of active segments changes - only when they change
   let lastActiveSegments = [];
   $effect(() => {
     if (
@@ -49,15 +51,25 @@
     const columns = [];
     let current = navigationData;
 
-    // Root column
+    // Root column with sorted items (folders first, then endpoints)
+    const rootItems = Object.values(current).map((item) => ({
+      name: item.name,
+      displayName: item.displayName || item.name,
+      isEndpoint: item.isEndpoint,
+      isSelected: activeSegments.length > 0 && 
+        activeSegments[0] === item.name
+    })).sort((a, b) => {
+      // Sort by type first (folders before endpoints)
+      if (a.isEndpoint !== b.isEndpoint) {
+        return a.isEndpoint ? 1 : -1;
+      }
+      // Then sort alphabetically by display name
+      return a.displayName.localeCompare(b.displayName);
+    });
+
     columns.push({
       title: rootName,
-      items: Object.values(current).map((item) => ({
-        name: item.name,
-        displayName: item.displayName || item.name,
-        isEndpoint: item.isEndpoint,
-        isSelected: activeSegments.length > 0 && activeSegments[0] === item.name
-      })),
+      items: rootItems,
       level: 0
     });
 
@@ -71,14 +83,24 @@
         if (Object.keys(current).length > 0) {
           const nextSegment = activeSegments[i + 1];
 
+          // Sort nested items (folders first, then endpoints)
+          const nestedItems = Object.values(current).map((item) => ({
+            name: item.name,
+            displayName: item.displayName || item.name,
+            isEndpoint: item.isEndpoint,
+            isSelected: nextSegment === item.name
+          })).sort((a, b) => {
+            // Sort by type first (folders before endpoints)
+            if (a.isEndpoint !== b.isEndpoint) {
+              return a.isEndpoint ? 1 : -1;
+            }
+            // Then sort alphabetically by display name
+            return a.displayName.localeCompare(b.displayName);
+          });
+
           columns.push({
             title: segment,
-            items: Object.values(current).map((item) => ({
-              name: item.name,
-              displayName: item.displayName || item.name,
-              isEndpoint: item.isEndpoint,
-              isSelected: nextSegment === item.name
-            })),
+            items: nestedItems,
             level: i + 1
           });
         }
@@ -89,10 +111,10 @@
   });
 
   /**
-   * Handle navigation to a folder or example
+   * Handle navigation to a folder or endpoint
    * @param {number} level - Column level
    * @param {string} itemName - Item name
-   * @param {boolean} isEndpoint - Whether this is a final example
+   * @param {boolean} isEndpoint - Whether this is a final endpoint
    */
   function handleNavigation(level, itemName, isEndpoint) {
     // Build new path segments up to the selected level
@@ -100,7 +122,7 @@
     const fullPath = newSegments.join('/');
 
     // Always navigate to explorer URL - let the route system handle state
-    goto(`/explorer/${fullPath}`);
+    goto(`/explorer/${folderName}/${fullPath}`);
   }
 
   /**
@@ -117,7 +139,7 @@
         interactiveSegments.length > 0 ? interactiveSegments : pathSegments;
       const newSegments = currentSegments.slice(0, level);
       const explorerPath = newSegments.join('/');
-      goto(`/explorer/${explorerPath}`);
+      goto(`/explorer/${folderName}/${explorerPath}`);
     }
   }
 
@@ -142,7 +164,31 @@
               onclick={() =>
                 handleNavigation(column.level, item.name, item.isEndpoint)}
             >
-              {item.displayName}
+              <div class="item-content">
+                <div class="item-icon">
+                  {#if item.isEndpoint}
+                    <svg 
+                      class="external-icon" 
+                      viewBox="0 0 16 16" 
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path d="M3.5 2A1.5 1.5 0 002 3.5v9A1.5 1.5 0 003.5 14h9a1.5 1.5 0 001.5-1.5V9.75a.75.75 0 00-1.5 0v2.75a.25.25 0 01-.25.25h-8.5a.25.25 0 01-.25-.25v-8.5a.25.25 0 01.25-.25H6.5a.75.75 0 000-1.5h-3z"/>
+                      <path d="M15.25 1a.75.75 0 00-.75-.75h-4.5a.75.75 0 000 1.5h2.69l-6.22 6.22a.75.75 0 101.06 1.06L13.75 3.31v2.69a.75.75 0 001.5 0V1z"/>
+                    </svg>
+                  {:else}
+                    <svg 
+                      class="folder-icon" 
+                      viewBox="0 0 16 16" 
+                      fill="currentColor"
+                      aria-hidden="true"
+                    >
+                      <path d="M1.75 2A1.75 1.75 0 000 3.75v8.5C0 13.216.784 14 1.75 14h12.5A1.75 1.75 0 0016 12.25v-7.5A1.75 1.75 0 0014.25 3H7.5L6.25 1.75A.75.75 0 005.75 1.5h-4A1.75 1.75 0 000 3.25V3.75z"/>
+                    </svg>
+                  {/if}
+                </div>
+                <span class="item-name">{item.displayName}</span>
+              </div>
             </button>
           {/each}
 
@@ -202,15 +248,48 @@
     color: var(--color-primary-700);
   }
 
-  .folder-item.endpoint {
-    border: 1px solid var(--color-surface-300);
-    border-radius: 4px;
-    margin: 2px 0;
+  .folder-item.endpoint:hover {
+    background-color: var(--color-primary-50);
+    color: var(--color-primary-600);
   }
 
-  .folder-item.endpoint:hover {
-    border-color: var(--color-primary-500);
-    background-color: var(--color-primary-50);
+  .item-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .item-icon {
+    display: flex;
+    align-items: center;
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+  }
+
+  .item-name {
+    flex: 1;
+  }
+
+  .external-icon,
+  .folder-icon {
+    width: 14px;
+    height: 14px;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+  }
+
+  .folder-item:hover .external-icon,
+  .folder-item:hover .folder-icon {
+    opacity: 0.8;
+  }
+
+  .folder-item.endpoint .external-icon {
+    color: var(--color-primary-600);
+  }
+
+  .folder-item .folder-icon {
+    color: var(--color-surface-500);
   }
 
   .empty-state {

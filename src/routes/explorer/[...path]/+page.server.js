@@ -1,5 +1,6 @@
-import { error } from '@sveltejs/kit';
+import { error, redirect } from '@sveltejs/kit';
 import { scanRouteFolders } from '$lib/util/sveltekit/index.js';
+import { FOLDER_NAME as DEFAULT_FOLDER_NAME } from '../config.js';
 
 /**
  * Handles form actions for persistent scaling toggle
@@ -27,31 +28,48 @@ export async function load({ params, cookies }) {
 
     // Get the path from route parameters
     const pathSegments = params.path ? params.path.split('/') : [];
-    const requestedPath = pathSegments.join('/');
+    
+    // Extract folder name from first segment, fallback to config
+    const FOLDER_NAME = pathSegments[0] || DEFAULT_FOLDER_NAME;
+    
+    // Remove folder name from path segments to get actual content path
+    const contentPathSegments = pathSegments.slice(1);
+    const requestedPath = contentPathSegments.join('/');
+    
+    // If we're at the root (only folder name in URL), clear the current path
+    const isAtRoot = pathSegments.length <= 1 || (pathSegments.length === 2 && pathSegments[1] === '');
+    const displayCurrentPath = isAtRoot ? '' : requestedPath;
 
-    // Scan the examples directory
+    // Scan the configured directory
     const folders = await scanRouteFolders({
-      dirPath: import.meta.dirname + '/../../examples',
+      dirPath: import.meta.dirname + '/../../' + FOLDER_NAME,
       maxDepth: 4,
       skipFolders: new Set(['assets', '_todo'])
     });
 
     const navigationData = buildNavigationStructure(folders);
 
-    // Check if the requested path is a valid example
-    const matchingExample = folders.find(
+    // Check if the requested path is a valid endpoint
+    const matchingEndpoint = folders.find(
       (folder) => folder.path === requestedPath
     );
-    const isValidExample = !!matchingExample;
+    
+    if (matchingEndpoint) {
+      // Redirect to the actual route endpoint
+      throw redirect(302, `/${FOLDER_NAME}/${requestedPath}/`);
+    }
 
     return {
       navigationData,
       scalingEnabled,
-      examplePath: isValidExample ? requestedPath : null,
-      isValidExample,
-      currentPath: requestedPath
+      currentPath: displayCurrentPath,
+      FOLDER_NAME
     };
   } catch (err) {
+    // Let redirects pass through
+    if (err?.status === 302) {
+      throw err;
+    }
     console.error('Error in explorer catch-all load function:', err);
     throw error(404, {
       message: 'Path not found'
@@ -87,7 +105,7 @@ function buildNavigationStructure(folders) {
         };
       }
 
-      // If this is the final part in the path, check if it's actually an endpoint (has a +page.svelte)
+      // If this is the final part in the path, mark as endpoint (has +page.svelte)
       if (isLastPart) {
         current[part].isEndpoint = true;
         current[part].fullPath = folder.path;

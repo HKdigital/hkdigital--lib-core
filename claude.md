@@ -280,3 +280,4 @@ All design system colors are available with contrast variants:
 - Don't use invalid spacing values (e.g., `p-16up`, `mb-14up`) - check design system configuration
 - Don't use external CSS with `@apply` without the `@reference` directive
 - Don't modify unrelated code unless necessary
+- **NEVER run `npm run dev` or `pnpm run dev`** - it interferes with the user's running development server
