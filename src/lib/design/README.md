@@ -6,6 +6,15 @@ A comprehensive, responsive design system built for SvelteKit applications. This
 
 ### Basic Usage
 
+**1. Import theme CSS in your app.css (REQUIRED for color classes):**
+```css
+/* src/app.css */
+@import 'tailwindcss';
+@import '../node_modules/@hkdigital/lib-core/dist/design/themes/hkdev/theme.css';
+@import '../node_modules/@hkdigital/lib-core/dist/css/utilities.css';
+```
+
+**2. Configure Tailwind:**
 ```javascript
 // tailwind.config.js
 import { 
@@ -35,6 +44,7 @@ export default {
 };
 ```
 
+**3. Add design tokens to your layout:**
 ```html
 <!-- +layout.svelte -->
 <script>
@@ -47,6 +57,8 @@ export default {
 
 {@render children()}
 ```
+
+**⚠️ Important:** Without the theme CSS import, color classes like `bg-surface-100`, `text-primary-500`, etc. will fail with "Cannot apply unknown utility class" errors during build.
 
 ## CSS Architecture & app.css
 
