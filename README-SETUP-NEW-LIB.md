@@ -89,6 +89,86 @@ After the initial setup, modify/create these files to integrate with hkdigital--
 - Add comprehensive devDependencies list with build tools and utilities
 - Add proper repository, author, and publishing configuration
 
+**Required additional devDependencies for libraries:**
+```bash
+pnpm add -D npm-run-all npm-check-updates @sveltejs/package publint
+```
+
+**Complete scripts section for libraries:**
+```json
+{
+  "scripts": {
+    "dev": "run-s svelte:sync dev:start",
+    "build": "run-s svelte:sync build:*",
+    "preview": "vite preview",
+    "check": "run-s svelte:sync check:run",
+    "check:watch": "run-s svelte:sync check:watch-run",
+    "format": "prettier --write .",
+    "lint": "run-s lint:*",
+    "test": "run-s test:unit-run",
+    "prepack": "run-s prepack:*",
+    "publish:npm": "run-s publish:npm:version publish:npm:publish git:push",
+    "upgrade:hk": "run-s upgrade:hk:update pnpm:install",
+    "upgrade:all": "run-s upgrade:all:update pnpm:install",
+    "svelte:sync": "svelte-kit sync",
+    "dev:start": "vite dev",
+    "build:vite": "vite build",
+    "check:run": "svelte-check --tsconfig ./jsconfig.json",
+    "check:watch-run": "svelte-check --tsconfig ./jsconfig.json --watch",
+    "git:push": "git push",
+    "lint:prettier": "prettier --check .",
+    "lint:eslint": "eslint .",
+    "test:unit": "vitest",
+    "test:unit-run": "pnpm run test:unit -- --run",
+    "prepack:sync": "svelte-kit sync",
+    "prepack:build": "svelte-package",
+    "prepack:lint": "publint",
+    "publish:npm:version": "npm version patch",
+    "publish:npm:publish": "npm publish --access public",
+    "upgrade:hk:update": "ncu --dep dev,optional,peer,prod '@hkdigital/*' -u",
+    "upgrade:all:update": "ncu --dep dev,optional,peer,prod -u",
+    "pnpm:install": "pnpm install"
+  }
+}
+```
+
+**Author and metadata for libraries:**
+```json
+{
+  "name": "@company/lib-name",
+  "description": "Library description",
+  "private": true,
+  "version": "0.0.1",
+  "author": {
+    "name": "HKdigital",
+    "url": "https://hkdigital.nl"
+  },
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/your-library.git"
+  },
+  "type": "module",
+  "files": [
+    "dist",
+    "!dist/**/*.test.*",
+    "!dist/**/*.spec.*"
+  ],
+  "svelte": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "svelte": "./dist/index.js",
+      "default": "./dist/index.js"
+    },
+    "./*": "./dist/*"
+  }
+}
+```
+
+**NOTE**: Set `"private": false` and change license to `"ISC"` when ready to publish the library.
+
 **2. `.gitignore` (CREATE)**
 - Standard SvelteKit/Node.js gitignore patterns
 - Should ignore node_modules, dist/, build artifacts, .env files, etc.
@@ -125,6 +205,15 @@ After the initial setup, modify/create these files to integrate with hkdigital--
 **10. `postcss.config.js` (CREATE)**
 - Required for Tailwind CSS processing
 - Should match hkdigital--lib-core configuration
+
+**Example postcss.config.js:**
+```js
+export default {
+  plugins: {
+    '@tailwindcss/postcss': {}
+  }
+};
+```
 
 **11. `tailwind.config.js` (CREATE)**
 - Integrate with hkdigital--lib-core design system

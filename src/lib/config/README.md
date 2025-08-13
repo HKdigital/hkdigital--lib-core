@@ -56,6 +56,34 @@ export default defineConfig(
 );
 ```
 
+## PostCSS Configuration
+
+HKdigital projects use a standardized PostCSS configuration that integrates with Tailwind CSS.
+
+### Quick Start
+
+```javascript
+// postcss.config.js
+export default {
+  plugins: {
+    '@tailwindcss/postcss': {}
+  }
+};
+```
+
+**Why this configuration:**
+- Uses the modern `@tailwindcss/postcss` plugin for Tailwind 4+ compatibility
+- Handles CSS processing for the design system and component styles
+- Works seamlessly with SvelteKit and Vite build processes
+
+### Integration
+
+This PostCSS config works together with:
+- `src/app.css` with `@import 'tailwindcss'` directive
+- `tailwind.config.js` with design system extensions
+- Vite configuration for CSS processing
+
+For projects using the complete hkdigital setup, this PostCSS configuration is essential for proper CSS compilation and design system integration.
 
 ## Imagetools Configuration
 
