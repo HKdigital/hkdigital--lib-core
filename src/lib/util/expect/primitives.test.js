@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import * as expect_ from './index.js';
+import * as expect_ from '../expect.js';
 
 describe('expect.string', () => {
 	it('should test if a value is a string', () => {
@@ -87,3 +87,23 @@ describe('expect.defined', () => {
 		}
 	});
 });
+
+describe('expect.set', () => {
+	it('should test if value is a Set', () => {
+		// > Positive test
+		const setTest = new Set();
+		expect_.set(setTest);
+
+		// > Negative test
+		try {
+			expect_.set(null);
+		} catch (e) {
+			expect(e.message).toEqual('Invalid type: Expected Set but received null');
+		}
+	});
+});
+
+// TODO: function
+// TODO: promise  
+// TODO: map
+// TODO: error

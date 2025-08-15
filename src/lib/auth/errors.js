@@ -1,1 +1,1 @@
-export * from './errors/jwt.js';
+export * from './jwt/errors.js';

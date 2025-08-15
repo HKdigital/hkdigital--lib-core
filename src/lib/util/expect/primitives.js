@@ -63,3 +63,59 @@ export function expect_defined(value) {
 }
 
 export { expect_defined as defined };
+
+/**
+ * Throws a validation error if value is not a function
+ *
+ * @param {any} value
+ */
+export function expect_function(value) {
+	v.parse(v.function(), value);
+}
+
+export { expect_function as function };
+export { expect_function as class };
+
+/**
+ * Throws a validation error if value is not a Promise
+ *
+ * @param {any} value
+ */
+export function expect_promise(value) {
+	v.parse(v.instance(Promise), value);
+}
+
+export { expect_promise as promise };
+
+/**
+ * Throws a validation error if value is not a Map
+ *
+ * @param {any} value
+ */
+export function expect_map(value) {
+	v.parse(v.instance(Map), value);
+}
+
+export { expect_map as map };
+
+/**
+ * Throws a validation error if value is not a Set
+ *
+ * @param {any} value
+ */
+export function expect_set(value) {
+	v.parse(v.instance(Set), value);
+}
+
+export { expect_set as set };
+
+/**
+ * Throws a validation error if value is not an Error instance
+ *
+ * @param {any} value
+ */
+export function expect_error(value) {
+	v.parse(v.instance(Error), value);
+}
+
+export { expect_error as error };

@@ -35,6 +35,9 @@ pnpm add @steeze-ui/heroicons
 # Logging
 pnpm add pino pino-pretty
 
+# JWT authentication (if using auth features)
+pnpm add jsonwebtoken
+
 # Linting
 pnpm add @eslint/js eslint-plugin-import
 
@@ -45,7 +48,7 @@ pnpm add vite-imagetools
 **For other libraries**, install as dev dependencies and declare as peer dependencies:
 ```bash
 # Install as dev dependencies and peer dependencies
-pnpm add -D --save-peer @sveltejs/kit svelte svelte-preprocess runed valibot @skeletonlabs/skeleton @steeze-ui/heroicons pino pino-pretty @eslint/js eslint-plugin-import vite-imagetools
+pnpm add -D --save-peer @sveltejs/kit svelte svelte-preprocess runed valibot @skeletonlabs/skeleton @steeze-ui/heroicons pino pino-pretty jsonwebtoken @eslint/js eslint-plugin-import vite-imagetools
 ```
 
 ### Design System & Configuration

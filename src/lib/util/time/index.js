@@ -86,6 +86,17 @@ export function delay(delayOrMinDelayMs, maxDelayMs) {
 }
 
 /**
+ * Returns Date.now(), later this method may be extended with time
+ * synchronisaiton
+ *
+ * @return {number} date timestamp
+ */
+export function now()
+{
+  return Date.now();
+}
+
+/**
  * Get the number of milliseconds since the specified time stamp of the default
  * reference time stamp TIME_2025_01_01
  *
@@ -94,7 +105,7 @@ export function delay(delayOrMinDelayMs, maxDelayMs) {
  * @returns {number} number of milliseconds since the specified time
  */
 export function sinceMs(sinceMs = TIME_2025_01_01) {
-	return Date.now() - sinceMs;
+	return now() - sinceMs;
 }
 
 /**

@@ -15,10 +15,6 @@ const arrayConcat = Array.prototype.concat;
 
 /* ------------------------------------------------------------------ Exports */
 
-export { PATH_SEPARATOR } from '../object/index.js';
-
-export { smallestFirst, largestFirst };
-
 export { arraySlice, arrayConcat };
 
 /**

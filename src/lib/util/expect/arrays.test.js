@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import * as expect_ from './index.js';
+import * as expect_ from '../expect.js';
 
 describe('expect.array', () => {
 	it('should test if a value is an array', () => {
