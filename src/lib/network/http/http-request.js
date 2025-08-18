@@ -13,7 +13,7 @@ import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
 
 import { AbortError, TimeoutError } from '../errors/api.js';
 
-import * as expect from '$lib/util/expect/index.js';
+import * as expect from '$lib/util/expect.js';
 
 import { toURL } from './url.js';
 import { setRequestHeaders } from './headers.js';

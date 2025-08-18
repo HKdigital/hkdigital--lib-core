@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest';
 import { base58fromNumber,
          base58toNumber,
          base58toBytes,
-         bytesToNumber } from './index.js';
+         bytesToNumber } from './base58.js';
 //
 // TODO: TEST: ALPHABET_BASE_58 and isBase58
 //

@@ -66,7 +66,9 @@ describe('getErrorFromResponse', () => {
 
 describe('getErrorFromResponse', () => {
 	it('should return error using response text', async () => {
-		const response = new Response(new Blob(['ups']));
+		const response = new Response(new Blob(['ups']), {
+			headers: { 'Content-Type': 'text/plain' }
+		});
 
 		const error = await getErrorFromResponse(response);
 

@@ -38,6 +38,17 @@ This is a modern SvelteKit library built with Svelte 5 and Skeleton.dev v3 compo
 - English for all documentation and comments
 - No dollar signs in variable names (reserved for Svelte)
 
+## Documentation & Comment Style
+- **80-character line limit** - strictly enforce, wrap long lines
+- **Concise descriptions** - avoid obvious/redundant explanations
+- Keep only essential information that adds value for developers
+- Remove descriptions that simply restate parameter names or types
+- Examples:
+  - ✅ `@property {number} [exp] - Expiration time (seconds since epoch)`
+  - ❌ `@property {number} [exp] - Expiration time - timestamp when the JWT expires`
+  - ✅ `@property {boolean} [ignoreExpiration] - Skip expiration validation`  
+  - ❌ `@property {boolean} [ignoreExpiration] - If true, do not validate the expiration of the token`
+
 ## Writing Style
 - Use normal English capitalization rules - avoid unnecessary capitals
 - Don't capitalize common nouns like "server", "client", "button", "error", "validation", etc.
@@ -52,13 +63,26 @@ This is a modern SvelteKit library built with Svelte 5 and Skeleton.dev v3 compo
 - Use `$lib/domain/...` imports for cross-domain references (e.g., `$lib/media/image.js`, `$lib/network/http.js`)
 - Use relative imports (`./` or `../`) when staying within the same main folder under `$lib`
 - **Always include file extensions** (`.js`, `.svelte`) in import statements
-- **Always use `/index.js`** for directory imports instead of directory-only paths - this ensures compatibility outside the library
+- **For cross-domain imports, use specific export files** (e.g., `parsers.js`, `valibot.js`) rather than directory-only paths - this ensures compatibility outside the library
+- **For local imports within the same domain**, import specific files directly (e.g., `./ClassName.js`) rather than using local index files
 - Examples:
-  - ✅ `import { ImageLoader } from '$lib/media/image.js'` (from components to media)
-  - ✅ `import ImageLoader from './ImageLoader.svelte.js'` (within media/image folder)
-  - ✅ `import { v, HumanUrl } from '$lib/valibot/index.js'` (explicit index.js)
-  - ❌ `import { v, HumanUrl } from '$lib/valibot'` (missing /index.js)
+  - ✅ `import { ImageLoader } from '$lib/media/image.js'` (cross-domain import)
+  - ✅ `import ImageLoader from './ImageLoader.svelte.js'` (local import within same domain)
+  - ✅ `import IterableTree from './IterableTree.js'` (local import within same domain)
+  - ✅ `import { v } from '$lib/valibot/valibot.js'` (cross-domain with specific export file)
+  - ✅ `import { HumanUrl, Email } from '$lib/valibot/parsers.js'` (cross-domain with specific export file)
+  - ❌ `import { v, HumanUrl } from '$lib/valibot'` (missing specific export file)
+  - ❌ `import { IterableTree } from './index.js'` (local index when specific file should be used)
   - ❌ `import something from '../../media/image.js'` (cross-domain relative import)
+
+## Class Export Conventions
+- **All classes should be default exports**: `export default class ClassName`
+- **Import classes without destructuring**: `import ClassName from './ClassName.js'`
+- Examples:
+  - ✅ `export default class HkPromise extends Promise {}`
+  - ✅ `import HkPromise from './HkPromise.js'`
+  - ❌ `export class HkPromise extends Promise {}` (named export)
+  - ❌ `import { HkPromise } from './HkPromise.js'` (destructuring import)
 
 ## Accessibility Requirements
 - Proper ARIA roles, states, and properties

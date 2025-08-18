@@ -1,7 +1,8 @@
-import { expect, rethrow } from '$lib/util/index.js';
+import * as expect from '$lib/util/expect.js';
+import { rethrow } from '$lib/util/exceptions.js';
 import { HkPromise } from '$lib/generic/promises.js';
 import { httpGet } from '$lib/network/http/index.js';
-import { v } from '$lib/valibot/index.js';
+import { v } from '$lib/valibot/valibot.js';
 
 /**
  * Test functions for generating various types of errors for logging demonstration

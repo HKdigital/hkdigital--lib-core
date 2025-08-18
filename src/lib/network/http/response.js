@@ -1,5 +1,5 @@
 import { ResponseError, HttpError } from '$lib/network/errors.js';
-import * as expect from '$lib/util/expect/index.js';
+import * as expect from '$lib/util/expect.js';
 import { toURL } from './url.js';
 
 import {

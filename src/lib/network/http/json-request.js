@@ -4,7 +4,7 @@ import { APPLICATION_JSON } from '$lib/constants/mime/application.js';
 import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
 import { ResponseError } from '$lib/network/errors.js';
 
-import * as expect from '$lib/util/expect/index.js';
+import * as expect from '$lib/util/expect.js';
 
 import { toURL } from './url.js';
 import { httpRequest } from './http-request.js';

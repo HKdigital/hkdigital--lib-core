@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createServerLogger } from '$lib/logging/internal/factories/server.js';
-import { INFO, DEBUG, ERROR } from '$lib/logging/constants.js';
+import { INFO, DEBUG, ERROR, WARN } from '$lib/logging/constants.js';
 
 // Mock the PinoAdapter
 vi.mock('$lib/logging/internal/adapters/pino.js', () => ({
@@ -57,7 +57,7 @@ describe('createServerLogger', () => {
     const adapterInstance = PinoAdapter.mock.results[0].value;
 
     // Trigger a log event
-    logger.error('Database connection failed', {
+    logger.warn('Database connection failed', {
       host: 'localhost',
       port: 5432
     });
@@ -65,7 +65,7 @@ describe('createServerLogger', () => {
     // Verify adapter received the log event
     expect(adapterInstance.handleLog).toHaveBeenCalledWith(
       expect.objectContaining({
-        level: ERROR,
+        level: WARN,
         message: 'Database connection failed',
         source: 'apiService',
         details: { host: 'localhost', port: 5432 },

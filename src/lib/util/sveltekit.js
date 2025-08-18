@@ -5,4 +5,4 @@
  * This module provides SvelteKit-specific utilities including route management.
  */
 
-export * from './sveltekit/index.js';
+export * from './sveltekit/route-folders/index.js';

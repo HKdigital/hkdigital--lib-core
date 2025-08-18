@@ -4,14 +4,14 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ServiceManager } from './ServiceManager.js';
 import { DEBUG, INFO, WARN } from '$lib/logging/index.js';
+import { ServiceBase } from '$lib/services/service-base/ServiceBase.js';
 import {
-  ServiceBase,
   NOT_CREATED,
   INITIALIZED,
   RUNNING,
   STOPPED,
   ERROR
-} from '$lib/services/service-base/index.js';
+} from '$lib/services/service-base/constants.js';
 
 // Mock service classes
 class MockServiceA extends ServiceBase {
@@ -423,7 +423,10 @@ describe('ServiceManager', () => {
         service: 'serviceA',
         data: {
           operation: 'initialization',
-          error: expect.objectContaining({ message: 'Init failed' })
+          error: expect.objectContaining({ 
+            message: 'initialization failed',
+            cause: expect.objectContaining({ message: 'Init failed' })
+          })
         }
       });
     });

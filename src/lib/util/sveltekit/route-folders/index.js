@@ -1,7 +1,7 @@
 import { readdir } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 
-import { kebabToTitleCase, basename } from '$lib/util/string/index.js';
+import { kebabToTitleCase, basename } from '$lib/util/string.js';
 
 /**
  * Validates if a path is within the project's src/routes directory

@@ -1,4 +1,4 @@
-import { expect } from '$lib/util/index.js';
+import * as expect from '$lib/util/expect.js';
 
 /**
  * Returns the unchanged image meta object or the last item of

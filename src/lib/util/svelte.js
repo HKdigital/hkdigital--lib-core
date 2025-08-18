@@ -6,4 +6,6 @@
  * observers, and waiting utilities.
  */
 
-export * from './svelte/index.js';
+export * from './svelte/loading/loading-tracker.svelte.js';
+export * from './svelte/observe/index.js';
+export * from './svelte/wait/index.js';

@@ -1,6 +1,6 @@
 /* ------------------------------------------------------------------ Imports */
 
-import * as expect from '../expect/index.js';
+import * as expect from '../expect.js';
 import { smallestFirst, largestFirst } from '../compare/index.js';
 
 import { IterableTree } from '$lib/generic/data.js';

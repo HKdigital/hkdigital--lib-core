@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { IterableTree } from './index.js';
+import IterableTree from './IterableTree.js';
 
 describe('IterableTree', () => {
 	it('should have iterable entries', () => {

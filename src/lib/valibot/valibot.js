@@ -1,9 +1,5 @@
 import * as valibot from 'valibot';
 
-// export * from './date.js';
-
-export * from './parsers.js';
-
 /**
  * Custom parse function that wraps valibot's original parse
  * for better stack trace detection in error logging
@@ -30,5 +26,4 @@ Object.defineProperty(v, 'parse', {
   configurable: true
 });
 
-export { v };
-export default valibot;
+export { v, valibot };

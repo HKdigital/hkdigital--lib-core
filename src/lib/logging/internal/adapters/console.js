@@ -3,9 +3,7 @@ import { LEVELS } from '$lib/logging/constants.js';
 import {
   findRelevantFrameIndex,
   detectErrorMeta,
-  formatErrorDisplay,
-  isMeaningfulFunctionName,
-  parseFunctionName
+  formatErrorDisplay
 } from './formatting.js';
 
 /**
@@ -361,6 +359,8 @@ export class ConsoleAdapter {
       }
 
       let cleaned = trimmed;
+
+      console.log(123, cleaned);
 
       // Convert Chrome format to Firefox format for consistency
       if (isChromeFormat) {

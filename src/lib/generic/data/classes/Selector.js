@@ -28,7 +28,7 @@
 
 /* ------------------------------------------------------------------ Imports */
 
-import * as expect from '$lib/util/expect/index.js';
+import * as expect from '$lib/util/expect.js';
 
 /* ------------------------------------------------------------------- Export */
 

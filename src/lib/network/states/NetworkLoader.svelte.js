@@ -16,7 +16,7 @@ import {
   INITIAL
 } from '$lib/state/classes/loading-state-machine/constants.js';
 
-import * as expect from '$lib/util/expect/index.js';
+import * as expect from '$lib/util/expect.js';
 
 import { httpGet, loadResponseBuffer } from '$lib/network/http.js';
 

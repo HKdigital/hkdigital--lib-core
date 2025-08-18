@@ -116,13 +116,16 @@ describe('ServiceBase', () => {
 
       expect(await service.initialize()).toBe(false);
       expect(service.state).toBe(ERROR);
-      expect(service.error).toBe(error);
+      expect(service.error.cause).toBe(error);
       expect(service.healthy).toBe(false);
 
       expect(errorEvents).toHaveLength(1);
       expect(errorEvents[0]).toMatchObject({
         operation: 'initialization',
-        error
+        error: expect.objectContaining({
+          message: 'initialization failed',
+          cause: error
+        })
       });
     });
 
@@ -198,7 +201,7 @@ describe('ServiceBase', () => {
 
       expect(await service.recover()).toBe(false);
       expect(service.state).toBe(ERROR);
-      expect(service.error.message).toBe('Recovery failed');
+      expect(service.error.message).toBe('recovery failed');
     });
 
     it('should only recover from ERROR state', async () => {
@@ -297,7 +300,7 @@ describe('ServiceBase', () => {
 
       expect(await stopPromise).toBe(false);
       expect(service.state).toBe(ERROR);
-      expect(service.error.message).toBe('Shutdown timeout');
+      expect(service.error.message).toBe('shutdown failed');
     });
 
     it('should force shutdown when requested', async () => {

@@ -2,7 +2,7 @@ import { writable } from 'svelte/store';
 
 // eslint-disable-next-line no-unused-vars
 import * as v from 'valibot';
-import { AbsOrRelUrl } from '$lib/valibot/index.js';
+import { AbsOrRelUrl } from '$lib/valibot/parsers.js';
 
 import { SubscribersCount } from '$lib/state/classes.js';
 

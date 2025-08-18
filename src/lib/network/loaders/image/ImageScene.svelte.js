@@ -1,6 +1,6 @@
 /** @typedef {import('./typedef.js').ImageMeta} ImageMeta */
 
-import * as expect from '$lib/util/expect/index.js';
+import * as expect from '$lib/util/expect.js';
 
 import { LoadingStateMachine } from '$lib/state/classes.js';
 

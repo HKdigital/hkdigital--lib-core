@@ -78,12 +78,15 @@ describe('Logger', () => {
     logger.on(ERROR, errorHandler);
     
     const details = { code: 500, message: 'Server error' };
-    logger.error('Operation failed', details);
+    const error = new Error('Server error');
+    error.code = 500;
+    logger.error('Operation failed', error);
     
     expect(errorHandler).toHaveBeenCalledTimes(1);
     const logEvent = errorHandler.mock.calls[0][0];
     
-    expect(logEvent.details).toEqual(details);
+    expect(logEvent.details.cause).toBe(error);
+    expect(logEvent.message).toBe('Operation failed');
   });
 
   it('should emit both specific and generic log events', () => {

@@ -1,6 +1,7 @@
 <script>
   import { TextInput } from '$lib/ui/primitives/inputs/index.js';
-  import v, * as Vali from '$lib/valibot/index.js';
+  import { v } from '$lib/valibot/valibot.js';
+  import { Name } from '$lib/valibot/parsers.js';
 
   let nameValue = $state('');
   let nameHasFocus = $state(false);
@@ -13,7 +14,7 @@
   function validateName(value) {
     if (!value) return undefined;
     try {
-      let result = v.safeParse(Vali.Name, value);
+      let result = v.safeParse(Name, value);
       if (!result.success) {
         return 'Must use a real name';
       }

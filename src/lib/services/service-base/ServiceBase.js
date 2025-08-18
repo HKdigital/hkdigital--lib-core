@@ -446,9 +446,7 @@ export class ServiceBase extends EventEmitter {
    * @param {Error} error - Error that occurred
    */
   _setError(operation, error) {
-    const detailedError = new DetailedError(`${operation} failed`, {
-      cause: error
-    });
+    const detailedError = new DetailedError(`${operation} failed`, null, error);
 
     this.error = detailedError;
     this._setState(ERROR_STATE);

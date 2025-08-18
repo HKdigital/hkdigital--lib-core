@@ -16,11 +16,7 @@ import {
   VERIFY_OPTIONS 
 } from './constants.js';
 
-import {
-  TokenExpiredError,
-  JsonWebTokenError,
-  InvalidSignatureError
-} from './errors.js';
+import { castJwtError } from './util.js';
 
 /**
  * Create a JSON Web Token (JWT)
@@ -30,8 +26,8 @@ import {
  *   (by default a Hash Based Authentication Code (HMAC) will be used: HS512)
  * - Combines the parts into a JWT string
  *
- * @param {object} options.claims
- * @param {string} options.secretOrPrivateKey
+ * @param {import('./typedef.js').JwtPayload} claims - JWT payload/claims
+ * @param {import('./typedef.js').Secret} secretOrPrivateKey
  *   Secret or private key that is used by the MAC calculation algorithm
  *
  *   - To generate a secret for a Hash based Authentication Code (HMAC):
@@ -40,36 +36,16 @@ import {
  *   - For algorithms that use asymmetric keys, the secret is the private key
  *     of the key pair.
  *
- * @param {object} [options]
- *
- * @param {number|string} [options.expiresIn="30h"]
- *   Number of **seconds** (not milliseconds) or string
- *   (in vercel/ms format) describing the timespan.
- *
- * @param {number|string} [options.algorithm="HS512"]
+ * @param {import('./typedef.js').SignOptions} [options] - JWT signing options
  *
  * For more options:
  * @see https://github.com/auth0/node-jsonwebtoken
  *
- *   notBefore,
- *   audience,
- *   issuer,
- *   jwtid,
- *   subject,
- *   noTimestamp,
- *   header,
- *   keyid,
- *   mutatePayload=false
- *
- * --
- *
  * @returns {string} JsonWebToken
  */
 export function sign(
-  {
-    claims,
-    secretOrPrivateKey
-  },
+  claims,
+  secretOrPrivateKey,
   options={} )
 {
   expect.object( claims );
@@ -97,6 +73,7 @@ export function sign(
     delete options.expiresIn;
   }
 
+  // @ts-ignore
   return jwt.sign( claims, secretOrPrivateKey, options );
 }
 
@@ -105,13 +82,11 @@ export function sign(
  * - Forces the use of the algorithm specified in VERIFY_OPTIONS
  *
  * @param {string} token - A JWT token
- *
- * @param {string} secretOrPrivateKey
+ * @param {import('./typedef.js').Secret} secretOrPrivateKey
  *   The secret of private key to be used for decoding
+ * @param {import('./typedef.js').VerifyOptions} [options=VERIFY_OPTIONS] - verify / decode options
  *
- * @param {object} [options=VERIFY_OPTIONS] - verify / decode options
- *
- * @returns {object|null} claims or null if the token was not valid
+ * @returns {import('./typedef.js').JwtPayload} claims - The decoded JWT payload
  */
 export function verify( token, secretOrPrivateKey, options=VERIFY_OPTIONS )
 {
@@ -124,6 +99,7 @@ export function verify( token, secretOrPrivateKey, options=VERIFY_OPTIONS )
   }
 
   try {
+    // @ts-ignore
     const decoded = jwt.verify( token, secretOrPrivateKey, options );
 
     return decoded;
@@ -131,24 +107,8 @@ export function verify( token, secretOrPrivateKey, options=VERIFY_OPTIONS )
   catch( e )
   {
     //
-    // rethrow using Error classes defined in this module so users of this
-    // function can use instanceof without including `jwt`
+    // Cast internal jsonwebtoken errors to Error types defined in this lib
     //
-
-    if( e instanceof jwt.TokenExpiredError )
-    {
-      throw new TokenExpiredError( e.message, { cause: e } );
-    }
-    else if ( e instanceof jwt.JsonWebTokenError )
-    {
-      if( e.message === 'invalid signature' )
-      {
-        throw new InvalidSignatureError( e.message );
-      }
-
-      throw new JsonWebTokenError( e.message );
-    }
-
-    throw e;
+    throw castJwtError(e);
   }
 }

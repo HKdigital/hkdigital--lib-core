@@ -1,9 +1,9 @@
-import * as expect from '$lib/util/expect/index.js';
+import * as expect from '$lib/util/expect.js';
 import { DetailedError } from '$lib/generic/errors.js';
 
 import { CONTENT_TYPE } from '$lib/constants/http/index.js';
 
-import { APPLICATION_JSON } from '$lib/constants/mime/index.js';
+import { APPLICATION_JSON, TEXT_PLAIN } from '$lib/constants/mime/index.js';
 
 /**
  * Try to get error information from the server error response
@@ -77,8 +77,14 @@ export async function getErrorFromResponse(response) {
 				}
 			}
 		}
-	} else {
-		// For non-JSON responses, always use status text (avoid HTML pages)
+	}
+
+	if (!message && contentType === TEXT_PLAIN ) {
+		message = await response.text();
+	}
+
+	if (!message) {
+		// Final fallback to status text (avoid HTML pages)
 		message = response.statusText || `HTTP ${response.status}`;
 	}
 	// console.log( "message", message );

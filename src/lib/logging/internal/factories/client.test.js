@@ -115,12 +115,12 @@ describe('createClientLogger', () => {
 
     // The child logger is a new Logger instance without listeners
     // So we need to verify that the parent logger can still log
-    logger.error('Parent error', { code: 500 });
+    logger.warn('Parent error', { code: 500 });
 
     // Verify parent logger still works
     expect(adapterInstance.handleLog).toHaveBeenCalledWith(
       expect.objectContaining({
-        level: 'error',
+        level: 'warn',
         message: 'Parent error',
         source: 'testService',
         details: { code: 500 }

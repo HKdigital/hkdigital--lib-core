@@ -27,6 +27,14 @@ export class PinoAdapter {
     this.#projectRoot = import.meta.env.VITE_PROJECT_ROOT || process.cwd();
     const baseOptions = {
       serializers: {
+
+        //
+        // Use 'errors' property to trigger Pino's error serializer
+        // The serializer traverses the error.cause chain and outputs an array
+        // of serialized error objects, which is why we use 'errors' (plural)
+        // instead of Pino's standard 'err' property (which expects a single
+        // error)
+        //
         errors: (err) => {
 
           /** @type {import('./typedef').ErrorSummary[]} */
@@ -194,12 +202,17 @@ export class PinoAdapter {
     // Simplify pnpm paths: node_modules/.pnpm/package@version_deps/node_modules/package
     // becomes: node_modules/package
     const pnpmRegex =
-      /node_modules\/\.pnpm\/([^@\/]+)@[^\/]+\/node_modules\/\1/g;
+      /node_modules\/\.pnpm\/([^@/]+)@[^/]+\/node_modules\/\1/g;
     cleaned = cleaned.replace(pnpmRegex, 'node_modules/$1');
 
     // Also handle cases where the package name might be different in the final path
-    const pnpmRegex2 = /node_modules\/\.pnpm\/[^\/]+\/node_modules\/([^\/]+)/g;
+    const pnpmRegex2 = /node_modules\/\.pnpm\/[^/]+\/node_modules\/([^/]+)/g;
     cleaned = cleaned.replace(pnpmRegex2, 'node_modules/$1');
+
+    // Filter out Node.js internal modules
+    const lines = cleaned.split('\n');
+    const filteredLines = lines.filter(line => !line.includes('node:internal'));
+    cleaned = filteredLines.join('\n');
 
     return cleaned;
   }
@@ -217,7 +230,8 @@ export class PinoAdapter {
       timestamp
     };
 
-    // Check if details contains an error and promote it to err property for pino serializer
+    // Check if details contains an error and promote it to error property for
+    // pino serializer
     if (details) {
       if (details instanceof Error) {
         // details is directly an error

@@ -1,12 +1,12 @@
 /* ------------------------------------------------------------------ Imports */
 
-import * as expect from '../expect/index.js';
+import * as expect from '../expect.js';
 
 import { equals } from '../compare/index.js';
 
 import { toArrayPath } from '../array/index.js';
 
-import { toStringPath } from '../string/index.js';
+import { toStringPath } from '../string.js';
 
 import * as is from '../is/index.js';
 

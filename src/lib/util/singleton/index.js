@@ -1,4 +1,4 @@
-import { expect } from '../index.js';
+import * as expect from '../expect.js';
 
 const instancesByNeedle = new Map();
 

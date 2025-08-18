@@ -1,4 +1,4 @@
-import * as expect from '$lib/util/expect/index.js';
+import * as expect from '$lib/util/expect.js';
 
 /**
  * Remove strange characters from a string and replace whitespace by
