@@ -108,9 +108,63 @@ pnpm add -D vite-imagetools
 ### Configuration Files
 
 **1. `package.json` (UPDATE)**
-- Update scripts to include development and production commands
+- Update scripts to include development and production commands using npm-run-all
 - Add proper repository, author, and publishing configuration
 - **NOTE**: Unlike libraries, dependencies are regular dependencies, not peer dependencies
+
+**Required additional devDependencies:**
+```bash
+pnpm add -D npm-run-all npm-check-updates
+```
+
+**Complete scripts section:**
+```json
+{
+  "scripts": {
+    "dev": "run-s svelte:sync dev:start",
+    "build": "run-s svelte:sync build:vite",
+    "preview": "vite preview",
+    "check": "run-s svelte:sync check:run",
+    "check:watch": "run-s svelte:sync check:watch-run",
+    "format": "prettier --write .",
+    "lint": "run-s lint:*",
+    "test": "run-s test:unit-run",
+    "upgrade:hk": "run-s upgrade:hk:update pnpm:install",
+    "upgrade:all": "run-s upgrade:all:update pnpm:install",
+    "svelte:sync": "svelte-kit sync",
+    "dev:start": "vite dev",
+    "build:vite": "vite build",
+    "check:run": "svelte-check --tsconfig ./jsconfig.json",
+    "check:watch-run": "svelte-check --tsconfig ./jsconfig.json --watch",
+    "lint:prettier": "prettier --check .",
+    "lint:eslint": "eslint .",
+    "test:unit": "vitest",
+    "test:unit-run": "pnpm run test:unit -- --run",
+    "upgrade:hk:update": "ncu --dep dev,optional,peer,prod '@hkdigital/*' -u",
+    "upgrade:all:update": "ncu --dep dev,optional,peer,prod -u",
+    "pnpm:install": "pnpm install"
+  }
+}
+```
+
+**Author and metadata:**
+```json
+{
+  "name": "your-project-name",
+  "description": "Project description",
+  "private": true,
+  "version": "0.0.1",
+  "author": {
+    "name": "HKdigital",
+    "url": "https://hkdigital.nl"
+  },
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/your-org/your-project.git"
+  }
+}
+```
 
 **2. `.gitignore` (EXISTS)**
 - Should already have standard SvelteKit/Node.js gitignore patterns
@@ -157,6 +211,15 @@ export default defineConfig(
 **9. `postcss.config.js` (CREATE/UPDATE)**
 - May exist from Tailwind template, ensure it matches hkdigital--lib-core configuration
 - Required for Tailwind CSS processing
+
+**Example postcss.config.js:**
+```js
+export default {
+  plugins: {
+    '@tailwindcss/postcss': {}
+  }
+};
+```
 
 **10. `tailwind.config.js` (UPDATE)**
 - Replace template config with hkdigital--lib-core design system integration
