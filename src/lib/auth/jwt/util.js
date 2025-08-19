@@ -131,7 +131,7 @@ export function verify( token, secretOrPrivateKey, options=VERIFY_OPTIONS )
  * @param {Error} error - The original jsonwebtoken error
  * @returns {Error} - The corresponding internal error
  */
-function castJwtError(error) {
+export function castJwtError(error) {
   if (error instanceof JwtTokenExpiredError) {
     return new TokenExpiredError(error.message, error.expiredAt, error);
   }

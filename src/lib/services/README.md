@@ -104,7 +104,7 @@ Manages multiple services with dependency resolution and coordinated lifecycle o
 ### Usage
 
 ```javascript
-import { ServiceManager } from '$lib/services/index.js';
+import { ServiceManager } from '$hklib-core/services/index.js';
 import DatabaseService from './services/DatabaseService.js';
 import AuthService from './services/AuthService.js';
 

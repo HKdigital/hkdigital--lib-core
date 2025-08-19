@@ -146,3 +146,5 @@ export function object(value) {
 
 	return true;
 }
+
+export { ErrorEvent, PromiseRejectionEvent } from './events.js';

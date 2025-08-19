@@ -109,11 +109,9 @@ const logger = createClientLogger('client');
 
 /** @type {import('@sveltejs/kit').HandleClientError} */
 export function handleError({ error, event }) {
-  logger.error('Client error occurred', {
-    message: error.message,
-    stack: error.stack,
-    url: event.url?.pathname,
-    userAgent: navigator.userAgent
+  logger.error(error, { 
+    url: event.url?.pathname, 
+    userAgent: navigator.userAgent 
   });
 }
 
@@ -126,19 +124,12 @@ export function init() {
   
   // Log unhandled errors
   window.addEventListener('error', (event) => {
-    logger.error('Unhandled error', {
-      message: event.error?.message || event.message,
-      filename: event.filename,
-      lineno: event.lineno,
-      colno: event.colno
-    });
+    logger.error(event, { url: window.location.pathname });
   });
   
   // Log unhandled promise rejections
   window.addEventListener('unhandledrejection', (event) => {
-    logger.error('Unhandled promise rejection', {
-      reason: event.reason
-    });
+    logger.error(event, { url: window.location.pathname });
   });
 }
 

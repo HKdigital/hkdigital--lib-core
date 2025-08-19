@@ -48,6 +48,13 @@ import { LoggerError } from '$lib/logging/errors.js';
 
 import { toArray } from '$lib/util/array/index.js';
 
+import {
+  castErrorEventToDetailedError,
+  castPromiseRejectionToDetailedError
+} from './util.js';
+
+import * as is from '$lib/util/is.js';
+
 /**
  * Logger class for consistent logging
  * @extends EventEmitter
@@ -126,41 +133,92 @@ export default class Logger extends EventEmitter {
   /**
    * Log an error message
    *
-   * @param {Error|string} originalErrorOrMessage
-   * @param {Error} [originalError]
+   * @param {Error|ErrorEvent|PromiseRejectionEvent|string}
+   *   originalErrorOrMessage
+   * @param {Error|Object} [originalErrorOrDetails]
+   *   Error object (when first param is string) or details object
+   * @param {Object} [details]
+   *   Additional context details (when using string + error pattern)
    *
    * @returns {boolean} True if the log was emitted
    */
-  error(originalErrorOrMessage, originalError) {
+  error(originalErrorOrMessage, originalErrorOrDetails, details) {
+    // Detection logic - set clear internal variables
+    let message;
+    let errorDetails;
+    let cause;
 
-    if( originalErrorOrMessage instanceof Error )
-    {
-      // params: {error} originalErrorOrMessage
-      const loggerError = new LoggerError(originalErrorOrMessage);
+    // Handle browser ErrorEvent
+    if (is.ErrorEvent(originalErrorOrMessage)) {
+      const errorEvent = /** @type {ErrorEvent} */ (originalErrorOrMessage);
 
-      const message = originalErrorOrMessage.message;
+      message =
+        errorEvent.error?.message || errorEvent.message || 'Unknown error';
 
-      return this.#log(ERROR, message, loggerError);
+      // Use provided details or auto-generate from event
+
+      errorDetails = originalErrorOrDetails || {
+        filename: errorEvent.filename,
+        lineno: errorEvent.lineno,
+        colno: errorEvent.colno,
+        type: 'ErrorEvent'
+      };
+
+      cause = errorEvent.error;
     }
-    else if( typeof originalErrorOrMessage === 'string' && originalError instanceof Error ) {
-      // params: {string} message, {error} originalError
-      const detailedError = new DetailedError(
-        originalErrorOrMessage,
-        null,
-        originalError
-      );
+    // Handle browser PromiseRejectionEvent
+    else if (is.PromiseRejectionEvent(originalErrorOrMessage)) {
+      const promiseRejectionEvent =
+        /** @type {PromiseRejectionEvent} */ (originalErrorOrMessage);
 
-      return this.#log(ERROR, detailedError.message, detailedError);
+      const reason = promiseRejectionEvent.reason;
+
+      if (reason instanceof Error) {
+        message = reason.message;
+        cause = reason;
+      } else {
+        message = String(reason);
+        cause = null;
+      }
+
+      // Use provided details or auto-generate from event
+      errorDetails = originalErrorOrDetails || {
+        type: 'PromiseRejectionEvent',
+        reasonType: typeof reason
+      };
     }
+    // Handle regular Error
+    else if (originalErrorOrMessage instanceof Error) {
+      message = originalErrorOrMessage.message;
+      errorDetails = originalErrorOrDetails || null;
+      cause = originalErrorOrMessage;
+    }
+    // Handle string + Error pattern
+    else if (
+      typeof originalErrorOrMessage === 'string' &&
+      originalErrorOrDetails instanceof Error
+    ) {
+      message = originalErrorOrMessage;
+      errorDetails = details || null;
+      cause = originalErrorOrDetails;
+    }
+    // Handle string only
+    else if (typeof originalErrorOrMessage === 'string') {
+      message = originalErrorOrMessage;
+      errorDetails = originalErrorOrDetails || null;
+      cause = null;
+    }
+    // Invalid parameters
     else {
-      // wrong params
-      const detailedError = new DetailedError(
-        'Invalid parameters supplied to Logger.error',
-        toArray(arguments)
-      );
-
-      return this.#log(ERROR, detailedError.message, detailedError);
+      message = 'Invalid parameters supplied to Logger.error';
+      errorDetails = toArray(arguments);
+      cause = null;
     }
+
+    // Create consistent DetailedError for all cases
+    const detailedError = new DetailedError(message, errorDetails, cause);
+
+    return this.#log(ERROR, detailedError.message, detailedError);
   }
 
   /**

@@ -39,7 +39,23 @@ This is a modern SvelteKit library built with Svelte 5 and Skeleton.dev v3 compo
 - No dollar signs in variable names (reserved for Svelte)
 
 ## Documentation & Comment Style
-- **80-character line limit** - strictly enforce, wrap long lines
+- **80-character line limit** - strictly enforce for ALL code and documentation
+  - Applies to code lines, JSDoc comments, parameter descriptions, and all text
+  - Wrap long JSDoc descriptions across multiple lines
+  - Break long parameter lists and descriptions at 80 characters
+- **JSDoc formatting conventions:**
+  - Blank line between description and first `@param`
+  - Blank line between last `@param` and `@returns`
+  - No blank lines between consecutive `@param` tags
+  - For long parameter types or descriptions, place description on next line:
+    ```javascript
+    /**
+     * @param {Error|ErrorEvent|PromiseRejectionEvent|string}
+     *   originalErrorOrMessage
+     * @param {Object} [details]
+     *   Additional context details for the error
+     */
+    ```
 - **Concise descriptions** - avoid obvious/redundant explanations
 - Keep only essential information that adds value for developers
 - Remove descriptions that simply restate parameter names or types
