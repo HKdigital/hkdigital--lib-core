@@ -124,12 +124,14 @@ export function verify( token, secretOrPrivateKey, options=VERIFY_OPTIONS )
   }
 }
 
+// Internals
+
 /**
  * Casts jsonwebtoken library errors to internal error types
  * @param {Error} error - The original jsonwebtoken error
  * @returns {Error} - The corresponding internal error
  */
-export function castJwtError(error) {
+function castJwtError(error) {
   if (error instanceof JwtTokenExpiredError) {
     return new TokenExpiredError(error.message, error.expiredAt, error);
   }

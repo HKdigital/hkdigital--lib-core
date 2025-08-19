@@ -6,7 +6,7 @@
   import { DragController } from './DragController.js';
   import { onDestroy } from 'svelte';
   import {
-    IDLE,
+    DRAG_IDLE,
     DRAGGING,
     DRAG_PREVIEW,
     DROPPING
@@ -91,7 +91,7 @@
   let draggableElement;
 
   let dragTimeout = null;
-  let currentState = $state(IDLE);
+  let currentState = $state(DRAG_IDLE);
 
   // Custom preview follower state
   let showPreview = $state(false);
@@ -112,7 +112,7 @@
 
   // Computed state object for CSS classes
   let stateObject = $derived({
-    idle: currentState === IDLE,
+    idle: currentState === DRAG_IDLE,
     dragging: currentState === DRAGGING,
     'drag-preview': currentState === DRAG_PREVIEW,
     dropping: currentState === DROPPING,
@@ -295,10 +295,10 @@
 
       // Brief dropping state before returning to idle
       setTimeout(() => {
-        currentState = IDLE;
+        currentState = DRAG_IDLE;
       }, 100);
     } else {
-      currentState = IDLE;
+      currentState = DRAG_IDLE;
     }
 
     onDragEnd?.({ event, item, wasDropped });
@@ -321,7 +321,7 @@
   function handleMouseUp(event) {
     if (dragTimeout) {
       clearTimeout(dragTimeout);
-      currentState = IDLE;
+      currentState = DRAG_IDLE;
     }
   }
 
@@ -456,7 +456,7 @@
 
     // Clean up
     touchDragging = false;
-    currentState = IDLE;
+    currentState = DRAG_IDLE;
     showPreview = false;
     dragState.end(draggableId);
 

@@ -1,6 +1,6 @@
-import { CONTENT_TYPE, CONTENT_LENGTH } from '$lib/constants/http/index.js';
+import { CONTENT_TYPE, CONTENT_LENGTH } from '$lib/constants/http.js';
 
-import { OCTET_STREAM } from '$lib/constants/mime/index.js';
+import { OCTET_STREAM } from '$lib/constants/mime.js';
 
 /**
  * Create a response value that can be used by a mocked fetch function

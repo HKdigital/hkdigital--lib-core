@@ -17,6 +17,6 @@ export * from './response.js';
 export * from './http-request.js';
 export * from './json-request.js';
 
-// import { CONTENT_TYPE, METHOD_GET, METHOD_POST } from '$lib/constants/http/index.js';
+// import { CONTENT_TYPE, METHOD_GET, METHOD_POST } from '$lib/constants/http.js';
 
-// import { APPLICATION_JSON } from '$lib/constants/mime/index.js';
+// import { APPLICATION_JSON } from '$lib/constants/mime.js';

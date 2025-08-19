@@ -1,4 +1,4 @@
-import { CONTENT_TYPE } from '$lib/constants/http/index.js';
+import { CONTENT_TYPE } from '$lib/constants/http.js';
 
 import { LoadingStateMachine } from '$lib/state/classes.js';
 

@@ -1,9 +1,9 @@
 import * as expect from '$lib/util/expect.js';
 import { DetailedError } from '$lib/generic/errors.js';
 
-import { CONTENT_TYPE } from '$lib/constants/http/index.js';
+import { CONTENT_TYPE } from '$lib/constants/http.js';
 
-import { APPLICATION_JSON, TEXT_PLAIN } from '$lib/constants/mime/index.js';
+import { APPLICATION_JSON, TEXT_PLAIN } from '$lib/constants/mime.js';
 
 /**
  * Try to get error information from the server error response

@@ -6,7 +6,7 @@
  * verifying tokens, and generating secret keys.
  */
 
-export * from './jwt/core.js';
+export * from './jwt/util.js';
 export * from './jwt/generators.js';
 export * from './jwt/errors.js';
 export * from './jwt/constants.js';

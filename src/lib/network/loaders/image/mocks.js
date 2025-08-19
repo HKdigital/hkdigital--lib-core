@@ -1,4 +1,4 @@
-import { CONTENT_TYPE, CONTENT_LENGTH } from '$lib/constants/http/index.js';
+import { CONTENT_TYPE, CONTENT_LENGTH } from '$lib/constants/http.js';
 
 import { IMAGE_PNG } from '$lib/constants/mime/image.js';
 
