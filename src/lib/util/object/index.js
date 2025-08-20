@@ -90,7 +90,7 @@ export function size(obj) {
  *
  * @returns {object} new object without the null properties
  */
-export function exportNotNull(obj, onlyKeys) {
+export function exportNotNullish(obj, onlyKeys) {
 	expect.object(obj);
 
 	const onlyKeysSet = onlyKeys ? new Set(onlyKeys) : null;

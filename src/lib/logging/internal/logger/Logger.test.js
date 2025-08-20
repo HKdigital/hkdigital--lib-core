@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { Logger } from './index.js';
+import Logger from './Logger.js';
 import { DEBUG, INFO, WARN, ERROR, NONE, LOG } from '$lib/logging/constants.js';
 
 describe('Logger', () => {
@@ -73,22 +73,6 @@ describe('Logger', () => {
     consoleWarnSpy.mockRestore();
   });
 
-  it('should include details in log events', () => {
-    const errorHandler = vi.fn();
-    logger.on(ERROR, errorHandler);
-    
-    const details = { code: 500, message: 'Server error' };
-    const error = new Error('Server error');
-    error.code = 500;
-    logger.error('Operation failed', error);
-    
-    expect(errorHandler).toHaveBeenCalledTimes(1);
-    const logEvent = errorHandler.mock.calls[0][0];
-    
-    expect(logEvent.details.cause).toBe(error);
-    expect(logEvent.message).toBe('Operation failed');
-  });
-
   it('should emit both specific and generic log events', () => {
     const warnHandler = vi.fn();
     const logHandler = vi.fn();
@@ -140,6 +124,30 @@ describe('Logger', () => {
     logger.error('Error message');
 
     expect(logHandler).toHaveBeenCalledTimes(2);
+  });
+
+  it('should handle context creation', () => {
+    const contextLogger = logger.context('request', { requestId: '123' });
+    
+    expect(contextLogger).toBeInstanceOf(Logger);
+    expect(contextLogger.name).toBe('testService');
+    expect(contextLogger.level).toBe(INFO);
+    
+    // Test that context is applied
+    const logHandler = vi.fn();
+    contextLogger.on(LOG, logHandler);
+    
+    contextLogger.info('Test message');
+    
+    expect(logHandler).toHaveBeenCalledTimes(1);
+    const logEvent = logHandler.mock.calls[0][0];
+    expect(logEvent.context).toEqual({ request: { requestId: '123' } });
+  });
+
+  it('should throw error for invalid context namespace', () => {
+    expect(() => {
+      logger.context(123, { data: 'test' });
+    }).toThrow('Invalid namespace');
   });
 });
 

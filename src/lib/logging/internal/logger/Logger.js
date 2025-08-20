@@ -32,6 +32,8 @@
  * logger.setLevel(DEBUG); // Now debug messages will also be logged
  */
 
+/** @typedef {import('$lib/generic/typedef.js').ErrorDetails} ErrorDetails */
+
 import { EventEmitter } from '$lib/generic/events.js';
 
 import {
@@ -44,14 +46,15 @@ import {
 } from '$lib/logging/constants.js';
 
 import { DetailedError } from '$lib/generic/errors.js';
-import { LoggerError } from '$lib/logging/errors.js';
+// import { LoggerError } from '$lib/logging/errors.js';
 
-import { toArray } from '$lib/util/array/index.js';
+import { toArray } from '$lib/util/array.js';
+import { exportNotNullish } from '$lib/util/object.js';
 
-import {
-  castErrorEventToDetailedError,
-  castPromiseRejectionToDetailedError
-} from './util.js';
+// import {
+//   castErrorEventToDetailedError,
+//   castPromiseRejectionToDetailedError
+// } from './util.js';
 
 import * as is from '$lib/util/is.js';
 
@@ -134,91 +137,77 @@ export default class Logger extends EventEmitter {
    * Log an error message
    *
    * @param {Error|ErrorEvent|PromiseRejectionEvent|string}
-   *   originalErrorOrMessage
-   * @param {Error|Object} [originalErrorOrDetails]
+   *   errorOrMessage
+   *
+   * @param {Error|ErrorDetails} [errorOrDetails]
    *   Error object (when first param is string) or details object
-   * @param {Object} [details]
+   *
+   * @param {ErrorDetails} [details]
    *   Additional context details (when using string + error pattern)
    *
    * @returns {boolean} True if the log was emitted
    */
-  error(originalErrorOrMessage, originalErrorOrDetails, details) {
-    // Detection logic - set clear internal variables
+  error(errorOrMessage, errorOrDetails, details) {
+    let errorObject = null;
+
     let message;
-    let errorDetails;
-    let cause;
 
-    // Handle browser ErrorEvent
-    if (is.ErrorEvent(originalErrorOrMessage)) {
-      const errorEvent = /** @type {ErrorEvent} */ (originalErrorOrMessage);
-
-      message =
-        errorEvent.error?.message || errorEvent.message || 'Unknown error';
-
-      // Use provided details or auto-generate from event
-
-      errorDetails = originalErrorOrDetails || {
-        filename: errorEvent.filename,
-        lineno: errorEvent.lineno,
-        colno: errorEvent.colno,
-        type: 'ErrorEvent'
-      };
-
-      cause = errorEvent.error;
+    if( typeof errorOrMessage === 'string' )
+    {
+      message = errorOrMessage;
     }
-    // Handle browser PromiseRejectionEvent
-    else if (is.PromiseRejectionEvent(originalErrorOrMessage)) {
-      const promiseRejectionEvent =
-        /** @type {PromiseRejectionEvent} */ (originalErrorOrMessage);
 
-      const reason = promiseRejectionEvent.reason;
+    if (message) {
 
-      if (reason instanceof Error) {
-        message = reason.message;
-        cause = reason;
-      } else {
-        message = String(reason);
-        cause = null;
+      // First param is a string (message)
+      // => Second param might be the error (string + error pattern)
+
+      if (this.#isErrorLike(errorOrDetails)) {
+        let errorLike = errorOrDetails;
+        errorObject = this.#toError(errorLike);
+      }
+    } else {
+
+      // First param is not an (not empty) string
+      // => First param should be the error
+
+      if (this.#isErrorLike(errorOrMessage)) {
+        let errorLike = errorOrMessage;
+        errorObject = this.#toError(errorLike);
       }
 
-      // Use provided details or auto-generate from event
-      errorDetails = originalErrorOrDetails || {
-        type: 'PromiseRejectionEvent',
-        reasonType: typeof reason
-      };
+      // Second parameter could be the details
+      // Third parameter will be ignored (overwritten)
+      details = errorOrDetails;
     }
-    // Handle regular Error
-    else if (originalErrorOrMessage instanceof Error) {
-      message = originalErrorOrMessage.message;
-      errorDetails = originalErrorOrDetails || null;
-      cause = originalErrorOrMessage;
+
+    if( errorObject && details )
+    {
+      // Additional Details supplied
+      // => Prepend additional DetailedError to chain
+      errorObject = new DetailedError(message, details, errorObject );
     }
-    // Handle string + Error pattern
-    else if (
-      typeof originalErrorOrMessage === 'string' &&
-      originalErrorOrDetails instanceof Error
-    ) {
-      message = originalErrorOrMessage;
-      errorDetails = details || null;
-      cause = originalErrorOrDetails;
+
+    if( message && errorObject )
+    {
+      // Log with message
+      return this.#log(ERROR, message, errorObject);
     }
-    // Handle string only
-    else if (typeof originalErrorOrMessage === 'string') {
-      message = originalErrorOrMessage;
-      errorDetails = originalErrorOrDetails || null;
-      cause = null;
+    else if (errorObject) {
+      // Log without message
+      return this.#log(ERROR, errorObject.message, errorObject);
     }
-    // Invalid parameters
     else {
-      message = 'Invalid parameters supplied to Logger.error';
-      errorDetails = toArray(arguments);
-      cause = null;
+      // Missing error like object
+      // => invalid parameters supplied to logger.error
+
+      const detailedError = new DetailedError(
+        'Missing error like object in Logger.error parameters',
+        toArray(arguments)
+      );
+
+      return this.#log(ERROR, detailedError.message, detailedError);
     }
-
-    // Create consistent DetailedError for all cases
-    const detailedError = new DetailedError(message, errorDetails, cause);
-
-    return this.#log(ERROR, detailedError.message, detailedError);
   }
 
   /**
@@ -306,5 +295,85 @@ export default class Logger extends EventEmitter {
     this.emit(LOG, logEvent);
 
     return true;
+  }
+
+  /**
+   * Returns true is the supplied parameter is loggable as error
+   *
+   * @param {any} thing
+   *
+   * @returns {boolean}
+   */
+  #isErrorLike(thing) {
+    return (
+      thing instanceof Error ||
+      is.ErrorEvent(thing) ||
+      is.PromiseRejectionEvent(thing)
+    );
+  }
+
+  /**
+   * Convert an Error like object (Error, ErrorEvent, PromiseRejectionEvent)
+   * to a DetailedError
+   *
+   * @param {any} errorLike
+   *
+   * @returns {Error}
+   */
+  #toError( errorLike ) {
+    if (is.ErrorEvent(errorLike)) {
+      // errorLike is an ErrorEvent
+      // => convert to DetailedError
+      const errorEvent = /** @type {ErrorEvent} */ (errorLike);
+
+      let errorEventDetails = exportNotNullish( errorEvent, [
+        'message',
+        'filename',
+        'lineno',
+        'colno'
+      ]);
+
+      errorEventDetails.type = 'ErrorEvent';
+
+      let cause = errorEvent.error;
+
+      return new DetailedError(
+        errorEvent.message,
+        errorEventDetails,
+        cause
+      );
+
+    } else if (is.PromiseRejectionEvent(errorLike)) {
+      // errorLike is a PromiseRejectionEvent
+      // => convert to DetailedError
+      const rejectionEvent = /** @type {PromiseRejectionEvent} */ (errorLike);
+
+      const reason = rejectionEvent.reason;
+
+      if (reason instanceof Error) {
+        return reason;
+      }
+      else if ( is.object(reason) && reason?.message ) {
+        // reason is  an object with message property
+        return new DetailedError(reason?.message, reason);
+      }
+      else if ( typeof reason === "string" ) {
+        // reason is a string
+        return new DetailedError(reason);
+      }
+      else {
+        // reason is not an Error or string
+        return new DetailedError('Promise rejected', reason);
+      }
+    } else if (errorLike instanceof Error) {
+      // errorLike is a plain Error
+      // => return it
+      return errorLike;
+    }
+
+    // errorLike cannot be converted to an Error
+    // => return logging error
+
+    return new DetailedError('Cannot convert to Error', errorLike);
   }
 }

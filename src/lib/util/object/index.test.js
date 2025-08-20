@@ -83,7 +83,7 @@ describe('size', () => {
 	});
 });
 
-describe('exportNotNull', () => {
+describe('exportNotNullish', () => {
 	it('should remove null and undefined properties', () => {
 		const input = {
 			keep: 'value',
@@ -94,7 +94,7 @@ describe('exportNotNull', () => {
 			keepEmptyString: ''
 		};
 
-		const result = object.exportNotNull(input);
+		const result = object.exportNotNullish(input);
 
 		expect(result).toEqual({
 			keep: 'value',
@@ -112,7 +112,7 @@ describe('exportNotNull', () => {
 			d: 'keep'
 		};
 
-		const result = object.exportNotNull(input, ['a', 'd']);
+		const result = object.exportNotNullish(input, ['a', 'd']);
 
 		expect(result).toEqual({
 			a: 'keep',
@@ -121,8 +121,8 @@ describe('exportNotNull', () => {
 	});
 
 	it('should handle empty objects', () => {
-		expect(object.exportNotNull({})).toEqual({});
-		expect(object.exportNotNull({}, [])).toEqual({});
+		expect(object.exportNotNullish({})).toEqual({});
+		expect(object.exportNotNullish({}, [])).toEqual({});
 	});
 });
 

@@ -7,14 +7,24 @@ export class InternalEventOrLogError extends Error {}
 export class DetailedError extends Error
 {
   /**
-   * @param {string} message - Error message
-   * @param {string|{[key: string]: any}|null} [details] - Additional details
-   * @param {Error|string} [cause] - Original error
+   * @param {string} [message]
+   * @param {import('./typedef.js').ErrorDetails} [details] - Additional details
+   * @param {Error|null} [cause] - Original error
    */
   constructor(message, details, cause ) {
     super(message);
     this.name = 'DetailedError';
     this.details = details ?? null;
-    this.cause = cause;
+
+    if( cause )
+    {
+      if( cause instanceof Error )
+      {
+        this.cause = cause;
+      }
+      else {
+        throw new Error('Parameter [cause] should be an Error');
+      }
+    }
   }
 }

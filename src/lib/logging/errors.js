@@ -6,6 +6,13 @@ export class LoggerError extends Error
   constructor( originalError ) {
     super('LoggerError');
     this.name = 'LoggerError';
-    this.cause = originalError;
+
+    if( originalError instanceof Error )
+    {
+      this.cause = originalError;
+    }
+    else {
+      throw new Error('Parameter [originalError] should be an Error');
+    }
   }
 }
