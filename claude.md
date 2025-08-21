@@ -46,14 +46,31 @@ This is a modern SvelteKit library built with Svelte 5 and Skeleton.dev v3 compo
 - **JSDoc formatting conventions:**
   - Blank line between description and first `@param`
   - Blank line between last `@param` and `@returns`
-  - No blank lines between consecutive `@param` tags
+  - No blank lines between consecutive `@param` tags with short descriptions
+  - Add extra newlines between `@param` entries ONLY when they have multi-line descriptions for better readability
   - For long parameter types or descriptions, place description on next line:
     ```javascript
+    // Multi-line @param descriptions (use extra newlines between)
     /**
-     * @param {Error|ErrorEvent|PromiseRejectionEvent|string}
-     *   originalErrorOrMessage
-     * @param {Object} [details]
-     *   Additional context details for the error
+     * Convert a path string to an array path
+     *
+     * @param {string|string[]} path
+     *   String or array path (e.g. "some.path.to")
+     *
+     * @param {string} [pathSeparator=PATH_SEPARATOR]
+     *   A custom path separator to use instead of the default "."
+     *
+     * @returns {string[]} array path (e.g. ["some", "path", "to"])
+     */
+
+    // Short descriptions (no extra newlines needed)
+    /**
+     * Log an info message
+     *
+     * @param {string} message - Log message
+     * @param {*} [details] - Additional details
+     *
+     * @returns {boolean} True if the log was emitted
      */
     ```
 - **Concise descriptions** - avoid obvious/redundant explanations
