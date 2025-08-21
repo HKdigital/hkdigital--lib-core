@@ -8,5 +8,5 @@ export function setMetaThemeColor() {
     .getPropertyValue('--color-surface-950')
     .trim();
 
-  themeStore.setMetaThemeColor(`rgb(${surfaceColor})`);
+  themeStore.setMetaThemeColor(surfaceColor);
 }

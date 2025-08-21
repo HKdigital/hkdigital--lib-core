@@ -107,7 +107,7 @@ export function customUtilitiesPlugin({ addUtilities, theme }) {
  * //     fontFamily: 'var(--heading-font-family)',
  * //     fontStyle: 'var(--heading-font-style)',
  * //     letterSpacing: 'var(--heading-letter-spacing)',
- * //     color: 'rgb(var(--heading-font-color))'
+ * //     color: 'var(--heading-font-color)'
  * //   }
  * // }
  */

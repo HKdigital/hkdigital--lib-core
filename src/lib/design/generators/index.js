@@ -109,13 +109,13 @@ function generateColorStyles() {
   for (const colorName of colorNames) {
     colors[colorName] = {};
     for (const shade of shades) {
-      colors[colorName][shade] = `rgb(var(--color-${colorName}-${shade}) / <alpha-value>)`;
+      colors[colorName][shade] = `var(--color-${colorName}-${shade})`;
     }
     
     // Add contrast colors
     for (const shade of shades) {
       colors[`${colorName}-contrast`] = colors[`${colorName}-contrast`] || {};
-      colors[`${colorName}-contrast`][shade] = `rgb(var(--color-${colorName}-contrast-${shade}) / <alpha-value>)`;
+      colors[`${colorName}-contrast`][shade] = `var(--color-${colorName}-contrast-${shade})`;
     }
   }
 
