@@ -26,10 +26,6 @@ import { autoGroupEnvByPrefix, parseEnv } from './parsers.js';
  *   Convert env var names to camelCase object keys
  * @param {boolean} [options.parseValues=true]
  *   Parse string values to numbers/booleans when possible
- * @param {string[]} [options.commonPrefixes]
- *   Additional prefixes to look for (beyond auto-detection)
- * @param {number} [options.minGroupSize=2]
- *   Minimum number of vars needed to form a group
  * @param {boolean} [options.autoGroup=true]
  *   Enable automatic prefix grouping
  *

@@ -60,13 +60,10 @@ describe('getPublicEnv', () => {
     });
   });
 
-  it('should handle custom commonPrefixes with auto grouping', () => {
-    const result = getPublicEnv({ 
-      commonPrefixes: ['PUBLIC_FEATURE'],
-      minGroupSize: 1 
-    });
+  it('should automatically group all PUBLIC variables', () => {
+    const result = getPublicEnv();
     
-    // All PUBLIC_ variables get grouped together, including PUBLIC_FEATURE_FLAGS
+    // All PUBLIC_ variables get grouped together automatically
     expect(result).toEqual({
       public: {
         apiUrl: 'https://api.example.com',
@@ -79,16 +76,18 @@ describe('getPublicEnv', () => {
     });
   });
 
-  it('should respect minGroupSize option', () => {
-    const result = getPublicEnv({ minGroupSize: 7 });
+  it('should group all PUBLIC variables automatically', () => {
+    const result = getPublicEnv();
     
     expect(result).toEqual({
-      publicApiUrl: 'https://api.example.com',
-      publicApiTimeout: 5000,
-      publicApiKey: 'public-key',
-      publicFeatureFlags: true,
-      publicDebug: false,
-      publicSingleVar: 'value'
+      public: {
+        apiUrl: 'https://api.example.com',
+        apiTimeout: 5000,
+        apiKey: 'public-key',
+        featureFlags: true,
+        debug: false,
+        singleVar: 'value'
+      }
     });
   });
 });

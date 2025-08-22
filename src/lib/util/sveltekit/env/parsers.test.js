@@ -200,7 +200,7 @@ describe('parseValue', () => {
 });
 
 describe('autoGroupEnvByPrefix', () => {
-  it('should auto-group environment variables by common prefixes', () => {
+  it('should auto-group environment variables by all prefixes', () => {
     const env = {
       'DATABASE_HOST': 'localhost',
       'DATABASE_PORT': '5432',
@@ -222,39 +222,44 @@ describe('autoGroupEnvByPrefix', () => {
         host: 'cache',
         port: 6379
       },
-      singleVar: 'value'
+      single: {
+        var: 'value'    // Now grouped since it has underscore
+      }
     });
   });
 
-  it('should respect minGroupSize option', () => {
+  it('should group all variables with prefixes, regardless of count', () => {
     const env = {
       'DATABASE_HOST': 'localhost',
       'DATABASE_PORT': '5432',
-      'REDIS_URL': 'redis://localhost',
+      'REDIS_URL': 'redis://localhost',    // Single REDIS variable
       'SINGLE_VAR': 'value'
     };
     
-    const result = autoGroupEnvByPrefix(env, { minGroupSize: 3 });
+    const result = autoGroupEnvByPrefix(env);
     
     expect(result).toEqual({
-      databaseHost: 'localhost',
-      databasePort: 5432,
-      redisUrl: 'redis://localhost',
-      singleVar: 'value'
+      database: {
+        host: 'localhost',
+        port: 5432
+      },
+      redis: {
+        url: 'redis://localhost'            // Still grouped despite being single
+      },
+      single: {
+        var: 'value'                        // Also grouped since it has underscore
+      }
     });
   });
 
-  it('should handle commonPrefixes option', () => {
+  it('should handle mixed prefix and non-prefix variables', () => {
     const env = {
       'API_KEY': 'secret',
       'API_URL': 'https://api.example.com',
       'SINGLEVAR': 'value'
     };
     
-    const result = autoGroupEnvByPrefix(env, { 
-      commonPrefixes: ['API'],
-      minGroupSize: 1
-    });
+    const result = autoGroupEnvByPrefix(env);
     
     expect(result).toEqual({
       api: {
@@ -301,7 +306,7 @@ describe('autoGroupEnvByPrefix', () => {
     expect(autoGroupEnvByPrefix({})).toEqual({});
   });
 
-  it('should handle single-word variables', () => {
+  it('should handle single-word variables without underscore', () => {
     const env = {
       'HOST': 'localhost',
       'PORT': '3000'

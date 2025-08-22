@@ -93,9 +93,7 @@ describe('getAllEnv', () => {
   it('should pass through parsing options to autoGroupEnvByPrefix', () => {
     const options = {
       camelCase: false,
-      parseValues: false,
-      commonPrefixes: ['API'],
-      minGroupSize: 3
+      parseValues: false
     };
 
     getRawPublicEnv.mockReturnValue({});
@@ -106,9 +104,7 @@ describe('getAllEnv', () => {
 
     expect(autoGroupEnvByPrefix).toHaveBeenCalledWith({}, {
       camelCase: false,
-      parseValues: false,
-      commonPrefixes: ['API'],
-      minGroupSize: 3
+      parseValues: false
     });
   });
 

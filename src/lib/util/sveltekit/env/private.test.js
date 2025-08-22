@@ -37,8 +37,12 @@ describe('getPrivateEnv', () => {
         secret: 'super-secret-key',
         expiresIn: '24h'
       },
-      singleSecret: 'secret-value',
-      apiRateLimit: 1000
+      single: {
+        secret: 'secret-value'     // Now grouped since it has underscore
+      },
+      api: {
+        rateLimit: 1000           // Now grouped since it has underscore
+      }
     });
   });
 
@@ -80,11 +84,8 @@ describe('getPrivateEnv', () => {
     });
   });
 
-  it('should handle custom commonPrefixes with auto grouping', () => {
-    const result = getPrivateEnv({ 
-      commonPrefixes: ['API', 'SINGLE'],
-      minGroupSize: 1 
-    });
+  it('should automatically group all prefixes', () => {
+    const result = getPrivateEnv();
     
     expect(result).toEqual({
       database: {
@@ -110,20 +111,30 @@ describe('getPrivateEnv', () => {
     });
   });
 
-  it('should respect minGroupSize option', () => {
-    const result = getPrivateEnv({ minGroupSize: 5 });
+  it('should group all variables with prefixes automatically', () => {
+    const result = getPrivateEnv();
     
     expect(result).toEqual({
-      databaseHost: 'localhost',
-      databasePort: 5432,
-      databaseName: 'myapp',
-      databaseUser: 'admin',
-      redisUrl: 'redis://localhost:6379',
-      redisTtl: 3600,
-      jwtSecret: 'super-secret-key',
-      jwtExpiresIn: '24h',
-      singleSecret: 'secret-value',
-      apiRateLimit: 1000
+      database: {
+        host: 'localhost',
+        port: 5432,
+        name: 'myapp',
+        user: 'admin'
+      },
+      redis: {
+        url: 'redis://localhost:6379',
+        ttl: 3600
+      },
+      jwt: {
+        secret: 'super-secret-key',
+        expiresIn: '24h'
+      },
+      single: {
+        secret: 'secret-value'
+      },
+      api: {
+        rateLimit: 1000
+      }
     });
   });
 });

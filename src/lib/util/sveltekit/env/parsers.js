@@ -129,11 +129,11 @@ export function parseValue(value) {
 }
 
 /**
- * Auto-detect and group environment variables by common prefixes
+ * Auto-detect and group environment variables by prefixes
  *
- * Automatically detects common prefixes from environment variable names
- * and groups them into configuration objects. This is the main function
- * used by the environment utilities for smart grouping.
+ * Automatically detects prefixes from environment variable names and groups
+ * them into configuration objects. All variables with underscores are 
+ * grouped by their prefix (the part before the first underscore).
  *
  * @param {Object<string, string>} env - Raw environment variables
  * @param {Object} [options={}] - Parsing options
@@ -141,58 +141,45 @@ export function parseValue(value) {
  *   Convert env var names to camelCase object keys
  * @param {boolean} [options.parseValues=true]
  *   Parse string values to numbers/booleans when possible
- * @param {string[]} [options.commonPrefixes]
- *   Additional prefixes to look for (beyond auto-detection)
- * @param {number} [options.minGroupSize=2]
- *   Minimum number of vars needed to form a group
  *
  * @returns {Object<string, Object>} Grouped environment variables
  *
  * @example
  * // Input env vars:
  * // DATABASE_HOST=localhost, DATABASE_PORT=5432
- * // REDIS_HOST=cache, REDIS_PORT=6379
- * // SINGLE_VAR=value
+ * // REDIS_HOST=cache, API_KEY=secret, SINGLE=value
  *
  * const grouped = autoGroupEnvByPrefix(env);
  * // Returns: 
  * // {
  * //   database: { host: 'localhost', port: 5432 },
- * //   redis: { host: 'cache', port: 6379 },
- * //   singleVar: 'value'  // Single vars become top-level
+ * //   redis: { host: 'cache' },
+ * //   api: { key: 'secret' },
+ * //   single: 'value'  // No underscore, stays top-level
  * // }
  */
 export function autoGroupEnvByPrefix(env, options = {}) {
   const {
     camelCase = true,
-    parseValues = true,
-    commonPrefixes = [],
-    minGroupSize = 2
+    parseValues = true
   } = options;
 
-  // Auto-detect prefixes
-  const prefixCounts = new Map();
-  const allPrefixes = new Set(commonPrefixes);
+  // Collect all prefixes from variables with underscores
+  const allPrefixes = new Set();
 
   for (const key of Object.keys(env)) {
     const parts = key.split('_');
     if (parts.length > 1) {
       const prefix = parts[0];
-      prefixCounts.set(prefix, (prefixCounts.get(prefix) || 0) + 1);
       allPrefixes.add(prefix);
     }
   }
 
-  // Filter prefixes that have enough variables
-  const validPrefixes = Array.from(allPrefixes).filter(
-    prefix => (prefixCounts.get(prefix) || 0) >= minGroupSize
-  );
-
   const result = {};
   const usedKeys = new Set();
 
-  // Group by valid prefixes
-  for (const prefix of validPrefixes) {
+  // Group by all detected prefixes
+  for (const prefix of allPrefixes) {
     const groupKey = camelCase ? toCamelCase(prefix) : prefix.toLowerCase();
     const groupConfig = parseEnvByPrefix(env, prefix, { camelCase, parseValues });
     
@@ -208,7 +195,7 @@ export function autoGroupEnvByPrefix(env, options = {}) {
     }
   }
 
-  // Add remaining single variables as top-level properties
+  // Add remaining variables (no underscore) as top-level properties
   for (const [key, value] of Object.entries(env)) {
     if (!usedKeys.has(key)) {
       const finalKey = camelCase ? toCamelCase(key) : key.toLowerCase();
