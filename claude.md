@@ -38,6 +38,16 @@ This is a modern SvelteKit library built with Svelte 5 and Skeleton.dev v3 compo
 - English for all documentation and comments
 - No dollar signs in variable names (reserved for Svelte)
 
+### ESLint Rule Suppression
+- Use specific rule suppression instead of blanket disables
+- For unused variables in method signatures (e.g., base class methods to be overridden):
+  ```javascript
+  // eslint-disable-next-line no-unused-vars
+  async _configure(newConfig, oldConfig = null) {
+    // Override in subclass
+  }
+  ```
+
 ## Documentation & Comment Style
 - **80-character line limit** - strictly enforce for ALL code and documentation
   - Applies to code lines, JSDoc comments, parameter descriptions, and all text

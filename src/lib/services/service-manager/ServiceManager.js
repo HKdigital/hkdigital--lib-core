@@ -67,10 +67,10 @@ import { EventEmitter } from '$lib/generic/events.js';
 import { Logger, DEBUG, INFO, WARN } from '$lib/logging/index.js';
 
 import {
-  NOT_CREATED,
-  CREATED,
-  RUNNING,
-  DESTROYED
+  STATE_NOT_CREATED,
+  STATE_CREATED,
+  STATE_RUNNING,
+  STATE_DESTROYED
 } from '$lib/services/service-base/constants.js';
 
 /**
@@ -241,7 +241,7 @@ export class ServiceManager extends EventEmitter {
     if (!instance) return false;
 
     // Initialize if needed
-    if (instance.state === CREATED || instance.state === DESTROYED) {
+    if (instance.state === STATE_CREATED || instance.state === STATE_DESTROYED) {
       const initialized = await this.initService(name);
       if (!initialized) return false;
     }
@@ -401,7 +401,7 @@ export class ServiceManager extends EventEmitter {
       } else {
         health[name] = {
           name,
-          state: NOT_CREATED,
+          state: STATE_NOT_CREATED,
           healthy: false
         };
       }
@@ -419,7 +419,7 @@ export class ServiceManager extends EventEmitter {
    */
   async isRunning(name) {
     const instance = this.get(name);
-    return instance ? instance.state === RUNNING : false;
+    return instance ? instance.state === STATE_RUNNING : false;
   }
 
   /**

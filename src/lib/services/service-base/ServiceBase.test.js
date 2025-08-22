@@ -5,15 +5,15 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ServiceBase } from './ServiceBase.js';
 import { DEBUG } from '$lib/logging/index.js';
 import {
-  CREATED,
-  INITIALIZING,
-  INITIALIZED,
-  STARTING,
-  RUNNING,
-  STOPPING,
-  STOPPED,
-  DESTROYED,
-  ERROR
+  STATE_CREATED,
+  STATE_CONFIGURING,
+  STATE_CONFIGURED,
+  STATE_STARTING,
+  STATE_RUNNING,
+  STATE_STOPPING,
+  STATE_STOPPED,
+  STATE_DESTROYED,
+  STATE_ERROR
 } from './constants.js';
 
 describe('ServiceBase', () => {
@@ -30,7 +30,7 @@ describe('ServiceBase', () => {
   describe('Initialization', () => {
     it('should initialize with correct defaults', () => {
       expect(service.name).toBe('testService');
-      expect(service.state).toBe(CREATED);
+      expect(service.state).toBe(STATE_CREATED);
       expect(service.healthy).toBe(false);
       expect(service.error).toBeNull();
       expect(service.logger).toBeDefined();
@@ -50,7 +50,7 @@ describe('ServiceBase', () => {
   describe('Lifecycle Management', () => {
     beforeEach(() => {
       // Mock protected methods
-      vi.spyOn(service, '_init').mockResolvedValue();
+      vi.spyOn(service, '_configure').mockResolvedValue();
       vi.spyOn(service, '_start').mockResolvedValue();
       vi.spyOn(service, '_stop').mockResolvedValue();
     });
@@ -61,24 +61,24 @@ describe('ServiceBase', () => {
 
       // Initialize
       expect(await service.initialize({ test: true })).toBe(true);
-      expect(service.state).toBe(INITIALIZED);
-      expect(service._init).toHaveBeenCalledWith({ test: true });
+      expect(service.state).toBe(STATE_CONFIGURED);
+      expect(service._configure).toHaveBeenCalledWith({ test: true });
 
       // Start
       expect(await service.start()).toBe(true);
-      expect(service.state).toBe(RUNNING);
+      expect(service.state).toBe(STATE_RUNNING);
       expect(service.healthy).toBe(true);
 
       // Stop
       expect(await service.stop()).toBe(true);
-      expect(service.state).toBe(STOPPED);
+      expect(service.state).toBe(STATE_STOPPED);
       expect(service.healthy).toBe(false);
 
       // Verify state transitions
       expect(stateChanges).toEqual([
-        INITIALIZING, INITIALIZED,
-        STARTING, RUNNING,
-        STOPPING, STOPPED
+        STATE_CONFIGURING, STATE_CONFIGURED,
+        STATE_STARTING, STATE_RUNNING,
+        STATE_STOPPING, STATE_STOPPED
       ]);
     });
 
@@ -87,77 +87,77 @@ describe('ServiceBase', () => {
       await service.start();
       await service.stop();
       
-      expect(service.state).toBe(STOPPED);
+      expect(service.state).toBe(STATE_STOPPED);
       
       // Should be able to start again
       expect(await service.start()).toBe(true);
-      expect(service.state).toBe(RUNNING);
+      expect(service.state).toBe(STATE_RUNNING);
     });
 
     it('should prevent invalid state transitions', async () => {
-      // Can't start from CREATED
+      // Can't start from STATE_CREATED
       expect(await service.start()).toBe(false);
-      expect(service.state).toBe(CREATED);
+      expect(service.state).toBe(STATE_CREATED);
       
-      // Can't stop from INITIALIZED
+      // Can't stop from STATE_CONFIGURED
       await service.initialize();
       expect(await service.stop()).toBe(true); // Returns true but does nothing
-      expect(service.state).toBe(INITIALIZED);
+      expect(service.state).toBe(STATE_CONFIGURED);
     });
   });
 
   describe('Error Handling', () => {
     it('should handle initialization errors', async () => {
       const error = new Error('Init failed');
-      vi.spyOn(service, '_init').mockRejectedValue(error);
+      vi.spyOn(service, '_configure').mockRejectedValue(error);
 
       const errorEvents = [];
       service.on('error', (e) => errorEvents.push(e));
 
       expect(await service.initialize()).toBe(false);
-      expect(service.state).toBe(ERROR);
+      expect(service.state).toBe(STATE_ERROR);
       expect(service.error.cause).toBe(error);
       expect(service.healthy).toBe(false);
 
       expect(errorEvents).toHaveLength(1);
       expect(errorEvents[0]).toMatchObject({
-        operation: 'initialization',
+        operation: 'configuration',
         error: expect.objectContaining({
-          message: 'initialization failed',
+          message: 'configuration failed',
           cause: error
         })
       });
     });
 
     it('should handle start errors', async () => {
-      vi.spyOn(service, '_init').mockResolvedValue();
+      vi.spyOn(service, '_configure').mockResolvedValue();
       vi.spyOn(service, '_start').mockRejectedValue(new Error('Start failed'));
 
       await service.initialize();
       expect(await service.start()).toBe(false);
-      expect(service.state).toBe(ERROR);
+      expect(service.state).toBe(STATE_ERROR);
       expect(service.healthy).toBe(false);
     });
 
     it('should allow stopping from error state', async () => {
       // Get into error state
-      vi.spyOn(service, '_init').mockRejectedValue(new Error('Failed'));
+      vi.spyOn(service, '_configure').mockRejectedValue(new Error('Failed'));
       await service.initialize();
-      expect(service.state).toBe(ERROR);
+      expect(service.state).toBe(STATE_ERROR);
 
       // Should be able to stop
       vi.spyOn(service, '_stop').mockResolvedValue();
       expect(await service.stop()).toBe(true);
-      expect(service.state).toBe(STOPPED);
+      expect(service.state).toBe(STATE_STOPPED);
     });
   });
 
   describe('Recovery', () => {
     beforeEach(async () => {
       // Get service into error state
-      vi.spyOn(service, '_init').mockRejectedValue(new Error('Failed'));
+      vi.spyOn(service, '_configure').mockRejectedValue(new Error('Failed'));
       await service.initialize();
-      expect(service.state).toBe(ERROR);
+      expect(service.state).toBe(STATE_ERROR);
     });
 
     it('should recover using custom _recover method', async () => {
@@ -165,7 +165,7 @@ describe('ServiceBase', () => {
 
       expect(await service.recover()).toBe(true);
       expect(service._recover).toHaveBeenCalled();
-      expect(service.state).toBe(RUNNING);
+      expect(service.state).toBe(STATE_RUNNING);
       expect(service.healthy).toBe(true);
       expect(service.error).toBeNull();
     });
@@ -175,23 +175,23 @@ describe('ServiceBase', () => {
       service = new ServiceBase('testService');
 
       // Setup all mocks for successful operation
-      vi.spyOn(service, '_init').mockResolvedValue();
+      vi.spyOn(service, '_configure').mockResolvedValue();
       vi.spyOn(service, '_start').mockResolvedValue();
       vi.spyOn(service, '_stop').mockResolvedValue();
 
       // Initialize and start service successfully
       await service.initialize();
       await service.start();
-      expect(service.state).toBe(RUNNING);
+      expect(service.state).toBe(STATE_RUNNING);
 
       // Force error state manually
-      service.state = ERROR;
+      service.state = STATE_ERROR;
       service.healthy = false;
       service.error = new Error('Some error');
 
       // Now test recovery - it should stop then start
       expect(await service.recover()).toBe(true);
-      expect(service.state).toBe(RUNNING);
+      expect(service.state).toBe(STATE_RUNNING);
       expect(service.healthy).toBe(true);
       expect(service.error).toBeNull();
     });
@@ -200,23 +200,23 @@ describe('ServiceBase', () => {
       vi.spyOn(service, '_recover').mockRejectedValue(new Error('Recovery failed'));
 
       expect(await service.recover()).toBe(false);
-      expect(service.state).toBe(ERROR);
+      expect(service.state).toBe(STATE_ERROR);
       expect(service.error.message).toBe('recovery failed');
     });
 
-    it('should only recover from ERROR state', async () => {
+    it('should only recover from STATE_ERROR state', async () => {
       // Get to running state
-      service.state = RUNNING;
+      service.state = STATE_RUNNING;
       service.error = null;
 
       expect(await service.recover()).toBe(false);
-      expect(service.state).toBe(RUNNING);
+      expect(service.state).toBe(STATE_RUNNING);
     });
   });
 
   describe('Health Monitoring', () => {
     it('should emit healthChanged events', async () => {
-      vi.spyOn(service, '_init').mockResolvedValue();
+      vi.spyOn(service, '_configure').mockResolvedValue();
       vi.spyOn(service, '_start').mockResolvedValue();
 
       const healthEvents = [];
@@ -238,7 +238,7 @@ describe('ServiceBase', () => {
       
       expect(health).toEqual({
         name: 'testService',
-        state: CREATED,
+        state: STATE_CREATED,
         healthy: false,
         error: undefined
       });
@@ -290,7 +290,7 @@ describe('ServiceBase', () => {
       );
 
       // Get to running state
-      service.state = RUNNING;
+      service.state = STATE_RUNNING;
 
       // Start stop
       const stopPromise = service.stop();
@@ -299,7 +299,7 @@ describe('ServiceBase', () => {
       await vi.advanceTimersByTimeAsync(1100);
 
       expect(await stopPromise).toBe(false);
-      expect(service.state).toBe(ERROR);
+      expect(service.state).toBe(STATE_ERROR);
       expect(service.error.message).toBe('shutdown failed');
     });
 
@@ -311,13 +311,13 @@ describe('ServiceBase', () => {
         new Promise(() => {}) // Never resolves
       );
 
-      service.state = RUNNING;
+      service.state = STATE_RUNNING;
 
       const stopPromise = service.stop({ force: true, timeout: 100 });
       await vi.advanceTimersByTimeAsync(150);
 
       expect(await stopPromise).toBe(true);
-      expect(service.state).toBe(STOPPED);
+      expect(service.state).toBe(STATE_STOPPED);
     });
   });
 
@@ -328,25 +328,25 @@ describe('ServiceBase', () => {
 
       await service.destroy();
 
-      expect(service.state).toBe(DESTROYED);
+      expect(service.state).toBe(STATE_DESTROYED);
       expect(removeListenersSpy).toHaveBeenCalled();
       expect(loggerRemoveSpy).toHaveBeenCalled();
     });
 
     it('should stop before destroying if running', async () => {
-      vi.spyOn(service, '_init').mockResolvedValue();
+      vi.spyOn(service, '_configure').mockResolvedValue();
       vi.spyOn(service, '_start').mockResolvedValue();
       vi.spyOn(service, '_stop').mockResolvedValue();
 
       await service.initialize();
       await service.start();
       
-      expect(service.state).toBe(RUNNING);
+      expect(service.state).toBe(STATE_RUNNING);
 
       await service.destroy();
       
       expect(service._stop).toHaveBeenCalled();
-      expect(service.state).toBe(DESTROYED);
+      expect(service.state).toBe(STATE_DESTROYED);
     });
   });
 

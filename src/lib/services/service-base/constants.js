@@ -37,62 +37,91 @@
  * }
  */
 
+// ============================================================================
+// STATE CONSTANTS
+// ============================================================================
+
 /**
  * Service has not been created yet
  */
-export const NOT_CREATED = 'not-created';
+export const STATE_NOT_CREATED = 'not-created';
 
 /**
  * Service has been created but not initialized
  */
-export const CREATED = 'created';
+export const STATE_CREATED = 'created';
 
 /**
- * Service is currently initializing
+ * Service is currently being configured
  */
-export const INITIALIZING = 'initializing';
+export const STATE_CONFIGURING = 'configuring';
 
 /**
- * Service has been initialized and is ready to start
+ * Service has been configured and is ready to start
  */
-export const INITIALIZED = 'initialized';
+export const STATE_CONFIGURED = 'configured';
 
 /**
  * Service is currently starting up
  */
-export const STARTING = 'starting';
+export const STATE_STARTING = 'starting';
 
 /**
  * Service is running and operational
  */
-export const RUNNING = 'running';
+export const STATE_RUNNING = 'running';
 
 /**
  * Service is currently shutting down
  */
-export const STOPPING = 'stopping';
+export const STATE_STOPPING = 'stopping';
 
 /**
  * Service has been stopped
  */
-export const STOPPED = 'stopped';
+export const STATE_STOPPED = 'stopped';
 
 /**
  * Service is being destroyed and cleaned up
  */
-export const DESTROYING = 'destroying';
+export const STATE_DESTROYING = 'destroying';
 
 /**
  * Service has been destroyed and cannot be used
  */
-export const DESTROYED = 'destroyed';
+export const STATE_DESTROYED = 'destroyed';
 
 /**
  * Service encountered an error and is not operational
  */
-export const ERROR = 'error';
+export const STATE_ERROR = 'error';
 
 /**
  * Service is attempting to recover from an error
  */
-export const RECOVERING = 'recovering';
+export const STATE_RECOVERING = 'recovering';
+
+// ============================================================================
+// EVENT CONSTANTS
+// ============================================================================
+
+/**
+ * Event emitted when service state changes
+ */
+export const EVENT_STATE_CHANGED = 'stateChanged';
+
+/**
+ * Event emitted when service target state changes
+ */
+export const EVENT_TARGET_STATE_CHANGED = 'targetStateChanged';
+
+/**
+ * Event emitted when service health status changes
+ */
+export const EVENT_HEALTH_CHANGED = 'healthChanged';
+
+/**
+ * Event emitted when service encounters an error
+ */
+export const EVENT_ERROR = 'error';
+

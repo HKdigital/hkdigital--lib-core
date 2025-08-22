@@ -15,9 +15,9 @@ All services follow a standardized state machine with proper error handling, log
 
 Services transition through these states during their lifecycle:
 
-- `created` - Service instantiated but not initialized
-- `initializing` - Currently running initialization
-- `initialized` - Ready to start
+- `created` - Service instantiated but not configured
+- `configuring` - Currently running configuration
+- `configured` - Ready to start
 - `starting` - Currently starting up
 - `running` - Operational and healthy
 - `stopping` - Currently shutting down
@@ -32,6 +32,7 @@ Services transition through these states during their lifecycle:
 Base class that all services should extend. Provides:
 
 - Standardized lifecycle methods (`initialize`, `start`, `stop`, `destroy`)
+- Flexible configuration system with reconfiguration support
 - Health monitoring and recovery
 - Event emission for state changes
 - Integrated logging
@@ -43,8 +44,35 @@ Base class that all services should extend. Provides:
 import { ServiceBase } from '$lib/services/index.js';
 
 class DatabaseService extends ServiceBase {
-  async _init(config) {
-    this.connectionString = config.connectionString;
+  // eslint-disable-next-line no-unused-vars
+  async _configure(newConfig, oldConfig = null) {
+
+    if (!oldConfig) {
+      // Initial configuration
+
+      this.connectionString = newConfig.connectionString;
+      this.maxConnections = newConfig.maxConnections || 10;
+      return;
+    }
+
+    if (oldConfig.connectionString !== newConfig.connectionString) {
+      // Reconfiguration - handle changes intelligently
+
+      // Connection changed - need to reconnect
+      await this.connection?.close();
+
+      this.connectionString = newConfig.connectionString;
+      if (this.state === 'running') {
+        this.connection = await createConnection(this.connectionString);
+      }
+    }
+
+    if (oldConfig.maxConnections !== newConfig.maxConnections) {
+      // Pool size changed - update without reconnect
+      //
+      this.maxConnections = newConfig.maxConnections;
+      await this.connection?.setMaxConnections(this.maxConnections);
+    }
   }
 
   async _start() {
@@ -64,18 +92,27 @@ class DatabaseService extends ServiceBase {
 
 // Usage
 const db = new DatabaseService('database');
-await db.initialize({ connectionString: 'postgres://...' });
+await db.initialize({
+  connectionString: 'postgres://localhost/myapp',
+  maxConnections: 20
+});
 await db.start();
 
 // Listen to events
 db.on('healthChanged', ({ healthy }) => {
   console.log(`Database is ${healthy ? 'healthy' : 'unhealthy'}`);
 });
+
+// Reconfigure at runtime
+await db.reconfigure({
+  connectionString: 'postgres://localhost/myapp',
+  maxConnections: 50  // Hot-reloaded without restart
+});
 ```
 
 ### Protected Methods to Override
 
-- `_init(config)` - Initialize service with configuration
+- `_configure(newConfig, oldConfig = null)` - Configure service (handles both initial setup and reconfiguration)
 - `_start()` - Start the service
 - `_stop()` - Stop the service
 - `_destroy()` - Clean up resources (optional)

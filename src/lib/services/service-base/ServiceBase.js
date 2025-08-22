@@ -11,8 +11,8 @@
  * import { ServiceBase } from './ServiceBase.js';
  *
  * class DatabaseService extends ServiceBase {
- *   async _init(config) {
- *     this.connectionString = config.connectionString;
+ *   async _configure(newConfig, oldConfig) {
+ *     this.connectionString = config.newConfig;
  *   }
  *
  *   async _start() {
@@ -55,24 +55,27 @@ import { Logger, INFO } from '$lib/logging/index.js';
 import { DetailedError } from '$lib/generic/errors.js';
 
 import {
-  CREATED,
-  INITIALIZING,
-  INITIALIZED,
-  STARTING,
-  RUNNING,
-  STOPPING,
-  STOPPED,
-  DESTROYING,
-  DESTROYED,
-  ERROR as ERROR_STATE,
-  RECOVERING
+  STATE_CREATED,
+  STATE_CONFIGURING,
+  STATE_CONFIGURED,
+  STATE_STARTING,
+  STATE_RUNNING,
+  STATE_STOPPING,
+  STATE_STOPPED,
+  STATE_DESTROYING,
+  STATE_DESTROYED,
+  STATE_ERROR,
+  STATE_RECOVERING,
+  EVENT_STATE_CHANGED,
+  EVENT_TARGET_STATE_CHANGED,
+  EVENT_HEALTH_CHANGED,
+  EVENT_ERROR
 } from './constants.js';
 
 /**
- * @typedef {import('./typedef.js').ServiceOptions} ServiceOptions
- * @typedef {import('./typedef.js').StopOptions} StopOptions
- * @typedef {import('./typedef.js').HealthStatus} HealthStatus
+ * @typedef {import('./typedef.js').ServiceState} ServiceState
  * @typedef {import('./typedef.js').StateChangeEvent} StateChangeEvent
+ * @typedef {import('./typedef.js').TargetStateChangeEvent} TargetStateChangeEvent
  * @typedef {import('./typedef.js').HealthChangeEvent} HealthChangeEvent
  * @typedef {import('./typedef.js').ServiceErrorEvent} ServiceErrorEvent
  */
@@ -86,7 +89,7 @@ export class ServiceBase extends EventEmitter {
    * Create a new service instance
    *
    * @param {string} name - Service name
-   * @param {ServiceOptions} [options={}] - Service options
+   * @param {import('./typedef.js').ServiceOptions} [options={}] - Service options
    */
   constructor(name, options = {}) {
     super();
@@ -94,8 +97,11 @@ export class ServiceBase extends EventEmitter {
     /** @type {string} */
     this.name = name;
 
-    /** @type {string} */
-    this.state = CREATED;
+    /** @type {ServiceState} */
+    this.state = STATE_CREATED;
+
+    /** @type {ServiceState} */
+    this.targetState = STATE_CREATED;
 
     /** @type {boolean} */
     this.healthy = false;
@@ -119,25 +125,26 @@ export class ServiceBase extends EventEmitter {
    */
   async initialize(config = {}) {
     if (
-      this.state !== CREATED &&
-      this.state !== STOPPED &&
-      this.state !== DESTROYED
+      this.state !== STATE_CREATED &&
+      this.state !== STATE_STOPPED &&
+      this.state !== STATE_DESTROYED
     ) {
       this.logger.warn(`Cannot initialize from state: ${this.state}`);
       return false;
     }
 
     try {
-      this._setState(INITIALIZING);
-      this.logger.debug('Initializing service', { config });
+      this._setTargetState(STATE_CONFIGURED);
+      this._setState(STATE_CONFIGURING);
+      this.logger.debug('Configuring service', { config });
 
-      await this._init(config);
+      await this._configure(config);
 
-      this._setState(INITIALIZED);
-      this.logger.info('Service initialized');
+      this._setState(STATE_CONFIGURED);
+      this.logger.info('Service configured');
       return true;
     } catch (error) {
-      this._setError('initialization', error);
+      this._setError('configuration', error);
       return false;
     }
   }
@@ -148,18 +155,19 @@ export class ServiceBase extends EventEmitter {
    * @returns {Promise<boolean>} True if the service started successfully
    */
   async start() {
-    if (this.state !== INITIALIZED && this.state !== STOPPED) {
+    if (this.state !== STATE_CONFIGURED && this.state !== STATE_STOPPED) {
       this.logger.warn(`Cannot start from state: ${this.state}`);
       return false;
     }
 
     try {
-      this._setState(STARTING);
+      this._setTargetState(STATE_RUNNING);
+      this._setState(STATE_STARTING);
       this.logger.debug('Starting service');
 
       await this._start();
 
-      this._setState(RUNNING);
+      this._setState(STATE_RUNNING);
       this._setHealthy(true);
       this.logger.info('Service started');
       return true;
@@ -172,12 +180,12 @@ export class ServiceBase extends EventEmitter {
   /**
    * Stop the service with optional timeout
    *
-   * @param {StopOptions} [options={}] - Stop options
+   * @param {import('./typedef.js').StopOptions} [options={}] - Stop options
    *
    * @returns {Promise<boolean>} True if the service stopped successfully
    */
   async stop(options = {}) {
-    if (this.state !== RUNNING && this.state !== ERROR_STATE) {
+    if (this.state !== STATE_RUNNING && this.state !== STATE_ERROR) {
       this.logger.warn(`Cannot stop from state: ${this.state}`);
       return true; // Already stopped
     }
@@ -185,7 +193,8 @@ export class ServiceBase extends EventEmitter {
     const timeout = options.timeout ?? this._shutdownTimeout;
 
     try {
-      this._setState(STOPPING);
+      this._setTargetState(STATE_STOPPED);
+      this._setState(STATE_STOPPING);
       this._setHealthy(false);
       this.logger.debug('Stopping service');
 
@@ -203,13 +212,13 @@ export class ServiceBase extends EventEmitter {
         await stopPromise;
       }
 
-      this._setState(STOPPED);
+      this._setState(STATE_STOPPED);
       this.logger.info('Service stopped');
       return true;
     } catch (error) {
       if (error.message === 'Shutdown timeout' && options.force) {
         this.logger.warn('Forced shutdown after timeout');
-        this._setState(STOPPED);
+        this._setState(STATE_STOPPED);
         return true;
       }
       this._setError('shutdown', error);
@@ -223,7 +232,7 @@ export class ServiceBase extends EventEmitter {
    * @returns {Promise<boolean>} True if recovery succeeded
    */
   async recover() {
-    if (this.state !== ERROR_STATE) {
+    if (this.state !== STATE_ERROR) {
       this.logger.warn(
         `Can only recover from ERROR state, current: ${this.state}`
       );
@@ -231,17 +240,18 @@ export class ServiceBase extends EventEmitter {
     }
 
     try {
-      this._setState(RECOVERING);
+      this._setTargetState(STATE_RUNNING);
+      this._setState(STATE_RECOVERING);
       this.logger.info('Attempting recovery');
 
       // Try custom recovery first
       if (this._recover) {
         await this._recover();
-        this._setState(RUNNING);
+        this._setState(STATE_RUNNING);
         this._setHealthy(true);
       } else {
         // Default: restart
-        this._setState(STOPPED);
+        this._setState(STATE_STOPPED);
         await this.start();
       }
 
@@ -260,23 +270,24 @@ export class ServiceBase extends EventEmitter {
    * @returns {Promise<boolean>} True if destruction succeeded
    */
   async destroy() {
-    if (this.state === DESTROYED) {
+    if (this.state === STATE_DESTROYED) {
       return true;
     }
 
     try {
-      if (this.state === RUNNING) {
+      if (this.state === STATE_RUNNING) {
         await this.stop();
       }
 
-      this._setState(DESTROYING);
+      this._setTargetState(STATE_DESTROYED);
+      this._setState(STATE_DESTROYING);
       this.logger.debug('Destroying service');
 
       if (this._destroy) {
         await this._destroy();
       }
 
-      this._setState(DESTROYED);
+      this._setState(STATE_DESTROYED);
       this._setHealthy(false);
       this.logger.info('Service destroyed');
 
@@ -294,7 +305,8 @@ export class ServiceBase extends EventEmitter {
   /**
    * Get the current health status of the service
    *
-   * @returns {Promise<HealthStatus>} Health status object
+   * @returns {Promise<import('./typedef.js').HealthStatus>}
+   *   Health status object
    */
   async getHealth() {
     const baseHealth = {
@@ -334,14 +346,39 @@ export class ServiceBase extends EventEmitter {
   // Protected methods to override in subclasses
 
   /**
-   * Initialize the service (override in subclass)
+   * Configure the service (handles both initial config and reconfiguration)
    *
    * @protected
-   * @param {*} config - Service configuration
+   * @param {any} newConfig - Configuration to apply
+   * @param {any} [oldConfig=null] - Previous config (null = initial setup)
    *
    * @returns {Promise<void>}
+   *
+   * @remarks
+   * This method is called both for initial setup and reconfiguration.
+   * When oldConfig is provided, you should:
+   * 1. Compare oldConfig vs newConfig to determine changes
+   * 2. Clean up resources that need replacing
+   * 3. Apply only the changes that are necessary
+   * 4. Preserve resources that don't need changing
+   *
+   * @example
+   * async _configure(newConfig, oldConfig = null) {
+   *   if (!oldConfig) {
+   *     // Initial setup
+   *     this.connection = new Connection(newConfig.url);
+   *     return;
+   *   }
+   *
+   *   // Reconfiguration
+   *   if (oldConfig.url !== newConfig.url) {
+   *     await this.connection.close();
+   *     this.connection = new Connection(newConfig.url);
+   *   }
+   * }
    */
-  async _init(config) {
+  // eslint-disable-next-line no-unused-vars
+  async _configure(newConfig, oldConfig = null) {
     // Override in subclass
   }
 
@@ -408,16 +445,40 @@ export class ServiceBase extends EventEmitter {
    * Set the service state and emit event
    *
    * @private
-   * @param {string} newState - New state value
+   * @param {ServiceState} newState - New state value
+   * @emits {StateChangeEvent} EVENT_STATE_CHANGED
    */
   _setState(newState) {
     const oldState = this.state;
     this.state = newState;
 
-    this.emit('stateChanged', {
+    /** @type {StateChangeEvent} */
+    const eventData = {
       oldState,
       newState
-    });
+    };
+
+    this.emit(EVENT_STATE_CHANGED, eventData);
+  }
+
+  /**
+   * Set the service target state and emit event
+   *
+   * @private
+   * @param {ServiceState} newTargetState - New target state value
+   * @emits {TargetStateChangeEvent} EVENT_TARGET_STATE_CHANGED
+   */
+  _setTargetState(newTargetState) {
+    const oldTargetState = this.targetState;
+    this.targetState = newTargetState;
+
+    /** @type {TargetStateChangeEvent} */
+    const eventData = {
+      oldTargetState,
+      newTargetState
+    };
+
+    this.emit(EVENT_TARGET_STATE_CHANGED, eventData);
   }
 
   /**
@@ -425,16 +486,20 @@ export class ServiceBase extends EventEmitter {
    *
    * @private
    * @param {boolean} healthy - New health status
+   * @emits {HealthChangeEvent} EVENT_HEALTH_CHANGED
    */
   _setHealthy(healthy) {
     const wasHealthy = this.healthy;
     this.healthy = healthy;
 
     if (wasHealthy !== healthy) {
-      this.emit('healthChanged', {
+      /** @type {HealthChangeEvent} */
+      const eventData = {
         healthy,
         wasHealthy
-      });
+      };
+
+      this.emit(EVENT_HEALTH_CHANGED, eventData);
     }
   }
 
@@ -444,20 +509,24 @@ export class ServiceBase extends EventEmitter {
    * @private
    * @param {string} operation - Operation that failed
    * @param {Error} error - Error that occurred
+   * @emits {ServiceErrorEvent} EVENT_ERROR
    */
   _setError(operation, error) {
     const detailedError = new DetailedError(`${operation} failed`, null, error);
 
     this.error = detailedError;
-    this._setState(ERROR_STATE);
+    this._setState(STATE_ERROR);
     this._setHealthy(false);
 
     this.logger.error(detailedError);
 
-    this.emit('error', {
+    /** @type {ServiceErrorEvent} */
+    const eventData = {
       operation,
       error: detailedError
-    });
+    };
+
+    this.emit(EVENT_ERROR, eventData);
   }
 }
 

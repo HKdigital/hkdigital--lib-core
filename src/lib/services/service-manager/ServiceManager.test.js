@@ -6,16 +6,16 @@ import { ServiceManager } from './ServiceManager.js';
 import { DEBUG, INFO, WARN } from '$lib/logging/index.js';
 import { ServiceBase } from '$lib/services/service-base/ServiceBase.js';
 import {
-  NOT_CREATED,
-  INITIALIZED,
-  RUNNING,
-  STOPPED,
-  ERROR
+  STATE_NOT_CREATED,
+  STATE_CONFIGURED,
+  STATE_RUNNING,
+  STATE_STOPPED,
+  STATE_ERROR
 } from '$lib/services/service-base/constants.js';
 
 // Mock service classes
 class MockServiceA extends ServiceBase {
-  async _init(config) {
+  async _configure(config) {
     this.config = config;
   }
   async _start() {
@@ -27,7 +27,7 @@ class MockServiceA extends ServiceBase {
 }
 
 class MockServiceB extends ServiceBase {
-  async _init(config) {
+  async _configure(config) {
     this.config = config;
   }
   async _start() {
@@ -39,7 +39,7 @@ class MockServiceB extends ServiceBase {
 }
 
 class MockServiceC extends ServiceBase {
-  async _init(config) {
+  async _configure(config) {
     this.config = config;
   }
   async _start() {
@@ -158,7 +158,7 @@ describe('ServiceManager', () => {
       const instance = manager.get('serviceA');
 
       expect(result).toBe(true);
-      expect(instance.state).toBe(INITIALIZED);
+      expect(instance.state).toBe(STATE_CONFIGURED);
       expect(instance.config).toEqual({ configA: true });
     });
 
@@ -167,7 +167,7 @@ describe('ServiceManager', () => {
       const instance = manager.get('serviceA');
 
       expect(result).toBe(true);
-      expect(instance.state).toBe(RUNNING);
+      expect(instance.state).toBe(STATE_RUNNING);
       expect(instance.started).toBe(true);
     });
 
@@ -177,7 +177,7 @@ describe('ServiceManager', () => {
       const instance = manager.get('serviceA');
 
       expect(result).toBe(true);
-      expect(instance.state).toBe(STOPPED);
+      expect(instance.state).toBe(STATE_STOPPED);
       expect(instance.started).toBe(false);
     });
 
@@ -187,13 +187,13 @@ describe('ServiceManager', () => {
       await instance.start();
 
       // Force error state
-      instance.state = ERROR;
+      instance.state = STATE_ERROR;
       instance.error = new Error('Test error');
 
       const result = await manager.recoverService('serviceA');
 
       expect(result).toBe(true);
-      expect(instance.state).toBe(RUNNING);
+      expect(instance.state).toBe(STATE_RUNNING);
       expect(instance.error).toBeNull();
     });
   });
@@ -240,7 +240,7 @@ describe('ServiceManager', () => {
 
       expect(result).toBe(false);
       const cache = manager.get('cache');
-      expect(cache.state).not.toBe(RUNNING);
+      expect(cache.state).not.toBe(STATE_RUNNING);
     });
 
     it('should prevent stopping services with running dependents', async () => {
@@ -250,7 +250,7 @@ describe('ServiceManager', () => {
 
       expect(result).toBe(false);
       const database = manager.get('database');
-      expect(database.state).toBe(RUNNING);
+      expect(database.state).toBe(STATE_RUNNING);
     });
 
     it('should allow force stopping', async () => {
@@ -260,7 +260,7 @@ describe('ServiceManager', () => {
 
       expect(result).toBe(true);
       const database = manager.get('database');
-      expect(database.state).toBe(STOPPED);
+      expect(database.state).toBe(STATE_STOPPED);
     });
   });
 
@@ -284,9 +284,9 @@ describe('ServiceManager', () => {
         serviceC: true
       });
 
-      expect(manager.get('serviceA').state).toBe(RUNNING);
-      expect(manager.get('serviceB').state).toBe(RUNNING);
-      expect(manager.get('serviceC').state).toBe(RUNNING);
+      expect(manager.get('serviceA').state).toBe(STATE_RUNNING);
+      expect(manager.get('serviceB').state).toBe(STATE_RUNNING);
+      expect(manager.get('serviceC').state).toBe(STATE_RUNNING);
     });
 
     it('should stop all services in reverse order', async () => {
@@ -347,13 +347,13 @@ describe('ServiceManager', () => {
 
       expect(health.serviceA).toMatchObject({
         name: 'serviceA',
-        state: RUNNING,
+        state: STATE_RUNNING,
         healthy: true
       });
 
       expect(health.serviceC).toMatchObject({
         name: 'serviceC',
-        state: RUNNING,
+        state: STATE_RUNNING,
         healthy: true,
         custom: 'health-data'
       });
@@ -364,7 +364,7 @@ describe('ServiceManager', () => {
 
       expect(health.serviceA).toEqual({
         name: 'serviceA',
-        state: NOT_CREATED,
+        state: STATE_NOT_CREATED,
         healthy: false
       });
     });
@@ -414,7 +414,7 @@ describe('ServiceManager', () => {
       manager.on('service:error', (e) => errorEvents.push(e));
 
       const instance = manager.get('serviceA');
-      vi.spyOn(instance, '_init').mockRejectedValue(new Error('Init failed'));
+      vi.spyOn(instance, '_configure').mockRejectedValue(new Error('Configure failed'));
 
       await manager.initService('serviceA');
 
@@ -422,10 +422,10 @@ describe('ServiceManager', () => {
       expect(errorEvents[0]).toMatchObject({
         service: 'serviceA',
         data: {
-          operation: 'initialization',
+          operation: 'configuration',
           error: expect.objectContaining({ 
-            message: 'initialization failed',
-            cause: expect.objectContaining({ message: 'Init failed' })
+            message: 'configuration failed',
+            cause: expect.objectContaining({ message: 'Configure failed' })
           })
         }
       });

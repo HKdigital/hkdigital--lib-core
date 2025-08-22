@@ -9,7 +9,7 @@
  * import { ServiceBase } from './ServiceBase.js';
  * 
  * class MyService extends ServiceBase {
- *   async _init(config) {
+ *   async _configure(newConfig, oldConfig) {
  *   }
  *   
  *   async _healthCheck() {
@@ -22,6 +22,24 @@
 // ============================================================================
 // PUBLIC TYPES
 // ============================================================================
+
+/**
+ * All possible service states during lifecycle management
+ *
+ * @typedef {import('./constants.js').STATE_NOT_CREATED |
+ *           import('./constants.js').STATE_CREATED |
+ *           import('./constants.js').STATE_CONFIGURING |
+ *           import('./constants.js').STATE_CONFIGURED |
+ *           import('./constants.js').STATE_STARTING |
+ *           import('./constants.js').STATE_RUNNING |
+ *           import('./constants.js').STATE_STOPPING |
+ *           import('./constants.js').STATE_STOPPED |
+ *           import('./constants.js').STATE_DESTROYING |
+ *           import('./constants.js').STATE_DESTROYED |
+ *           import('./constants.js').STATE_ERROR |
+ *           import('./constants.js').STATE_RECOVERING
+ * } ServiceState
+ */
 
 /**
  * Options for creating a service instance
@@ -57,7 +75,7 @@
  *
  * @typedef {Object & Record<string, any>} ServiceInstance
  * @property {string} name - Service name
- * @property {string} state - Current state
+ * @property {ServiceState} state - Current state
  * @property {boolean} healthy - Health status
  * @property {Error|null} error - Last error
  * @property {import('$lib/logging/index.js').Logger} logger - Service logger
@@ -79,13 +97,18 @@
 /**
  * @typedef {Object} StateChangeEvent
  * @property {string} service - Service name (added by ServiceManager)
- * @property {string} oldState - Previous state
- * @property {string} newState - New state
+ * @property {ServiceState} oldState - Previous state
+ * @property {ServiceState} newState - New state
+ */
+
+/**
+ * @typedef {Object} TargetStateChangeEvent
+ * @property {ServiceState} oldTargetState - Previous target state
+ * @property {ServiceState} newTargetState - New target state
  */
 
 /**
  * @typedef {Object} HealthChangeEvent
- * @property {string} service - Service name (added by ServiceManager)
  * @property {boolean} healthy - Current health status
  * @property {boolean} [wasHealthy] - Previous health status
  */
@@ -94,7 +117,6 @@
  * Event emitted when service encounters an error
  *
  * @typedef {Object} ServiceErrorEvent
- * @property {string} service - Service name
  * @property {string} operation - Operation that failed
  * @property {Error} error - Error that occurred
  */
