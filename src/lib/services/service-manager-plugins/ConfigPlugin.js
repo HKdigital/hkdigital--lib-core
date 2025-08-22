@@ -39,14 +39,12 @@
  * const mixedPlugin = new ConfigPlugin(mixedConfig);
  */
 
-import ServiceManagerPlugin from '../service-manager/plugins/ServiceManagerPlugin.js';
 import { SERVICE_STATE_CHANGED } from '../service-manager/constants.js';
 
 /**
  * Plugin that resolves service configuration from a configuration object
- * @extends ServiceManagerPlugin
  */
-export default class ConfigPlugin extends ServiceManagerPlugin {
+export default class ConfigPlugin {
 
   /** @type {Map<string, *>} */
   #pendingConfigUpdates;
@@ -57,7 +55,11 @@ export default class ConfigPlugin extends ServiceManagerPlugin {
    * @param {Object<string, *>} configObject - Pre-parsed configuration object
    */
   constructor(configObject) {
-    super('object-config');
+    /** @type {string} */
+    this.name = 'object-config';
+
+    /** @type {import('../service-manager/ServiceManager.js').ServiceManager|null} */
+    this.manager = null;
 
     /** @type {Object<string, *>} */
     this.configObject = configObject || {};
@@ -223,11 +225,20 @@ export default class ConfigPlugin extends ServiceManagerPlugin {
   }
 
   /**
-   * Called when plugin is attached to ServiceManager
+   * Attach plugin to ServiceManager
    *
-   * @protected
+   * @param {import('../service-manager/ServiceManager.js').ServiceManager} manager
+   *   ServiceManager instance
    */
-  _onAttach() {
+  attach(manager) {
+    if (this.manager) {
+      throw new Error(
+        `Plugin '${this.name}' is already attached to a ServiceManager`
+      );
+    }
+
+    this.manager = manager;
+
     const configKeys = Object.keys(this.configObject).length;
 
     this.manager.logger.info(
@@ -241,14 +252,15 @@ export default class ConfigPlugin extends ServiceManagerPlugin {
   }
 
   /**
-   * Called when plugin is detached from ServiceManager
-   *
-   * @protected
+   * Detach plugin from ServiceManager
    */
-  _onDetach() {
-    // Clear pending updates
-    this.#pendingConfigUpdates.clear();
-    
-    this.manager.logger.info('ConfigPlugin detached');
+  detach() {
+    if (this.manager) {
+      // Clear pending updates
+      this.#pendingConfigUpdates.clear();
+      
+      this.manager.logger.info('ConfigPlugin detached');
+      this.manager = null;
+    }
   }
 }

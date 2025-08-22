@@ -88,7 +88,7 @@ import {
  * @extends EventEmitter
  */
 export class ServiceManager extends EventEmitter {
-  /** @type {Map<string, import('./plugins/ServiceManagerPlugin.js').default>} */
+  /** @type {Map<string, import('./typedef.js').ServiceManagerPlugin>} */
   #plugins = new Map();
 
   /**
@@ -119,7 +119,7 @@ export class ServiceManager extends EventEmitter {
   /**
    * Attach a plugin to the ServiceManager
    *
-   * @param {import('./plugins/ServiceManagerPlugin.js').default} plugin
+   * @param {import('./typedef.js').ServiceManagerPlugin} plugin
    *   Plugin instance
    *
    * @throws {Error} If plugin name is already registered

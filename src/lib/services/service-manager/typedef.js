@@ -70,6 +70,17 @@
  * @typedef {new (name: string, options?: import('../service-base/typedef.js').ServiceOptions) => import('../service-base/typedef.js').ServiceInstance} ServiceConstructor
  */
 
+/**
+ * ServiceManager plugin interface
+ *
+ * @typedef {Object} ServiceManagerPlugin
+ * @property {string} name - Unique plugin identifier
+ * @property {import('./ServiceManager.js').ServiceManager|null} manager - ServiceManager reference
+ * @property {function(import('./ServiceManager.js').ServiceManager): void} attach - Attach to ServiceManager
+ * @property {function(): void} detach - Detach from ServiceManager
+ * @property {function(string, ServiceEntry, *): Promise<*|undefined>} [_getServiceConfig] - Optional config resolution method
+ */
+
 // ============================================================================
 // INTERNAL TYPES
 // ============================================================================
