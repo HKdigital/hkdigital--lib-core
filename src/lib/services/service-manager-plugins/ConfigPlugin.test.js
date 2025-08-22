@@ -1,8 +1,8 @@
 /**
- * @fileoverview Unit tests for ObjectConfigPlugin.js
+ * @fileoverview Unit tests for ConfigPlugin.js
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import ObjectConfigPlugin from './ObjectConfigPlugin.js';
+import ConfigPlugin from './ConfigPlugin.js';
 import { ServiceManager } from '../service-manager/ServiceManager.js';
 import { ServiceBase } from '../service-base/ServiceBase.js';
 import {
@@ -44,7 +44,7 @@ class MockService extends ServiceBase {
   }
 }
 
-describe('ObjectConfigPlugin', () => {
+describe('ConfigPlugin', () => {
   let plugin;
   let manager;
   let mockConfig;
@@ -56,7 +56,7 @@ describe('ObjectConfigPlugin', () => {
       api: { timeout: 5000, retries: 3 }
     };
 
-    plugin = new ObjectConfigPlugin(mockConfig);
+    plugin = new ConfigPlugin(mockConfig);
     manager = new ServiceManager();
     
     // Spy on manager methods
@@ -76,7 +76,7 @@ describe('ObjectConfigPlugin', () => {
     });
 
     it('should initialize with empty config if none provided', () => {
-      const emptyPlugin = new ObjectConfigPlugin();
+      const emptyPlugin = new ConfigPlugin();
       expect(emptyPlugin.configObject).toEqual({});
     });
 
@@ -243,6 +243,56 @@ describe('ObjectConfigPlugin', () => {
       );
     });
 
+    it('should discard intermediate config updates when multiple updates are queued', async () => {
+      // Mock configure to reject multiple times, then succeed
+      const configureSpy = vi.spyOn(mockService, 'configure')
+        .mockRejectedValue(new Error('Cannot configure from state: error'))
+        .mockResolvedValueOnce(undefined);
+      
+      // Set service to invalid state
+      mockService._setState(STATE_ERROR);
+      
+      // Queue multiple config updates
+      const config1 = { host: 'host1', port: 5432 };
+      const config2 = { host: 'host2', port: 5433 };
+      const config3 = { host: 'host3', port: 5434 };
+      
+      await plugin.updateConfigLabel('database', config1);
+      await plugin.updateConfigLabel('database', config2);
+      await plugin.updateConfigLabel('database', config3);
+      
+      // All should fail initially
+      expect(configureSpy).toHaveBeenCalledTimes(3);
+      expect(configureSpy).toHaveBeenNthCalledWith(1, config1);
+      expect(configureSpy).toHaveBeenNthCalledWith(2, config2);
+      expect(configureSpy).toHaveBeenNthCalledWith(3, config3);
+      
+      // Reset spy for recovery test
+      configureSpy.mockClear();
+      configureSpy.mockResolvedValueOnce(undefined);
+      
+      // Simulate service recovery
+      mockService._setState(STATE_RUNNING);
+      
+      // Trigger state change event
+      const stateChangeHandler = manager.on.mock.calls.find(
+        call => call[0] === SERVICE_STATE_CHANGED
+      )[1];
+      
+      await stateChangeHandler({
+        service: 'test-service',
+        state: STATE_RUNNING,
+        instance: mockService
+      });
+      
+      // Should only apply the LATEST config (config3), discarding config1 and config2
+      expect(configureSpy).toHaveBeenCalledTimes(1);
+      expect(configureSpy).toHaveBeenCalledWith(config3);
+      expect(manager.logger.info).toHaveBeenCalledWith(
+        expect.stringContaining('Applied pending config update')
+      );
+    });
+
     it('should handle config update errors gracefully', async () => {
       // Make configure throw an error
       vi.spyOn(mockService, 'configure').mockRejectedValue(new Error('Config failed'));
@@ -293,7 +343,7 @@ describe('ObjectConfigPlugin', () => {
         expect.any(Function)
       );
       expect(manager.logger.info).toHaveBeenCalledWith(
-        expect.stringContaining('ObjectConfigPlugin attached')
+        expect.stringContaining('ConfigPlugin attached')
       );
     });
 
@@ -309,7 +359,7 @@ describe('ObjectConfigPlugin', () => {
       manager.detachPlugin('object-config'); // Use plugin name, not object
       
       expect(manager.logger.info).toHaveBeenCalledWith(
-        'ObjectConfigPlugin detached'
+        'ConfigPlugin detached'
       );
       // Note: Can't directly test private field, but it's cleared in _onDetach
     });

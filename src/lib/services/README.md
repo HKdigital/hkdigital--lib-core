@@ -219,7 +219,7 @@ await manager.recoverService('database');
 
 ServiceManager supports plugins that can resolve service configuration dynamically. This is particularly useful for environment-based configuration.
 
-### ObjectConfigPlugin
+### ConfigPlugin
 
 The most common plugin for resolving service configuration from a pre-parsed configuration object. Perfect for environment variables, config files, or any structured configuration source.
 
@@ -227,7 +227,7 @@ The most common plugin for resolving service configuration from a pre-parsed con
 
 ```javascript
 import { ServiceManager } from '$lib/services/index.js';
-import ObjectConfigPlugin from '$lib/services/service-manager-plugins/ObjectConfigPlugin.js';
+import ConfigPlugin from '$lib/services/service-manager-plugins/ConfigPlugin.js';
 import { getPrivateEnv } from '$lib/util/sveltekit/env-private.js';
 
 // Load and auto-group environment variables
@@ -240,7 +240,7 @@ const envConfig = getPrivateEnv();
 // }
 
 // Create plugin with grouped config
-const configPlugin = new ObjectConfigPlugin(envConfig);
+const configPlugin = new ConfigPlugin(envConfig);
 
 // Attach to ServiceManager
 const manager = new ServiceManager();
@@ -292,7 +292,7 @@ const config = {
   }
 };
 
-const plugin = new ObjectConfigPlugin(config);
+const plugin = new ConfigPlugin(config);
 ```
 
 #### Plugin Benefits
@@ -334,7 +334,7 @@ const currentConfig = configPlugin.getConfigObject();
 
 ### Live Configuration Updates
 
-The ObjectConfigPlugin supports pushing configuration updates to running services:
+The ConfigPlugin supports pushing configuration updates to running services:
 
 ```javascript
 // Update config for a specific label and notify all affected services

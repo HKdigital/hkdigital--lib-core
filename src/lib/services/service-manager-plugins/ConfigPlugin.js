@@ -6,23 +6,23 @@
  *
  * @example
  * // Basic usage with config object
- * import ObjectConfigPlugin from '$lib/services/service-manager-plugins/ObjectConfigPlugin.js';
+ * import ConfigPlugin from '$lib/services/service-manager-plugins/ConfigPlugin.js';
  *
  * const configObject = {
  *   'database': { host: 'localhost', port: 5432 },
  *   'auth': { secret: 'my-secret', algorithm: 'HS256' }
  * };
  *
- * const objectPlugin = new ObjectConfigPlugin(configObject);
+ * const objectPlugin = new ConfigPlugin(configObject);
  * manager.attachPlugin(objectPlugin);
  *
  * @example
  * // With environment variables using utility
  * import { allEnv } from '$lib/util/sveltekit/env.js';
- * import ObjectConfigPlugin from '$lib/services/service-manager-plugins/ObjectConfigPlugin.js';
+ * import ConfigPlugin from '$lib/services/service-manager-plugins/ConfigPlugin.js';
  *
  * const envConfig = await allEnv();
- * const envPlugin = new ObjectConfigPlugin(envConfig, {
+ * const envPlugin = new ConfigPlugin(envConfig, {
  *   prefixMap: {
  *     'database': 'DATABASE',
  *     'auth': 'JWT'
@@ -36,7 +36,7 @@
  *   'custom-service': { specialOption: true },
  *   'override-service': { host: 'custom-host' }
  * };
- * const mixedPlugin = new ObjectConfigPlugin(mixedConfig);
+ * const mixedPlugin = new ConfigPlugin(mixedConfig);
  */
 
 import ServiceManagerPlugin from '../service-manager/plugins/ServiceManagerPlugin.js';
@@ -46,7 +46,7 @@ import { SERVICE_STATE_CHANGED } from '../service-manager/constants.js';
  * Plugin that resolves service configuration from a configuration object
  * @extends ServiceManagerPlugin
  */
-export default class ObjectConfigPlugin extends ServiceManagerPlugin {
+export default class ConfigPlugin extends ServiceManagerPlugin {
 
   /** @type {Map<string, *>} */
   #pendingConfigUpdates;
@@ -231,7 +231,7 @@ export default class ObjectConfigPlugin extends ServiceManagerPlugin {
     const configKeys = Object.keys(this.configObject).length;
 
     this.manager.logger.info(
-      `ObjectConfigPlugin attached with ${configKeys} config keys`
+      `ConfigPlugin attached with ${configKeys} config keys`
     );
 
     // Listen for service state changes to process pending updates
@@ -249,6 +249,6 @@ export default class ObjectConfigPlugin extends ServiceManagerPlugin {
     // Clear pending updates
     this.#pendingConfigUpdates.clear();
     
-    this.manager.logger.info('ObjectConfigPlugin detached');
+    this.manager.logger.info('ConfigPlugin detached');
   }
 }
