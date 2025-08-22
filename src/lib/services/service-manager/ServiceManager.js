@@ -194,18 +194,18 @@ export class ServiceManager extends EventEmitter {
   }
 
   /**
-   * Initialize a service
+   * Configure a service
    *
    * @param {string} name - Service name
    *
-   * @returns {Promise<boolean>} True if initialization succeeded
+   * @returns {Promise<boolean>} True if configuration succeeded
    */
-  async initService(name) {
+  async configureService(name) {
     const instance = this.get(name);
     if (!instance) return false;
 
     const entry = this.services.get(name);
-    return await instance.initialize(entry.config);
+    return await instance.configure(entry.config);
   }
 
   /**
@@ -240,10 +240,18 @@ export class ServiceManager extends EventEmitter {
     const instance = this.get(name);
     if (!instance) return false;
 
-    // Initialize if needed
-    if (instance.state === STATE_CREATED || instance.state === STATE_DESTROYED) {
-      const initialized = await this.initService(name);
-      if (!initialized) return false;
+    if (
+      instance.state === STATE_CREATED ||
+      instance.state === STATE_DESTROYED
+    ) {
+      // Service is not created or has been destroyed
+      // => configure needed
+
+      const configured = await this.configureService(name);
+
+      if (!configured) {
+        return false;
+      }
     }
 
     return await instance.start();
@@ -385,7 +393,6 @@ export class ServiceManager extends EventEmitter {
     return Object.fromEntries(results);
   }
 
-
   /**
    * Get health status for all services
    *
@@ -471,7 +478,6 @@ export class ServiceManager extends EventEmitter {
     }
     return services;
   }
-
 
   /**
    * Attach event listeners to forward service events

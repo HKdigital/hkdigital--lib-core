@@ -26,7 +26,7 @@
  *
  * // Usage
  * const db = new DatabaseService('database');
- * await db.initialize({ connectionString: 'postgres://...' });
+ * await db.configure({ connectionString: 'postgres://...' });
  * await db.start();
  *
  * // Listen to events
@@ -85,6 +85,9 @@ import {
  * @extends EventEmitter
  */
 export class ServiceBase extends EventEmitter {
+  /** @type {*} */
+  #lastConfig = null;
+
   /**
    * Create a new service instance
    *
@@ -117,30 +120,35 @@ export class ServiceBase extends EventEmitter {
   }
 
   /**
-   * Initialize the service with configuration
+   * Configure the service with configuration
    *
    * @param {*} [config={}] - Service-specific configuration
    *
-   * @returns {Promise<boolean>} True if initialization succeeded
+   * @returns {Promise<boolean>} True if configuration succeeded
    */
-  async initialize(config = {}) {
+  async configure(config = {}) {
     if (
       this.state !== STATE_CREATED &&
+      this.state !== STATE_CONFIGURED &&
+      this.state !== STATE_RUNNING &&
       this.state !== STATE_STOPPED &&
       this.state !== STATE_DESTROYED
     ) {
-      this.logger.warn(`Cannot initialize from state: ${this.state}`);
+      this.logger.warn(`Cannot configure from state: ${this.state}`);
       return false;
     }
 
+    const wasRunning = this.state === STATE_RUNNING;
+
     try {
-      this._setTargetState(STATE_CONFIGURED);
+      this._setTargetState(wasRunning ? STATE_RUNNING : STATE_CONFIGURED);
       this._setState(STATE_CONFIGURING);
       this.logger.debug('Configuring service', { config });
 
-      await this._configure(config);
+      await this._configure(config, this.#lastConfig);
+      this.#lastConfig = config;
 
-      this._setState(STATE_CONFIGURED);
+      this._setState(wasRunning ? STATE_RUNNING : STATE_CONFIGURED);
       this.logger.info('Service configured');
       return true;
     } catch (error) {

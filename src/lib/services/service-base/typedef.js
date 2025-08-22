@@ -79,7 +79,7 @@
  * @property {boolean} healthy - Health status
  * @property {Error|null} error - Last error
  * @property {import('$lib/logging/index.js').Logger} logger - Service logger
- * @property {(config?: *) => Promise<boolean>} initialize
+ * @property {(config?: *) => Promise<boolean>} configure
  * @property {() => Promise<boolean>} start
  * @property {(options?: StopOptions) => Promise<boolean>} stop
  * @property {() => Promise<boolean>} recover

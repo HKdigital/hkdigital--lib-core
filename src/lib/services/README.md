@@ -31,7 +31,7 @@ Services transition through these states during their lifecycle:
 
 Base class that all services should extend. Provides:
 
-- Standardized lifecycle methods (`initialize`, `start`, `stop`, `destroy`)
+- Standardized lifecycle methods (`configure`, `start`, `stop`, `destroy`)
 - Flexible configuration system with reconfiguration support
 - Health monitoring and recovery
 - Event emission for state changes
@@ -92,7 +92,7 @@ class DatabaseService extends ServiceBase {
 
 // Usage
 const db = new DatabaseService('database');
-await db.initialize({
+await db.configure({
   connectionString: 'postgres://localhost/myapp',
   maxConnections: 20
 });
@@ -104,7 +104,7 @@ db.on('healthChanged', ({ healthy }) => {
 });
 
 // Reconfigure at runtime
-await db.reconfigure({
+await db.configure({
   connectionString: 'postgres://localhost/myapp',
   maxConnections: 50  // Hot-reloaded without restart
 });
@@ -217,7 +217,7 @@ await manager.recoverService('database');
 ## Best Practices
 
 1. **Always extend ServiceBase** for consistent lifecycle management
-2. **Keep initialization lightweight** - heavy work should be in `_start()`
+2. **Keep configuration lightweight** - heavy work should be in `_start()`
 3. **Implement proper cleanup** in `_stop()` to prevent resource leaks
 4. **Use health checks** for monitoring critical service functionality
 5. **Declare dependencies explicitly** when registering with ServiceManager

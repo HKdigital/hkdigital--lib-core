@@ -153,8 +153,8 @@ describe('ServiceManager', () => {
       manager.register('serviceB', MockServiceB, { configB: true });
     });
 
-    it('should initialize services', async () => {
-      const result = await manager.initService('serviceA');
+    it('should configure services', async () => {
+      const result = await manager.configureService('serviceA');
       const instance = manager.get('serviceA');
 
       expect(result).toBe(true);
@@ -183,7 +183,7 @@ describe('ServiceManager', () => {
 
     it('should recover services', async () => {
       const instance = manager.get('serviceA');
-      await instance.initialize();
+      await instance.configure();
       await instance.start();
 
       // Force error state
@@ -416,7 +416,7 @@ describe('ServiceManager', () => {
       const instance = manager.get('serviceA');
       vi.spyOn(instance, '_configure').mockRejectedValue(new Error('Configure failed'));
 
-      await manager.initService('serviceA');
+      await manager.configureService('serviceA');
 
       expect(errorEvents).toHaveLength(1);
       expect(errorEvents[0]).toMatchObject({
@@ -520,7 +520,7 @@ describe('ServiceManager', () => {
 
   describe('Error Handling', () => {
     it('should handle missing service in operations', async () => {
-      expect(await manager.initService('unknown')).toBe(false);
+      expect(await manager.configureService('unknown')).toBe(false);
       expect(await manager.startService('unknown')).toBe(false);
       expect(await manager.stopService('unknown')).toBe(true); // Already stopped
       expect(await manager.recoverService('unknown')).toBe(false);
