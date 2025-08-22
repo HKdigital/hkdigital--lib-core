@@ -244,6 +244,7 @@ export function groupEnvByPrefixes(env, prefixes, options = {}) {
  */
 export function filterEnvByPattern(env, pattern, options = {}) {
   const regex = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
+  /** @type {Object<string, string>} */
   const filtered = {};
   
   for (const [key, value] of Object.entries(env || {})) {

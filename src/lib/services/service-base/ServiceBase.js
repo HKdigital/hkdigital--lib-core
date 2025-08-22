@@ -462,6 +462,7 @@ export class ServiceBase extends EventEmitter {
 
     /** @type {StateChangeEvent} */
     const eventData = {
+      service: this.name,
       oldState,
       newState
     };
