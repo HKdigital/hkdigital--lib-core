@@ -40,12 +40,16 @@
  */
 
 import ServiceManagerPlugin from '../service-manager/plugins/ServiceManagerPlugin.js';
+import { SERVICE_STATE_CHANGED } from '../service-manager/constants.js';
 
 /**
  * Plugin that resolves service configuration from a configuration object
  * @extends ServiceManagerPlugin
  */
 export default class ObjectConfigPlugin extends ServiceManagerPlugin {
+
+  /** @type {Map<string, *>} */
+  #pendingConfigUpdates;
 
   /**
    * Create a new object configuration plugin
@@ -57,6 +61,8 @@ export default class ObjectConfigPlugin extends ServiceManagerPlugin {
 
     /** @type {Object<string, *>} */
     this.configObject = configObject || {};
+
+    this.#pendingConfigUpdates = new Map();
   }
 
   /**
@@ -136,36 +142,84 @@ export default class ObjectConfigPlugin extends ServiceManagerPlugin {
     // Update the config object
     this.configObject[configLabel] = newConfig;
 
+    // Store as pending update
+    this.#pendingConfigUpdates.set(configLabel, newConfig);
+
     const updatedServices = [];
 
     // Find all services using this config label
     for (const [serviceName, serviceEntry] of this.manager.services) {
       if (serviceEntry.config === configLabel && serviceEntry.instance) {
         try {
-          // Call _configure on the service instance if it exists
-          if (typeof serviceEntry.instance._configure === 'function') {
-            await serviceEntry.instance._configure(newConfig, 
-              serviceEntry.resolvedConfig);
-            serviceEntry.resolvedConfig = newConfig;
-            updatedServices.push(serviceName);
-
-            this.manager.logger.info(
-              `Updated config for service '${serviceName}' (label: ${configLabel})`
-            );
-          }
+          // Try to apply config - ServiceBase.configure() will handle state validation
+          await this.#applyConfigToService(serviceName, serviceEntry, newConfig);
+          updatedServices.push(serviceName);
+          
+          // Remove from pending since it was applied
+          this.#pendingConfigUpdates.delete(configLabel);
         } catch (error) {
-          this.manager.logger.error(
-            `Failed to update config for service '${serviceName}': ${error.message}`
+          // If configure() fails due to invalid state, it will be retried later
+          this.manager.logger.debug(
+            `Could not update config for service '${serviceName}' (${error.message}), will retry when service state allows`
           );
         }
       }
     }
 
     this.manager.logger.debug(
-      `Config label '${configLabel}' updated, affected ${updatedServices.length} services`
+      `Config label '${configLabel}' updated, applied to ${updatedServices.length} services immediately`
     );
 
     return updatedServices;
+  }
+
+
+  /**
+   * Apply configuration to a specific service
+   *
+   * @param {string} serviceName - Name of the service
+   * @param {import('../service-manager/typedef.js').ServiceEntry} serviceEntry
+   *   Service entry from manager
+   * @param {*} newConfig - New configuration to apply
+   */
+  async #applyConfigToService(serviceName, serviceEntry, newConfig) {
+    await serviceEntry.instance.configure(newConfig);
+
+    this.manager.logger.info(
+      `Updated config for service '${serviceName}'`
+    );
+  }
+
+  /**
+   * Process pending config updates for services that can now be configured
+   *
+   * @param {string} serviceName - Name of the service that changed state
+   * @param {import('../service-base/ServiceBase.js').default} serviceInstance
+   *   Service instance
+   */
+  async #processPendingUpdates(serviceName, serviceInstance) {
+    const serviceEntry = this.manager.services.get(serviceName);
+    if (!serviceEntry || typeof serviceEntry.config !== 'string') {
+      return;
+    }
+
+    const configLabel = serviceEntry.config;
+    if (this.#pendingConfigUpdates.has(configLabel)) {
+      const pendingConfig = this.#pendingConfigUpdates.get(configLabel);
+      
+      try {
+        await this.#applyConfigToService(serviceName, serviceEntry, pendingConfig);
+        this.#pendingConfigUpdates.delete(configLabel);
+        
+        this.manager.logger.info(
+          `Applied pending config update for service '${serviceName}' (label: ${configLabel})`
+        );
+      } catch (error) {
+        this.manager.logger.debug(
+          `Could not apply pending config for service '${serviceName}': ${error.message}`
+        );
+      }
+    }
   }
 
   /**
@@ -179,6 +233,11 @@ export default class ObjectConfigPlugin extends ServiceManagerPlugin {
     this.manager.logger.info(
       `ObjectConfigPlugin attached with ${configKeys} config keys`
     );
+
+    // Listen for service state changes to process pending updates
+    this.manager.on(SERVICE_STATE_CHANGED, async ({ service, state, instance }) => {
+      await this.#processPendingUpdates(service, instance);
+    });
   }
 
   /**
@@ -187,6 +246,9 @@ export default class ObjectConfigPlugin extends ServiceManagerPlugin {
    * @protected
    */
   _onDetach() {
+    // Clear pending updates
+    this.#pendingConfigUpdates.clear();
+    
     this.manager.logger.info('ObjectConfigPlugin detached');
   }
 }
