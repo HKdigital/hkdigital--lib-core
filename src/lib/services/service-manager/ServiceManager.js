@@ -88,6 +88,9 @@ import {
  * @extends EventEmitter
  */
 export class ServiceManager extends EventEmitter {
+  /** @type {Map<string, import('./plugins/ServiceManagerPlugin.js').default>} */
+  #plugins = new Map();
+
   /**
    * Create a new ServiceManager instance
    *
@@ -111,6 +114,43 @@ export class ServiceManager extends EventEmitter {
     };
 
     this.#setupLogging();
+  }
+
+  /**
+   * Attach a plugin to the ServiceManager
+   *
+   * @param {import('./plugins/ServiceManagerPlugin.js').default} plugin
+   *   Plugin instance
+   *
+   * @throws {Error} If plugin name is already registered
+   */
+  attachPlugin(plugin) {
+    if (this.#plugins.has(plugin.name)) {
+      throw new Error(`Plugin '${plugin.name}' is already attached`);
+    }
+
+    this.#plugins.set(plugin.name, plugin);
+    plugin.attach(this);
+
+    this.logger.debug(`Attached plugin '${plugin.name}'`);
+  }
+
+  /**
+   * Detach a plugin from the ServiceManager
+   *
+   * @param {string} pluginName - Name of the plugin to detach
+   *
+   * @returns {boolean} True if plugin was detached
+   */
+  detachPlugin(pluginName) {
+    const plugin = this.#plugins.get(pluginName);
+    if (!plugin) return false;
+
+    plugin.detach();
+    this.#plugins.delete(pluginName);
+
+    this.logger.debug(`Detached plugin '${pluginName}'`);
+    return true;
   }
 
   /**
@@ -205,7 +245,9 @@ export class ServiceManager extends EventEmitter {
     if (!instance) return false;
 
     const entry = this.services.get(name);
-    return await instance.configure(entry.config);
+    const config = await this.#resolveConfig(name, entry);
+
+    return await instance.configure(config);
   }
 
   /**
@@ -508,6 +550,35 @@ export class ServiceManager extends EventEmitter {
   }
 
   // Internal methods
+
+  /**
+   * Resolve service configuration using plugins
+   *
+   * @param {string} serviceName - Name of the service being configured
+   * @param {ServiceEntry} serviceEntry - Service registration entry
+   *
+   * @returns {Promise<*>} Resolved configuration object
+   */
+  async #resolveConfig(serviceName, serviceEntry) {
+    let config = serviceEntry.config;
+
+    // Let plugins resolve the config
+    for (const plugin of this.#plugins.values()) {
+      if (plugin._getServiceConfig) {
+        const resolved = await plugin._getServiceConfig(
+          serviceName,
+          serviceEntry,
+          config
+        );
+        if (resolved !== undefined) {
+          config = resolved;
+          break; // First plugin that resolves wins
+        }
+      }
+    }
+
+    return config || {};
+  }
 
   /**
    * Setup logging configuration based on config.dev
