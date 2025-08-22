@@ -137,6 +137,7 @@ Manages multiple services with dependency resolution and coordinated lifecycle o
 - Health monitoring for all services
 - Centralized logging control
 - Service recovery management
+- Plugin system for extending configuration resolution
 
 ### Usage
 
@@ -212,6 +213,123 @@ manager.on('service:error', async ({ service, error }) => {
 
 // Manual recovery
 await manager.recoverService('database');
+```
+
+## Configuration Plugins
+
+ServiceManager supports plugins that can resolve service configuration dynamically. This is particularly useful for environment-based configuration.
+
+### ObjectConfigPlugin
+
+The most common plugin for resolving service configuration from a pre-parsed configuration object. Perfect for environment variables, config files, or any structured configuration source.
+
+#### Basic Usage with Environment Variables
+
+```javascript
+import { ServiceManager } from '$lib/services/index.js';
+import ObjectConfigPlugin from '$lib/services/manager-plugins/ObjectConfigPlugin.js';
+import { getPrivateEnv } from '$lib/util/sveltekit/env-private.js';
+
+// Load and auto-group environment variables
+const envConfig = getPrivateEnv();
+// Example result:
+// {
+//   database: { host: 'localhost', port: 5432, name: 'myapp' },
+//   redis: { host: 'cache-server', port: 6379 },
+//   jwtSecret: 'mysecret'
+// }
+
+// Create plugin with grouped config
+const configPlugin = new ObjectConfigPlugin(envConfig);
+
+// Attach to ServiceManager
+const manager = new ServiceManager();
+manager.attachPlugin(configPlugin);
+
+// Register services with config labels (not config objects)
+manager.register('database', DatabaseService, 'database');  // Uses envConfig.database
+manager.register('cache', RedisService, 'redis');           // Uses envConfig.redis
+
+await manager.startAll();
+```
+
+#### Environment Variable Grouping
+
+The environment utilities automatically group related variables by prefix:
+
+```bash
+# Environment variables:
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_NAME=myapp
+REDIS_HOST=cache-server
+REDIS_PORT=6379
+JWT_SECRET=mysecret
+SINGLE_FLAG=true
+```
+
+```javascript
+const envConfig = getPrivateEnv();
+// Auto-groups into:
+// {
+//   database: { host: 'localhost', port: 5432, name: 'myapp' },
+//   redis: { host: 'cache-server', port: 6379 },
+//   jwtSecret: 'mysecret',
+//   singleFlag: true
+// }
+```
+
+#### Advanced Configuration Sources
+
+```javascript
+// Combine multiple config sources
+const config = {
+  ...getPrivateEnv(),              // Environment variables
+  ...await loadConfigFile(),       // Config file
+  database: {                      // Override specific settings
+    ...envConfig.database,
+    connectionTimeout: 5000
+  }
+};
+
+const plugin = new ObjectConfigPlugin(config);
+```
+
+#### Plugin Benefits
+
+1. **Simple Service Registration** - Use string labels instead of complex config objects
+2. **Environment Integration** - Seamless SvelteKit environment variable integration
+3. **Dynamic Configuration** - Update config object for live updates
+4. **Clear Separation** - Configuration logic separate from service logic
+5. **Extensible** - Easy to add custom configuration sources
+
+#### Available Environment Utilities
+
+```javascript
+// Server-side only (private + public env vars)
+import { getAllEnv } from '$lib/util/sveltekit/env-all.js';
+const config = getAllEnv();
+
+// Server-side only (private env vars only)
+import { getPrivateEnv } from '$lib/util/sveltekit/env-private.js';
+const config = getPrivateEnv();
+
+// Client + server safe (public env vars only)  
+import { getPublicEnv } from '$lib/util/sveltekit/env-public.js';
+const config = getPublicEnv();
+```
+
+### Plugin Methods
+
+```javascript
+// Update configuration at runtime
+configPlugin.updateConfigObject(newConfig);
+
+// Merge additional configuration
+configPlugin.mergeConfig({ additionalSettings: true });
+
+// Get current configuration
+const currentConfig = configPlugin.getConfigObject();
 ```
 
 ## Best Practices
