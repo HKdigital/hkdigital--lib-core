@@ -6,7 +6,7 @@
  *
  * @example
  * // Basic usage with config object
- * import ObjectConfigPlugin from '$lib/services/manager-plugins/ObjectConfigPlugin.js';
+ * import ObjectConfigPlugin from '$lib/services/service-manager-plugins/ObjectConfigPlugin.js';
  *
  * const configObject = {
  *   'database': { host: 'localhost', port: 5432 },
@@ -19,7 +19,7 @@
  * @example
  * // With environment variables using utility
  * import { allEnv } from '$lib/util/sveltekit/env.js';
- * import ObjectConfigPlugin from '$lib/services/manager-plugins/ObjectConfigPlugin.js';
+ * import ObjectConfigPlugin from '$lib/services/service-manager-plugins/ObjectConfigPlugin.js';
  *
  * const envConfig = await allEnv();
  * const envPlugin = new ObjectConfigPlugin(envConfig, {
@@ -122,6 +122,50 @@ export default class ObjectConfigPlugin extends ServiceManagerPlugin {
    */
   getConfigObject() {
     return { ...this.configObject };
+  }
+
+  /**
+   * Update config for a specific label and push to affected services
+   *
+   * @param {string} configLabel - Config label to update
+   * @param {*} newConfig - New configuration value
+   *
+   * @returns {Promise<string[]>} Array of service names that were updated
+   */
+  async updateConfigLabel(configLabel, newConfig) {
+    // Update the config object
+    this.configObject[configLabel] = newConfig;
+
+    const updatedServices = [];
+
+    // Find all services using this config label
+    for (const [serviceName, serviceEntry] of this.manager.services) {
+      if (serviceEntry.config === configLabel && serviceEntry.instance) {
+        try {
+          // Call _configure on the service instance if it exists
+          if (typeof serviceEntry.instance._configure === 'function') {
+            await serviceEntry.instance._configure(newConfig, 
+              serviceEntry.resolvedConfig);
+            serviceEntry.resolvedConfig = newConfig;
+            updatedServices.push(serviceName);
+
+            this.manager.logger.info(
+              `Updated config for service '${serviceName}' (label: ${configLabel})`
+            );
+          }
+        } catch (error) {
+          this.manager.logger.error(
+            `Failed to update config for service '${serviceName}': ${error.message}`
+          );
+        }
+      }
+    }
+
+    this.manager.logger.debug(
+      `Config label '${configLabel}' updated, affected ${updatedServices.length} services`
+    );
+
+    return updatedServices;
   }
 
   /**

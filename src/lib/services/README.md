@@ -227,7 +227,7 @@ The most common plugin for resolving service configuration from a pre-parsed con
 
 ```javascript
 import { ServiceManager } from '$lib/services/index.js';
-import ObjectConfigPlugin from '$lib/services/manager-plugins/ObjectConfigPlugin.js';
+import ObjectConfigPlugin from '$lib/services/service-manager-plugins/ObjectConfigPlugin.js';
 import { getPrivateEnv } from '$lib/util/sveltekit/env-private.js';
 
 // Load and auto-group environment variables
@@ -331,6 +331,76 @@ configPlugin.mergeConfig({ additionalSettings: true });
 // Get current configuration
 const currentConfig = configPlugin.getConfigObject();
 ```
+
+### Live Configuration Updates
+
+The ObjectConfigPlugin supports pushing configuration updates to running services:
+
+```javascript
+// Update config for a specific label and notify all affected services
+const updatedServices = await configPlugin.updateConfigLabel('database', {
+  host: 'new-host.example.com',
+  port: 5433,
+  maxConnections: 50
+});
+
+// Returns array of service names that were updated: ['user-service', 'order-service']
+console.log(`Updated ${updatedServices.length} services`);
+```
+
+#### How Live Updates Work
+
+1. **Updates the plugin's config object** for the specified label
+2. **Finds all running services** that use that config label  
+3. **Calls `_configure(newConfig, oldConfig)`** on each service instance
+4. **Updates the resolved config** stored in the ServiceManager
+5. **Returns the list** of successfully updated service names
+6. **Handles errors gracefully** with detailed logging
+
+#### Service Requirements for Live Updates
+
+For services to support live configuration updates, they must:
+
+1. **Implement intelligent `_configure()` logic** that can handle both initial setup and reconfiguration
+2. **Check for meaningful changes** between old and new config
+3. **Apply changes without full restart** when possible
+
+```javascript
+class DatabaseService extends ServiceBase {
+  // eslint-disable-next-line no-unused-vars
+  async _configure(newConfig, oldConfig = null) {
+    if (!oldConfig) {
+      // Initial configuration
+      this.connectionString = newConfig.connectionString;
+      this.maxConnections = newConfig.maxConnections || 10;
+      return;
+    }
+
+    // Live reconfiguration - handle changes intelligently
+    if (oldConfig.connectionString !== newConfig.connectionString) {
+      // Connection changed - need to reconnect
+      await this.connection?.close();
+      this.connectionString = newConfig.connectionString;
+      
+      if (this.state === 'running') {
+        this.connection = await createConnection(this.connectionString);
+      }
+    }
+
+    if (oldConfig.maxConnections !== newConfig.maxConnections) {
+      // Pool size changed - update without reconnect
+      this.maxConnections = newConfig.maxConnections;
+      await this.connection?.setMaxConnections(this.maxConnections);
+    }
+  }
+}
+```
+
+This enables powerful scenarios like:
+- **Runtime environment updates** without service restarts
+- **A/B testing configuration changes** with instant rollback
+- **Dynamic scaling** based on load conditions
+- **Configuration management systems** that push updates to running applications
 
 ## Best Practices
 
