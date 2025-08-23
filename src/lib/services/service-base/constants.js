@@ -124,4 +124,3 @@ export const EVENT_HEALTH_CHANGED = 'healthChanged';
  * Event emitted when service encounters an error
  */
 export const EVENT_ERROR = 'error';
-

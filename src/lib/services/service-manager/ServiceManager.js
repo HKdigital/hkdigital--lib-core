@@ -78,6 +78,7 @@ import {
  * @typedef {import('./typedef.js').ServiceRegistrationOptions} ServiceRegistrationOptions
  * @typedef {import('./typedef.js').ServiceManagerConfig} ServiceManagerConfig
  * @typedef {import('./typedef.js').ServiceEntry} ServiceEntry
+ * @typedef {import('./typedef.js').ServiceConfigOrLabel} ServiceConfigOrLabel
  * @typedef {import('./typedef.js').HealthCheckResult} HealthCheckResult
  *
  * @typedef {import('../service-base/typedef.js').StopOptions} StopOptions
@@ -158,12 +159,13 @@ export class ServiceManager extends EventEmitter {
    *
    * @param {string} name - Unique service identifier
    * @param {ServiceConstructor} ServiceClass - Service class constructor
-   * @param {*} [config={}] - Service configuration
+   * @param {ServiceConfigOrLabel} [serviceConfigOrLabel={}]
+   *   Service configuration object or config label string
    * @param {ServiceRegistrationOptions} [options={}] - Registration options
    *
    * @throws {Error} If service name is already registered
    */
-  register(name, ServiceClass, config = {}, options = {}) {
+  register(name, ServiceClass, serviceConfigOrLabel = {}, options = {}) {
     if (this.services.has(name)) {
       throw new Error(`Service '${name}' already registered`);
     }
@@ -172,11 +174,11 @@ export class ServiceManager extends EventEmitter {
     const entry = {
       ServiceClass,
       instance: null,
-      config,
+      serviceConfigOrLabel,
       dependencies: options.dependencies || [],
       dependents: new Set(),
       tags: options.tags || [],
-      priority: options.priority || 0
+      startupPriority: options.startupPriority || 0
     };
 
     // Track dependents
@@ -245,7 +247,7 @@ export class ServiceManager extends EventEmitter {
     if (!instance) return false;
 
     const entry = this.services.get(name);
-    const config = await this.#resolveConfig(name, entry);
+    const config = await this.#resolveServiceConfig(name, entry);
 
     return await instance.configure(config);
   }
@@ -559,25 +561,29 @@ export class ServiceManager extends EventEmitter {
    *
    * @returns {Promise<*>} Resolved configuration object
    */
-  async #resolveConfig(serviceName, serviceEntry) {
-    let config = serviceEntry.config;
+  async #resolveServiceConfig(serviceName, serviceEntry) {
+    let serviceConfigOrLabel = serviceEntry.serviceConfigOrLabel;
 
-    // Let plugins resolve the config
-    for (const plugin of this.#plugins.values()) {
-      if (plugin._getServiceConfig) {
-        const resolved = await plugin._getServiceConfig(
-          serviceName,
-          serviceEntry,
-          config
-        );
-        if (resolved !== undefined) {
-          config = resolved;
-          break; // First plugin that resolves wins
+    if (typeof serviceConfigOrLabel === 'string') {
+      const configLabel = serviceConfigOrLabel;
+
+      // Let plugins resolve the config
+      for (const plugin of this.#plugins.values()) {
+        if (plugin.resolveServiceConfig) {
+          const config = await plugin.resolveServiceConfig(
+            serviceName,
+            serviceEntry,
+            configLabel
+          );
+          if (config !== undefined) {
+            return config; // First plugin that resolves wins
+          }
         }
       }
+    } else {
+      const config = serviceConfigOrLabel;
+      return config;
     }
-
-    return config || {};
   }
 
   /**

@@ -6,20 +6,20 @@
  *
  * @example
  * // Basic usage with config object
- * import ConfigPlugin from '$lib/services/service-manager-plugins/ConfigPlugin.js';
+ * import ConfigPlugin from '$lib/services/manager-plugins/ConfigPlugin.js';
  *
- * const configObject = {
+ * const allConfigs = {
  *   'database': { host: 'localhost', port: 5432 },
  *   'auth': { secret: 'my-secret', algorithm: 'HS256' }
  * };
  *
- * const objectPlugin = new ConfigPlugin(configObject);
+ * const objectPlugin = new ConfigPlugin(allConfigs);
  * manager.attachPlugin(objectPlugin);
  *
  * @example
  * // With environment variables using utility
  * import { allEnv } from '$lib/util/sveltekit/env.js';
- * import ConfigPlugin from '$lib/services/service-manager-plugins/ConfigPlugin.js';
+ * import ConfigPlugin from '$lib/services/manager-plugins/ConfigPlugin.js';
  *
  * const envConfig = await allEnv();
  * const envPlugin = new ConfigPlugin(envConfig, {
@@ -41,20 +41,21 @@
 
 import { SERVICE_STATE_CHANGED } from '../service-manager/constants.js';
 
+/** @typedef {import('../service-manager/typedef.js').ServiceEntry} ServiceEntry */
+
 /**
  * Plugin that resolves service configuration from a configuration object
  */
 export default class ConfigPlugin {
-
   /** @type {Map<string, *>} */
   #pendingConfigUpdates;
 
   /**
    * Create a new object configuration plugin
    *
-   * @param {Object<string, *>} configObject - Pre-parsed configuration object
+   * @param {Object<string, *>} allConfigs - Pre-parsed configuration object
    */
-  constructor(configObject) {
+  constructor(allConfigs) {
     /** @type {string} */
     this.name = 'object-config';
 
@@ -62,7 +63,7 @@ export default class ConfigPlugin {
     this.manager = null;
 
     /** @type {Object<string, *>} */
-    this.configObject = configObject || {};
+    this.allConfigs = allConfigs || {};
 
     this.#pendingConfigUpdates = new Map();
   }
@@ -70,25 +71,25 @@ export default class ConfigPlugin {
   /**
    * Resolve service configuration from the configuration object
    *
-   * @param {string} serviceName - Name of the service being configured
-   * @param {import('../service-manager/typedef.js').ServiceEntry} serviceEntry
-   *   Service registration entry
-   * @param {*} currentConfig - Current config (could be object from previous plugins)
+   * @param {string} serviceName
+   * @param {ServiceEntry} serviceEntry - Service registration entry
+   * @param {*} currentConfig
+   *   Current config (could be object from previous plugins)
    *
    * @returns {Promise<Object|undefined>}
    *   Resolved config object, or undefined to use currentConfig as-is
    */
   // eslint-disable-next-line no-unused-vars
-  async _getServiceConfig(serviceName, serviceEntry, currentConfig) {
-    // Only handle string config labels from original registration
-    if (typeof serviceEntry.config !== 'string') {
+  async resolveServiceConfig(serviceName, serviceEntry, currentConfig) {
+    const configLabel = serviceEntry.serviceConfigOrLabel;
+
+    if (typeof configLabel !== 'string') {
+      // Expected config label
       return undefined;
     }
 
-    const configLabel = serviceEntry.config;
-
     // Simple object lookup
-    const config = this.configObject[configLabel];
+    const config = this.allConfigs[configLabel];
 
     if (config !== undefined) {
       this.manager?.logger?.debug(
@@ -104,59 +105,60 @@ export default class ConfigPlugin {
   }
 
   /**
-   * Update the configuration object
+   * Replace the entire configuration object and clean up unused configs
    *
    * @param {Object<string, *>} newConfigObject - New configuration object
    */
-  updateConfigObject(newConfigObject) {
-    this.configObject = newConfigObject || {};
-    this.manager?.logger?.debug('Updated configuration object');
+  async replaceAllConfigs(newConfigObject) {
+    await this.cleanupConfigs();
+
+    // Apply new configs to all services that have config labels
+    const updatedServices = [];
+    for (const [configLabel, newConfig] of Object.entries(
+      newConfigObject || {}
+    )) {
+      const services = await this.replaceConfig(configLabel, newConfig);
+      updatedServices.push(...services);
+    }
+
+    this.manager?.logger?.debug(
+      `Replaced all configurations, updated ${updatedServices.length} services`
+    );
   }
 
   /**
-   * Merge additional configuration into the existing object
-   *
-   * @param {Object<string, *>} additionalConfig - Additional configuration
-   */
-  mergeConfig(additionalConfig) {
-    this.configObject = { ...this.configObject, ...additionalConfig };
-    this.manager?.logger?.debug('Merged additional configuration');
-  }
-
-  /**
-   * Get the current configuration object
-   *
-   * @returns {Object<string, *>} Current configuration object
-   */
-  getConfigObject() {
-    return { ...this.configObject };
-  }
-
-  /**
-   * Update config for a specific label and push to affected services
+   * Replace a config for a specific label and push to affected services
    *
    * @param {string} configLabel - Config label to update
    * @param {*} newConfig - New configuration value
    *
    * @returns {Promise<string[]>} Array of service names that were updated
    */
-  async updateConfigLabel(configLabel, newConfig) {
+  async replaceConfig(configLabel, newConfig) {
     // Update the config object
-    this.configObject[configLabel] = newConfig;
+    this.allConfigs[configLabel] = newConfig;
 
     // Store as pending update
     this.#pendingConfigUpdates.set(configLabel, newConfig);
 
     const updatedServices = [];
 
-    // Find all services using this config label
-    for (const [serviceName, serviceEntry] of this.manager.services) {
-      if (serviceEntry.config === configLabel && serviceEntry.instance) {
+    // Find all services using this config label using helper function
+    const servicesByLabel = this.#servicesByConfigLabel();
+    const serviceNames = servicesByLabel.get(configLabel) || [];
+
+    for (const serviceName of serviceNames) {
+      const serviceEntry = this.manager.services.get(serviceName);
+      if (serviceEntry && serviceEntry.instance) {
         try {
           // Try to apply config - ServiceBase.configure() will handle state validation
-          await this.#applyConfigToService(serviceName, serviceEntry, newConfig);
+          await this.#applyConfigToService(
+            serviceName,
+            serviceEntry,
+            newConfig
+          );
           updatedServices.push(serviceName);
-          
+
           // Remove from pending since it was applied
           this.#pendingConfigUpdates.delete(configLabel);
         } catch (error) {
@@ -175,6 +177,60 @@ export default class ConfigPlugin {
     return updatedServices;
   }
 
+  /**
+   * Get services organized by their config labels
+   *
+   * @returns {Map<string, string[]>}
+   *   Map where keys are config labels and values are arrays of service names
+   */
+  #servicesByConfigLabel() {
+    const servicesByLabel = new Map();
+
+    for (const [serviceName, serviceEntry] of this.manager.services) {
+      const configLabel = serviceEntry.serviceConfigOrLabel;
+
+      if (typeof configLabel === 'string') {
+        if (!servicesByLabel.has(configLabel)) {
+          servicesByLabel.set(configLabel, []);
+        }
+
+        servicesByLabel.get(configLabel).push(serviceName);
+      }
+    }
+
+    return servicesByLabel;
+  }
+
+  /**
+   * Remove all unused configurations (configs not referenced by any service)
+   */
+  async cleanupConfigs() {
+    const usedConfigLabels = new Set();
+
+    // Collect all config labels used by registered services
+    for (const [, serviceEntry] of this.manager.services) {
+      const configLabel = serviceEntry.serviceConfigOrLabel;
+
+      if (typeof configLabel === 'string') {
+        usedConfigLabels.add(configLabel);
+      }
+    }
+
+    // Remove configs that aren't used by any service
+    const configKeys = Object.keys(this.allConfigs);
+    let removedCount = 0;
+
+    for (const key of configKeys) {
+      if (!usedConfigLabels.has(key)) {
+        delete this.allConfigs[key];
+        removedCount++;
+      }
+    }
+
+    this.manager?.logger?.debug(
+      `Cleaned up ${removedCount} unused configurations`
+    );
+  }
 
   /**
    * Apply configuration to a specific service
@@ -187,9 +243,7 @@ export default class ConfigPlugin {
   async #applyConfigToService(serviceName, serviceEntry, newConfig) {
     await serviceEntry.instance.configure(newConfig);
 
-    this.manager.logger.info(
-      `Updated config for service '${serviceName}'`
-    );
+    this.manager.logger.info(`Updated config for service '${serviceName}'`);
   }
 
   /**
@@ -201,18 +255,24 @@ export default class ConfigPlugin {
    */
   async #processPendingUpdates(serviceName, serviceInstance) {
     const serviceEntry = this.manager.services.get(serviceName);
-    if (!serviceEntry || typeof serviceEntry.config !== 'string') {
+
+    const configLabel = serviceEntry?.serviceConfigOrLabel;
+
+    if (typeof configLabel !== 'string') {
       return;
     }
 
-    const configLabel = serviceEntry.config;
     if (this.#pendingConfigUpdates.has(configLabel)) {
       const pendingConfig = this.#pendingConfigUpdates.get(configLabel);
-      
+
       try {
-        await this.#applyConfigToService(serviceName, serviceEntry, pendingConfig);
+        await this.#applyConfigToService(
+          serviceName,
+          serviceEntry,
+          pendingConfig
+        );
         this.#pendingConfigUpdates.delete(configLabel);
-        
+
         this.manager.logger.info(
           `Applied pending config update for service '${serviceName}' (label: ${configLabel})`
         );
@@ -239,16 +299,19 @@ export default class ConfigPlugin {
 
     this.manager = manager;
 
-    const configKeys = Object.keys(this.configObject).length;
+    const configKeys = Object.keys(this.allConfigs).length;
 
     this.manager.logger.info(
       `ConfigPlugin attached with ${configKeys} config keys`
     );
 
     // Listen for service state changes to process pending updates
-    this.manager.on(SERVICE_STATE_CHANGED, async ({ service, state, instance }) => {
-      await this.#processPendingUpdates(service, instance);
-    });
+    this.manager.on(
+      SERVICE_STATE_CHANGED,
+      async ({ service, state, instance }) => {
+        await this.#processPendingUpdates(service, instance);
+      }
+    );
   }
 
   /**
@@ -258,7 +321,7 @@ export default class ConfigPlugin {
     if (this.manager) {
       // Clear pending updates
       this.#pendingConfigUpdates.clear();
-      
+
       this.manager.logger.info('ConfigPlugin detached');
       this.manager = null;
     }

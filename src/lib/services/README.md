@@ -11,21 +11,32 @@ The services module provides two main components:
 
 All services follow a standardized state machine with proper error handling, logging, and health monitoring.
 
-## Service States
+## Service states
 
-Services transition through these states during their lifecycle:
+Services transition through these states during their lifecycle. Use these constants from `$lib/services/service-base/constants.js`:
 
-- `created` - Service instantiated but not configured
-- `configuring` - Currently running configuration
-- `configured` - Ready to start
-- `starting` - Currently starting up
-- `running` - Operational and healthy
-- `stopping` - Currently shutting down
-- `stopped` - Cleanly stopped
-- `destroying` - Being destroyed and cleaned up
-- `destroyed` - Completely destroyed
-- `error` - Failed and non-operational
-- `recovering` - Attempting recovery from error
+- `STATE_CREATED` - Service instantiated but not configured
+- `STATE_CONFIGURING` - Currently running configuration
+- `STATE_CONFIGURED` - Ready to start
+- `STATE_STARTING` - Currently starting up
+- `STATE_RUNNING` - Operational and healthy
+- `STATE_STOPPING` - Currently shutting down
+- `STATE_STOPPED` - Cleanly stopped
+- `STATE_DESTROYING` - Being destroyed and cleaned up
+- `STATE_DESTROYED` - Completely destroyed
+- `STATE_ERROR` - Failed and non-operational
+- `STATE_RECOVERING` - Attempting recovery from error
+
+```javascript
+import {
+  STATE_RUNNING,
+  STATE_ERROR
+} from '$lib/services/service-base/constants.js';
+
+if (service.state === STATE_RUNNING) {
+  // Service is operational
+}
+```
 
 ## ServiceBase
 
@@ -46,7 +57,6 @@ import { ServiceBase } from '$lib/services/index.js';
 class DatabaseService extends ServiceBase {
   // eslint-disable-next-line no-unused-vars
   async _configure(newConfig, oldConfig = null) {
-
     if (!oldConfig) {
       // Initial configuration
 
@@ -106,7 +116,7 @@ db.on('healthChanged', ({ healthy }) => {
 // Reconfigure at runtime
 await db.configure({
   connectionString: 'postgres://localhost/myapp',
-  maxConnections: 50  // Hot-reloaded without restart
+  maxConnections: 50 // Hot-reloaded without restart
 });
 ```
 
@@ -119,11 +129,22 @@ await db.configure({
 - `_recover()` - Custom recovery logic (optional)
 - `_healthCheck()` - Return health status (optional)
 
-### Events
+### Service events
 
-- `stateChanged` - Service state transitions
-- `healthChanged` - Health status changes
-- `error` - Service errors
+ServiceBase emits these events (constants from `$lib/services/service-base/constants.js`):
+
+- `EVENT_STATE_CHANGED` - Service state transitions
+- `EVENT_TARGET_STATE_CHANGED` - Target state changes
+- `EVENT_HEALTH_CHANGED` - Health status changes
+- `EVENT_ERROR` - Service errors
+
+```javascript
+import { EVENT_STATE_CHANGED } from '$lib/services/service-base/constants.js';
+
+service.on(EVENT_STATE_CHANGED, ({ state, previousState }) => {
+  console.log(`Service transitioned from ${previousState} to ${state}`);
+});
+```
 
 ## ServiceManager
 
@@ -143,6 +164,7 @@ Manages multiple services with dependency resolution and coordinated lifecycle o
 
 ```javascript
 import { ServiceManager } from '$hklib-core/services/index.js';
+
 import DatabaseService from './services/DatabaseService.js';
 import AuthService from './services/AuthService.js';
 
@@ -156,11 +178,16 @@ manager.register('database', DatabaseService, {
   connectionString: 'postgres://localhost/myapp'
 });
 
-manager.register('auth', AuthService, {
-  secret: process.env.JWT_SECRET
-}, {
-  dependencies: ['database'] // auth depends on database
-});
+manager.register(
+  'auth',
+  AuthService,
+  {
+    secret: process.env.JWT_SECRET
+  },
+  {
+    dependencies: ['database'] // auth depends on database
+  }
+);
 
 // Start all services in dependency order
 await manager.startAll();
@@ -175,19 +202,27 @@ await manager.stopAll();
 ### Service Registration
 
 ```javascript
-manager.register(name, ServiceClass, config, options);
+manager.register(name, ServiceClass, serviceConfigOrLabel, options);
 ```
 
 - `name` - Unique service identifier
 - `ServiceClass` - Class extending ServiceBase
-- `config` - Service-specific configuration
+- `serviceConfigOrLabel` - Service configuration object (`Object<string, *>`) or config label string
 - `options.dependencies` - Array of service names this service depends on
+- `options.startupPriority` - Higher priority services start first (default: 0)
 
 ### Health Monitoring
 
 ```javascript
+import {
+  SERVICE_HEALTH_CHANGED,
+  SERVICE_ERROR,
+  SERVICE_STATE_CHANGED,
+  SERVICE_LOG
+} from '$lib/services/service-manager/constants.js';
+
 // Listen for health changes
-manager.on('service:healthChanged', ({ service, healthy }) => {
+manager.on(SERVICE_HEALTH_CHANGED, ({ service, healthy }) => {
   if (!healthy) {
     console.error(`Service ${service} became unhealthy`);
   }
@@ -202,11 +237,20 @@ const systemHealth = await manager.checkHealth();
 
 ### Error Handling and Recovery
 
+### ServiceManager events
+
+ServiceManager emits these events (constants from `$lib/services/service-manager/constants.js`):
+
+- `SERVICE_STATE_CHANGED` - Service state changes
+- `SERVICE_HEALTH_CHANGED` - Service health changes
+- `SERVICE_ERROR` - Service errors
+- `SERVICE_LOG` - Service log messages
+
 ```javascript
 // Listen for service errors
-manager.on('service:error', async ({ service, error }) => {
+manager.on(SERVICE_ERROR, async ({ service, error }) => {
   console.log(`Service ${service} failed:`, error.message);
-  
+
   // Attempt automatic recovery
   await manager.recoverService(service);
 });
@@ -215,9 +259,9 @@ manager.on('service:error', async ({ service, error }) => {
 await manager.recoverService('database');
 ```
 
-## Configuration Plugins
+## Plugins
 
-ServiceManager supports plugins that can resolve service configuration dynamically. This is particularly useful for environment-based configuration.
+ServiceManager supports plugins e.g. to resolve service configurations dynamically.
 
 ### ConfigPlugin
 
@@ -227,17 +271,29 @@ The most common plugin for resolving service configuration from a pre-parsed con
 
 ```javascript
 import { ServiceManager } from '$lib/services/index.js';
-import ConfigPlugin from '$lib/services/service-manager-plugins/ConfigPlugin.js';
+
+import ConfigPlugin from '$lib/services/manager-plugins/ConfigPlugin.js';
+
 import { getPrivateEnv } from '$lib/util/sveltekit/env-private.js';
 
 // Load and auto-group environment variables
 const envConfig = getPrivateEnv();
-// Example result:
+//
+// Example:
+//
+// DATABASE_HOST=localhost
+// DATABASE_PORT=5432
+// DATABASE_NAME=myapp
+// REDIS_HOST=cache-server
+// REDIS_PORT=6379
+// JWT_SECRET=mysecret
+// =>
 // {
 //   database: { host: 'localhost', port: 5432, name: 'myapp' },
 //   redis: { host: 'cache-server', port: 6379 },
 //   jwtSecret: 'mysecret'
 // }
+//
 
 // Create plugin with grouped config
 const configPlugin = new ConfigPlugin(envConfig);
@@ -247,46 +303,23 @@ const manager = new ServiceManager();
 manager.attachPlugin(configPlugin);
 
 // Register services with config labels (not config objects)
-manager.register('database', DatabaseService, 'database');  // Uses envConfig.database
-manager.register('cache', RedisService, 'redis');           // Uses envConfig.redis
+manager.register('database', DatabaseService, 'database'); // Uses envConfig.database
+manager.register('cache', RedisService, 'redis'); // Uses envConfig.redis
 
 await manager.startAll();
 ```
 
-#### Environment Variable Grouping
+#### Configuration
 
-The environment utilities automatically group related variables by prefix:
-
-```bash
-# Environment variables:
-DATABASE_HOST=localhost
-DATABASE_PORT=5432
-DATABASE_NAME=myapp
-REDIS_HOST=cache-server
-REDIS_PORT=6379
-JWT_SECRET=mysecret
-SINGLE_FLAG=true
-```
-
-```javascript
-const envConfig = getPrivateEnv();
-// Auto-groups into:
-// {
-//   database: { host: 'localhost', port: 5432, name: 'myapp' },
-//   redis: { host: 'cache-server', port: 6379 },
-//   jwtSecret: 'mysecret',
-//   singleFlag: true
-// }
-```
-
-#### Advanced Configuration Sources
+The plugin constructor accepts an object with configuration data, which can come from any source. E.g. the environment or a configuration file.
 
 ```javascript
 // Combine multiple config sources
 const config = {
-  ...getPrivateEnv(),              // Environment variables
-  ...await loadConfigFile(),       // Config file
-  database: {                      // Override specific settings
+  ...getPrivateEnv(), // Environment variables
+  ...(await loadConfigFile()), // Config file
+  database: {
+    // Override specific settings
     ...envConfig.database,
     connectionTimeout: 5000
   }
@@ -295,41 +328,17 @@ const config = {
 const plugin = new ConfigPlugin(config);
 ```
 
-#### Plugin Benefits
-
-1. **Simple Service Registration** - Use string labels instead of complex config objects
-2. **Environment Integration** - Seamless SvelteKit environment variable integration
-3. **Dynamic Configuration** - Update config object for live updates
-4. **Clear Separation** - Configuration logic separate from service logic
-5. **Extensible** - Easy to add custom configuration sources
-
-#### Available Environment Utilities
+### Methods
 
 ```javascript
-// Server-side only (private + public env vars)
-import { getAllEnv } from '$lib/util/sveltekit/env-all.js';
-const config = getAllEnv();
+// Replace all configurations and clean up unused ones
+await configPlugin.replaceAllConfigs(newConfig);
 
-// Server-side only (private env vars only)
-import { getPrivateEnv } from '$lib/util/sveltekit/env-private.js';
-const config = getPrivateEnv();
+// Replace configuration for a specific label
+await configPlugin.replaceConfig('database', newDatabaseConfig);
 
-// Client + server safe (public env vars only)  
-import { getPublicEnv } from '$lib/util/sveltekit/env-public.js';
-const config = getPublicEnv();
-```
-
-### Plugin Methods
-
-```javascript
-// Update configuration at runtime
-configPlugin.updateConfigObject(newConfig);
-
-// Merge additional configuration
-configPlugin.mergeConfig({ additionalSettings: true });
-
-// Get current configuration
-const currentConfig = configPlugin.getConfigObject();
+// Clean up configurations not used by any service
+await configPlugin.cleanupConfigs();
 ```
 
 ### Live Configuration Updates
@@ -337,8 +346,8 @@ const currentConfig = configPlugin.getConfigObject();
 The ConfigPlugin supports pushing configuration updates to running services:
 
 ```javascript
-// Update config for a specific label and notify all affected services
-const updatedServices = await configPlugin.updateConfigLabel('database', {
+// Replace config for a specific label and notify all affected services
+const updatedServices = await configPlugin.replaceConfig('database', {
   host: 'new-host.example.com',
   port: 5433,
   maxConnections: 50
@@ -347,15 +356,6 @@ const updatedServices = await configPlugin.updateConfigLabel('database', {
 // Returns array of service names that were updated: ['user-service', 'order-service']
 console.log(`Updated ${updatedServices.length} services`);
 ```
-
-#### How Live Updates Work
-
-1. **Updates the plugin's config object** for the specified label
-2. **Finds all running services** that use that config label  
-3. **Calls `_configure(newConfig, oldConfig)`** on each service instance
-4. **Updates the resolved config** stored in the ServiceManager
-5. **Returns the list** of successfully updated service names
-6. **Handles errors gracefully** with detailed logging
 
 #### Service Requirements for Live Updates
 
@@ -381,7 +381,7 @@ class DatabaseService extends ServiceBase {
       // Connection changed - need to reconnect
       await this.connection?.close();
       this.connectionString = newConfig.connectionString;
-      
+
       if (this.state === 'running') {
         this.connection = await createConnection(this.connectionString);
       }
@@ -396,12 +396,6 @@ class DatabaseService extends ServiceBase {
 }
 ```
 
-This enables powerful scenarios like:
-- **Runtime environment updates** without service restarts
-- **A/B testing configuration changes** with instant rollback
-- **Dynamic scaling** based on load conditions
-- **Configuration management systems** that push updates to running applications
-
 ## Best Practices
 
 1. **Always extend ServiceBase** for consistent lifecycle management
@@ -411,15 +405,3 @@ This enables powerful scenarios like:
 5. **Declare dependencies explicitly** when registering with ServiceManager
 6. **Handle errors gracefully** and implement recovery where appropriate
 7. **Use descriptive service names** for better logging and debugging
-
-## Testing
-
-Services include comprehensive test suites demonstrating:
-
-- Lifecycle state transitions
-- Error handling and recovery
-- Dependency resolution
-- Health monitoring
-- Event emission
-
-Run tests with your project's test command to ensure service reliability.

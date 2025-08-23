@@ -1,28 +1,28 @@
 /**
  * @fileoverview Type definitions for ServiceManager class.
- * 
+ *
  * This file contains all TypeScript/JSDoc type definitions used by
  * the ServiceManager class and service registration.
- * 
+ *
  * @example
  * // When using ServiceManager
  * import { ServiceManager } from './ServiceManager.js';
- * 
+ *
  * // @ typedef {import('./typedef-service-manager.js').ServiceManagerConfig} ServiceManagerConfig
  * // @ typedef {import('./typedef-service-manager.js').ServiceRegistrationOptions} ServiceRegistrationOptions
- * 
+ *
  * const config = {
  *   environment: 'development',
  *   stopTimeout: 5000
  * };
- * 
+ *
  * const manager = new ServiceManager(config);
- * 
+ *
  * const options = {
  *   dependencies: ['database'],
  *   tags: ['critical']
  * };
- * 
+ *
  * manager.register('auth', AuthService, {}, options);
  */
 
@@ -31,12 +31,18 @@
 // ============================================================================
 
 /**
+ * Service configuration - either a config object or a config label string
+ *
+ * @typedef {Object<string, *>|string} ServiceConfigOrLabel
+ */
+
+/**
  * Options for registering a service
  *
  * @typedef {Object} ServiceRegistrationOptions
  * @property {string[]} [dependencies=[]] - Services this service depends on
  * @property {string[]} [tags=[]] - Tags for grouping services
- * @property {number} [priority=0] - Startup priority (higher starts first)
+ * @property {number} [startupPriority=0] - Higher starts first
  */
 
 /**
@@ -78,7 +84,7 @@
  * @property {import('./ServiceManager.js').ServiceManager|null} manager - ServiceManager reference
  * @property {function(import('./ServiceManager.js').ServiceManager): void} attach - Attach to ServiceManager
  * @property {function(): void} detach - Detach from ServiceManager
- * @property {function(string, ServiceEntry, *): Promise<*|undefined>} [_getServiceConfig] - Optional config resolution method
+ * @property {function(string, ServiceEntry, *): Promise<*|undefined>} [resolveServiceConfig] - Optional config resolution method
  */
 
 // ============================================================================
@@ -91,11 +97,11 @@
  * @typedef {Object} ServiceEntry
  * @property {ServiceConstructor} ServiceClass - Service class constructor
  * @property {import('../service-base/typedef.js').ServiceInstance|null} instance - Service instance (lazy-created)
- * @property {*} config - Service configuration
- * @property {string[]} dependencies - Service dependencies
- * @property {Set<string>} dependents - Services that depend on this one
- * @property {string[]} tags - Service tags
- * @property {number} priority - Startup priority
+ * @property {ServiceConfigOrLabel} serviceConfigOrLabel
+ * @property {string[]} dependencies
+ * @property {Set<string>} dependents - Services that depend on this service
+ * @property {string[]} tags
+ * @property {number} startupPriority - Startup priority
  */
 
 export {};

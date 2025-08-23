@@ -1,17 +1,17 @@
 /**
  * @fileoverview Type definitions for ServiceBase class.
- * 
+ *
  * This file contains all TypeScript/JSDoc type definitions used by
  * the ServiceBase class and service implementations.
- * 
+ *
  * @example
  * // In your service implementation
  * import { ServiceBase } from './ServiceBase.js';
- * 
+ *
  * class MyService extends ServiceBase {
  *   async _configure(newConfig, oldConfig) {
  *   }
- *   
+ *
  *   async _healthCheck() {
  *     // Return type is HealthStatus
  *     return { latency: 10 };

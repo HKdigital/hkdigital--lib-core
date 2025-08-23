@@ -41,7 +41,7 @@ describe('ServiceBase', () => {
         logLevel: DEBUG,
         shutdownTimeout: 3000
       });
-      
+
       expect(customService._shutdownTimeout).toBe(3000);
       // Logger level is set internally
     });
@@ -76,9 +76,12 @@ describe('ServiceBase', () => {
 
       // Verify state transitions
       expect(stateChanges).toEqual([
-        STATE_CONFIGURING, STATE_CONFIGURED,
-        STATE_STARTING, STATE_RUNNING,
-        STATE_STOPPING, STATE_STOPPED
+        STATE_CONFIGURING,
+        STATE_CONFIGURED,
+        STATE_STARTING,
+        STATE_RUNNING,
+        STATE_STOPPING,
+        STATE_STOPPED
       ]);
     });
 
@@ -118,9 +121,9 @@ describe('ServiceBase', () => {
       await service.configure();
       await service.start();
       await service.stop();
-      
+
       expect(service.state).toBe(STATE_STOPPED);
-      
+
       // Should be able to start again
       expect(await service.start()).toBe(true);
       expect(service.state).toBe(STATE_RUNNING);
@@ -130,7 +133,7 @@ describe('ServiceBase', () => {
       // Can't start from STATE_CREATED
       expect(await service.start()).toBe(false);
       expect(service.state).toBe(STATE_CREATED);
-      
+
       // Can't stop from STATE_CONFIGURED
       await service.configure();
       expect(await service.stop()).toBe(true); // Returns true but does nothing
@@ -229,7 +232,9 @@ describe('ServiceBase', () => {
     });
 
     it('should handle recovery failures', async () => {
-      vi.spyOn(service, '_recover').mockRejectedValue(new Error('Recovery failed'));
+      vi.spyOn(service, '_recover').mockRejectedValue(
+        new Error('Recovery failed')
+      );
 
       expect(await service.recover()).toBe(false);
       expect(service.state).toBe(STATE_ERROR);
@@ -267,7 +272,7 @@ describe('ServiceBase', () => {
 
     it('should provide basic health status', async () => {
       const health = await service.getHealth();
-      
+
       expect(health).toEqual({
         name: 'testService',
         state: STATE_CREATED,
@@ -283,7 +288,7 @@ describe('ServiceBase', () => {
       });
 
       const health = await service.getHealth();
-      
+
       expect(health).toMatchObject({
         name: 'testService',
         latency: 10,
@@ -292,10 +297,12 @@ describe('ServiceBase', () => {
     });
 
     it('should handle health check errors', async () => {
-      vi.spyOn(service, '_healthCheck').mockRejectedValue(new Error('Check failed'));
+      vi.spyOn(service, '_healthCheck').mockRejectedValue(
+        new Error('Check failed')
+      );
 
       const health = await service.getHealth();
-      
+
       expect(health).toMatchObject({
         healthy: false,
         checkError: 'Check failed'
@@ -315,10 +322,10 @@ describe('ServiceBase', () => {
     it('should respect shutdown timeout', async () => {
       // Create service with short timeout
       service = new ServiceBase('test', { shutdownTimeout: 1000 });
-      
+
       // Make stop hang
-      vi.spyOn(service, '_stop').mockImplementation(() => 
-        new Promise(() => {}) // Never resolves
+      vi.spyOn(service, '_stop').mockImplementation(
+        () => new Promise(() => {}) // Never resolves
       );
 
       // Get to running state
@@ -326,7 +333,7 @@ describe('ServiceBase', () => {
 
       // Start stop
       const stopPromise = service.stop();
-      
+
       // Advance past timeout
       await vi.advanceTimersByTimeAsync(1100);
 
@@ -337,10 +344,10 @@ describe('ServiceBase', () => {
 
     it('should force shutdown when requested', async () => {
       service = new ServiceBase('test', { shutdownTimeout: 1000 });
-      
+
       // Make stop hang
-      vi.spyOn(service, '_stop').mockImplementation(() => 
-        new Promise(() => {}) // Never resolves
+      vi.spyOn(service, '_stop').mockImplementation(
+        () => new Promise(() => {}) // Never resolves
       );
 
       service.state = STATE_RUNNING;
@@ -372,11 +379,11 @@ describe('ServiceBase', () => {
 
       await service.configure();
       await service.start();
-      
+
       expect(service.state).toBe(STATE_RUNNING);
 
       await service.destroy();
-      
+
       expect(service._stop).toHaveBeenCalled();
       expect(service.state).toBe(STATE_DESTROYED);
     });
@@ -385,7 +392,7 @@ describe('ServiceBase', () => {
   describe('Logging', () => {
     it('should allow changing log level', () => {
       const spy = vi.spyOn(service.logger, 'setLevel');
-      
+
       expect(service.setLogLevel(DEBUG)).toBe(true);
       expect(spy).toHaveBeenCalledWith(DEBUG);
     });

@@ -80,27 +80,37 @@ describe('ServiceManager', () => {
 
       expect(() => {
         manager.register('serviceA', MockServiceB);
-      }).toThrow('Service \'serviceA\' already registered');
+      }).toThrow("Service 'serviceA' already registered");
     });
 
     it('should register with options', () => {
-      manager.register('serviceA', MockServiceA, { test: true }, {
-        dependencies: ['database'],
-        tags: ['critical', 'api'],
-        priority: 10
-      });
+      manager.register(
+        'serviceA',
+        MockServiceA,
+        { test: true },
+        {
+          dependencies: ['database'],
+          tags: ['critical', 'api'],
+          startupPriority: 10
+        }
+      );
 
       const entry = manager.services.get('serviceA');
       expect(entry.dependencies).toEqual(['database']);
       expect(entry.tags).toEqual(['critical', 'api']);
-      expect(entry.priority).toBe(10);
+      expect(entry.startupPriority).toBe(10);
     });
 
     it('should track dependents', () => {
       manager.register('serviceA', MockServiceA);
-      manager.register('serviceB', MockServiceB, {}, {
-        dependencies: ['serviceA']
-      });
+      manager.register(
+        'serviceB',
+        MockServiceB,
+        {},
+        {
+          dependencies: ['serviceA']
+        }
+      );
 
       const entryA = manager.services.get('serviceA');
       expect(entryA.dependents.has('serviceB')).toBe(true);
@@ -201,30 +211,46 @@ describe('ServiceManager', () => {
   describe('Dependencies', () => {
     beforeEach(() => {
       manager.register('database', MockServiceA);
-      manager.register('cache', MockServiceB, {}, {
-        dependencies: ['database']
-      });
-      manager.register('api', MockServiceC, {}, {
-        dependencies: ['database', 'cache']
-      });
+      manager.register(
+        'cache',
+        MockServiceB,
+        {},
+        {
+          dependencies: ['database']
+        }
+      );
+      manager.register(
+        'api',
+        MockServiceC,
+        {},
+        {
+          dependencies: ['database', 'cache']
+        }
+      );
     });
 
     it('should start dependencies first', async () => {
       const startOrder = [];
 
       // Track start order
-      vi.spyOn(MockServiceA.prototype, '_start').mockImplementation(async function() {
-        startOrder.push('database');
-        this.started = true;
-      });
-      vi.spyOn(MockServiceB.prototype, '_start').mockImplementation(async function() {
-        startOrder.push('cache');
-        this.started = true;
-      });
-      vi.spyOn(MockServiceC.prototype, '_start').mockImplementation(async function() {
-        startOrder.push('api');
-        this.started = true;
-      });
+      vi.spyOn(MockServiceA.prototype, '_start').mockImplementation(
+        async function () {
+          startOrder.push('database');
+          this.started = true;
+        }
+      );
+      vi.spyOn(MockServiceB.prototype, '_start').mockImplementation(
+        async function () {
+          startOrder.push('cache');
+          this.started = true;
+        }
+      );
+      vi.spyOn(MockServiceC.prototype, '_start').mockImplementation(
+        async function () {
+          startOrder.push('api');
+          this.started = true;
+        }
+      );
 
       await manager.startService('api');
 
@@ -267,12 +293,22 @@ describe('ServiceManager', () => {
   describe('Batch Operations', () => {
     beforeEach(() => {
       manager.register('serviceA', MockServiceA);
-      manager.register('serviceB', MockServiceB, {}, {
-        dependencies: ['serviceA']
-      });
-      manager.register('serviceC', MockServiceC, {}, {
-        dependencies: ['serviceB']
-      });
+      manager.register(
+        'serviceB',
+        MockServiceB,
+        {},
+        {
+          dependencies: ['serviceA']
+        }
+      );
+      manager.register(
+        'serviceC',
+        MockServiceC,
+        {},
+        {
+          dependencies: ['serviceB']
+        }
+      );
     });
 
     it('should start all services in order', async () => {
@@ -293,18 +329,24 @@ describe('ServiceManager', () => {
       await manager.startAll();
 
       const stopOrder = [];
-      vi.spyOn(MockServiceA.prototype, '_stop').mockImplementation(async function() {
-        stopOrder.push('serviceA');
-        this.started = false;
-      });
-      vi.spyOn(MockServiceB.prototype, '_stop').mockImplementation(async function() {
-        stopOrder.push('serviceB');
-        this.started = false;
-      });
-      vi.spyOn(MockServiceC.prototype, '_stop').mockImplementation(async function() {
-        stopOrder.push('serviceC');
-        this.started = false;
-      });
+      vi.spyOn(MockServiceA.prototype, '_stop').mockImplementation(
+        async function () {
+          stopOrder.push('serviceA');
+          this.started = false;
+        }
+      );
+      vi.spyOn(MockServiceB.prototype, '_stop').mockImplementation(
+        async function () {
+          stopOrder.push('serviceB');
+          this.started = false;
+        }
+      );
+      vi.spyOn(MockServiceC.prototype, '_stop').mockImplementation(
+        async function () {
+          stopOrder.push('serviceC');
+          this.started = false;
+        }
+      );
 
       await manager.stopAll();
 
@@ -414,7 +456,9 @@ describe('ServiceManager', () => {
       manager.on('service:error', (e) => errorEvents.push(e));
 
       const instance = manager.get('serviceA');
-      vi.spyOn(instance, '_configure').mockRejectedValue(new Error('Configure failed'));
+      vi.spyOn(instance, '_configure').mockRejectedValue(
+        new Error('Configure failed')
+      );
 
       await manager.configureService('serviceA');
 
@@ -423,7 +467,7 @@ describe('ServiceManager', () => {
         service: 'serviceA',
         data: {
           operation: 'configuration',
-          error: expect.objectContaining({ 
+          error: expect.objectContaining({
             message: 'configuration failed',
             cause: expect.objectContaining({ message: 'Configure failed' })
           })
@@ -489,13 +533,26 @@ describe('ServiceManager', () => {
 
   describe('Service Tags', () => {
     beforeEach(() => {
-      manager.register('database', MockServiceA, {}, { tags: ['storage', 'critical'] });
-      manager.register('cache', MockServiceB, {}, { tags: ['storage', 'performance'] });
+      manager.register(
+        'database',
+        MockServiceA,
+        {},
+        { tags: ['storage', 'critical'] }
+      );
+      manager.register(
+        'cache',
+        MockServiceB,
+        {},
+        { tags: ['storage', 'performance'] }
+      );
       manager.register('api', MockServiceC, {}, { tags: ['api', 'critical'] });
     });
 
     it('should get services by tag', () => {
-      expect(manager.getServicesByTag('storage')).toEqual(['database', 'cache']);
+      expect(manager.getServicesByTag('storage')).toEqual([
+        'database',
+        'cache'
+      ]);
       expect(manager.getServicesByTag('critical')).toEqual(['database', 'api']);
       expect(manager.getServicesByTag('performance')).toEqual(['cache']);
       expect(manager.getServicesByTag('unknown')).toEqual([]);
@@ -504,17 +561,34 @@ describe('ServiceManager', () => {
 
   describe('Circular Dependencies', () => {
     it('should detect circular dependencies', async () => {
-      manager.register('serviceA', MockServiceA, {}, {
-        dependencies: ['serviceB']
-      });
-      manager.register('serviceB', MockServiceB, {}, {
-        dependencies: ['serviceC']
-      });
-      manager.register('serviceC', MockServiceC, {}, {
-        dependencies: ['serviceA'] // Creates cycle
-      });
+      manager.register(
+        'serviceA',
+        MockServiceA,
+        {},
+        {
+          dependencies: ['serviceB']
+        }
+      );
+      manager.register(
+        'serviceB',
+        MockServiceB,
+        {},
+        {
+          dependencies: ['serviceC']
+        }
+      );
+      manager.register(
+        'serviceC',
+        MockServiceC,
+        {},
+        {
+          dependencies: ['serviceA'] // Creates cycle
+        }
+      );
 
-      await expect(manager.startAll()).rejects.toThrow('Circular dependency detected');
+      await expect(manager.startAll()).rejects.toThrow(
+        'Circular dependency detected'
+      );
     });
   });
 
