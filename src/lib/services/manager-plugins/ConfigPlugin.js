@@ -81,15 +81,22 @@ export default class ConfigPlugin {
    */
   // eslint-disable-next-line no-unused-vars
   async resolveServiceConfig(serviceName, serviceEntry, currentConfig) {
+    // console.log(`ConfigPlugin.resolveServiceConfig called for '${serviceName}'`);
+    // console.log('ServiceEntry:', serviceEntry);
+    // console.log('AllConfigs:', this.allConfigs);
+    
     const configLabel = serviceEntry.serviceConfigOrLabel;
+    // console.log('Config label:', configLabel, 'Type:', typeof configLabel);
 
     if (typeof configLabel !== 'string') {
+      // console.log('Config label is not string, returning undefined');
       // Expected config label
       return undefined;
     }
 
     // Simple object lookup
     const config = this.allConfigs[configLabel];
+    // console.log(`Looking up config for label '${configLabel}':`, config);
 
     if (config !== undefined) {
       this.manager?.logger?.debug(
@@ -99,6 +106,9 @@ export default class ConfigPlugin {
             typeof config === 'object' ? Object.keys(config) : 'primitive'
         }
       );
+      // console.log(`Resolved config for '${serviceName}':`, config);
+    } else {
+      // console.log(`No config found for label '${configLabel}'`);
     }
 
     return config;

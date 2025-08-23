@@ -1,0 +1,19 @@
+@reference '../../../../app.css';
+
+[data-page] {
+  & .card {
+    @apply border border-surface-300 rounded-md;
+  }
+  
+  & .max-h-200 {
+    max-height: 12.5rem;
+  }
+  
+  & .space-y-5up > * + * {
+    margin-top: 5up;
+  }
+  
+  & .space-y-6up > * + * {
+    margin-top: 6up;
+  }
+}

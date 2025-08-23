@@ -174,7 +174,7 @@ export class ServiceManager extends EventEmitter {
     const entry = {
       ServiceClass,
       instance: null,
-      serviceConfigOrLabel,
+      serviceConfigOrLabel: serviceConfigOrLabel,
       dependencies: options.dependencies || [],
       dependents: new Set(),
       tags: options.tags || [],
