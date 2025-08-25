@@ -262,7 +262,7 @@ export class ConsoleAdapter {
     let current = err;
     let isFirst = true;
 
-    while (current) {
+    while (current && current instanceof Error) {
       // Check if this is the first error and it's a LoggerError - extract logging context
       if (isFirst && current.name === 'LoggerError') {
         if (current.stack) {
@@ -390,6 +390,12 @@ export class ConsoleAdapter {
         cleaned.includes('.svelte-kit/generated') &&
         relevantFrames.length > 3
       ) {
+        continue;
+      }
+
+      // Skip internal logger methods
+      if (cleaned.includes('#toError@') || 
+          (cleaned.includes('logger/Logger.js') && cleaned.includes('#toError'))) {
         continue;
       }
 

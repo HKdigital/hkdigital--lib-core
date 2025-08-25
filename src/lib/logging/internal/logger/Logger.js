@@ -57,6 +57,7 @@ import { exportNotNullish } from '$lib/util/object.js';
 // } from './util.js';
 
 import * as is from '$lib/util/is.js';
+import { HttpError } from '$lib/network/errors.js';
 
 /**
  * Logger class for consistent logging
@@ -308,7 +309,8 @@ export default class Logger extends EventEmitter {
     return (
       thing instanceof Error ||
       is.ErrorEvent(thing) ||
-      is.PromiseRejectionEvent(thing)
+      is.PromiseRejectionEvent(thing) ||
+      is.SveltekitHttpError(thing)
     );
   }
 
@@ -365,6 +367,18 @@ export default class Logger extends EventEmitter {
         // reason is not an Error or string
         return new DetailedError('Promise rejected', reason);
       }
+    } else if (is.SveltekitHttpError(errorLike)) {
+      // errorLike is a SvelteKit HttpError
+      // => convert to lib's HttpError for consistent error handling
+      const svelteKitError = errorLike;
+
+      return new HttpError(
+        svelteKitError.status,
+        svelteKitError.body?.message || 'SvelteKit HttpError',
+        exportNotNullish(svelteKitError),
+        svelteKitError  // Set original SvelteKit error as cause
+      );
+
     } else if (errorLike instanceof Error) {
       // errorLike is a plain Error
       // => return it

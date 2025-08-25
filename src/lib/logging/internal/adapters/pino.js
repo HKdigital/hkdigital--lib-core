@@ -209,9 +209,12 @@ export class PinoAdapter {
     const pnpmRegex2 = /node_modules\/\.pnpm\/[^/]+\/node_modules\/([^/]+)/g;
     cleaned = cleaned.replace(pnpmRegex2, 'node_modules/$1');
 
-    // Filter out Node.js internal modules
+    // Filter out Node.js internal modules and internal logger methods
     const lines = cleaned.split('\n');
-    const filteredLines = lines.filter(line => !line.includes('node:internal'));
+    const filteredLines = lines.filter(line => 
+      !line.includes('node:internal') &&
+      !(line.includes('#toError') && line.includes('logger/Logger.js'))
+    );
     cleaned = filteredLines.join('\n');
 
     return cleaned;

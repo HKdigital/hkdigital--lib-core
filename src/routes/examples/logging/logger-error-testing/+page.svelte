@@ -124,6 +124,12 @@
             Raw valibot error
           </TextButton>
         </form>
+
+        <form method="POST" action="?/triggerSvelteKitError" use:enhance>
+          <TextButton data-role="secondary" data-size="sm" buttonType="submit">
+            SvelteKit error
+          </TextButton>
+        </form>
       </div>
 
       {#if form}

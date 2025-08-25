@@ -3,6 +3,7 @@ import { rethrow } from '$lib/util/exceptions.js';
 import { HkPromise } from '$lib/generic/promises.js';
 import { httpGet } from '$lib/network/http/index.js';
 import { v } from '$lib/valibot/valibot.js';
+import { error } from '@sveltejs/kit';
 
 /**
  * Test functions for generating various types of errors for logging demonstration
@@ -136,4 +137,11 @@ export function throwRawValibotError() {
   
   // This will throw a ValiError directly from our valibotParser wrapper
   return v.parse(schema, invalidValue);
+}
+
+/**
+ * SvelteKit error that goes through handleError hook
+ */
+export function throwSvelteKitError() {
+  throw error(500, 'SvelteKit error test - this goes through handleError');
 }

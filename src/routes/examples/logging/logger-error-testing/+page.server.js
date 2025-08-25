@@ -11,7 +11,8 @@ import {
   throwHttpException,
   throwExpectError,
   throwRethrowChainError,
-  throwRawValibotError
+  throwRawValibotError,
+  throwSvelteKitError
 } from '$lib/logging/internal/test-errors.js';
 
 /**
@@ -48,5 +49,6 @@ export const actions = {
   triggerHttpException: () => handleServerTest('HTTP exception', throwHttpException),
   triggerExpectError: () => handleServerTest('expect validation', throwExpectError),
   triggerRethrowChain: () => handleServerTest('rethrow chain', throwRethrowChainError),
-  triggerRawValibotError: () => handleServerTest('raw valibot', throwRawValibotError)
+  triggerRawValibotError: () => handleServerTest('raw valibot', throwRawValibotError),
+  triggerSvelteKitError: () => handleServerTest('SvelteKit error', throwSvelteKitError)
 };

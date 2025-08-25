@@ -36,6 +36,9 @@ export const handleError = ({ error, /* event, */ status, message }) => {
  */
 export async function handle({ event, resolve }) {
   const response = await resolve(event);
+
+  // svelte locals
+
   return response;
 }
 
