@@ -2,24 +2,32 @@
  * JWT utility functions
  *
  * @description
- * This module provides utility functions for JWT operations including 
+ * This module provides utility functions for JWT operations including
  * sign, verify and error casting.
  */
 
+// import jwt from 'jsonwebtoken';
+
+// import {
+//   TokenExpiredError as JwtTokenExpiredError,
+//   JsonWebTokenError as JwtJsonWebTokenError,
+//   NotBeforeError as JwtNotBeforeError
+// } from 'jsonwebtoken';
+
 import jwt from 'jsonwebtoken';
 
-import {
-  TokenExpiredError as JwtTokenExpiredError,
-  JsonWebTokenError as JwtJsonWebTokenError,
-  NotBeforeError as JwtNotBeforeError
-} from 'jsonwebtoken';
+const {
+  TokenExpiredError: JwtTokenExpiredError,
+  JsonWebTokenError: JwtJsonWebTokenError,
+  NotBeforeError: JwtNotBeforeError
+} = jwt;
 
 import * as expect from '$lib/util/expect.js';
 
 import {
   JWT_DEFAULT_EXPIRES_IN,
   DEFAULT_ALGORITHM,
-  VERIFY_OPTIONS 
+  VERIFY_OPTIONS
 } from './constants.js';
 
 import {
@@ -54,38 +62,28 @@ import {
  *
  * @returns {string} JsonWebToken
  */
-export function sign(
-  claims,
-  secretOrPrivateKey,
-  options={} )
-{
-  expect.object( claims );
-  expect.defined( secretOrPrivateKey );
+export function sign(claims, secretOrPrivateKey, options = {}) {
+  expect.object(claims);
+  expect.defined(secretOrPrivateKey);
 
-  if( options )
-  {
-    expect.object( options );
-  }
-  else {
+  if (options) {
+    expect.object(options);
+  } else {
     options = {};
   }
 
-  if( !('algorithm' in options) )
-  {
+  if (!('algorithm' in options)) {
     options.algorithm = DEFAULT_ALGORITHM;
   }
 
-  if( !('expiresIn' in options) )
-  {
+  if (!('expiresIn' in options)) {
     options.expiresIn = JWT_DEFAULT_EXPIRES_IN;
-  }
-  else if( !options.expiresIn )
-  {
+  } else if (!options.expiresIn) {
     delete options.expiresIn;
   }
 
   // @ts-ignore
-  return jwt.sign( claims, secretOrPrivateKey, options );
+  return jwt.sign(claims, secretOrPrivateKey, options);
 }
 
 /**
@@ -99,24 +97,20 @@ export function sign(
  *
  * @returns {import('./typedef.js').JwtPayload} claims - The decoded JWT payload
  */
-export function verify( token, secretOrPrivateKey, options=VERIFY_OPTIONS )
-{
-  expect.notEmptyString( token );
-  expect.defined( secretOrPrivateKey );
+export function verify(token, secretOrPrivateKey, options = VERIFY_OPTIONS) {
+  expect.notEmptyString(token);
+  expect.defined(secretOrPrivateKey);
 
-  if( !('algorithms' in options) )
-  {
+  if (!('algorithms' in options)) {
     options.algorithms = VERIFY_OPTIONS.algorithms;
   }
 
   try {
     // @ts-ignore
-    const decoded = jwt.verify( token, secretOrPrivateKey, options );
+    const decoded = jwt.verify(token, secretOrPrivateKey, options);
 
     return decoded;
-  }
-  catch( e )
-  {
+  } catch (e) {
     //
     // Cast internal jsonwebtoken errors to Error types defined in this lib
     //
@@ -135,18 +129,18 @@ export function castJwtError(error) {
   if (error instanceof JwtTokenExpiredError) {
     return new TokenExpiredError(error.message, error.expiredAt, error);
   }
-  
+
   if (error instanceof JwtNotBeforeError) {
     return new NotBeforeError(error.message, error.date, error);
   }
-  
+
   if (error instanceof JwtJsonWebTokenError) {
     if (error.message === 'invalid signature') {
       return new InvalidSignatureError(error.message, error, error);
     }
     return new JsonWebTokenError(error.message, error, error);
   }
-  
+
   // Return original error if not a known JWT error
   return error;
 }
