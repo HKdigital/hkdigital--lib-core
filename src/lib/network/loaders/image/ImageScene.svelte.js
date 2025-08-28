@@ -2,7 +2,7 @@
 
 import * as expect from '$lib/util/expect.js';
 
-import { LoadingStateMachine } from '$lib/state/classes.js';
+import { LoadingStateMachine } from '$lib/state/machines.js';
 
 import {
   STATE_INITIAL,
@@ -13,7 +13,7 @@ import {
   STATE_ERROR,
   LOAD,
   LOADED
-} from '$lib/state/classes/loading-state-machine/constants.js';
+} from '$lib/state/machines.js';
 
 import ImageLoader from './ImageLoader.svelte.js';
 
@@ -74,30 +74,28 @@ export default class ImageScene {
     };
   });
 
+  #sourcesLoaded = $derived( this.#progress.sourcesLoaded );
+  #numberOfSources = $derived( this.#progress.numberOfSources );
+
   /**
    * Construct ImageScene
    */
   constructor() {
     const state = this.#state;
 
-    $effect(() => {
+    $effect( () => {
       if (state.current === STATE_LOADING) {
-        // console.log(
-        //   'progress',
-        //   JSON.stringify($state.snapshot(this.#progress))
-        // );
-
-        const { sourcesLoaded, numberOfSources } = this.#progress;
-
-        if (sourcesLoaded === numberOfSources) {
-          // console.log(`All [${numberOfSources}] sources loaded`);
+        if (this.#sourcesLoaded === this.#numberOfSources) {
+          // console.log(`All [${this.#numberOfSources}] sources loaded`);
           this.#state.send(LOADED);
         }
       }
-    });
+    } );
 
-    $effect(() => {
-      switch (state.current) {
+    state.onenter = ( state ) => {
+      // console.log('onenter', state );
+
+      switch (state) {
         case STATE_LOADING:
           {
             // console.log('ImageScene:loading');
@@ -129,13 +127,13 @@ export default class ImageScene {
 
         case STATE_ERROR:
           {
-            console.log('ImageScene:error', state.error);
+            console.log('ImageScene:error', state);
           }
           break;
       } // end switch
 
-      this.state = state.current;
-    });
+      this.state = state;
+    };
   }
 
   destroy() {
@@ -166,20 +164,12 @@ export default class ImageScene {
    */
   load() {
     this.#state.send(LOAD);
-
-    // FIXME: in unit test when moved to startloading it hangs!
-
-    for (const { imageLoader } of this.#imageSources) {
-      imageLoader.load();
-    }
   }
 
   async #startLoading() {
-    // console.log('#startLoading');
-    // FIXME: in unit test when moved to startloading it hangs!
-    // for (const { audioLoader } of this.#memorySources) {
-    //   audioLoader.load();
-    // }
+    for (const { imageLoader } of this.#imageSources) {
+      imageLoader.load();
+    }
   }
 
   /**

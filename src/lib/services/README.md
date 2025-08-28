@@ -259,6 +259,29 @@ manager.on(SERVICE_ERROR, async ({ service, error }) => {
 await manager.recoverService('database');
 ```
 
+### Log Event Forwarding
+
+Forward all service log events to a centralised logger:
+
+```javascript
+import { ServiceManager, SERVICE_LOG } from '$lib/services/index.js';
+import { createServerLogger } from '$lib/logging/index.js';
+
+const manager = new ServiceManager();
+const logger = createServerLogger('SystemLogger');
+
+// Listen to all log events and forward them to the logger
+manager.on(SERVICE_LOG, (logEvent) => {
+  logger.logFromEvent('manager:service:log', logEvent);
+});
+
+// Register services
+manager.register('database', DatabaseService, { ... });
+manager.register('auth', AuthService, { ... });
+
+await manager.startAll();
+```
+
 ## Plugins
 
 ServiceManager supports plugins e.g. to resolve service configurations dynamically.

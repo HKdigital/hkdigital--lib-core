@@ -15,7 +15,7 @@ export default class CountdownService extends ServiceBase {
   /** @type {Date|null} */
   #targetTime = null;
   
-  /** @type {number|null} */
+  /** @type {number|NodeJS.Timeout|null} */
   #intervalId = null;
 
   /**

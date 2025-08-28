@@ -30,49 +30,31 @@ export default class LoadingStateMachine extends FiniteStateMachine {
   /** @type {Error|null} */
   #error = null;
 
-  /** @type {(( state: string )=>void)|null} */
-  onenter = null;
-
   constructor() {
-    let superCalled = false;
     super(STATE_INITIAL, {
       [STATE_INITIAL]: {
-        _enter: () => {
-          if (superCalled) {
-            this.onenter?.(STATE_INITIAL);
-          }
-          superCalled = true;
-        },
         [LOAD]: STATE_LOADING
       },
       [STATE_LOADING]: {
-        _enter: () => {
-          // console.log('LoadingStateMachine: enter LOADING');
-          this.onenter?.(STATE_LOADING);
-        },
+        // _enter: () => {
+        //   console.log('LoadingStateMachine: enter LOADING');
+        // },
         [CANCEL]: STATE_CANCELLED,
         [ERROR]: STATE_ERROR,
         [LOADED]: STATE_LOADED
       },
       [STATE_LOADED]: {
-        _enter: () => {
-          // console.log('LoadingStateMachine: enter LOADED');
-          this.onenter?.(STATE_LOADED);
-        },
+        // _enter: () => {
+        //   console.log('LoadingStateMachine: enter LOADED');
+        // },
         [LOAD]: STATE_LOADING,
         [UNLOAD]: STATE_UNLOADING
       },
       [STATE_UNLOADING]: {
-        _enter: () => {
-          this.onenter?.(STATE_UNLOADING);
-        },
         [ERROR]: STATE_ERROR,
         [INITIAL]: STATE_INITIAL
       },
       [STATE_CANCELLED]: {
-        _enter: () => {
-          this.onenter?.(STATE_CANCELLED);
-        },
         [LOAD]: STATE_LOADING,
         [UNLOAD]: STATE_UNLOADING
       },
@@ -90,10 +72,8 @@ export default class LoadingStateMachine extends FiniteStateMachine {
               this.#error = new Error('The state machine entered STATE_ERROR');
             }
           }
-
-          this.onenter?.(STATE_CANCELLED);
         },
-        _leave: () => {
+        _exit: () => {
           this.#error = null;
         },
         [LOAD]: STATE_LOADING,

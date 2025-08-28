@@ -1,6 +1,6 @@
 import { CONTENT_TYPE } from '$lib/constants/http.js';
 
-import { LoadingStateMachine } from '$lib/state/classes.js';
+import { LoadingStateMachine } from '$lib/state/machines.js';
 
 import {
   STATE_INITIAL,
@@ -14,7 +14,7 @@ import {
   LOADED,
   UNLOAD,
   INITIAL
-} from '$lib/state/classes/loading-state-machine/constants.js';
+} from '$lib/state/machines.js';
 
 import * as expect from '$lib/util/expect.js';
 

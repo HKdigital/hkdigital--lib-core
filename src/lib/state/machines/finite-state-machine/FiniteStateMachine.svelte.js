@@ -4,6 +4,10 @@
  * @see {@link https://runed.dev/docs/utilities/finite-state-machine}
  */
 
+/** @typedef {import('./typedef.js').StateTransitionMetadata} StateTransitionMetadata */
+/** @typedef {import('./typedef.js').OnEnterCallback} OnEnterCallback */
+/** @typedef {import('./typedef.js').OnExitCallback} OnExitCallback */
+
 /**
  * Check if the value is valid meta data
  *
@@ -27,6 +31,12 @@ export default class FiniteStateMachine {
   #current = $state();
   states;
   #timeout = {};
+
+  /** @type {OnEnterCallback | null} */
+  onenter = null;
+
+  /** @type {OnExitCallback | null} */
+  onexit = null;
 
   /**
    * Constructor
@@ -55,17 +65,25 @@ export default class FiniteStateMachine {
    * @param {any[]} [args]
    */
   #transition(newState, event, args) {
+    /** @type {StateTransitionMetadata} */
     const metadata = { from: this.#current, to: newState, event, args };
+
+    // Call onexit callback before leaving current state
+    this.onexit?.(this.#current, metadata);
+    
     this.#dispatch('_exit', metadata);
     this.#current = newState;
     this.#dispatch('_enter', metadata);
+    
+    // Call onenter callback after state change
+    this.onenter?.(newState, metadata);
   }
 
   /**
    * Dispatch an event
    *
    * @param {string} event
-   * @param {any[]} args
+   * @param {any} args
    */
   #dispatch(event, ...args) {
     const action =
