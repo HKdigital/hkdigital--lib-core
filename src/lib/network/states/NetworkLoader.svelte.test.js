@@ -6,6 +6,12 @@ import { waitForState } from '$lib/util/svelte/wait/index.js';
 
 import { createDataResponse } from './mocks.js';
 
+import {
+  STATE_INITIAL,
+  STATE_LOADING,
+  STATE_CANCELLED
+} from '$lib/state/machines.js';
+
 // > Mocks
 
 beforeEach(() => {
@@ -50,6 +56,60 @@ describe('NetworkLoader', () => {
       bytesLoaded: 132,
       size: 132,
       loaded: true
+    });
+
+    cleanup();
+  });
+
+  it('should abort loading operation when doAbort is called', async () => {
+    
+    // Mock a slow response to test abort
+    const mockResponse = createDataResponse();
+    // @ts-ignore
+    fetch.mockResolvedValue(mockResponse);
+
+    const url = 'http://localhost/mock-wav';
+    
+    /** @type {NetworkLoader} */
+    let networkLoader;
+
+    const cleanup = $effect.root(() => {
+      networkLoader = new NetworkLoader({ url });
+      
+      expect(networkLoader.state).toBe(STATE_INITIAL);
+      
+      // Start loading
+      networkLoader.load();
+      expect(networkLoader.state).toBe(STATE_LOADING);
+      
+      // Abort immediately
+      networkLoader.doAbort();
+      expect(networkLoader.state).toBe(STATE_CANCELLED);
+    });
+
+    cleanup();
+  });
+
+  it('should only abort when in loading state', () => {
+    
+    const url = 'http://localhost/mock-wav';
+    
+    /** @type {NetworkLoader} */
+    let networkLoader;
+
+    const cleanup = $effect.root(() => {
+      networkLoader = new NetworkLoader({ url });
+      
+      // Try abort from initial state (should remain in initial)
+      networkLoader.doAbort();
+      expect(networkLoader.state).toBe(STATE_INITIAL);
+      
+      // Start loading then abort (should work)
+      networkLoader.load();
+      expect(networkLoader.state).toBe(STATE_LOADING);
+      
+      networkLoader.doAbort();
+      expect(networkLoader.state).toBe(STATE_CANCELLED);
     });
 
     cleanup();

@@ -447,12 +447,11 @@ export class ServiceBase extends EventEmitter {
     return {};
   }
 
-  // Private methods
-
   /**
    * Set the service state and emit event
    *
-   * @private
+   * @protected
+   *
    * @param {ServiceState} newState - New state value
    * @emits {StateChangeEvent} EVENT_STATE_CHANGED
    */
@@ -473,7 +472,8 @@ export class ServiceBase extends EventEmitter {
   /**
    * Set the service target state and emit event
    *
-   * @private
+   * @protected
+   *
    * @param {ServiceState} newTargetState - New target state value
    * @emits {TargetStateChangeEvent} EVENT_TARGET_STATE_CHANGED
    */
@@ -493,7 +493,8 @@ export class ServiceBase extends EventEmitter {
   /**
    * Set the health status and emit event if changed
    *
-   * @private
+   * @protected
+   *
    * @param {boolean} healthy - New health status
    * @emits {HealthChangeEvent} EVENT_HEALTH_CHANGED
    */
@@ -515,7 +516,8 @@ export class ServiceBase extends EventEmitter {
   /**
    * Set error state and emit error event
    *
-   * @private
+   * @protected
+   *
    * @param {string} operation - Operation that failed
    * @param {Error} error - Error that occurred
    * @emits {ServiceErrorEvent} EVENT_ERROR

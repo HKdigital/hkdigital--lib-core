@@ -4,6 +4,8 @@
  * @see {@link https://runed.dev/docs/utilities/finite-state-machine}
  */
 
+import { isTestEnv } from '$lib/util/env.js';
+
 /** @typedef {import('./typedef.js').StateTransitionMetadata} StateTransitionMetadata */
 /** @typedef {import('./typedef.js').OnEnterCallback} OnEnterCallback */
 /** @typedef {import('./typedef.js').OnExitCallback} OnExitCallback */
@@ -37,6 +39,9 @@ export default class FiniteStateMachine {
 
   /** @type {OnExitCallback | null} */
   onexit = null;
+
+  /** @type {boolean} */
+  #enableConsoleWarnings = !isTestEnv;
 
   /**
    * Constructor
@@ -103,12 +108,14 @@ export default class FiniteStateMachine {
     } else if (typeof action === 'string') {
       return action;
     } else if (event !== '_enter' && event !== '_exit') {
-      console.warn(
-        'No action defined for event',
-        event,
-        'in state',
-        this.#current
-      );
+      if (this.#enableConsoleWarnings) {
+        console.warn(
+          'No action defined for event',
+          event,
+          'in state',
+          this.#current
+        );
+      }
     }
   }
   /**

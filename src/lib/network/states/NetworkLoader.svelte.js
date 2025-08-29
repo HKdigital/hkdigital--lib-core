@@ -13,7 +13,8 @@ import {
   ERROR,
   LOADED,
   UNLOAD,
-  INITIAL
+  INITIAL,
+  CANCEL
 } from '$lib/state/machines.js';
 
 import * as expect from '$lib/util/expect.js';
@@ -129,7 +130,10 @@ export default class NetworkLoader {
         case STATE_CANCELLED:
           {
             // console.log('NetworkLoader:cancelled');
-            // TODO
+            if (this._abortLoading) {
+              this._abortLoading();
+              this._abortLoading = null;
+            }
           }
           break;
 
@@ -155,6 +159,15 @@ export default class NetworkLoader {
    */
   unload() {
     this._state.send(UNLOAD);
+  }
+
+  /**
+   * Abort the current loading operation
+   * - Only works when in STATE_LOADING
+   * - Aborts network requests and transitions to STATE_CANCELLED
+   */
+  doAbort() {
+    this._state.send(CANCEL);
   }
 
   /**

@@ -10,6 +10,7 @@ import {
   STATE_LOADED,
   STATE_CANCELLED,
   STATE_ERROR,
+  STATE_TIMEOUT,
 
   // > Signals
   INITIAL,
@@ -17,7 +18,8 @@ import {
   CANCEL,
   ERROR,
   LOADED,
-  UNLOAD
+  UNLOAD,
+  TIMEOUT
 } from './constants.js';
 
 /**
@@ -41,7 +43,8 @@ export default class LoadingStateMachine extends FiniteStateMachine {
         // },
         [CANCEL]: STATE_CANCELLED,
         [ERROR]: STATE_ERROR,
-        [LOADED]: STATE_LOADED
+        [LOADED]: STATE_LOADED,
+        [TIMEOUT]: STATE_TIMEOUT
       },
       [STATE_LOADED]: {
         // _enter: () => {
@@ -55,6 +58,10 @@ export default class LoadingStateMachine extends FiniteStateMachine {
         [INITIAL]: STATE_INITIAL
       },
       [STATE_CANCELLED]: {
+        [LOAD]: STATE_LOADING,
+        [UNLOAD]: STATE_UNLOADING
+      },
+      [STATE_TIMEOUT]: {
         [LOAD]: STATE_LOADING,
         [UNLOAD]: STATE_UNLOADING
       },
@@ -85,5 +92,23 @@ export default class LoadingStateMachine extends FiniteStateMachine {
   /** The last error */
   get error() {
     return this.#error;
+  }
+
+  /**
+   * Transition to timeout state
+   * - Only valid when currently loading
+   * - Useful for external timeout management
+   */
+  doTimeout() {
+    this.send(TIMEOUT);
+  }
+
+  /**
+   * Transition to cancelled state
+   * - Only valid when currently loading
+   * - Useful for external cancellation management
+   */
+  doCancel() {
+    this.send(CANCEL);
   }
 }

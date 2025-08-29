@@ -9,12 +9,14 @@ import {
   STATE_UNLOADING,
   STATE_CANCELLED,
   STATE_ERROR,
+  STATE_TIMEOUT,
   LOAD,
   LOADED,
   CANCEL,
   ERROR,
   UNLOAD,
-  INITIAL
+  INITIAL,
+  TIMEOUT
 } from './constants.js';
 
 describe('LoadingStateMachine', () => {
@@ -180,5 +182,92 @@ describe('LoadingStateMachine - onenter callback', () => {
     machine.send(LOADED);
     expect(firstCalls).toEqual([STATE_LOADING]); // No more calls to first callback
     expect(secondCalls).toEqual([STATE_LOADED]); // New callback receives calls
+  });
+});
+
+describe('LoadingStateMachine - timeout functionality', () => {
+  it('should transition from loading to timeout state', () => {
+    const machine = new LoadingStateMachine();
+
+    machine.send(LOAD);
+    expect(machine.current).toBe(STATE_LOADING);
+
+    machine.send(TIMEOUT);
+    expect(machine.current).toBe(STATE_TIMEOUT);
+  });
+
+  it('should transition from timeout to loading state', () => {
+    const machine = new LoadingStateMachine();
+
+    machine.send(LOAD);
+    machine.send(TIMEOUT);
+    expect(machine.current).toBe(STATE_TIMEOUT);
+
+    machine.send(LOAD);
+    expect(machine.current).toBe(STATE_LOADING);
+  });
+
+  it('should transition from timeout to unloading state', () => {
+    const machine = new LoadingStateMachine();
+
+    machine.send(LOAD);
+    machine.send(TIMEOUT);
+    expect(machine.current).toBe(STATE_TIMEOUT);
+
+    machine.send(UNLOAD);
+    expect(machine.current).toBe(STATE_UNLOADING);
+  });
+
+  it('should call doTimeout method to trigger timeout', () => {
+    const machine = new LoadingStateMachine();
+
+    machine.send(LOAD);
+    expect(machine.current).toBe(STATE_LOADING);
+
+    machine.doTimeout();
+    expect(machine.current).toBe(STATE_TIMEOUT);
+  });
+
+  it('should call doCancel method to trigger cancellation', () => {
+    const machine = new LoadingStateMachine();
+    
+    machine.send(LOAD);
+    expect(machine.current).toBe(STATE_LOADING);
+    
+    machine.doCancel();
+    expect(machine.current).toBe(STATE_CANCELLED);
+  });
+
+  it('should call onenter callback for timeout state', () => {
+    let callbackCalls = [];
+    const machine = new LoadingStateMachine();
+
+    machine.onenter = (state) => {
+      callbackCalls.push(state);
+    };
+
+    machine.send(LOAD);
+    machine.send(TIMEOUT);
+
+    expect(callbackCalls).toEqual([STATE_LOADING, STATE_TIMEOUT]);
+  });
+
+  it('should only allow timeout from loading state', () => {
+    const machine = new LoadingStateMachine();
+
+    // Try timeout from initial state (should remain in initial)
+    machine.send(TIMEOUT);
+    expect(machine.current).toBe(STATE_INITIAL);
+
+    // Try timeout from loaded state (should remain in loaded)
+    machine.send(LOAD);
+    machine.send(LOADED);
+    machine.send(TIMEOUT);
+    expect(machine.current).toBe(STATE_LOADED);
+
+    // Try timeout from loading state (should succeed)
+    machine.send(LOAD);
+    machine.send(TIMEOUT);
+    expect(machine.current).toBe(STATE_TIMEOUT);
   });
 });

@@ -5,6 +5,7 @@ export const STATE_LOADED = 'loaded';
 
 export const STATE_CANCELLED = 'cancelled';
 export const STATE_ERROR = 'error';
+export const STATE_TIMEOUT = 'timeout';
 
 // > Signals
 
@@ -14,3 +15,4 @@ export const CANCEL = 'cancel';
 export const ERROR = 'error';
 export const LOADED = 'loaded';
 export const UNLOAD = 'unload';
+export const TIMEOUT = 'timeout';

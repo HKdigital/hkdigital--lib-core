@@ -36,8 +36,6 @@ describe('FiniteStateMachine - Basic Tests', () => {
   });
 
   it('should handle invalid transitions gracefully', () => {
-    const consoleSpy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-    
     const machine = new FiniteStateMachine('idle', {
       idle: {
         start: 'running'
@@ -52,11 +50,6 @@ describe('FiniteStateMachine - Basic Tests', () => {
     // Try invalid transition
     machine.send('invalidEvent');
     expect(machine.current).toBe('idle'); // Should stay in current state
-    expect(consoleSpy).toHaveBeenCalledWith(
-      'No action defined for event', 'invalidEvent', 'in state', 'idle'
-    );
-
-    consoleSpy.mockRestore();
   });
 
   it('should call enter and exit callbacks', () => {

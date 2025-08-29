@@ -8,7 +8,7 @@ A specialized finite state machine designed for managing loading operations with
 
 ## States
 
-The machine defines six primary states:
+The machine defines seven primary states:
 
 - **`INITIAL`** - Starting state, ready to begin loading
 - **`LOADING`** - Currently loading data or resources
@@ -16,6 +16,7 @@ The machine defines six primary states:
 - **`UNLOADING`** - Cleaning up or releasing resources
 - **`CANCELLED`** - Loading operation was cancelled
 - **`ERROR`** - An error occurred during loading
+- **`TIMEOUT`** - Loading operation exceeded time limit
 
 ## Events
 
@@ -26,6 +27,7 @@ Available events to trigger state transitions:
 - **`UNLOAD`** - Begin cleanup/unloading
 - **`CANCEL`** - Cancel the loading operation
 - **`ERROR`** - Signal an error occurred
+- **`TIMEOUT`** - Signal operation has timed out
 - **`INITIAL`** - Return to initial state
 
 ## Basic Usage
@@ -65,35 +67,36 @@ console.log(loader.current); // STATE_LOADED
 
 ```
 INITIAL → LOADING
-LOADING → LOADED | CANCELLED | ERROR
+LOADING → LOADED | CANCELLED | ERROR | TIMEOUT
 LOADED → LOADING | UNLOADING
 UNLOADING → INITIAL | ERROR
 CANCELLED → LOADING | UNLOADING
 ERROR → LOADING | UNLOADING
+TIMEOUT → LOADING | UNLOADING
 ```
 
 ### Transition Diagram
 
 ```
-    ┌─────────┐
-    │ INITIAL │
-    └────┬────┘
-         │ LOAD
-         ▼
+        ┌─────────┐
+        │ INITIAL │
+        └────┬────┘
+             │ LOAD
+             ▼
     ┌─────────┐    CANCEL     ┌───────────┐
     │ LOADING │──────────────→│ CANCELLED │
     └────┬────┘               └─────┬─────┘
          │                          │
-    LOADED│  ERROR             LOAD │ UNLOAD
-         │     │                    │    │
-         ▼     ▼                    ▼    ▼
-    ┌────────┐ ┌───────┐        ┌──────────┐
-    │ LOADED │ │ ERROR │        │UNLOADING │
-    └────┬───┘ └───┬───┘        └────┬─────┘
-         │         │                 │
-   UNLOAD│    LOAD │ UNLOAD   INITIAL│ ERROR
-         ▼         ▼                 ▼
-    ┌──────────┐◄────────────────────┘
+    LOADED│  ERROR  TIMEOUT    LOAD │ UNLOAD
+         │     │       │            │    │
+         ▼     ▼       ▼            ▼    ▼
+    ┌────────┐ ┌───────┐ ┌─────────┐ ┌──────────┐
+    │ LOADED │ │ ERROR │ │ TIMEOUT │ │UNLOADING │
+    └────┬───┘ └───┬───┘ └────┬────┘ └────┬─────┘
+         │         │          │           │
+   UNLOAD│    LOAD │ UNLOAD  LOAD│ UNLOAD INITIAL│ ERROR
+         ▼         ▼            ▼           ▼
+    ┌──────────┐◄──────────────────────────┘
     │UNLOADING │
     └──────────┘
 ```
@@ -118,6 +121,10 @@ loader.onenter = (state) => {
     case STATE_ERROR:
       console.log('Loading failed');
       showError();
+      break;
+    case STATE_TIMEOUT:
+      console.log('Loading timed out');
+      showRetryOption();
       break;
   }
 };
@@ -165,6 +172,42 @@ The `error` getter provides access to the last error:
 if (loader.current === 'error') {
   console.error('Loading failed:', loader.error);
 }
+```
+
+## Timeout Handling
+
+The machine supports timeout functionality for managing loading operations that exceed expected duration:
+
+```javascript
+const loader = new LoadingStateMachine();
+
+// External timeout management
+const timeoutId = setTimeout(() => {
+  if (loader.current === STATE_LOADING) {
+    loader.doTimeout(); // Transitions to STATE_TIMEOUT
+  }
+}, 10000); // 10 second timeout
+
+loader.onenter = (state) => {
+  switch (state) {
+    case STATE_TIMEOUT:
+      console.log('Loading timed out');
+      showRetryButton();
+      break;
+    case STATE_LOADED:
+      clearTimeout(timeoutId); // Cancel timeout on success
+      break;
+  }
+};
+```
+
+### doTimeout Method
+
+Use `doTimeout()` to manually trigger a timeout transition:
+
+```javascript
+// Only works when in STATE_LOADING
+loader.doTimeout(); // Sends TIMEOUT signal
 ```
 
 ## Integration with Svelte Reactivity
@@ -234,6 +277,9 @@ export default class MultiSourceLoader {
           break;
         case STATE_ERROR:
           this.#handleLoadError();
+          break;
+        case STATE_TIMEOUT:
+          this.#handleTimeout();
           break;
       }
       this.state = state;
@@ -532,6 +578,7 @@ import {
   STATE_UNLOADING,
   STATE_CANCELLED,
   STATE_ERROR,
+  STATE_TIMEOUT,
   
   // Events
   LOAD,
@@ -539,6 +586,7 @@ import {
   UNLOAD,
   CANCEL,
   ERROR,
-  INITIAL
+  INITIAL,
+  TIMEOUT
 } from './constants.js';
 ```
