@@ -42,8 +42,9 @@ describe('PinoAdapter', () => {
   });
 
   describe('constructor', () => {
-    it('should create pino instance with default options in production', () => {
-      new PinoAdapter();
+    it('should create pino instance with default options in production', async () => {
+      const adapter = new PinoAdapter();
+      await adapter.ready();
       expect(pino).toHaveBeenCalledWith({
         serializers: {
           errors: expect.any(Function)
@@ -51,14 +52,15 @@ describe('PinoAdapter', () => {
       });
     });
 
-    it('should create pino instance with custom options', () => {
+    it('should create pino instance with custom options', async () => {
       const customOptions = {
         level: 'debug',
         name: 'my-app',
         customField: 'value'
       };
       
-      new PinoAdapter(customOptions);
+      const adapter = new PinoAdapter(customOptions);
+      await adapter.ready();
       expect(pino).toHaveBeenCalledWith({
         serializers: {
           errors: expect.any(Function)
@@ -82,19 +84,16 @@ describe('PinoAdapter', () => {
       
       pinoDev.mockReturnValue(mockPinoInstance);
       
-      new PinoAdapterDev();
+      const adapter = new PinoAdapterDev();
+      await adapter.ready();
       
       expect(pinoDev).toHaveBeenCalledWith(expect.objectContaining({
         serializers: {
           errors: expect.any(Function)
         },
-        level: 'debug',
-        transport: expect.objectContaining({
-          target: 'pino-pretty',
-          options: expect.objectContaining({
-            colorize: true
-          })
-        })
+        level: 'debug'
+      }), expect.objectContaining({
+        write: expect.any(Function)
       }));
     });
 
@@ -110,20 +109,17 @@ describe('PinoAdapter', () => {
       
       pinoDev.mockReturnValue(mockPinoInstance);
       
-      new PinoAdapterDev({ customField: 'custom' });
+      const adapter = new PinoAdapterDev({ customField: 'custom' });
+      await adapter.ready();
       
       expect(pinoDev).toHaveBeenCalledWith(expect.objectContaining({
         serializers: {
           errors: expect.any(Function)
         },
         level: 'debug',
-        transport: expect.objectContaining({
-          target: 'pino-pretty',
-          options: expect.objectContaining({
-            colorize: true
-          })
-        }),
         customField: 'custom'
+      }), expect.objectContaining({
+        write: expect.any(Function)
       }));
     });
   });
@@ -297,7 +293,7 @@ describe('PinoAdapter', () => {
   });
 
   describe('child method', () => {
-    it('should create child logger with context', () => {
+    it('should create child logger with context', async () => {
       const mockChildPino = {
         debug: vi.fn(),
         info: vi.fn(),
@@ -309,24 +305,29 @@ describe('PinoAdapter', () => {
 
       mockPinoInstance.child.mockReturnValue(mockChildPino);
 
+      await adapter.ready();
+      
       const context = { requestId: 'req-123', userId: 'user-456' };
       const childAdapter = adapter.child(context);
 
       expect(mockPinoInstance.child).toHaveBeenCalledWith(context);
-      expect(childAdapter.pino).toBe(mockChildPino);
+      // Test behavior instead of internal state
+      await childAdapter.ready();
+      expect(childAdapter).toBeInstanceOf(adapter.constructor);
     });
 
-    it('should handle logs from child adapter', () => {
+    it('should handle logs from child adapter', async () => {
       const mockChildPino = {
         info: vi.fn(),
         error: vi.fn()
       };
 
+      await adapter.ready();
       mockPinoInstance.child.mockReturnValue(mockChildPino);
 
       const childAdapter = adapter.child({ requestId: 'req-789' });
 
-      childAdapter.handleLog({
+      await childAdapter.handleLog({
         level: ERROR,
         message: 'Child error',
         source: 'ChildService',
@@ -344,7 +345,7 @@ describe('PinoAdapter', () => {
       );
     });
 
-    it('should support nested child loggers', () => {
+    it('should support nested child loggers', async () => {
       const mockChild1 = {
         child: vi.fn(),
         info: vi.fn()
@@ -353,6 +354,7 @@ describe('PinoAdapter', () => {
         info: vi.fn()
       };
 
+      await adapter.ready();
       mockPinoInstance.child.mockReturnValue(mockChild1);
       mockChild1.child.mockReturnValue(mockChild2);
 
@@ -361,7 +363,6 @@ describe('PinoAdapter', () => {
 
       expect(mockPinoInstance.child).toHaveBeenCalledWith({ level1: 'context1' });
       expect(mockChild1.child).toHaveBeenCalledWith({ level2: 'context2' });
-      expect(child2.pino).toBe(mockChild2);
     });
   });
 

@@ -59,6 +59,7 @@ describe('PinoAdapter Serializers', () => {
       pino.mockReturnValue(mockPinoWithLevel);
       
       const adapter = new PinoAdapterDev();
+      await adapter.ready();
       const pinoConfig = pino.mock.calls[pino.mock.calls.length - 1][0];
       const serializer = pinoConfig.serializers?.errors;
       
@@ -101,6 +102,7 @@ describe('PinoAdapter Serializers', () => {
       pino.mockReturnValue(mockPinoWithLevel);
       
       const adapter = new PinoAdapterDev();
+      await adapter.ready();
       const pinoConfig = pino.mock.calls[pino.mock.calls.length - 1][0];
       const serializer = pinoConfig.serializers?.errors;
       
@@ -149,9 +151,10 @@ describe('PinoAdapter Serializers', () => {
       ]);
     });
 
-    it('should serialize errors in production mode (but without pretty transport)', () => {
+    it('should serialize errors in production mode (but without pretty transport)', async () => {
       // Use production adapter (dev: false)
       const adapter = new PinoAdapter();
+      await adapter.ready();
       
       // In production, serializers should still be configured
       expect(pino).toHaveBeenCalledWith({
@@ -187,7 +190,7 @@ describe('PinoAdapter Serializers', () => {
       }]);
     });
 
-    it('should include stack trace in production when debug level is set', () => {
+    it('should include stack trace in production when debug level is set', async () => {
       // Create a mock pino instance with debug level first
       const mockPinoWithDebugLevel = {
         ...mockPinoInstance,
@@ -200,6 +203,7 @@ describe('PinoAdapter Serializers', () => {
       
       // Use production adapter but with debug level
       const adapter = new PinoAdapter({ level: 'debug' });
+      await adapter.ready();
       
       const pinoConfig = pino.mock.calls[pino.mock.calls.length - 1][0];
       const serializer = pinoConfig.serializers?.errors;
@@ -241,6 +245,7 @@ describe('PinoAdapter Serializers', () => {
       pino.mockReturnValue(mockPinoWithInfoLevel);
       
       const adapter = new PinoAdapterDev();
+      await adapter.ready();
       const pinoConfig = pino.mock.calls[pino.mock.calls.length - 1][0];
       const serializer = pinoConfig.serializers?.errors;
       
@@ -280,6 +285,7 @@ describe('PinoAdapter Serializers', () => {
       pino.mockReturnValue(mockPinoWithDebugLevel);
       
       const adapter = new PinoAdapterDev();
+      await adapter.ready();
       const pinoConfig = pino.mock.calls[pino.mock.calls.length - 1][0];
       const serializer = pinoConfig.serializers?.errors;
       
@@ -325,6 +331,7 @@ describe('PinoAdapter Serializers', () => {
       pino.mockReturnValue(mockPinoWithDebugLevel);
       
       const adapter = new PinoAdapterDev();
+      await adapter.ready();
       const pinoConfig = pino.mock.calls[pino.mock.calls.length - 1][0];
       const serializer = pinoConfig.serializers?.errors;
       
@@ -384,6 +391,7 @@ describe('PinoAdapter Serializers', () => {
       pino.mockReturnValue(mockPinoWithDebugLevel);
       
       const adapter = new PinoAdapterDev();
+      await adapter.ready();
       const pinoConfig = pino.mock.calls[pino.mock.calls.length - 1][0];
       const serializer = pinoConfig.serializers?.errors;
       
