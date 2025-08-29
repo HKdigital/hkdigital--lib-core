@@ -3,6 +3,7 @@
 import { describe, it, expect, vi } from 'vitest';
 
 import FiniteStateMachine from './FiniteStateMachine.svelte.js';
+import { ENTER, EXIT } from './constants.js';
 
 describe('FiniteStateMachine - Basic Tests', () => {
   it('should handle basic state transitions', () => {
@@ -21,16 +22,16 @@ describe('FiniteStateMachine - Basic Tests', () => {
     });
 
     expect(machine.current).toBe('idle');
-    
+
     machine.send('start');
     expect(machine.current).toBe('running');
-    
+
     machine.send('pause');
     expect(machine.current).toBe('paused');
-    
+
     machine.send('resume');
     expect(machine.current).toBe('running');
-    
+
     machine.send('stop');
     expect(machine.current).toBe('idle');
   });
@@ -46,7 +47,7 @@ describe('FiniteStateMachine - Basic Tests', () => {
     });
 
     expect(machine.current).toBe('idle');
-    
+
     // Try invalid transition
     machine.send('invalidEvent');
     expect(machine.current).toBe('idle'); // Should stay in current state
@@ -93,14 +94,22 @@ describe('FiniteStateMachine - Advanced Tests', () => {
 
     const machine = new FiniteStateMachine('idle', {
       idle: {
-        _enter: () => { enterCallCount++; },
-        _exit: () => { exitCallCount++; },
+        _enter: () => {
+          enterCallCount++;
+        },
+        _exit: () => {
+          exitCallCount++;
+        },
         start: 'running',
         reset: 'idle' // Same state transition
       },
       running: {
-        _enter: () => { enterCallCount++; },
-        _exit: () => { exitCallCount++; },
+        _enter: () => {
+          enterCallCount++;
+        },
+        _exit: () => {
+          exitCallCount++;
+        },
         restart: 'running', // Same state transition
         stop: 'idle'
       }
@@ -108,20 +117,20 @@ describe('FiniteStateMachine - Advanced Tests', () => {
 
     expect(machine.current).toBe('idle');
     expect(enterCallCount).toBe(1); // Initial enter
-    
+
     // Test same-state transition (should NOT trigger callbacks)
     machine.send('reset'); // idle → idle
     expect(machine.current).toBe('idle');
     expect(exitCallCount).toBe(0); // No exit callback
     expect(enterCallCount).toBe(1); // No additional enter callback
-    
+
     machine.send('start'); // idle → running (different state)
     expect(machine.current).toBe('running');
     expect(exitCallCount).toBe(1); // Exit idle
     expect(enterCallCount).toBe(2); // Enter running
-    
+
     // Test same-state transition on running (should NOT trigger callbacks)
-    machine.send('restart'); // running → running  
+    machine.send('restart'); // running → running
     expect(machine.current).toBe('running');
     expect(exitCallCount).toBe(1); // No additional exit
     expect(enterCallCount).toBe(2); // No additional enter
@@ -139,13 +148,13 @@ describe('FiniteStateMachine - Advanced Tests', () => {
     });
 
     expect(machine.current).toBe('idle');
-    
+
     const result1 = machine.send('start');
     expect(result1).toBe('loading');
     expect(machine.current).toBe('loading');
-    
+
     const result2 = machine.send('complete');
-    expect(result2).toBe('loaded'); 
+    expect(result2).toBe('loaded');
     expect(machine.current).toBe('loaded');
   });
 
@@ -154,35 +163,51 @@ describe('FiniteStateMachine - Advanced Tests', () => {
 
     const machine = new FiniteStateMachine('idle', {
       idle: {
-        _enter: () => { callOrder.push('enter-idle'); },
-        _exit: () => { callOrder.push('exit-idle'); },
+        _enter: () => {
+          callOrder.push('enter-idle');
+        },
+        _exit: () => {
+          callOrder.push('exit-idle');
+        },
         start: 'loading'
       },
       loading: {
-        _enter: () => { callOrder.push('enter-loading'); },
-        _exit: () => { callOrder.push('exit-loading'); },
+        _enter: () => {
+          callOrder.push('enter-loading');
+        },
+        _exit: () => {
+          callOrder.push('exit-loading');
+        },
         complete: 'loaded'
       },
       loaded: {
-        _enter: () => { callOrder.push('enter-loaded'); }
+        _enter: () => {
+          callOrder.push('enter-loaded');
+        }
       }
     });
 
     // Initial state should trigger enter
     expect(callOrder).toEqual(['enter-idle']);
-    
+
     machine.send('start');
     expect(callOrder).toEqual(['enter-idle', 'exit-idle', 'enter-loading']);
-    
-    machine.send('complete');  
-    expect(callOrder).toEqual(['enter-idle', 'exit-idle', 'enter-loading', 'exit-loading', 'enter-loaded']);
+
+    machine.send('complete');
+    expect(callOrder).toEqual([
+      'enter-idle',
+      'exit-idle',
+      'enter-loading',
+      'exit-loading',
+      'enter-loaded'
+    ]);
   });
 });
 
 describe('FiniteStateMachine - onexit/onenter Callbacks', () => {
   it('should call onexit callback when leaving states', () => {
     const exitCalls = [];
-    
+
     const machine = new FiniteStateMachine('idle', {
       idle: { start: 'running' },
       running: { stop: 'idle', pause: 'paused' },
@@ -190,7 +215,12 @@ describe('FiniteStateMachine - onexit/onenter Callbacks', () => {
     });
 
     machine.onexit = (state, metadata) => {
-      exitCalls.push({ state, from: metadata.from, to: metadata.to, event: metadata.event });
+      exitCalls.push({
+        state,
+        from: metadata.from,
+        to: metadata.to,
+        event: metadata.event
+      });
     };
 
     machine.send('start');
@@ -206,7 +236,7 @@ describe('FiniteStateMachine - onexit/onenter Callbacks', () => {
 
   it('should call both onexit and onenter with correct execution order', () => {
     const callOrder = [];
-    
+
     const machine = new FiniteStateMachine('idle', {
       idle: {
         _enter: () => callOrder.push('idle-_enter'),
@@ -229,10 +259,10 @@ describe('FiniteStateMachine - onexit/onenter Callbacks', () => {
     machine.send('start');
 
     expect(callOrder).toEqual([
-      'onexit-idle',        // 1. onexit callback
-      'idle-_exit',         // 2. _exit function
-      'running-_enter',     // 3. _enter function
-      'onenter-running'     // 4. onenter callback
+      'onexit-idle', // 1. onexit callback
+      'idle-_exit', // 2. _exit function
+      'running-_enter', // 3. _enter function
+      'onenter-running' // 4. onenter callback
     ]);
   });
 
@@ -254,7 +284,7 @@ describe('FiniteStateMachine - onexit/onenter Callbacks', () => {
   it('should handle onexit callback changes during execution', () => {
     const firstExits = [];
     const secondExits = [];
-    
+
     const machine = new FiniteStateMachine('idle', {
       idle: { start: 'running' },
       running: { stop: 'idle' }
@@ -279,7 +309,7 @@ describe('FiniteStateMachine - onexit/onenter Callbacks', () => {
 
   it('should pass correct metadata to onexit callback', () => {
     let exitMetadata = null;
-    
+
     const machine = new FiniteStateMachine('idle', {
       idle: { start: 'running' },
       running: { stop: 'idle' }
@@ -294,9 +324,96 @@ describe('FiniteStateMachine - onexit/onenter Callbacks', () => {
     expect(exitMetadata).toEqual({
       state: 'idle',
       from: 'idle',
-      to: 'running', 
+      to: 'running',
       event: 'start',
       args: ['arg1', 'arg2']
     });
+  });
+});
+
+describe('FiniteStateMachine - EventEmitter Integration', () => {
+  it('should emit ENTER and EXIT events during state transitions', () => {
+    const enterEvents = [];
+    const exitEvents = [];
+
+    const machine = new FiniteStateMachine('idle', {
+      idle: {
+        start: 'running'
+      },
+      running: {
+        stop: 'idle'
+      }
+    });
+
+    // Listen to events using EventEmitter API
+    machine.on(ENTER, (data) => {
+      enterEvents.push(data);
+    });
+
+    machine.on(EXIT, (data) => {
+      exitEvents.push(data);
+    });
+
+    // Clear initial state enter event
+    enterEvents.length = 0;
+
+    // Trigger state transition
+    machine.send('start');
+
+    expect(exitEvents).toHaveLength(1);
+    expect(exitEvents[0].state).toBe('idle');
+    expect(exitEvents[0].metadata.from).toBe('idle');
+    expect(exitEvents[0].metadata.to).toBe('running');
+
+    expect(enterEvents).toHaveLength(1);
+    expect(enterEvents[0].state).toBe('running');
+    expect(enterEvents[0].metadata.from).toBe('idle');
+    expect(enterEvents[0].metadata.to).toBe('running');
+  });
+
+  it('should support wildcard event listeners', () => {
+    const allEvents = [];
+
+    const machine = new FiniteStateMachine('idle', {
+      idle: { start: 'running' },
+      running: { stop: 'idle' }
+    });
+
+    // Listen to all state machine events with wildcard
+    machine.on('*', ({ event, data }) => {
+      allEvents.push({ event, data });
+    });
+
+    // Clear initial state events
+    allEvents.length = 0;
+
+    machine.send('start');
+
+    expect(allEvents).toHaveLength(2);
+    expect(allEvents[0].event).toBe(EXIT);
+    expect(allEvents[1].event).toBe(ENTER);
+  });
+
+  it('should maintain backward compatibility with existing callbacks', () => {
+    const callbacks = {
+      onenter: vi.fn(),
+      onexit: vi.fn()
+    };
+
+    const machine = new FiniteStateMachine('idle', {
+      idle: { start: 'running' },
+      running: { stop: 'idle' }
+    });
+
+    machine.onenter = callbacks.onenter;
+    machine.onexit = callbacks.onexit;
+
+    machine.send('start');
+
+    expect(callbacks.onexit).toHaveBeenCalledWith('idle', expect.any(Object));
+    expect(callbacks.onenter).toHaveBeenCalledWith(
+      'running',
+      expect.any(Object)
+    );
   });
 });

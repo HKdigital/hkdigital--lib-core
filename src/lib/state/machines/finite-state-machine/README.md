@@ -39,7 +39,7 @@ console.log(machine.current); // 'paused'
 ## Constructor
 
 ```javascript
-new FiniteStateMachine(initialState, states)
+new FiniteStateMachine(initialState, states);
 ```
 
 - `initialState`: The starting state (string)
@@ -160,7 +160,7 @@ const machine = new FiniteStateMachine('idle', {
     resume: 'running'
   },
   '*': {
-    reset: 'idle',  // Available from any state
+    reset: 'idle', // Available from any state
     error: 'error'
   },
   error: {
@@ -171,7 +171,7 @@ const machine = new FiniteStateMachine('idle', {
 
 ### Same-State Transitions
 
-Same-state transitions (e.g., `idle → idle`) do NOT trigger enter/exit 
+Same-state transitions (e.g., `idle → idle`) do NOT trigger enter/exit
 callbacks. The state remains unchanged.
 
 ```javascript
@@ -247,7 +247,7 @@ machine.onenter = (state, metadata) => {
 The callbacks are executed in this specific order during state transitions:
 
 1. **`onexit`** - Called before leaving current state
-2. **`_exit`** - Individual state exit callback  
+2. **`_exit`** - Individual state exit callback
 3. **`_enter`** - Individual state enter callback
 4. **`onenter`** - Called after entering new state
 
@@ -268,7 +268,7 @@ machine.onexit = (state) => console.log(`3. onexit ${state}`);
 machine.onenter = (state) => console.log(`6. onenter ${state}`);
 
 // Initial state triggers _enter and onenter
-// Output: 
+// Output:
 // 2. idle _enter
 // 6. onenter idle
 
@@ -276,7 +276,7 @@ machine.send('start');
 // Output:
 // 3. onexit idle
 // 4. idle _exit
-// 5. loading _enter  
+// 5. loading _enter
 // 6. onenter loading
 ```
 
@@ -294,6 +294,7 @@ When using FiniteStateMachine with Svelte's reactive derived state, use this pat
 ### Pattern: Separate onenter from Reactive Monitoring
 
 **✅ Use `onexit` and `onenter` for immediate state actions:**
+
 ```javascript
 const machine = new FiniteStateMachine('idle', {
   idle: { start: 'loading' },
@@ -326,6 +327,7 @@ machine.onenter = (state) => {
 ```
 
 **✅ Use `$effect` for reactive state monitoring:**
+
 ```javascript
 // Monitor derived/computed values and trigger transitions when conditions are met
 $effect(() => {
@@ -341,8 +343,8 @@ $effect(() => {
 ### Why This Pattern?
 
 - **`onexit`**: Handles cleanup and teardown when leaving states
-- **`onenter`**: Handles setup and initialization when entering states  
-- **`$effect`**: Handles reactive monitoring of derived/computed values over time  
+- **`onenter`**: Handles setup and initialization when entering states
+- **`$effect`**: Handles reactive monitoring of derived/computed values over time
 - **Avoids timing issues**: Doesn't check completion status immediately on state entry
 - **Leverages Svelte reactivity**: Automatically responds to changes in reactive variables
 - **Clean separation**: State machine handles discrete transitions, effects handle continuous monitoring
@@ -365,9 +367,9 @@ export default class TaskProcessor {
     finished: { reset: 'idle' },
     failed: { retry: 'processing', reset: 'idle' }
   });
-  
+
   #tasks = $state([]);
-  
+
   // Derived progress calculation
   #progress = $derived.by(() => {
     let completed = 0;
@@ -419,19 +421,19 @@ export default class TaskProcessor {
 // Component.svelte
 <script>
   import { FiniteStateMachine } from '$lib/state/classes.js';
-  
+
   const machine = new FiniteStateMachine('idle', {
     idle: { start: 'loading' },
     loading: { complete: 'loaded', error: 'error' },
     loaded: { reset: 'idle' },
     error: { retry: 'loading', reset: 'idle' }
   });
-  
+
   // Reactive state updates
   $effect(() => {
     console.log('State changed to:', machine.current);
   });
-  
+
   // Handle state-specific actions
   machine.onexit = (state) => {
     switch (state) {
@@ -475,7 +477,7 @@ console.log(machine.current); // Still 'idle'
 
 ## Best Practices
 
-1. **Clear state names**: Use descriptive state names like `loading`, `error`, 
+1. **Clear state names**: Use descriptive state names like `loading`, `error`,
    `authenticated` rather than generic ones
 2. **Minimal state count**: Keep the number of states manageable
 3. **Explicit transitions**: Define all valid transitions explicitly

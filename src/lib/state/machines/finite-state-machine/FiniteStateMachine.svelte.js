@@ -5,6 +5,8 @@
  */
 
 import { isTestEnv } from '$lib/util/env.js';
+import EventEmitter from '$lib/generic/events/classes/EventEmitter.js';
+import { ENTER, EXIT } from './constants.js';
 
 /** @typedef {import('./typedef.js').StateTransitionMetadata} StateTransitionMetadata */
 /** @typedef {import('./typedef.js').OnEnterCallback} OnEnterCallback */
@@ -27,9 +29,9 @@ export function isLifecycleFnMeta(meta) {
 }
 
 /**
- * Defines a Finite State Machine
+ * Defines a Finite State Machine that extends EventEmitter
  */
-export default class FiniteStateMachine {
+export default class FiniteStateMachine extends EventEmitter {
   #current = $state();
   states;
   #timeout = {};
@@ -50,16 +52,22 @@ export default class FiniteStateMachine {
    * @param {{ [key: string]: { [key: string]: (string|((...args: any[])=>void)) } }} states
    */
   constructor(initial, states) {
+    super();
     this.#current = initial;
     this.states = states;
 
     // synthetically trigger _enter for the initial state.
-    this.#dispatch('_enter', {
+    const initialMetadata = {
       from: null,
       to: initial,
       event: null,
       args: []
-    });
+    };
+
+    this.#executeAction('_enter', initialMetadata);
+
+    // Emit ENTER event for external listeners for initial state
+    this.emit(ENTER, { state: initial, metadata: initialMetadata });
   }
 
   /**
@@ -75,46 +83,60 @@ export default class FiniteStateMachine {
 
     // Call onexit callback before leaving current state
     this.onexit?.(this.#current, metadata);
-    
-    this.#dispatch('_exit', metadata);
+
+    // Emit EXIT event for external listeners
+    this.emit(EXIT, { state: this.#current, metadata });
+
+    this.#executeAction('_exit', metadata);
     this.#current = newState;
-    this.#dispatch('_enter', metadata);
-    
+    this.#executeAction('_enter', metadata);
+
+    // Emit ENTER event for external listeners
+    this.emit(ENTER, { state: newState, metadata });
+
     // Call onenter callback after state change
     this.onenter?.(newState, metadata);
   }
 
   /**
-   * Dispatch an event
+   * Execute an action for the given event
    *
    * @param {string} event
    * @param {any} args
    */
-  #dispatch(event, ...args) {
+  #executeAction(event, ...args) {
     const action =
       this.states[this.#current]?.[event] ?? this.states['*']?.[event];
+
     if (action instanceof Function) {
-      if (event === '_enter' || event === '_exit') {
-        if (isLifecycleFnMeta(args[0])) {
-          action(args[0]);
-        } else {
-          console.warn(
-            'Invalid metadata passed to lifecycle function of the FSM.'
-          );
-        }
-      } else {
-        return action(...args);
+      switch (event) {
+        // Internal lifecycle events
+        case ENTER:
+        case EXIT:
+          if (isLifecycleFnMeta(args[0])) {
+            return action(args[0]);
+          } else {
+            throw new Error(`Invalid metadata passed to lifecycle function`);
+          }
+
+        // Normal state events
+        default:
+          return action(...args);
       }
     } else if (typeof action === 'string') {
+      // No function execution => just return target state
       return action;
-    } else if (event !== '_enter' && event !== '_exit') {
-      if (this.#enableConsoleWarnings) {
-        console.warn(
-          'No action defined for event',
-          event,
-          'in state',
-          this.#current
-        );
+    } else {
+      // No action found - only warn for non-lifecycle events
+      if (event !== ENTER && event !== EXIT) {
+        if (this.#enableConsoleWarnings) {
+          console.warn(
+            'No action defined for event',
+            event,
+            'in state',
+            this.#current
+          );
+        }
       }
     }
   }
@@ -125,7 +147,8 @@ export default class FiniteStateMachine {
    * @param {any[]} args
    */
   send(event, ...args) {
-    const newState = this.#dispatch(event, ...args);
+    const newState = this.#executeAction(event, ...args);
+
     if (newState && newState !== this.#current) {
       this.#transition(newState, event, args);
     }
