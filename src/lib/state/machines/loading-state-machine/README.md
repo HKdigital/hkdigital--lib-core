@@ -4,17 +4,18 @@ A specialized finite state machine designed for managing loading operations with
 
 ## Overview
 
-`LoadingStateMachine` extends `FiniteStateMachine` to provide a standardized way to handle loading workflows. It includes predefined states for initial, loading, loaded, unloading, cancelled, and error conditions.
+`LoadingStateMachine` extends `FiniteStateMachine` to provide a standardized way to handle loading workflows. It includes predefined states for initial, loading, loaded, unloading, aborted, and error conditions.
 
 ## States
 
-The machine defines seven primary states:
+The machine defines eight primary states:
 
 - **`INITIAL`** - Starting state, ready to begin loading
 - **`LOADING`** - Currently loading data or resources
 - **`LOADED`** - Successfully loaded, data available
 - **`UNLOADING`** - Cleaning up or releasing resources
-- **`CANCELLED`** - Loading operation was cancelled
+- **`ABORTING`** - Currently aborting loading operation
+- **`ABORTED`** - Loading operation was aborted
 - **`ERROR`** - An error occurred during loading
 - **`TIMEOUT`** - Loading operation exceeded time limit
 
@@ -25,7 +26,8 @@ Available events to trigger state transitions:
 - **`LOAD`** - Start loading operation
 - **`LOADED`** - Mark loading as complete
 - **`UNLOAD`** - Begin cleanup/unloading
-- **`CANCEL`** - Cancel the loading operation
+- **`ABORT`** - Start aborting the loading operation
+- **`ABORTED`** - Mark abort operation as complete
 - **`ERROR`** - Signal an error occurred
 - **`TIMEOUT`** - Signal operation has timed out
 - **`INITIAL`** - Return to initial state
@@ -44,7 +46,7 @@ import {
   LOAD,
   LOADED,
   ERROR,
-  CANCEL
+  ABORT
 } from '$lib/state/machines.js';
 
 const loader = new LoadingStateMachine();
@@ -67,10 +69,11 @@ console.log(loader.current); // STATE_LOADED
 
 ```
 INITIAL → LOADING
-LOADING → LOADED | CANCELLED | ERROR | TIMEOUT
+LOADING → LOADED | ABORTING | ERROR | TIMEOUT
 LOADED → LOADING | UNLOADING
 UNLOADING → INITIAL | ERROR
-CANCELLED → LOADING | UNLOADING
+ABORTING → ABORTED | ERROR
+ABORTED → LOADING | UNLOADING
 ERROR → LOADING | UNLOADING
 TIMEOUT → LOADING | UNLOADING
 ```
@@ -78,26 +81,26 @@ TIMEOUT → LOADING | UNLOADING
 ### Transition Diagram
 
 ```
-        ┌─────────┐
-        │ INITIAL │
-        └────┬────┘
-             │ LOAD
-             ▼
-    ┌─────────┐    CANCEL     ┌───────────┐
-    │ LOADING │──────────────→│ CANCELLED │
-    └────┬────┘               └─────┬─────┘
-         │                          │
-    LOADED│  ERROR  TIMEOUT    LOAD │ UNLOAD
-         │     │       │            │    │
-         ▼     ▼       ▼            ▼    ▼
-    ┌────────┐ ┌───────┐ ┌─────────┐ ┌──────────┐
-    │ LOADED │ │ ERROR │ │ TIMEOUT │ │UNLOADING │
-    └────┬───┘ └───┬───┘ └────┬────┘ └────┬─────┘
-         │         │          │           │
-   UNLOAD│    LOAD │ UNLOAD  LOAD│ UNLOAD INITIAL│ ERROR
-         ▼         ▼            ▼           ▼
-    ┌──────────┐◄──────────────────────────┘
-    │UNLOADING │
+    ┌─────────┐
+    │ INITIAL │
+    └────┬────┘
+     LOAD│
+         ▼
+    ┌─────────┐            ABORT              ┌──────────┐
+    │ LOADING │──────────────────────────────→│ ABORTING │
+    └────┬────┘                               └─────┬────┘
+         │                                          │
+   LOADED│       ERROR        TIMEOUT      ABORTED  │ERROR
+         │         │             │            │     │
+         ▼         ▼             ▼            ▼     ▼
+    ┌────────┐ ┌───────┐    ┌─────────┐     ┌─────────┐
+    │ LOADED │ │ ERROR │    │ TIMEOUT │     │ ABORTED │
+    └────┬───┘ └───┬───┘    └────┬────┘     └────┬────┘
+         │         │             │               │
+   UNLOAD│     LOAD│UNLOAD   LOAD│UNLOAD     LOAD│UNLOAD
+         ▼         ▼             ▼               ▼
+    ┌──────────┐                                 │
+    │UNLOADING │◄────────────────────────────────┘
     └──────────┘
 ```
 
@@ -184,7 +187,7 @@ const loader = new LoadingStateMachine();
 // External timeout management
 const timeoutId = setTimeout(() => {
   if (loader.current === STATE_LOADING) {
-    loader.doTimeout(); // Transitions to STATE_TIMEOUT
+    loader.timeout(); // Transitions to STATE_TIMEOUT
   }
 }, 10000); // 10 second timeout
 
@@ -201,13 +204,22 @@ loader.onenter = (currentState) => {
 };
 ```
 
-### doTimeout Method
+### timeout Method
 
-Use `doTimeout()` to manually trigger a timeout transition:
+Use `timeout()` to manually trigger a timeout transition:
 
 ```javascript
 // Only works when in STATE_LOADING
-loader.doTimeout(); // Sends TIMEOUT signal
+loader.timeout(); // Sends TIMEOUT signal
+```
+
+### abort Method
+
+Use `abort()` to manually trigger an abort transition:
+
+```javascript
+// Only works when in STATE_LOADING
+loader.abort(); // Sends ABORT signal, transitions to STATE_ABORTING
 ```
 
 ## Integration with Svelte Reactivity
@@ -313,7 +325,7 @@ export default class MultiSourceLoader {
     LOAD,
     LOADED,
     ERROR,
-    CANCEL
+    ABORT
   } from '$lib/state/machines.js';
   
   const loader = new LoadingStateMachine();
@@ -351,7 +363,7 @@ export default class MultiSourceLoader {
 {/if}
 ```
 
-### Advanced Component with Cancellation
+### Advanced Component with Abort Handling
 
 ```javascript
 <script>
@@ -360,12 +372,14 @@ export default class MultiSourceLoader {
     STATE_INITIAL,
     STATE_LOADING,
     STATE_LOADED,
-    STATE_CANCELLED,
+    STATE_ABORTING,
+    STATE_ABORTED,
     STATE_ERROR,
     LOAD,
     LOADED,
     ERROR,
-    CANCEL
+    ABORT,
+    ABORTED
   } from '$lib/state/machines.js';
   
   const loader = new LoadingStateMachine();
@@ -376,8 +390,11 @@ export default class MultiSourceLoader {
       case STATE_LOADING:
         startLoad();
         break;
-      case STATE_CANCELLED:
+      case STATE_ABORTING:
+        // Start abort process
         abortController?.abort();
+        // Simulate abort completion
+        setTimeout(() => loader.send(ABORTED), 100);
         break;
     }
   };
@@ -393,7 +410,7 @@ export default class MultiSourceLoader {
       loader.send(LOADED);
     } catch (error) {
       if (error.name === 'AbortError') {
-        // Request was cancelled, machine already in cancelled state
+        // Request was aborted, machine will transition to STATE_ABORTED
       } else {
         loader.send(ERROR, error);
       }
@@ -405,13 +422,15 @@ export default class MultiSourceLoader {
   {#if loader.current === STATE_INITIAL}
     <button onclick={() => loader.send(LOAD)}>Start Loading</button>
   {:else if loader.current === STATE_LOADING}
-    <button onclick={() => loader.send(CANCEL)}>Cancel Loading</button>
+    <button onclick={() => loader.send(ABORT)}>Abort Loading</button>
     <div>Loading data...</div>
+  {:else if loader.current === STATE_ABORTING}
+    <div>Aborting...</div>
   {:else if loader.current === STATE_LOADED}
     <div>Data loaded successfully!</div>
     <button onclick={() => loader.send(LOAD)}>Reload</button>
-  {:else if loader.current === STATE_CANCELLED}
-    <div>Loading cancelled</div>
+  {:else if loader.current === STATE_ABORTED}
+    <div>Loading aborted</div>
     <button onclick={() => loader.send(LOAD)}>Try Again</button>
   {:else if loader.current === STATE_ERROR}
     <div>Error: {loader.error.message}</div>
@@ -449,8 +468,11 @@ loader.onenter = (currentState) => {
       showErrorToast(loader.error.message);
       logError(loader.error);
       break;
-    case STATE_CANCELLED:
-      showMessage('Operation cancelled');
+    case STATE_ABORTING:
+      showMessage('Aborting operation...');
+      break;
+    case STATE_ABORTED:
+      showMessage('Operation aborted');
       break;
   }
 };
@@ -466,7 +488,8 @@ loader.onenter = (currentState) => {
       break;
     case STATE_LOADED:
     case STATE_ERROR:
-    case STATE_CANCELLED:
+    case STATE_ABORTING:
+    case STATE_ABORTED:
       hideProgressBar();
       break;
     case STATE_UNLOADING:
@@ -576,7 +599,8 @@ import {
   STATE_LOADING,
   STATE_LOADED,
   STATE_UNLOADING,
-  STATE_CANCELLED,
+  STATE_ABORTING,
+  STATE_ABORTED,
   STATE_ERROR,
   STATE_TIMEOUT,
   
@@ -584,7 +608,8 @@ import {
   LOAD,
   LOADED,
   UNLOAD,
-  CANCEL,
+  ABORT,
+  ABORTED,
   ERROR,
   INITIAL,
   TIMEOUT

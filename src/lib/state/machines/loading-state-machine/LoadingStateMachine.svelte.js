@@ -8,14 +8,16 @@ import {
   STATE_LOADING,
   STATE_UNLOADING,
   STATE_LOADED,
-  STATE_CANCELLED,
+  STATE_ABORTING,
+  STATE_ABORTED,
   STATE_ERROR,
   STATE_TIMEOUT,
 
   // > Signals
   INITIAL,
   LOAD,
-  CANCEL,
+  ABORT,
+  ABORTED,
   ERROR,
   LOADED,
   UNLOAD,
@@ -41,7 +43,7 @@ export default class LoadingStateMachine extends FiniteStateMachine {
         // _enter: () => {
         //   console.log('LoadingStateMachine: enter LOADING');
         // },
-        [CANCEL]: STATE_CANCELLED,
+        [ABORT]: STATE_ABORTING,
         [ERROR]: STATE_ERROR,
         [LOADED]: STATE_LOADED,
         [TIMEOUT]: STATE_TIMEOUT
@@ -57,7 +59,11 @@ export default class LoadingStateMachine extends FiniteStateMachine {
         [ERROR]: STATE_ERROR,
         [INITIAL]: STATE_INITIAL
       },
-      [STATE_CANCELLED]: {
+      [STATE_ABORTING]: {
+        [ERROR]: STATE_ERROR,
+        [ABORTED]: STATE_ABORTED
+      },
+      [STATE_ABORTED]: {
         [LOAD]: STATE_LOADING,
         [UNLOAD]: STATE_UNLOADING
       },
@@ -99,16 +105,16 @@ export default class LoadingStateMachine extends FiniteStateMachine {
    * - Only valid when currently loading
    * - Useful for external timeout management
    */
-  doTimeout() {
+  timeout() {
     this.send(TIMEOUT);
   }
 
   /**
-   * Transition to cancelled state
+   * Transition to aborting state
    * - Only valid when currently loading
-   * - Useful for external cancellation management
+   * - Useful for external abort management
    */
-  doCancel() {
-    this.send(CANCEL);
+  abort() {
+    this.send(ABORT);
   }
 }

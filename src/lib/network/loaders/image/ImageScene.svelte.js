@@ -8,8 +8,13 @@ import {
   STATE_INITIAL,
   STATE_LOADING,
   STATE_LOADED,
+  STATE_ABORTING,
+  STATE_ABORTED,
+  STATE_ERROR,
   LOAD,
-  LOADED
+  LOADED,
+  ABORT,
+  ABORTED
 } from '$lib/state/machines.js';
 
 import ImageLoader from './ImageLoader.svelte.js';
@@ -70,6 +75,27 @@ export default class ImageScene {
     };
   });
 
+  #abortProgress = $derived.by(() => {
+    let sourcesAborted = 0;
+    const sources = this.#imageSources;
+    const numberOfSources = sources.length;
+
+    for (let j = 0; j < numberOfSources; j++) {
+      const source = sources[j];
+      const { imageLoader } = source;
+      const loaderState = imageLoader.state;
+
+      if (loaderState === STATE_ABORTED || loaderState === STATE_ERROR) {
+        sourcesAborted++;
+      }
+    } // end for
+
+    return {
+      sourcesAborted,
+      numberOfSources
+    };
+  });
+
   #sourcesLoaded = $derived( this.#progress.sourcesLoaded );
   #numberOfSources = $derived( this.#progress.numberOfSources );
 
@@ -88,6 +114,17 @@ export default class ImageScene {
       }
     } );
 
+    $effect(() => {
+      if (state.current === STATE_ABORTING) {
+        const { sourcesAborted, numberOfSources } = this.#abortProgress;
+
+        if (sourcesAborted === numberOfSources) {
+          // console.debug(`ImageScene: ${numberOfSources} sources aborted`);
+          this.#state.send(ABORTED);
+        }
+      }
+    });
+
     state.onenter = ( currentState ) => {
       // console.log('onenter', currentState );
 
@@ -95,6 +132,11 @@ export default class ImageScene {
       {
         // console.log('ImageScene:loading');
         this.#startLoading();
+      }
+      else if(currentState === STATE_ABORTING )
+      {
+        // console.log('ImageScene:aborting');
+        this.#startAbort();
       }
 
       this.state = currentState;
@@ -111,10 +153,24 @@ export default class ImageScene {
   }
 
   /**
+   * Get image scene abort progress
+   */
+  get abortProgress() {
+    return this.#abortProgress;
+  }
+
+  /**
    * Start loading all image sources
    */
   load() {
     this.#state.send(LOAD);
+  }
+
+  /**
+   * Abort loading all image sources
+   */
+  abort() {
+    this.#state.send(ABORT);
   }
 
   destroy() {
@@ -188,6 +244,12 @@ export default class ImageScene {
   async #startLoading() {
     for (const { imageLoader } of this.#imageSources) {
       imageLoader.load();
+    }
+  }
+
+  #startAbort() {
+    for (const { imageLoader } of this.#imageSources) {
+      imageLoader.abort();
     }
   }
 

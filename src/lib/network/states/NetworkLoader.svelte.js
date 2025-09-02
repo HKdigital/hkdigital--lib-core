@@ -7,14 +7,16 @@ import {
   STATE_LOADING,
   STATE_UNLOADING,
   STATE_LOADED,
-  STATE_CANCELLED,
+  STATE_ABORTING,
+  STATE_ABORTED,
   STATE_ERROR,
   LOAD,
   ERROR,
   LOADED,
   UNLOAD,
   INITIAL,
-  CANCEL
+  ABORT,
+  ABORTED
 } from '$lib/state/machines.js';
 
 import * as expect from '$lib/util/expect.js';
@@ -123,21 +125,23 @@ export default class NetworkLoader {
           }
           break;
 
-        case STATE_CANCELLED:
+        case STATE_ABORTING:
           {
-            // console.log('NetworkLoader:cancelled');
+            // console.log('NetworkLoader:aborting');
             if (this._abortLoading) {
               this._abortLoading();
               this._abortLoading = null;
             }
+            // Transition to aborted state after abort completes
+            this._state.send(ABORTED);
           }
           break;
 
-        case STATE_ERROR:
-          {
-            console.log('NetworkLoader:error', state.error);
-          }
-          break;
+        // case STATE_ERROR:
+        //   {
+        //     console.log('NetworkLoader:error', state.error);
+        //   }
+        //   break;
       } // end switch
     };
   }
@@ -160,10 +164,10 @@ export default class NetworkLoader {
   /**
    * Abort the current loading operation
    * - Only works when in STATE_LOADING
-   * - Aborts network requests and transitions to STATE_CANCELLED
+   * - Aborts network requests and transitions to STATE_ABORTING
    */
-  doAbort() {
-    this._state.send(CANCEL);
+  abort() {
+    this._state.send(ABORT);
   }
 
   /**

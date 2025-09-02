@@ -8,6 +8,8 @@ import {
   STATE_INITIAL,
   STATE_LOADING,
   STATE_LOADED,
+  STATE_ABORTING,
+  STATE_ABORTED,
   STATE_ERROR
 } from '$lib/state/machines.js';
 
@@ -253,6 +255,43 @@ describe('ImageScene', () => {
     expect(() => {
       imageScene.getImageLoader('non-existent-image');
     }).toThrow('Source [non-existent-image] has not been defined');
+
+    cleanup();
+  });
+
+  it('should abort image scene loading', async () => {
+    // @ts-ignore
+    fetch.mockResolvedValue(createPngResponse());
+
+    const TEST_IMAGE = 'test-image-1';
+
+    /** @type {ImageScene} */
+    let imageScene;
+
+    const cleanup = $effect.root(() => {
+      imageScene = new ImageScene();
+
+      imageScene.defineImage({
+        label: TEST_IMAGE,
+        imageSource: [{ src: 'http://localhost/test-image.png', width: 100, height: 100 }]
+      });
+
+      // Start loading
+      imageScene.load();
+      
+      // Abort immediately
+      imageScene.abort();
+      expect(imageScene.state).toBe(STATE_ABORTING);
+    });
+
+    await waitForState(() => {
+      return imageScene.state === STATE_ABORTED;
+    });
+
+    // Test abort progress calculation
+    const abortProgress = imageScene.abortProgress;
+    expect(abortProgress.sourcesAborted).toEqual(1);
+    expect(abortProgress.numberOfSources).toEqual(1);
 
     cleanup();
   });

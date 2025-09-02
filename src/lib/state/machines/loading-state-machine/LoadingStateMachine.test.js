@@ -7,12 +7,14 @@ import {
   STATE_LOADED,
   STATE_LOADING,
   STATE_UNLOADING,
-  STATE_CANCELLED,
+  STATE_ABORTING,
+  STATE_ABORTED,
   STATE_ERROR,
   STATE_TIMEOUT,
   LOAD,
   LOADED,
-  CANCEL,
+  ABORT,
+  ABORTED,
   ERROR,
   UNLOAD,
   INITIAL,
@@ -40,7 +42,7 @@ describe('LoadingStateMachine', () => {
 });
 
 describe('LoadingStateMachine', () => {
-  it('should transition to stated cancelled', async () => {
+  it('should transition to aborted states', async () => {
     let state = new LoadingStateMachine();
 
     expect(state.current).toEqual(STATE_INITIAL);
@@ -48,15 +50,22 @@ describe('LoadingStateMachine', () => {
     state.send(LOAD);
     expect(state.current).toEqual(STATE_LOADING);
 
-    state.send(CANCEL);
-    expect(state.current).toEqual(STATE_CANCELLED);
+    state.send(ABORT);
+    expect(state.current).toEqual(STATE_ABORTING);
+
+    state.send(ABORTED);
+    expect(state.current).toEqual(STATE_ABORTED);
 
     // Go back to loading
     state.send(LOAD);
     expect(state.current).toEqual(STATE_LOADING);
 
-    state.send(CANCEL);
-    expect(state.current).toEqual(STATE_CANCELLED);
+    state.send(ABORT);
+    expect(state.current).toEqual(STATE_ABORTING);
+
+    // Test error during abort
+    state.send(ERROR, new Error('Abort failed'));
+    expect(state.current).toEqual(STATE_ERROR);
 
     // Go back to state unloading
 
@@ -84,8 +93,11 @@ describe('LoadingStateMachine', () => {
     state.send(LOAD);
     expect(state.current).toEqual(STATE_LOADING);
 
-    state.send(CANCEL);
-    expect(state.current).toEqual(STATE_CANCELLED);
+    state.send(ABORT);
+    expect(state.current).toEqual(STATE_ABORTING);
+
+    state.send(ABORTED);
+    expect(state.current).toEqual(STATE_ABORTED);
 
     // Go back to state unloading
 
@@ -122,7 +134,7 @@ describe('LoadingStateMachine - onenter callback', () => {
     expect(callbackCalls).toEqual([STATE_LOADING, STATE_LOADED, STATE_UNLOADING, STATE_INITIAL]);
   });
 
-  it('should call onenter callback for cancelled state', () => {
+  it('should call onenter callback for abort states', () => {
     let callbackCalls = [];
     const machine = new LoadingStateMachine();
     
@@ -131,9 +143,10 @@ describe('LoadingStateMachine - onenter callback', () => {
     };
 
     machine.send(LOAD);
-    machine.send(CANCEL);
+    machine.send(ABORT);
+    machine.send(ABORTED);
     
-    expect(callbackCalls).toEqual([STATE_LOADING, STATE_CANCELLED]);
+    expect(callbackCalls).toEqual([STATE_LOADING, STATE_ABORTING, STATE_ABORTED]);
   });
 
   it('should call onenter callback for error state', () => {
@@ -156,10 +169,11 @@ describe('LoadingStateMachine - onenter callback', () => {
     // Should not throw errors when onenter is null
     expect(() => {
       machine.send(LOAD);
-      machine.send(CANCEL);
+      machine.send(ABORT);
+      machine.send(ABORTED);
     }).not.toThrow();
     
-    expect(machine.current).toBe(STATE_CANCELLED);
+    expect(machine.current).toBe(STATE_ABORTED);
   });
 
   it('should handle onenter callback changes during execution', () => {
@@ -218,24 +232,51 @@ describe('LoadingStateMachine - timeout functionality', () => {
     expect(machine.current).toBe(STATE_UNLOADING);
   });
 
-  it('should call doTimeout method to trigger timeout', () => {
+  it('should call timeout method to trigger timeout', () => {
     const machine = new LoadingStateMachine();
 
     machine.send(LOAD);
     expect(machine.current).toBe(STATE_LOADING);
 
-    machine.doTimeout();
+    machine.timeout();
     expect(machine.current).toBe(STATE_TIMEOUT);
   });
 
-  it('should call doCancel method to trigger cancellation', () => {
+  it('should call abort method to trigger abort', () => {
     const machine = new LoadingStateMachine();
     
     machine.send(LOAD);
     expect(machine.current).toBe(STATE_LOADING);
     
-    machine.doCancel();
-    expect(machine.current).toBe(STATE_CANCELLED);
+    machine.abort();
+    expect(machine.current).toBe(STATE_ABORTING);
+  });
+
+  it('should require manual transition from aborting to aborted', () => {
+    const machine = new LoadingStateMachine();
+
+    machine.send(LOAD);
+    machine.send(ABORT);
+    expect(machine.current).toBe(STATE_ABORTING);
+
+    // Should stay in aborting until explicitly moved to aborted
+    expect(machine.current).toBe(STATE_ABORTING);
+
+    machine.send(ABORTED);
+    expect(machine.current).toBe(STATE_ABORTED);
+  });
+
+  it('should allow error transition from aborting state', () => {
+    const machine = new LoadingStateMachine();
+
+    machine.send(LOAD);
+    machine.send(ABORT);
+    expect(machine.current).toBe(STATE_ABORTING);
+
+    // Error during abort process
+    machine.send(ERROR, new Error('Abort operation failed'));
+    expect(machine.current).toBe(STATE_ERROR);
+    expect(machine.error.message).toBe('Abort operation failed');
   });
 
   it('should call onenter callback for timeout state', () => {

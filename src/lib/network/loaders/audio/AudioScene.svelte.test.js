@@ -4,6 +4,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
 import { waitForState } from '$lib/util/svelte/wait/index.js';
 
+import {
+  STATE_ABORTING,
+  STATE_ABORTED
+} from '$lib/state/machines.js';
+
 import { createWavResponse } from './mocks.js';
 
 // > Mocks
@@ -101,6 +106,43 @@ describe('AudioScene', () => {
       audioScene.setTargetGain(0);
       expect(audioScene.getTargetGain()).toEqual(0);
     });
+
+    cleanup();
+  });
+
+  it('should abort audio scene loading', async () => {
+    // @ts-ignore
+    fetch.mockResolvedValue(createWavResponse());
+
+    const TINY_SILENCE = 'tiny-silence-1';
+
+    /** @type {AudioScene} */
+    let audioScene;
+
+    const cleanup = $effect.root(() => {
+      audioScene = new AudioScene();
+
+      audioScene.defineMemorySource({
+        label: TINY_SILENCE,
+        url: 'http://localhost/not-a-real-url'
+      });
+
+      // Start loading
+      audioScene.load();
+      
+      // Abort immediately
+      audioScene.abort();
+      expect(audioScene.state).toBe(STATE_ABORTING);
+    });
+
+    await waitForState(() => {
+      return audioScene.state === STATE_ABORTED;
+    });
+
+    // Test abort progress calculation
+    const abortProgress = audioScene.abortProgress;
+    expect(abortProgress.sourcesAborted).toEqual(1);
+    expect(abortProgress.numberOfSources).toEqual(1);
 
     cleanup();
   });

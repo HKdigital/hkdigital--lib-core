@@ -6,8 +6,13 @@ import {
 	STATE_INITIAL,
 	STATE_LOADING,
 	STATE_LOADED,
+	STATE_ABORTING,
+	STATE_ABORTED,
+	STATE_ERROR,
 	LOAD,
-	LOADED
+	LOADED,
+	ABORT,
+	ABORTED
 } from '$lib/state/machines.js';
 
 import AudioLoader from './AudioLoader.svelte.js';
@@ -83,6 +88,27 @@ export default class AudioScene {
 		};
 	});
 
+	#abortProgress = $derived.by(() => {
+		let sourcesAborted = 0;
+		const sources = this.#memorySources;
+		const numberOfSources = sources.length;
+
+		for (let j = 0; j < numberOfSources; j++) {
+			const source = sources[j];
+			const { audioLoader } = source;
+			const loaderState = audioLoader.state;
+
+			if (loaderState === STATE_ABORTED || loaderState === STATE_ERROR) {
+				sourcesAborted++;
+			}
+		} // end for
+
+		return {
+			sourcesAborted,
+			numberOfSources
+		};
+	});
+
 	/**
 	 * Construct AudioScene
 	 */
@@ -105,6 +131,17 @@ export default class AudioScene {
 			}
 		});
 
+		$effect(() => {
+			if (state.current === STATE_ABORTING) {
+				const { sourcesAborted, numberOfSources } = this.#abortProgress;
+
+				if (sourcesAborted === numberOfSources) {
+					// console.debug(`AudioScene: ${numberOfSources} sources aborted`);
+					this.#state.send(ABORTED);
+				}
+			}
+		});
+
 		state.onenter = ( currentState ) => {
       // console.log('onenter', currentState );
 
@@ -112,6 +149,11 @@ export default class AudioScene {
 			{
 				// console.log('AudioScene:loading');
 				this.#startLoading();
+			}
+			else if(currentState === STATE_ABORTING )
+			{
+				// console.log('AudioScene:aborting');
+				this.#startAbort();
 			}
 
 			this.state = state.current;
@@ -128,10 +170,24 @@ export default class AudioScene {
   }
 
 	/**
+	 * Get audio scene abort progress
+	 */
+	get abortProgress() {
+		return this.#abortProgress;
+	}
+
+	/**
 	 * Start loading all audio sources
 	 */
 	load() {
 		this.#state.send(LOAD);
+	}
+
+	/**
+	 * Abort loading all audio sources
+	 */
+	abort() {
+		this.#state.send(ABORT);
 	}
 
 	destroy() {
@@ -209,6 +265,14 @@ export default class AudioScene {
 
 		for (const { audioLoader } of this.#memorySources) {
 		  audioLoader.load();
+		}
+	}
+
+	#startAbort() {
+		// console.log('#startAbort');
+
+		for (const { audioLoader } of this.#memorySources) {
+			audioLoader.abort();
 		}
 	}
 

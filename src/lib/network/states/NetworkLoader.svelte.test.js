@@ -9,7 +9,8 @@ import { createDataResponse } from './mocks.js';
 import {
   STATE_INITIAL,
   STATE_LOADING,
-  STATE_CANCELLED
+  STATE_ABORTING,
+  STATE_ABORTED
 } from '$lib/state/machines.js';
 
 // > Mocks
@@ -61,7 +62,7 @@ describe('NetworkLoader', () => {
     cleanup();
   });
 
-  it('should abort loading operation when doAbort is called', async () => {
+  it('should abort loading operation when abort is called', async () => {
     
     // Mock a slow response to test abort
     const mockResponse = createDataResponse();
@@ -82,15 +83,17 @@ describe('NetworkLoader', () => {
       networkLoader.load();
       expect(networkLoader.state).toBe(STATE_LOADING);
       
-      // Abort immediately
-      networkLoader.doAbort();
-      expect(networkLoader.state).toBe(STATE_CANCELLED);
+      // Abort immediately - should transition directly to ABORTED
+      networkLoader.abort();
+      expect(networkLoader.state).toBe(STATE_ABORTED);
     });
 
     cleanup();
   });
 
   it('should only abort when in loading state', () => {
+    // @ts-ignore
+    fetch.mockResolvedValue(createDataResponse());
     
     const url = 'http://localhost/mock-wav';
     
@@ -101,16 +104,43 @@ describe('NetworkLoader', () => {
       networkLoader = new NetworkLoader({ url });
       
       // Try abort from initial state (should remain in initial)
-      networkLoader.doAbort();
+      networkLoader.abort();
       expect(networkLoader.state).toBe(STATE_INITIAL);
       
       // Start loading then abort (should work)
       networkLoader.load();
       expect(networkLoader.state).toBe(STATE_LOADING);
       
-      networkLoader.doAbort();
-      expect(networkLoader.state).toBe(STATE_CANCELLED);
+      networkLoader.abort();
+      expect(networkLoader.state).toBe(STATE_ABORTED);
     });
+
+    cleanup();
+  });
+
+  it('should complete abort flow from ABORTING to ABORTED', async () => {
+    // @ts-ignore
+    fetch.mockResolvedValue(createDataResponse());
+    
+    const url = 'http://localhost/mock-wav';
+    
+    /** @type {NetworkLoader} */
+    let networkLoader;
+
+    const cleanup = $effect.root(() => {
+      networkLoader = new NetworkLoader({ url });
+      
+      // Start loading
+      networkLoader.load();
+      expect(networkLoader.state).toBe(STATE_LOADING);
+      
+      // Abort
+      networkLoader.abort();
+      expect(networkLoader.state).toBe(STATE_ABORTED);
+    });
+
+    // Verify final state (transition is immediate)
+    expect(networkLoader.state).toBe(STATE_ABORTED);
 
     cleanup();
   });
