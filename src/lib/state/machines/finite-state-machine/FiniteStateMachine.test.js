@@ -214,12 +214,12 @@ describe('FiniteStateMachine - onexit/onenter Callbacks', () => {
       paused: { resume: 'running' }
     });
 
-    machine.onexit = (state, metadata) => {
+    machine.onexit = (state, transition) => {
       exitCalls.push({
         state,
-        from: metadata.from,
-        to: metadata.to,
-        event: metadata.event
+        from: transition.from,
+        to: transition.to,
+        event: transition.event
       });
     };
 
@@ -250,8 +250,8 @@ describe('FiniteStateMachine - onexit/onenter Callbacks', () => {
       }
     });
 
-    machine.onexit = (state) => callOrder.push(`onexit-${state}`);
-    machine.onenter = (state) => callOrder.push(`onenter-${state}`);
+    machine.onexit = (currentState) => callOrder.push(`onexit-${currentState}`);
+    machine.onenter = (currentState) => callOrder.push(`onenter-${currentState}`);
 
     // Clear the initial state entry calls
     callOrder.length = 0;
@@ -290,16 +290,16 @@ describe('FiniteStateMachine - onexit/onenter Callbacks', () => {
       running: { stop: 'idle' }
     });
 
-    machine.onexit = (state) => {
-      firstExits.push(state);
+    machine.onexit = (currentState) => {
+      firstExits.push(currentState);
     };
 
     machine.send('start');
     expect(firstExits).toEqual(['idle']);
 
     // Change callback
-    machine.onexit = (state) => {
-      secondExits.push(state);
+    machine.onexit = (currentState) => {
+      secondExits.push(currentState);
     };
 
     machine.send('stop');
@@ -307,22 +307,22 @@ describe('FiniteStateMachine - onexit/onenter Callbacks', () => {
     expect(secondExits).toEqual(['running']);
   });
 
-  it('should pass correct metadata to onexit callback', () => {
-    let exitMetadata = null;
+  it('should pass correct transition to onexit callback', () => {
+    let exitTransitionData = null;
 
     const machine = new FiniteStateMachine('idle', {
       idle: { start: 'running' },
       running: { stop: 'idle' }
     });
 
-    machine.onexit = (state, metadata) => {
-      exitMetadata = { state, ...metadata };
+    machine.onexit = (currentState, transition) => {
+      exitTransitionData = { currentState, ...transition };
     };
 
     machine.send('start', 'arg1', 'arg2');
 
-    expect(exitMetadata).toEqual({
-      state: 'idle',
+    expect(exitTransitionData).toEqual({
+      currentState: 'idle',
       from: 'idle',
       to: 'running',
       event: 'start',
@@ -362,13 +362,13 @@ describe('FiniteStateMachine - EventEmitter Integration', () => {
 
     expect(exitEvents).toHaveLength(1);
     expect(exitEvents[0].state).toBe('idle');
-    expect(exitEvents[0].metadata.from).toBe('idle');
-    expect(exitEvents[0].metadata.to).toBe('running');
+    expect(exitEvents[0].transition.from).toBe('idle');
+    expect(exitEvents[0].transition.to).toBe('running');
 
     expect(enterEvents).toHaveLength(1);
     expect(enterEvents[0].state).toBe('running');
-    expect(enterEvents[0].metadata.from).toBe('idle');
-    expect(enterEvents[0].metadata.to).toBe('running');
+    expect(enterEvents[0].transition.from).toBe('idle');
+    expect(enterEvents[0].transition.to).toBe('running');
   });
 
   it('should support wildcard event listeners', () => {

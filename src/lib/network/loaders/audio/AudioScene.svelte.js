@@ -109,47 +109,17 @@ export default class AudioScene {
 			}
 		});
 
-		$effect(() => {
-			switch (state.current) {
-				case STATE_LOADING:
-					{
-						// console.log('AudioScene:loading');
-						this.#startLoading();
-					}
-					break;
+		state.onenter = ( currentState ) => {
+      // console.log('onenter', currentState );
 
-				case STATE_UNLOADING:
-					{
-						// console.log('AudioScene:unloading');
-						// this.#startUnLoading();
-					}
-					break;
-
-				case STATE_LOADED:
-					{
-						// console.log('AudioScene:loaded');
-
-						// tODO
-						// this.#abortLoading = null;
-					}
-					break;
-
-				case STATE_CANCELLED:
-					{
-						// console.log('AudioScene:cancelled');
-						// TODO
-					}
-					break;
-
-				case STATE_ERROR:
-					{
-						console.error('AudioScene:error', state.error);
-					}
-					break;
-			} // end switch
+			if(currentState === STATE_LOADING )
+			{
+				// console.log('AudioScene:loading');
+				this.#startLoading();
+			}
 
 			this.state = state.current;
-		});
+		};
 	}
 
 	destroy() {
@@ -205,6 +175,13 @@ export default class AudioScene {
 		//   audioLoader.load();
 		// }
 	}
+
+	/**
+   * Get audio scene loading progress
+   */
+  get progress() {
+    return this.#progress;
+  }
 
 	/**
 	 * Get a source that can be used to play the audio once

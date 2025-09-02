@@ -92,47 +92,16 @@ export default class ImageScene {
       }
     } );
 
-    state.onenter = ( state ) => {
-      // console.log('onenter', state );
+    state.onenter = ( currentState ) => {
+      // console.log('onenter', currentState );
 
-      switch (state) {
-        case STATE_LOADING:
-          {
-            // console.log('ImageScene:loading');
-            this.#startLoading();
-          }
-          break;
+      if(currentState === STATE_LOADING )
+      {
+        // console.log('ImageScene:loading');
+        this.#startLoading();
+      }
 
-        case STATE_UNLOADING:
-          {
-            // console.log('ImageScene:unloading');
-            // this.#startUnLoading();
-          }
-          break;
-
-        case STATE_LOADED:
-          {
-            // console.log('ImageScene:loaded');
-            // TODO
-            // this.#abortLoading = null;
-          }
-          break;
-
-        case STATE_CANCELLED:
-          {
-            // console.log('ImageScene:cancelled');
-            // TODO
-          }
-          break;
-
-        case STATE_ERROR:
-          {
-            console.log('ImageScene:error', state);
-          }
-          break;
-      } // end switch
-
-      this.state = state;
+      this.state = currentState;
     };
   }
 

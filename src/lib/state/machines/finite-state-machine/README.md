@@ -56,16 +56,16 @@ Each state can define:
 ```javascript
 const machine = new FiniteStateMachine('idle', {
   idle: {
-    _enter: (metadata) => {
+    _enter: (transition) => {
       console.log('Entered idle state');
     },
-    _exit: (metadata) => {
+    _exit: (transition) => {
       console.log('Leaving idle state');
     },
     start: 'running'
   },
   running: {
-    _enter: (metadata) => {
+    _enter: (transition) => {
       console.log('Started running');
     },
     stop: 'idle'
@@ -73,14 +73,14 @@ const machine = new FiniteStateMachine('idle', {
 });
 ```
 
-## Callback Metadata
+## Callback TransitionData
 
-Enter and exit callbacks receive metadata about the transition:
+Enter and exit callbacks receive transition data about the state change:
 
 ```javascript
-/** @typedef {import('./typedef.js').StateTransitionMetadata} StateTransitionMetadata */
+/** @typedef {import('./typedef.js').TransitionData} TransitionData */
 
-// Metadata structure:
+// TransitionData structure:
 {
   from: 'previousState',    // State being exited
   to: 'newState',          // State being entered
@@ -94,18 +94,18 @@ Enter and exit callbacks receive metadata about the transition:
 For better type safety, import the type definitions:
 
 ```javascript
-/** @typedef {import('./typedef.js').StateTransitionMetadata} StateTransitionMetadata */
+/** @typedef {import('./typedef.js').TransitionData} TransitionData */
 /** @typedef {import('./typedef.js').OnEnterCallback} OnEnterCallback */
 /** @typedef {import('./typedef.js').OnExitCallback} OnExitCallback */
 
 /** @type {OnEnterCallback} */
-const handleEnter = (state, metadata) => {
-  console.log(`Entering ${state} from ${metadata.from}`);
+const handleEnter = (currentState, transition) => {
+  console.log(`Entering ${currentState} from ${transition.from}`);
 };
 
 /** @type {OnExitCallback} */
-const handleExit = (state, metadata) => {
-  console.log(`Leaving ${state} to ${metadata.to}`);
+const handleExit = (currentState, transition) => {
+  console.log(`Leaving ${currentState} to ${transition.to}`);
 };
 
 machine.onenter = handleEnter;
@@ -209,8 +209,8 @@ const machine = new FiniteStateMachine('idle', {
   error: { retry: 'loading', reset: 'idle' }
 });
 
-machine.onexit = (state, metadata) => {
-  switch (state) {
+machine.onexit = (currentState, transition) => {
+  switch (currentState) {
     case 'loading':
       console.log('Leaving loading state...');
       // Cancel ongoing requests
@@ -224,8 +224,8 @@ machine.onexit = (state, metadata) => {
   }
 };
 
-machine.onenter = (state, metadata) => {
-  switch (state) {
+machine.onenter = (currentState, transition) => {
+  switch (currentState) {
     case 'loading':
       console.log('Started loading...');
       showSpinner();
@@ -236,7 +236,7 @@ machine.onenter = (state, metadata) => {
       break;
     case 'error':
       console.log('Loading failed');
-      showError(metadata.args[0]);
+      showError(transition.args[0]);
       break;
   }
 };
@@ -264,8 +264,8 @@ const machine = new FiniteStateMachine('idle', {
   }
 });
 
-machine.onexit = (state) => console.log(`3. onexit ${state}`);
-machine.onenter = (state) => console.log(`6. onenter ${state}`);
+machine.onexit = (currentState) => console.log(`3. onexit ${currentState}`);
+machine.onenter = (currentState) => console.log(`6. onenter ${currentState}`);
 
 // Initial state triggers _enter and onenter
 // Output:
@@ -313,8 +313,8 @@ machine.onexit = (state) => {
   }
 };
 
-machine.onenter = (state) => {
-  switch (state) {
+machine.onenter = (label) => {
+  switch (label) {
     case 'loading':
       this.#startProcess(); // Start async process immediately
       break;
@@ -381,8 +381,8 @@ export default class TaskProcessor {
 
   constructor() {
     // onexit: Handle cleanup when leaving states
-    this.#machine.onexit = (state) => {
-      switch (state) {
+    this.#machine.onexit = (currentState) => {
+      switch (currentState) {
         case 'processing':
           this.#cancelTasks(); // Cancel ongoing tasks if interrupted
           break;
@@ -390,8 +390,8 @@ export default class TaskProcessor {
     };
 
     // onenter: Handle immediate state actions
-    this.#machine.onenter = (state) => {
-      switch (state) {
+    this.#machine.onenter = (currentState) => {
+      switch (currentState) {
         case 'processing':
           this.#startAllTasks(); // Start processing immediately
           break;
@@ -399,7 +399,7 @@ export default class TaskProcessor {
           this.#notifyComplete(); // Cleanup/notify when done
           break;
       }
-      this.state = state;
+      this.state = currentState;
     };
 
     // $effect: Monitor reactive completion
@@ -435,8 +435,8 @@ export default class TaskProcessor {
   });
 
   // Handle state-specific actions
-  machine.onexit = (state) => {
-    switch (state) {
+  machine.onexit = (currentState) => {
+    switch (currentState) {
       case 'loading':
         // Cancel any ongoing requests
         cancelRequests();
@@ -444,8 +444,8 @@ export default class TaskProcessor {
     }
   };
 
-  machine.onenter = (state) => {
-    switch (state) {
+  machine.onenter = (currentState) => {
+    switch (currentState) {
       case 'loading':
         loadData();
         break;
@@ -526,7 +526,7 @@ const auth = new FiniteStateMachine('anonymous', {
     failure: 'anonymous'
   },
   authenticated: {
-    _enter: (meta) => console.log('Welcome!'),
+    _enter: (transition) => console.log('Welcome!'),
     logout: 'anonymous',
     expire: 'anonymous'
   }

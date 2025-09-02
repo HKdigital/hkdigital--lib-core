@@ -108,8 +108,8 @@ The `onenter` callback provides a reliable way to react to state changes, design
 ```javascript
 const loader = new LoadingStateMachine();
 
-loader.onenter = (state) => {
-  switch (state) {
+loader.onenter = (currentState) => {
+  switch (currentState) {
     case STATE_LOADING:
       console.log('Started loading...');
       showSpinner();
@@ -141,8 +141,8 @@ $effect(() => {
 });
 
 // onenter catches every transition
-loader.onenter = (state) => {
-  console.log(state); // Sees every state change
+loader.onenter = (currentState) => {
+  console.log(currentState); // Sees every state change
 };
 ```
 
@@ -188,8 +188,8 @@ const timeoutId = setTimeout(() => {
   }
 }, 10000); // 10 second timeout
 
-loader.onenter = (state) => {
-  switch (state) {
+loader.onenter = (currentState) => {
+  switch (currentState) {
     case STATE_TIMEOUT:
       console.log('Loading timed out');
       showRetryButton();
@@ -220,8 +220,8 @@ LoadingStateMachine inherits the `onenter` callback and Svelte reactivity integr
 ```javascript
 const loader = new LoadingStateMachine();
 
-loader.onenter = (state) => {
-  switch (state) {
+loader.onenter = (currentState) => {
+  switch (currentState) {
     case STATE_LOADING:
       this.#startLoading(); // Start async process immediately
       break;
@@ -267,8 +267,8 @@ export default class MultiSourceLoader {
 
   constructor() {
     // Handle immediate loading state actions
-    this.#loader.onenter = (state) => {
-      switch (state) {
+    this.#loader.onenter = (currentState) => {
+      switch (currentState) {
         case STATE_LOADING:
           this.#startAllSources();
           break;
@@ -282,7 +282,7 @@ export default class MultiSourceLoader {
           this.#handleTimeout();
           break;
       }
-      this.state = state;
+      this.state = currentState;
     };
 
     // Monitor reactive completion
@@ -319,8 +319,8 @@ export default class MultiSourceLoader {
   const loader = new LoadingStateMachine();
   let data = $state(null);
   
-  loader.onenter = (state) => {
-    if (state === STATE_LOADING) {
+  loader.onenter = (currentState) => {
+    if (currentState === STATE_LOADING) {
       loadData();
     }
   };
@@ -371,8 +371,8 @@ export default class MultiSourceLoader {
   const loader = new LoadingStateMachine();
   let abortController = null;
   
-  loader.onenter = (state) => {
-    switch (state) {
+  loader.onenter = (currentState) => {
+    switch (currentState) {
       case STATE_LOADING:
         startLoad();
         break;
@@ -426,8 +426,8 @@ export default class MultiSourceLoader {
 
 ```javascript
 // ✅ Good - use onenter for reliable side effects
-loader.onenter = (state) => {
-  if (state === STATE_LOADING) {
+loader.onenter = (currentState) => {
+  if (currentState === STATE_LOADING) {
     analytics.track('loading_started');
   }
 };
@@ -443,8 +443,8 @@ $effect(() => {
 ### 2. Handle All Error States
 
 ```javascript
-loader.onenter = (state) => {
-  switch (state) {
+loader.onenter = (currentState) => {
+  switch (currentState) {
     case STATE_ERROR:
       showErrorToast(loader.error.message);
       logError(loader.error);
@@ -459,8 +459,8 @@ loader.onenter = (state) => {
 ### 3. Implement Proper Cleanup
 
 ```javascript
-loader.onenter = (state) => {
-  switch (state) {
+loader.onenter = (currentState) => {
+  switch (currentState) {
     case STATE_LOADING:
       showProgressBar();
       break;
@@ -500,8 +500,8 @@ loader.send('load');
 const resourceLoader = new LoadingStateMachine();
 let resource = null;
 
-resourceLoader.onenter = async (state) => {
-  switch (state) {
+resourceLoader.onenter = async (currentState) => {
+  switch (currentState) {
     case STATE_LOADING:
       try {
         resource = await loadResource();
@@ -529,8 +529,8 @@ const retryLoader = new LoadingStateMachine();
 let retryCount = 0;
 const maxRetries = 3;
 
-retryLoader.onenter = async (state) => {
-  switch (state) {
+retryLoader.onenter = async (currentState) => {
+  switch (currentState) {
     case STATE_LOADING:
       try {
         await performLoad();

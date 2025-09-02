@@ -102,8 +102,8 @@ describe('LoadingStateMachine - onenter callback', () => {
     let callbackCalls = [];
     const machine = new LoadingStateMachine();
     
-    machine.onenter = (state) => {
-      callbackCalls.push(state);
+    machine.onenter = (currentState) => {
+      callbackCalls.push(currentState);
     };
 
     expect(machine.current).toBe(STATE_INITIAL);
@@ -126,8 +126,8 @@ describe('LoadingStateMachine - onenter callback', () => {
     let callbackCalls = [];
     const machine = new LoadingStateMachine();
     
-    machine.onenter = (state) => {
-      callbackCalls.push(state);
+    machine.onenter = (currentState) => {
+      callbackCalls.push(currentState);
     };
 
     machine.send(LOAD);
@@ -140,8 +140,8 @@ describe('LoadingStateMachine - onenter callback', () => {
     let callbackCalls = [];
     const machine = new LoadingStateMachine();
     
-    machine.onenter = (state) => {
-      callbackCalls.push(state);
+    machine.onenter = (currentState) => {
+      callbackCalls.push(currentState);
     };
 
     machine.send(LOAD);
@@ -167,16 +167,16 @@ describe('LoadingStateMachine - onenter callback', () => {
     let secondCalls = [];
     const machine = new LoadingStateMachine();
     
-    machine.onenter = (state) => {
-      firstCalls.push(state);
+    machine.onenter = (currentState) => {
+      firstCalls.push(currentState);
     };
 
     machine.send(LOAD);
     expect(firstCalls).toEqual([STATE_LOADING]);
 
     // Change callback
-    machine.onenter = (state) => {
-      secondCalls.push(state);
+    machine.onenter = (currentState) => {
+      secondCalls.push(currentState);
     };
 
     machine.send(LOADED);
@@ -242,8 +242,8 @@ describe('LoadingStateMachine - timeout functionality', () => {
     let callbackCalls = [];
     const machine = new LoadingStateMachine();
 
-    machine.onenter = (state) => {
-      callbackCalls.push(state);
+    machine.onenter = (currentState) => {
+      callbackCalls.push(currentState);
     };
 
     machine.send(LOAD);

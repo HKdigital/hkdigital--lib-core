@@ -8,7 +8,7 @@ import { isTestEnv } from '$lib/util/env.js';
 import EventEmitter from '$lib/generic/events/classes/EventEmitter.js';
 import { ENTER, EXIT } from './constants.js';
 
-/** @typedef {import('./typedef.js').StateTransitionMetadata} StateTransitionMetadata */
+/** @typedef {import('./typedef.js').TransitionData} TransitionData */
 /** @typedef {import('./typedef.js').OnEnterCallback} OnEnterCallback */
 /** @typedef {import('./typedef.js').OnExitCallback} OnExitCallback */
 
@@ -57,17 +57,17 @@ export default class FiniteStateMachine extends EventEmitter {
     this.states = states;
 
     // synthetically trigger _enter for the initial state.
-    const initialMetadata = {
+    const initialTransitionData = {
       from: null,
       to: initial,
       event: null,
       args: []
     };
 
-    this.#executeAction('_enter', initialMetadata);
+    this.#executeAction('_enter', initialTransitionData);
 
     // Emit ENTER event for external listeners for initial state
-    this.emit(ENTER, { state: initial, metadata: initialMetadata });
+    this.emit(ENTER, { state: initial, transition: initialTransitionData });
   }
 
   /**
@@ -78,24 +78,24 @@ export default class FiniteStateMachine extends EventEmitter {
    * @param {any[]} [args]
    */
   #transition(newState, event, args) {
-    /** @type {StateTransitionMetadata} */
-    const metadata = { from: this.#current, to: newState, event, args };
+    /** @type {TransitionData} */
+    const transition = { from: this.#current, to: newState, event, args };
 
     // Call onexit callback before leaving current state
-    this.onexit?.(this.#current, metadata);
+    this.onexit?.(this.#current, transition);
 
     // Emit EXIT event for external listeners
-    this.emit(EXIT, { state: this.#current, metadata });
+    this.emit(EXIT, { state: this.#current, transition });
 
-    this.#executeAction('_exit', metadata);
+    this.#executeAction('_exit', transition);
     this.#current = newState;
-    this.#executeAction('_enter', metadata);
+    this.#executeAction('_enter', transition);
 
     // Emit ENTER event for external listeners
-    this.emit(ENTER, { state: newState, metadata });
+    this.emit(ENTER, { state: newState, transition });
 
     // Call onenter callback after state change
-    this.onenter?.(newState, metadata);
+    this.onenter?.(newState, transition);
   }
 
   /**
@@ -116,7 +116,7 @@ export default class FiniteStateMachine extends EventEmitter {
           if (isLifecycleFnMeta(args[0])) {
             return action(args[0]);
           } else {
-            throw new Error(`Invalid metadata passed to lifecycle function`);
+            throw new Error(`Invalid transition data passed to lifecycle function`);
           }
 
         // Normal state events

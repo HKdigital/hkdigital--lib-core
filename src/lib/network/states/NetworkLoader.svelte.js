@@ -90,10 +90,6 @@ export default class NetworkLoader {
     const state = this._state;
     // const progress = this.progress;
 
-    //
-    // ISSUE: $effect is not triggered by  this._state changes,
-    //        using onenter instead
-    //
     this._state.onenter = () => {
       switch (state.current) {
         case STATE_LOADING:
