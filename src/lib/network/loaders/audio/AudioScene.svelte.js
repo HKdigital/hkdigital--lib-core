@@ -118,10 +118,28 @@ export default class AudioScene {
 		};
 	}
 
+	/* ==== Common loader interface */
+
+	/**
+   * Get audio scene loading progress
+   */
+  get progress() {
+    return this.#progress;
+  }
+
+	/**
+	 * Start loading all audio sources
+	 */
+	load() {
+		this.#state.send(LOAD);
+	}
+
 	destroy() {
 		// TODO: disconnect all audio sources?
 		// TODO: Unload AUdioLoaders?
 	}
+
+	/* ==== Source definitions */
 
 	/**
 	 * Add in-memory audio source
@@ -141,43 +159,7 @@ export default class AudioScene {
 		this.#memorySources.push({ label, audioLoader, config });
 	}
 
-	/**
-	 * Start loading all audio sources
-	 */
-	load() {
-		this.#state.send(LOAD);
-
-		// FIXME: in unit test when moved to startloading it hangs!
-
-		for (const { audioLoader } of this.#memorySources) {
-			audioLoader.load();
-		}
-	}
-
-	/**
- 	 * Set an audio context to use
- 	 *
-	 * @param {AudioContext} [audioContext]
-	 */
-	setAudioContext( audioContext ) {
-		this.#audioContext = audioContext;
-	}
-
-	async #startLoading() {
-		// console.log('#startLoading');
-
-		// FIXME: in unit test when moved to startloading it hangs!
-		// for (const { audioLoader } of this.#memorySources) {
-		//   audioLoader.load();
-		// }
-	}
-
-	/**
-   * Get audio scene loading progress
-   */
-  get progress() {
-    return this.#progress;
-  }
+	/* ==== Resource access */
 
 	/**
 	 * Get a source that can be used to play the audio once
@@ -212,6 +194,25 @@ export default class AudioScene {
 
 		return sourceNode;
 	}
+
+	/**
+ 	 * Set an audio context to use
+ 	 *
+	 * @param {AudioContext} [audioContext]
+	 */
+	setAudioContext( audioContext ) {
+		this.#audioContext = audioContext;
+	}
+
+	async #startLoading() {
+		// console.log('#startLoading');
+
+		for (const { audioLoader } of this.#memorySources) {
+		  audioLoader.load();
+		}
+	}
+
+	/* ==== Audio specific */
 
 	/**
 	 * Set target gain
@@ -254,6 +255,7 @@ export default class AudioScene {
 		this.setTargetGain(this.#unmutedTargetGain);
 	}
 
+	/* ==== Internals */
 
 	#getGainNode()
 	{
@@ -295,4 +297,4 @@ export default class AudioScene {
 
 		throw new Error(`Source [${label}] has not been defined`);
 	}
-}
+} // end class

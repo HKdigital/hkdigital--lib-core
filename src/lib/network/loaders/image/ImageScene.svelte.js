@@ -101,10 +101,28 @@ export default class ImageScene {
     };
   }
 
+  /* ==== Common loader interface */
+
+  /**
+   * Get image scene loading progress
+   */
+  get progress() {
+    return this.#progress;
+  }
+
+  /**
+   * Start loading all image sources
+   */
+  load() {
+    this.#state.send(LOAD);
+  }
+
   destroy() {
     // TODO: disconnect all image sources?
     // TODO: Unload ImageLoaders?
   }
+
+  /* ==== Source definitions */
 
   /**
    * Add image source
@@ -124,42 +142,7 @@ export default class ImageScene {
     this.#imageSources.push({ label, imageLoader });
   }
 
-  /**
-   * Start loading all image sources
-   */
-  load() {
-    this.#state.send(LOAD);
-  }
-
-  async #startLoading() {
-    for (const { imageLoader } of this.#imageSources) {
-      imageLoader.load();
-    }
-  }
-
-  /**
-   * Get Image source
-   *
-   * @param {string} label
-   *
-   * @returns {ImageSceneSource}
-   */
-  #getImageSceneSource(label) {
-    for (const source of this.#imageSources) {
-      if (label === source.label) {
-        return source;
-      }
-    }
-
-    throw new Error(`Source [${label}] has not been defined`);
-  }
-
-  /**
-   * Get image scene loading progress
-   */
-  get progress() {
-    return this.#progress;
-  }
+  /* ==== Resource access */
 
   /**
    * Get an image loader
@@ -201,4 +184,29 @@ export default class ImageScene {
 
     return source.imageLoader.getObjectURL();
   }
-}
+
+  async #startLoading() {
+    for (const { imageLoader } of this.#imageSources) {
+      imageLoader.load();
+    }
+  }
+
+  /* ==== Internals */
+
+  /**
+   * Get Image source
+   *
+   * @param {string} label
+   *
+   * @returns {ImageSceneSource}
+   */
+  #getImageSceneSource(label) {
+    for (const source of this.#imageSources) {
+      if (label === source.label) {
+        return source;
+      }
+    }
+
+    throw new Error(`Source [${label}] has not been defined`);
+  }
+} // end class
