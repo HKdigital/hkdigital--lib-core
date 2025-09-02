@@ -7,10 +7,7 @@ import { LoadingStateMachine } from '$lib/state/machines.js';
 import {
   STATE_INITIAL,
   STATE_LOADING,
-  STATE_UNLOADING,
   STATE_LOADED,
-  STATE_CANCELLED,
-  STATE_ERROR,
   LOAD,
   LOADED
 } from '$lib/state/machines.js';
@@ -31,10 +28,9 @@ import ImageLoader from './ImageLoader.svelte.js';
 export default class ImageScene {
   #state = new LoadingStateMachine();
 
-  // @note this exported state is set by $effect's
+  // @note this exported state is set by onenter
   state = $state(STATE_INITIAL);
 
-  // @note this exported state is set by $effect's
   loaded = $derived.by(() => {
     return this.state === STATE_LOADED;
   });

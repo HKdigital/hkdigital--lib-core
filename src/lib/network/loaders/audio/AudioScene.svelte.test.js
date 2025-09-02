@@ -59,6 +59,13 @@ describe('AudioScene', () => {
     // @ts-ignore
     expect(audioScene.loaded).toEqual(true);
 
+    // Test progress calculation
+    const progress = audioScene.progress;
+    expect(progress.sourcesLoaded).toEqual(1);
+    expect(progress.numberOfSources).toEqual(1);
+    expect(progress.totalBytesLoaded).toBeGreaterThan(0);
+    expect(progress.totalSize).toBeGreaterThan(0);
+
     cleanup();
   });
 
