@@ -1,20 +1,6 @@
 import * as expect from '$lib/util/expect.js';
 
-import { LoadingStateMachine } from '$lib/state/machines.js';
-
-import {
-	STATE_INITIAL,
-	STATE_LOADING,
-	STATE_LOADED,
-	STATE_ABORTING,
-	STATE_ABORTED,
-	STATE_ERROR,
-	LOAD,
-	LOADED,
-	ABORT,
-	ABORTED
-} from '$lib/state/machines.js';
-
+import SceneBase from '../base/SceneBase.svelte.js';
 import AudioLoader from './AudioLoader.svelte.js';
 
 /**
@@ -29,15 +15,7 @@ import AudioLoader from './AudioLoader.svelte.js';
  * @property {SourceConfig} [config]
  */
 
-export default class AudioScene {
-	#state = new LoadingStateMachine();
-
-	// @note this exported state is set by onenter
-	state = $state(STATE_INITIAL);
-
-	loaded = $derived.by(() => {
-		return this.state === STATE_LOADED;
-	});
+export default class AudioScene extends SceneBase {
 
 	#targetGain = $state(1);
 
@@ -56,143 +34,35 @@ export default class AudioScene {
 	/** @type {MemorySource[]} */
 	#memorySources = $state([]);
 
-	#progress = $derived.by(() => {
-		// console.log('update progress');
-
-		let totalSize = 0;
-		let totalBytesLoaded = 0;
-		let sourcesLoaded = 0;
-
-		const sources = this.#memorySources;
-		const numberOfSources = sources.length;
-
-		for (let j = 0; j < numberOfSources; j++) {
-			const source = sources[j];
-			const { audioLoader } = source;
-
-			const { bytesLoaded, size, loaded } = audioLoader.progress;
-
-			totalSize += size;
-			totalBytesLoaded += bytesLoaded;
-
-			if (loaded) {
-				sourcesLoaded++;
-			}
-		} // end for
-
-		return {
-			totalBytesLoaded,
-			totalSize,
-			sourcesLoaded,
-			numberOfSources
-		};
-	});
-
-	#abortProgress = $derived.by(() => {
-		let sourcesAborted = 0;
-		const sources = this.#memorySources;
-		const numberOfSources = sources.length;
-
-		for (let j = 0; j < numberOfSources; j++) {
-			const source = sources[j];
-			const { audioLoader } = source;
-			const loaderState = audioLoader.state;
-
-			if (loaderState === STATE_ABORTED || loaderState === STATE_ERROR) {
-				sourcesAborted++;
-			}
-		} // end for
-
-		return {
-			sourcesAborted,
-			numberOfSources
-		};
-	});
 
 	/**
 	 * Construct AudioScene
 	 */
 	constructor() {
-		const state = this.#state;
-
-		$effect(() => {
-			if (state.current === STATE_LOADING) {
-				// console.log(
-				//   'progress',
-				//   JSON.stringify($state.snapshot(this.#progress))
-				// );
-
-				const { sourcesLoaded, numberOfSources } = this.#progress;
-
-				if (sourcesLoaded === numberOfSources) {
-					// console.debug(`AudioScene: ${numberOfSources} sources loaded`);
-					this.#state.send(LOADED);
-				}
-			}
-		});
-
-		$effect(() => {
-			if (state.current === STATE_ABORTING) {
-				const { sourcesAborted, numberOfSources } = this.#abortProgress;
-
-				if (sourcesAborted === numberOfSources) {
-					// console.debug(`AudioScene: ${numberOfSources} sources aborted`);
-					this.#state.send(ABORTED);
-				}
-			}
-		});
-
-		state.onenter = ( currentState ) => {
-      // console.log('onenter', currentState );
-
-			if(currentState === STATE_LOADING )
-			{
-				// console.log('AudioScene:loading');
-				this.#startLoading();
-			}
-			else if(currentState === STATE_ABORTING )
-			{
-				// console.log('AudioScene:aborting');
-				this.#startAbort();
-			}
-
-			this.state = state.current;
-		};
+		super();
 	}
 
-	/* ==== Common loader interface */
+	/* ==== SceneBase implementation */
 
 	/**
-   * Get audio scene loading progress
-   */
-  get progress() {
-    return this.#progress;
-  }
-
-	/**
-	 * Get audio scene abort progress
+	 * Get the array of memory sources managed by this scene
+	 *
+	 * @returns {MemorySource[]}
 	 */
-	get abortProgress() {
-		return this.#abortProgress;
+	get sources() {
+		return this.#memorySources;
 	}
 
 	/**
-	 * Start loading all audio sources
+	 * Extract the audio loader from a source object
+	 *
+	 * @param {MemorySource} source
+	 *
+	 * @returns {AudioLoader}
 	 */
-	load() {
-		this.#state.send(LOAD);
-	}
-
-	/**
-	 * Abort loading all audio sources
-	 */
-	abort() {
-		this.#state.send(ABORT);
-	}
-
-	destroy() {
-		// TODO: disconnect all audio sources?
-		// TODO: Unload AUdioLoaders?
+	// eslint-disable-next-line no-unused-vars
+	getLoaderFromSource(source) {
+		return source.audioLoader;
 	}
 
 	/* ==== Source definitions */
@@ -260,28 +130,16 @@ export default class AudioScene {
 		this.#audioContext = audioContext;
 	}
 
-	async #startLoading() {
-		// console.log('#startLoading');
-
-		for (const { audioLoader } of this.#memorySources) {
-		  audioLoader.load();
-		}
-	}
-
-	#startAbort() {
-		// console.log('#startAbort');
-
-		for (const { audioLoader } of this.#memorySources) {
-			audioLoader.abort();
-		}
-	}
 
 	/* ==== Audio specific */
 
 	/**
-	 * Set target gain
+	 * Set target gain (volume level) for all audio in this scene
+	 * - Currently applies immediately, but "target" allows for future 
+	 *   smooth transitions using Web Audio API's gain scheduling
+	 * - Range: 0.0 (silence) to 1.0 (original) to 1.0+ (amplified)
 	 *
-	 * @param {number} value
+	 * @param {number} value - Target gain value (0.0 to 1.0+)
 	 */
 	setTargetGain( value ) {
 		this.#targetGain = value;
@@ -291,15 +149,21 @@ export default class AudioScene {
 	}
 
 	/**
-	 * Get the scene gain
+	 * Get the current target gain (volume level)
 	 *
-	 * @returns {number} value
+	 * @returns {number} Target gain value (0.0 to 1.0+)
 	 */
 	getTargetGain()
 	{
 		return this.#targetGain;
 	}
 
+	/**
+	 * Mute all audio in this scene
+	 * - Saves current volume level for restoration
+	 * - Sets target gain to 0 (silence)
+	 * - Safe to call multiple times
+	 */
 	mute() {
 		if( this.muted )
 		{
@@ -310,6 +174,12 @@ export default class AudioScene {
 		this.setTargetGain(0);
 	}
 
+	/**
+	 * Unmute all audio in this scene
+	 * - Restores volume level from before muting
+	 * - Safe to call multiple times
+	 * - No effect if scene is not currently muted
+	 */
 	unmute() {
 		if( !this.muted )
 		{

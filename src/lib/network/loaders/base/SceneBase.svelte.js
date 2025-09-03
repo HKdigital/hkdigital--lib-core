@@ -13,6 +13,8 @@ import {
   ABORTED
 } from '$lib/state/machines.js';
 
+import { waitForState } from '$lib/util/svelte.js';
+
 /**
  * Base class for scene loaders that manage collections of media sources
  */
@@ -165,6 +167,97 @@ export default class SceneBase {
    */
   abort() {
     this.#state.send(ABORT);
+  }
+
+  /**
+   * Preload all sources with progress tracking and abort capability
+   * - Starts loading and waits for completion
+   * - Supports timeout and progress callbacks
+   * - Returns object with promise and abort function
+   *
+   * @param {object} [options]
+   * @param {number} [options.timeoutMs=10000] - Timeout in milliseconds
+   * @param {Function} [options.onProgress] - Progress callback function
+   *
+   * @returns {object} Object with promise and abort function
+   * @returns {Promise<SceneBase>} returns.promise - Promise that resolves when loaded
+   * @returns {Function} returns.abort - Function to abort preloading
+   */
+  preload({ timeoutMs = 10000, onProgress } = {}) {
+    let timeoutId = null;
+    let progressIntervalId = null;
+    let isAborted = false;
+
+    const abort = () => {
+      if (isAborted) return;
+      isAborted = true;
+
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
+
+      if (progressIntervalId) {
+        clearInterval(progressIntervalId);
+        progressIntervalId = null;
+      }
+
+      this.abort();
+    };
+
+    const promise = new Promise((resolve, reject) => {
+      // Set up progress tracking with polling
+      if (onProgress) {
+        progressIntervalId = setInterval(() => {
+          if (!isAborted) {
+            onProgress(this.progress);
+          }
+        }, 50); // Poll every 50ms
+      }
+
+      // Set up timeout
+      if (timeoutMs > 0) {
+        timeoutId = setTimeout(() => {
+          abort();
+          reject(new Error(`Preload timed out after ${timeoutMs}ms`));
+        }, timeoutMs);
+      }
+
+      // Start loading
+      this.load();
+
+      // Wait for completion with extended timeout
+      const waitTimeout = Math.max(timeoutMs + 1000, 2000);
+      waitForState(() => {
+        return this.loaded ||
+               this.state === STATE_ABORTED ||
+               this.state === STATE_ERROR;
+      }, waitTimeout)
+        .then(() => {
+          if (timeoutId) {
+            clearTimeout(timeoutId);
+            timeoutId = null;
+          }
+
+          if (progressIntervalId) {
+            clearInterval(progressIntervalId);
+            progressIntervalId = null;
+          }
+
+          if (isAborted || this.state === STATE_ABORTED) {
+            reject(new Error('Preload was aborted'));
+          } else if (this.state === STATE_ERROR) {
+            reject(new Error('Preload failed due to error'));
+          } else if (this.loaded) {
+            resolve(this);
+          } else {
+            reject(new Error(`Preload failed: unexpected state ${this.state}`));
+          }
+        })
+        .catch(reject);
+    });
+
+    return { promise, abort };
   }
 
   destroy() {
