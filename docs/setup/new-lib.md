@@ -3,10 +3,10 @@
 This guide walks through setting up a new SvelteKit library that integrates with the hkdigital--lib-core design system and follows our established patterns.
 
 **Essential Reading:**
-- [Main README](./README.md) - Overview and usage instructions
-- [Design System README](./src/lib/design/README.md) - Design tokens and theming
-- [Config README](./src/lib/config/README.md) - Vite and build configuration
-- [Logging README](./src/lib/logging/README.md) - Server and client logging setup
+- [Main README](../../README.md) - Overview and usage instructions
+- [Design System README](../../src/lib/design/README.md) - Design tokens and theming
+- [Config README](../../src/lib/config/README.md) - Vite and build configuration
+- [Logging README](../../src/lib/logging/README.md) - Server and client logging setup
 
 ## Initial SvelteKit Library Setup
 

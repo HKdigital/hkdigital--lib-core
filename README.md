@@ -187,10 +187,16 @@ The library includes a comprehensive logging system that provides:
 - **Client-side**: Enhanced console logging with structured data display in browser inspector
 - **Consistent API**: Same logging interface for both server and client environments
 
-For detailed setup guides see:
-- **Design system**: [src/lib/design/README.md](./src/lib/design/README.md)
-- **Vite configuration**: [src/lib/config/README.md](./src/lib/config/README.md)
-- **Logging system**: [src/lib/logging/README.md](./src/lib/logging/README.md)
+## Documentation
+
+For detailed setup guides and configuration:
+- **Project setup**: [docs/setup/new-project.md](./docs/setup/new-project.md) - SvelteKit project setup
+- **Library setup**: [docs/setup/new-lib.md](./docs/setup/new-lib.md) - SvelteKit library setup
+- **Services & logging**: [docs/setup/services-logging.md](./docs/setup/services-logging.md) - Service management architecture
+- **Configuration files**: [docs/config/root-config-files.md](./docs/config/root-config-files.md) - Config file reference
+- **Design system**: [src/lib/design/README.md](./src/lib/design/README.md) - Design tokens and theming
+- **Vite configuration**: [src/lib/config/README.md](./src/lib/config/README.md) - Build configuration
+- **Logging system**: [src/lib/logging/README.md](./src/lib/logging/README.md) - Server and client logging
 
 ### Update
 
