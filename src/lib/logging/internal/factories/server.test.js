@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { createServerLogger } from '$lib/logging/internal/factories/server.js';
-import { INFO, DEBUG, ERROR, WARN } from '$lib/logging/constants.js';
+import { INFO, DEBUG, ERROR, WARN } from '$lib/logging/levels.js';
 
 // Mock the PinoAdapter
 vi.mock('$lib/logging/internal/adapters/pino.js', () => ({

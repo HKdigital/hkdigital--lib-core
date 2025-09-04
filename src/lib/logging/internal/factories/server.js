@@ -1,6 +1,6 @@
 import { Logger } from '$lib/logging/internal/logger/index.js';
 import { PinoAdapter } from '$lib/logging/internal/adapters/pino.js';
-import { INFO } from '$lib/logging/constants.js';
+import { INFO } from '$lib/logging/levels.js';
 // import { expectNoSSRContext } from '$lib/util/ssr/index.js';
 
 /**

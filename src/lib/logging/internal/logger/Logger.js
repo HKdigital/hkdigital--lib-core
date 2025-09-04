@@ -43,7 +43,7 @@ import {
   ERROR,
   LEVELS,
   LOG
-} from '$lib/logging/constants.js';
+} from '$lib/logging/levels.js';
 
 import { DetailedError } from '$lib/generic/errors.js';
 // import { LoggerError } from '$lib/logging/errors.js';

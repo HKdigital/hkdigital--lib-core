@@ -1,5 +1,5 @@
 import { dev } from '$app/environment';
-import { LEVELS } from '$lib/logging/constants.js';
+import { LEVELS } from '$lib/logging/levels.js';
 import {
   findRelevantFrameIndex,
   detectErrorMeta,

@@ -52,17 +52,12 @@
  * @property {boolean} [debug=false] - Debug mode switch
  * @property {boolean} [autoStart=false] - Auto-start services on registration
  * @property {number} [stopTimeout=10000] - Default timeout for stopping services
- * @property {string} [logLevel] - Initial log level for ServiceManager
- * @property {LogConfig} [logConfig={}] - Logging configuration
- */
-
-/**
- * Logging configuration
- *
- * @typedef {Object} LogConfig
- * @property {string} [defaultLevel] - Default log level for services
- * @property {string} [globalLevel] - Override level for all services
- * @property {Object<string, string>} [serviceLevels] - Per-service log levels
+ * @property {string} [defaultLogLevel] - Default log level for new services
+ * @property {string} [managerLogLevel] - Initial log level for ServiceManager
+ * @property {string|Object<string,string>} [serviceLogLevels]
+ *   Per-service log levels:
+ *   - String: "auth:debug,database:info"
+ *   - Object: { auth: "debug", database: "info" }
  */
 
 /**

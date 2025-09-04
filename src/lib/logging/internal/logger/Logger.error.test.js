@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import Logger from './Logger.js';
-import { ERROR } from '$lib/logging/constants.js';
+import { ERROR } from '$lib/logging/levels.js';
 
 describe('Logger.error() - Parameter Combinations', () => {
   let logger;

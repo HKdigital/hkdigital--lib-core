@@ -1,6 +1,6 @@
 import { Logger } from '$lib/logging/internal/logger/index.js';
 import { ConsoleAdapter } from '$lib/logging/internal/adapters/console.js';
-import { INFO } from '$lib/logging/constants.js';
+import { INFO } from '$lib/logging/levels.js';
 
 /**
  * Create a client-side logger with console adapter

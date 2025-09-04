@@ -4,7 +4,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import Logger from './Logger.js';
-import { DEBUG, INFO, WARN, ERROR, NONE, LOG } from '$lib/logging/constants.js';
+import { DEBUG, INFO, WARN, ERROR, NONE, LOG } from '$lib/logging/levels.js';
 
 describe('Logger', () => {
   let logger;

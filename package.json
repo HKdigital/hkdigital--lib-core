@@ -52,6 +52,7 @@
 	},
 	"files": [
 		"dist",
+		"CLAUDE.md",
 		"!dist/**/*.test.*",
 		"!dist/**/*.spec.*",
 		"!dist/**/testdata.*",

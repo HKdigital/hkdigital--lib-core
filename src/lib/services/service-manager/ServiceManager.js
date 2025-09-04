@@ -51,11 +51,11 @@
  *
  * @example
  * // Logging control
- * // Set global log level
- * manager.setLogLevel('*', 'DEBUG');
+ * // Set manager log level (affects all services)
+ * manager.setManagerLogLevel('DEBUG');
  *
  * // Set specific service log level
- * manager.setLogLevel('database', 'ERROR');
+ * manager.setServiceLogLevel('database', 'ERROR');
  *
  * // Listen to all service logs
  * manager.on('service:log', (logEvent) => {
@@ -64,7 +64,10 @@
  */
 
 import { EventEmitter } from '$lib/generic/events.js';
-import { Logger, DEBUG, INFO, WARN } from '$lib/logging/index.js';
+import { Logger, DEBUG, INFO } from '$lib/logging/index.js';
+
+import { SERVICE_LOG } from './constants.js';
+import { parseServiceLogLevels } from './util.js';
 
 import {
   STATE_NOT_CREATED,
@@ -103,16 +106,26 @@ export class ServiceManager extends EventEmitter {
     /** @type {Map<string, ServiceEntry>} */
     this.services = new Map();
 
+    const defaultLogLevel = config.defaultLogLevel || (config.debug ? DEBUG : INFO);
+    const managerLogLevel = config.managerLogLevel || defaultLogLevel;
+    const serviceLogLevels = config.serviceLogLevels;
+
     /** @type {Logger} */
-    this.logger = new Logger('ServiceManager', config.logLevel || INFO);
+    this.logger = new Logger('ServiceManager', managerLogLevel);
 
     /** @type {ServiceManagerConfig} */
     this.config = {
       debug: config.debug ?? false,
       autoStart: config.autoStart ?? false,
       stopTimeout: config.stopTimeout || 10000,
-      logConfig: config.logConfig || {}
+      defaultLogLevel,
+      managerLogLevel
+      // serviceLogLevels will be set by setServiceLogLevel()
     };
+
+    if (serviceLogLevels) {
+      this.setServiceLogLevel(serviceLogLevels);
+    }
 
     this.#setupLogging();
   }
@@ -474,34 +487,68 @@ export class ServiceManager extends EventEmitter {
   }
 
   /**
-   * Set log level for a service or globally
+   * Listen to log messages emitted by individual services
    *
-   * @param {string} name - Service name or '*' for global
-   * @param {string} level - Log level to set
+   * @param {Function} listener - Log event handler
+   *
+   * @returns {Function} Unsubscribe function
    */
-  setLogLevel(name, level) {
-    if (name === '*') {
-      // Global level
-      this.config.logConfig.globalLevel = level;
+  onServiceLogEvent(listener) {
+    return this.on(SERVICE_LOG, listener);
+  }
 
-      // Apply to all existing services
-      // eslint-disable-next-line no-unused-vars
-      for (const [_, entry] of this.services) {
-        if (entry.instance) {
-          entry.instance.setLogLevel(level);
+  /**
+   * Set log level for the ServiceManager itself
+   *
+   * @param {string} level - Log level to set for the ServiceManager
+   */
+  setManagerLogLevel(level) {
+    this.config.managerLogLevel = level;
+    this.logger.setLevel(level);
+  }
+
+  /**
+   * Set log level for individual services
+   *
+   * @param {string|Object<string,string>} nameOrConfig
+   *   Service configuration:
+   *   - String with service name: 'auth' (requires level parameter)
+   *   - String with config: 'auth:debug,database:info'
+   *   - Object: { auth: 'debug', database: 'info' }
+   * @param {string} [level] - Log level (required when nameOrConfig is service name)
+   */
+  setServiceLogLevel(nameOrConfig, level) {
+    /** @type {{[name:string]: string}} */
+    let serviceLevels = {};
+
+    if (typeof nameOrConfig === 'string') {
+      if (nameOrConfig.includes(':')) {
+        // Parse string config: 'auth:debug,database:info'
+        serviceLevels = parseServiceLogLevels(nameOrConfig);
+      } else {
+        // Single service name
+        if (!level) {
+          throw new Error(`Level parameter required for service '${nameOrConfig}'`);
         }
+        serviceLevels[nameOrConfig] = level;
       }
     } else {
-      // Service-specific level
-      if (!this.config.logConfig.serviceLevels) {
-        this.config.logConfig.serviceLevels = {};
-      }
-      this.config.logConfig.serviceLevels[name] = level;
+      // Object config: { auth: 'debug', database: 'info' }
+      serviceLevels = nameOrConfig;
+    }
+
+    if (!this.config.serviceLogLevels) {
+      this.config.serviceLogLevels = {};
+    }
+
+    // Apply service-specific log levels
+    for (const [name, logLevel] of Object.entries(serviceLevels)) {
+      this.config.serviceLogLevels[name] = logLevel;
 
       // Apply to existing instance
       const instance = this.get(name);
       if (instance) {
-        instance.setLogLevel(level);
+        instance.setLogLevel(logLevel);
       }
     }
   }
@@ -587,19 +634,19 @@ export class ServiceManager extends EventEmitter {
   }
 
   /**
-   * Setup logging configuration based on config.dev
+   * Setup logging configuration based on config.debug
    */
   #setupLogging() {
-    // Set default log levels based on config.debug flag
-    if (this.config.debug) {
-      this.config.logConfig.defaultLevel = DEBUG;
-    } else {
-      this.config.logConfig.defaultLevel = WARN;
+    // Set default level for services based on debug flag if not explicitly set
+    if (!this.config.defaultLogLevel) {
+      this.config.defaultLogLevel = this.config.debug ? DEBUG : INFO;
     }
 
-    // Apply config
-    if (this.config.logConfig.globalLevel) {
-      this.logger.setLevel(this.config.logConfig.globalLevel);
+    // Set manager log level (use defaultLogLevel as fallback)
+    const managerLevel = this.config.managerLogLevel ||
+                         this.config.defaultLogLevel;
+    if (managerLevel) {
+      this.logger.setLevel(managerLevel);
     }
   }
 
@@ -611,21 +658,20 @@ export class ServiceManager extends EventEmitter {
    * @returns {string|undefined} Log level or undefined
    */
   #getServiceLogLevel(name) {
-    const config = this.config.logConfig;
+    const config = this.config;
 
     // Check in order of precedence:
-    // 1. Global level (overrides everything)
-    if (config.globalLevel) {
-      return config.globalLevel;
+    // 1. Service-specific level
+    if (config.serviceLogLevels?.[name]) {
+      return config.serviceLogLevels[name];
     }
 
-    // 2. Service-specific level
-    if (config.serviceLevels?.[name]) {
-      return config.serviceLevels[name];
+    // 2. Default level fallback
+    if (config.defaultLogLevel) {
+      return config.defaultLogLevel;
     }
 
-    // 3. Don't use defaultLevel as it might be too restrictive
-    // Return undefined to let the service use its own default
+    // 3. No fallback - let service use its own default
     return undefined;
   }
 

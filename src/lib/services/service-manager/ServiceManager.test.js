@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ServiceManager } from './ServiceManager.js';
-import { DEBUG, INFO, WARN } from '$lib/logging/index.js';
+import { DEBUG, INFO } from '$lib/logging/index.js';
 import { ServiceBase } from '$lib/services/service-base/ServiceBase.js';
 import {
   STATE_NOT_CREATED,
@@ -496,26 +496,16 @@ describe('ServiceManager', () => {
   describe('Logging Configuration', () => {
     it('should set default log level based on debug flag', () => {
       const devManager = new ServiceManager({ debug: true });
-      expect(devManager.config.logConfig.defaultLevel).toBe(DEBUG);
+      expect(devManager.config.defaultLogLevel).toBe(DEBUG);
 
       const prodManager = new ServiceManager({ debug: false });
-      expect(prodManager.config.logConfig.defaultLevel).toBe(WARN);
+      expect(prodManager.config.defaultLogLevel).toBe(INFO);
     });
 
-    it('should set global log level', () => {
-      manager.register('serviceA', MockServiceA);
-      manager.register('serviceB', MockServiceB);
+    it('should set manager log level', () => {
+      manager.setManagerLogLevel(DEBUG);
 
-      const instanceA = manager.get('serviceA');
-      const instanceB = manager.get('serviceB');
-
-      vi.spyOn(instanceA, 'setLogLevel');
-      vi.spyOn(instanceB, 'setLogLevel');
-
-      manager.setLogLevel('*', DEBUG);
-
-      expect(instanceA.setLogLevel).toHaveBeenCalledWith(DEBUG);
-      expect(instanceB.setLogLevel).toHaveBeenCalledWith(DEBUG);
+      expect(manager.config.managerLogLevel).toBe(DEBUG);
     });
 
     it('should set service-specific log level', () => {
@@ -524,10 +514,10 @@ describe('ServiceManager', () => {
 
       vi.spyOn(instance, 'setLogLevel');
 
-      manager.setLogLevel('serviceA', DEBUG);
+      manager.setServiceLogLevel('serviceA', DEBUG);
 
       expect(instance.setLogLevel).toHaveBeenCalledWith(DEBUG);
-      expect(manager.config.logConfig.serviceLevels.serviceA).toBe(DEBUG);
+      expect(manager.config.serviceLogLevels.serviceA).toBe(DEBUG);
     });
   });
 
@@ -614,6 +604,50 @@ describe('ServiceManager', () => {
         serviceA: false,
         serviceB: false // Stops on first failure
       });
+    });
+  });
+
+  describe('onServiceLogEvent', () => {
+    it('should listen to service log events', () => {
+      const listener = vi.fn();
+      const unsubscribe = manager.onServiceLogEvent(listener);
+
+      expect(typeof unsubscribe).toBe('function');
+    });
+  });
+
+  describe('setServiceLogLevel', () => {
+    it('should set single service log level', () => {
+      manager.register('auth', MockServiceA);
+      manager.setServiceLogLevel('auth', 'debug');
+
+      expect(manager.config.serviceLogLevels.auth).toBe('debug');
+    });
+
+    it('should set manager log level', () => {
+      manager.setManagerLogLevel('warn');
+
+      expect(manager.config.managerLogLevel).toBe('warn');
+    });
+
+    it('should parse string configuration', () => {
+      manager.register('auth', MockServiceA);
+      manager.register('database', MockServiceB);
+
+      manager.setServiceLogLevel('auth:debug,database:info');
+
+      expect(manager.config.serviceLogLevels.auth).toBe('debug');
+      expect(manager.config.serviceLogLevels.database).toBe('info');
+    });
+
+    it('should accept object configuration', () => {
+      manager.register('auth', MockServiceA);
+      manager.register('cache', MockServiceB);
+
+      manager.setServiceLogLevel({ auth: 'warn', cache: 'error' });
+
+      expect(manager.config.serviceLogLevels.auth).toBe('warn');
+      expect(manager.config.serviceLogLevels.cache).toBe('error');
     });
   });
 });

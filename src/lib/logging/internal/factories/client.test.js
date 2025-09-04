@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { createClientLogger } from '$lib/logging/internal/factories/client.js';
-import { INFO, DEBUG, WARN } from '$lib/logging/constants.js';
+import { INFO, DEBUG, WARN } from '$lib/logging/levels.js';
 
 // Mock the ConsoleAdapter
 vi.mock('$lib/logging/internal/adapters/console.js', () => ({
