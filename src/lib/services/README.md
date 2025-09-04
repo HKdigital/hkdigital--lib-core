@@ -237,6 +237,37 @@ const systemHealth = await manager.checkHealth();
 
 ### Error Handling and Recovery
 
+### Logging Configuration
+
+ServiceManager provides centralized logging control for all services:
+
+```javascript
+const manager = new ServiceManager({
+  debug: true,                    // Sets defaultLogLevel to DEBUG
+  defaultLogLevel: 'INFO',        // Default level for all services
+  managerLogLevel: 'DEBUG',       // Level for ServiceManager itself
+  serviceLogLevels: {             // Per-service levels
+    database: 'ERROR',
+    auth: 'DEBUG'
+  }
+});
+
+// Change manager log level at runtime
+manager.setManagerLogLevel('ERROR');
+
+// Change service log levels at runtime
+manager.setServiceLogLevel('database', 'INFO');
+
+// Set multiple service levels at once
+manager.setServiceLogLevel({
+  database: 'INFO',
+  auth: 'DEBUG'
+});
+
+// Parse string format
+manager.setServiceLogLevel('database:info,auth:debug');
+```
+
 ### ServiceManager events
 
 ServiceManager emits these events (constants from `$lib/services/service-manager/constants.js`):
@@ -264,14 +295,14 @@ await manager.recoverService('database');
 Forward all service log events to a centralised logger:
 
 ```javascript
-import { ServiceManager, SERVICE_LOG } from '$lib/services/index.js';
+import { ServiceManager } from '$lib/services/index.js';
 import { createServerLogger } from '$lib/logging/index.js';
 
 const manager = new ServiceManager();
 const logger = createServerLogger('SystemLogger');
 
 // Listen to all log events and forward them to the logger
-manager.on(SERVICE_LOG, (logEvent) => {
+const unsubscribe = manager.onServiceLogEvent((logEvent) => {
   logger.logFromEvent('manager:service:log', logEvent);
 });
 
@@ -280,6 +311,9 @@ manager.register('database', DatabaseService, { ... });
 manager.register('auth', AuthService, { ... });
 
 await manager.startAll();
+
+// Cleanup when done
+unsubscribe();
 ```
 
 ## Plugins

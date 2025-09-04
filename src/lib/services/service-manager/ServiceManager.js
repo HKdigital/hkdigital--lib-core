@@ -106,7 +106,8 @@ export class ServiceManager extends EventEmitter {
     /** @type {Map<string, ServiceEntry>} */
     this.services = new Map();
 
-    const defaultLogLevel = config.defaultLogLevel || (config.debug ? DEBUG : INFO);
+    const defaultLogLevel =
+      config.defaultLogLevel || (config.debug ? DEBUG : INFO);
     const managerLogLevel = config.managerLogLevel || defaultLogLevel;
     const serviceLogLevels = config.serviceLogLevels;
 
@@ -118,16 +119,16 @@ export class ServiceManager extends EventEmitter {
       debug: config.debug ?? false,
       autoStart: config.autoStart ?? false,
       stopTimeout: config.stopTimeout || 10000,
-      defaultLogLevel,
-      managerLogLevel
+      defaultLogLevel
+      // managerLogLevel will be set bysetManagerLogLevel()
       // serviceLogLevels will be set by setServiceLogLevel()
     };
+
+    this.setManagerLogLevel(managerLogLevel);
 
     if (serviceLogLevels) {
       this.setServiceLogLevel(serviceLogLevels);
     }
-
-    this.#setupLogging();
   }
 
   /**
@@ -528,7 +529,9 @@ export class ServiceManager extends EventEmitter {
       } else {
         // Single service name
         if (!level) {
-          throw new Error(`Level parameter required for service '${nameOrConfig}'`);
+          throw new Error(
+            `Level parameter required for service '${nameOrConfig}'`
+          );
         }
         serviceLevels[nameOrConfig] = level;
       }
@@ -630,23 +633,6 @@ export class ServiceManager extends EventEmitter {
     } else {
       const config = serviceConfigOrLabel;
       return config;
-    }
-  }
-
-  /**
-   * Setup logging configuration based on config.debug
-   */
-  #setupLogging() {
-    // Set default level for services based on debug flag if not explicitly set
-    if (!this.config.defaultLogLevel) {
-      this.config.defaultLogLevel = this.config.debug ? DEBUG : INFO;
-    }
-
-    // Set manager log level (use defaultLogLevel as fallback)
-    const managerLevel = this.config.managerLogLevel ||
-                         this.config.defaultLogLevel;
-    if (managerLevel) {
-      this.logger.setLevel(managerLevel);
     }
   }
 
