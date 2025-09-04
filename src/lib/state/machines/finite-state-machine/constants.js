@@ -6,10 +6,10 @@
  * Event emitted when entering a state
  * @type {string}
  */
-export const ENTER = 'enter';
+export const ENTER = '_enter';
 
 /**
  * Event emitted when exiting a state
  * @type {string}
  */
-export const EXIT = 'exit';
+export const EXIT = '_exit';
