@@ -99,6 +99,7 @@
 		"@tailwindcss/typography": "^0.5.16",
 		"@testing-library/svelte": "^5.2.8",
 		"@testing-library/user-event": "^14.6.1",
+		"@tailwindcss/postcss": "^4.1.11",
 		"@types/eslint": "^9.6.1",
 		"@types/node": "^24.2.1",
 		"autoprefixer": "^10.4.21",
@@ -129,8 +130,5 @@
 		"vite": "^7.1.2",
 		"vite-imagetools": "^8.0.0",
 		"vitest": "^3.2.4"
-	},
-	"dependencies": {
-		"@tailwindcss/postcss": "^4.1.11"
 	}
 }
