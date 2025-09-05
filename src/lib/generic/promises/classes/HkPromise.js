@@ -48,7 +48,7 @@ import { PromiseError } from '$lib/generic/errors.js';
  * HkPromise extends the default javascript Promise class
  * - Exposes methods to interact with the state of the
  *   promise, such as 'resolve' and 'reject'
- * 
+ *
  * @template T
  * @extends {Promise<T>}
  * @implements {PromiseLike<T>}
@@ -266,22 +266,16 @@ export default class HkPromise extends Promise {
 
 		if (errorOrDetails instanceof Error) {
 			// If it's an Error, create error chain
-			promiseError = new PromiseError(
-				errorOrDetails.message,
-				{
-					cancelled: true,
-					cause: errorOrDetails
-				}
-			);
+			promiseError = new PromiseError(errorOrDetails.message, {
+				cancelled: true,
+				cause: errorOrDetails
+			});
 		} else {
 			// If it's details or undefined, use as details
-			promiseError = new PromiseError(
-				'Cancelled',
-				{
-					cancelled: true,
-					details: errorOrDetails
-				}
-			);
+			promiseError = new PromiseError('Cancelled', {
+				cancelled: true,
+				details: errorOrDetails
+			});
 		}
 
 		this.#cancelled = true;

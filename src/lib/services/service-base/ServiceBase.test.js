@@ -389,6 +389,57 @@ describe('ServiceBase', () => {
     });
   });
 
+  describe('Configuration Access', () => {
+    it('should return empty object for lastConfig when never configured', () => {
+      expect(service.lastConfig).toEqual({});
+    });
+
+    it('should return a copy of the last applied configuration', async () => {
+      vi.spyOn(service, '_configure').mockResolvedValue();
+
+      const config1 = { setting: 'value1' };
+      await service.configure(config1);
+      expect(service.lastConfig).toEqual(config1);
+      // Should return a copy, not the same reference
+      expect(service.lastConfig).not.toBe(config1);
+
+      const config2 = { setting: 'value2', newSetting: 'newValue' };
+      await service.configure(config2);
+      expect(service.lastConfig).toEqual(config2);
+      expect(service.lastConfig).not.toBe(config2);
+    });
+
+    it('should preserve lastConfig even after configuration errors', async () => {
+      vi.spyOn(service, '_configure')
+        .mockResolvedValueOnce() // First call succeeds
+        .mockRejectedValueOnce(new Error('Config failed')); // Second fails
+
+      const initialConfig = { setting: 'initial' };
+      await service.configure(initialConfig);
+      expect(service.lastConfig).toEqual(initialConfig);
+
+      // This should fail but not change lastConfig
+      await service.configure({ setting: 'failed' });
+      expect(service.state).toBe(STATE_ERROR);
+      expect(service.lastConfig).toEqual(initialConfig); // Should remain unchanged
+    });
+
+    it('should return immutable copy preventing external modification', async () => {
+      vi.spyOn(service, '_configure').mockResolvedValue();
+
+      const originalConfig = { setting: 'original', nested: { value: 1 } };
+      await service.configure(originalConfig);
+
+      const retrievedConfig = service.lastConfig;
+      retrievedConfig.setting = 'modified';
+      retrievedConfig.nested.value = 999;
+
+      // Original lastConfig should remain unchanged
+      expect(service.lastConfig).toEqual(originalConfig);
+      expect(service.lastConfig.setting).toBe('original');
+    });
+  });
+
   describe('Logging', () => {
     it('should allow changing log level', () => {
       const spy = vi.spyOn(service.logger, 'setLevel');

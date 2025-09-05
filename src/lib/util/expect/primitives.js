@@ -4,6 +4,8 @@ import * as v from 'valibot';
  * Throws a validation error if value is not a string
  *
  * @param {any} value
+ *
+ * @asserts value is string
  */
 export function expect_string(value) {
 	v.parse(v.string(), value);
@@ -15,6 +17,8 @@ export { expect_string as string };
  * Throws a validation error if value is not a boolean
  *
  * @param {any} value
+ *
+ * @asserts value is boolean
  */
 export function expect_boolean(value) {
 	v.parse(v.boolean(), value);
@@ -26,6 +30,8 @@ export { expect_boolean as boolean };
  * Throws a validation error if value is not a number
  *
  * @param {any} value
+ *
+ * @asserts value is number
  */
 export function expect_number(value) {
 	v.parse(v.number(), value);
@@ -37,6 +43,8 @@ export { expect_number as number };
  * Throws a validation error if value is not a Symbol
  *
  * @param {any} value
+ *
+ * @asserts value is Symbol
  */
 export function expect_symbol(value) {
 	v.parse(v.symbol(), value);
@@ -68,6 +76,8 @@ export { expect_defined as defined };
  * Throws a validation error if value is not a function
  *
  * @param {any} value
+ *
+ * @asserts value is function
  */
 export function expect_function(value) {
 	v.parse(v.function(), value);
@@ -80,6 +90,8 @@ export { expect_function as class };
  * Throws a validation error if value is not a Promise
  *
  * @param {any} value
+ *
+ * @asserts value is Promise
  */
 export function expect_promise(value) {
 	v.parse(v.instance(Promise), value);
@@ -91,6 +103,8 @@ export { expect_promise as promise };
  * Throws a validation error if value is not a Map
  *
  * @param {any} value
+ *
+ * @asserts value is Map
  */
 export function expect_map(value) {
 	v.parse(v.instance(Map), value);
@@ -102,6 +116,8 @@ export { expect_map as map };
  * Throws a validation error if value is not a Set
  *
  * @param {any} value
+ *
+ * @asserts value is Set
  */
 export function expect_set(value) {
 	v.parse(v.instance(Set), value);
@@ -113,6 +129,8 @@ export { expect_set as set };
  * Throws a validation error if value is not an Error instance
  *
  * @param {any} value
+ *
+ * @asserts value is Error
  */
 export function expect_error(value) {
 	v.parse(v.instance(Error), value);

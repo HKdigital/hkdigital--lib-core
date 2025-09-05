@@ -8,8 +8,9 @@
 		"resolveJsonModule": true,
 		"skipLibCheck": true,
 		"sourceMap": true,
-		"strict": false,
-		"moduleResolution": "bundler"
+		"strict": true,
+		"moduleResolution": "bundler",
+    "noEmit": true
 	},
 	"exclude": [
 		"**/*.test.js"

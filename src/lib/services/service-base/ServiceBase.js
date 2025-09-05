@@ -85,7 +85,8 @@ import {
  * @extends EventEmitter
  */
 export class ServiceBase extends EventEmitter {
-  /** @type {*} */
+
+  /** @type {Object<string,any>|null} */
   #lastConfig = null;
 
   /**
@@ -122,7 +123,7 @@ export class ServiceBase extends EventEmitter {
   /**
    * Configure the service with configuration
    *
-   * @param {*} [config={}] - Service-specific configuration
+   * @param {Object<string,any>|null} [config={}]
    *
    * @returns {Promise<boolean>} True if configuration succeeded
    */
@@ -152,9 +153,18 @@ export class ServiceBase extends EventEmitter {
       this.logger.info('Service configured');
       return true;
     } catch (error) {
-      this._setError('configuration', error);
+      this._setError('configuration', /** @type {Error} */ (error));
       return false;
     }
+  }
+
+  /**
+   * Get the last applied config
+   *
+   * @returns {Object<string,any>} config
+   */
+  get lastConfig() {
+    return { ...this.#lastConfig };
   }
 
   /**
@@ -180,7 +190,7 @@ export class ServiceBase extends EventEmitter {
       this.logger.info('Service started');
       return true;
     } catch (error) {
-      this._setError('startup', error);
+      this._setError('startup', /** @type {Error} */ (error));
       return false;
     }
   }
@@ -224,12 +234,15 @@ export class ServiceBase extends EventEmitter {
       this.logger.info('Service stopped');
       return true;
     } catch (error) {
-      if (error.message === 'Shutdown timeout' && options.force) {
+      if (
+        /** @type {Error} */ (error).message === 'Shutdown timeout' &&
+        options.force
+      ) {
         this.logger.warn('Forced shutdown after timeout');
         this._setState(STATE_STOPPED);
         return true;
       }
-      this._setError('shutdown', error);
+      this._setError('shutdown', /** @type {Error} */ (error));
       return false;
     }
   }
@@ -267,7 +280,7 @@ export class ServiceBase extends EventEmitter {
       this.logger.info('Recovery successful');
       return true;
     } catch (error) {
-      this._setError('recovery', error);
+      this._setError('recovery', /** @type {Error} */ (error));
       return false;
     }
   }
@@ -305,7 +318,7 @@ export class ServiceBase extends EventEmitter {
 
       return true;
     } catch (error) {
-      this._setError('destruction', error);
+      this._setError('destruction', /** @type {Error} */ (error));
       return false;
     }
   }
@@ -332,7 +345,7 @@ export class ServiceBase extends EventEmitter {
         return {
           ...baseHealth,
           healthy: false,
-          checkError: error.message
+          checkError: /** @type {Error} */ (error).message
         };
       }
     }
