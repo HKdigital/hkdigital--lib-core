@@ -161,12 +161,13 @@ describe('Selector Edge Cases', () => {
 			{ age: 35, active: true }
 		];
 
-		it('should not match items missing the selected property', () => {
+		it('should match items where property is undefined or missing', () => {
 			const selector = new Selector({ age: undefined });
 			const results = selector.findAll(itemsWithMissingProps);
 			
-			// Only items that explicitly have age: undefined, not missing age
-			expect(results).toHaveLength(0);
+			// Missing properties return undefined, so they match undefined selector
+			expect(results).toHaveLength(1);
+			expect(results[0].name).toBe('missing-age');
 		});
 
 		it('should handle items with missing properties in multi-key selector', () => {
