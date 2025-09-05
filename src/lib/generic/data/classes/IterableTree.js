@@ -67,6 +67,7 @@ export default class IterableTree {
 		// @note keys are own properties only
 		const keys = Object.keys(obj);
 
+		/** @type {string[]|undefined} */
 		let pathKeys;
 
 		if (expandPathKeys) {

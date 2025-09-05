@@ -3,7 +3,7 @@
  *
  * @param {number} xPct - X-coordinate as percentage
  * @param {number} yPct - Y-coordinate as percentage
- * @param {Array} polygon - Array of [x, y] points
+ * @param {Array<number[]>} polygon - Array of [x, y] points
  *
  * @returns {boolean} True if the point lies within the polygon
  */

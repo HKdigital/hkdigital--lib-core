@@ -120,6 +120,7 @@ export default class EventEmitter {
       throw new TypeError('Event handler must be a function');
     }
 
+    /** @param {...any} args */
     const wrapper = (...args) => {
       this.off(eventName, wrapper);
       handler(...args);

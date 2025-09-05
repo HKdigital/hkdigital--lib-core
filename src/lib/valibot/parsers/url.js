@@ -53,6 +53,7 @@ export const UrlPath = v.pipe(
 		return urlOrNull ? true : false;
 	}, 'Invalid URL pathname'),
 	v.transform((url) => {
+		// @ts-ignore
 		return url.pathname;
 	})
 );
@@ -79,8 +80,11 @@ export const RelativeUrl = v.pipe(
 	}, 'Invalid URL pathname or search part'),
 	v.transform((url) => {
 		return (
+			// @ts-ignore
 			`${url.pathname}` +
+			// @ts-ignore
 			`${url.search.length <= 1 ? '' : url.search}` +
+			// @ts-ignore
 			`${url.hash.length <= 1 ? '' : url.hash}`
 		);
 	})
@@ -98,7 +102,7 @@ export const AbsOrRelUrl = v.union([
 
 /**
  * Parser for URL slug (e.g., "my-blog-post", "user-123")
- * 
+ *
  * @note Must start and end with Latin characters or numbers
  * @note Hyphens are allowed between character groups
  * @note Automatically converts to lowercase

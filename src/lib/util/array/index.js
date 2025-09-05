@@ -34,7 +34,7 @@ export { arraySlice, arrayConcat };
  *
  * --
  *
- * @returns {Array} array
+ * @returns {Array<any>} array
  *
  * --
  *
@@ -88,7 +88,7 @@ export function toArray(value, start, end) {
  * @param {AsyncIterator|any} value
  *   Async iterator or value to convert to array
  *
- * @returns {Promise<Array>} list of items returned by the iterator
+ * @returns {Promise<Array<any>>} list of items returned by the iterator
  */
 export async function toArrayAsync(value) {
 	if (
@@ -164,9 +164,9 @@ export function pushNotEmpty(arr, value) {
  * - Via [additionalArguments], additional arguments may be supplied that
  *   will be passed to the callback function
  *
- * @param {array} arr - The array to loop
+ * @param {Array<any>} arr - The array to loop
  * @param {function} callback - Callback to call for every element
- * @param {array} additionalArguments  The additional arguments
+ * @param {Array<any>} additionalArguments  The additional arguments
  */
 export function loop(arr, callback, additionalArguments) {
 	expect.function(callback);
@@ -411,7 +411,7 @@ export function findAll(arr, selector) {
 /**
  * Convert array to an object using a list of keys for each index
  *
- * @param {array} arr
+ * @param {Array<any>} arr
  * @param {string[]} keys
  *
  * @returns {object}

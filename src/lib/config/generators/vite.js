@@ -9,7 +9,7 @@ import { resolve } from 'path';
  * @param {boolean} [options.enableVitest=true] Include Vitest configuration
  * @param {boolean} [options.enableSvelteKit=true] Enable SvelteKit plugin
  * @param {object} [options.customDefines={}] Additional define values
- * @param {Array} [options.customPlugins=[]] Additional Vite plugins
+ * @param {Array<any>} [options.customPlugins=[]] Additional Vite plugins
  * @param {object} [options.imagetoolsOptions={}] Options for imagetools config
  * @param {string} [options.packageJsonPath='./package.json'] Path to package.json
  *

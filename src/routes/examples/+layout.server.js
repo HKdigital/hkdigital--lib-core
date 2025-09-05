@@ -37,7 +37,7 @@ export async function load({ url }) {
 
 /**
  * Builds a hierarchical navigation structure from scanned folders
- * @param {Array} folders - Array of folder objects from scanRouteFolders
+ * @param {Array<object>} folders - Array of folder objects from scanRouteFolders
  * @returns {Object} Hierarchical navigation structure
  */
 function buildNavigationStructure(folders) {

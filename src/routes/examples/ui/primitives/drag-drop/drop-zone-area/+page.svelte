@@ -132,7 +132,7 @@
   /**
    * Get items dropped in a specific bin
    * @param {number} binId - The bin identifier
-   * @returns {Array} Items in the bin
+   * @returns {Array<object>} Items in the bin
    */
   function getItemsInBin(binId) {
     return droppedItems.filter((item) => item.binId === binId);

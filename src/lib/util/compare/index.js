@@ -9,6 +9,7 @@ import { objectGet } from '../object/index.js';
  *
  * @param  {any} value1 - First value for comparison
  * @param  {any} value2 - Second value for comparison
+ * @param  {any} [_pendingComparisons] - Internal parameter for tracking comparisons
  *
  * @return {boolean} true if the two values can be considered the same
  */

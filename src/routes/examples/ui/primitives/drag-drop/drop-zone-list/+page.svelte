@@ -21,6 +21,9 @@
   let todoCanDrop = $state(false);
   let doneCanDrop = $state(false);
 
+  /**
+   * @param {any} item
+   */
   function addToToDo(item) {
     if( !todoItems.find( ( current ) => { return current.id === item.id; } ) )
     {
@@ -28,6 +31,9 @@
     }
   }
 
+  /**
+   * @param {any} item
+   */
   function addToDone(item) {
     if( !doneItems.find( ( current ) => { return current.id === item.id; } ) )
     {

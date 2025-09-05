@@ -121,7 +121,7 @@ export default class SceneBase {
   /**
    * Get the array of sources managed by this scene
    *
-   * @returns {Array} Array of source objects
+   * @returns {Array<object>} Array of source objects
    */
   get sources() {
     throw new Error('Subclass must implement sources getter');

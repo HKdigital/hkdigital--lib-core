@@ -35,6 +35,7 @@ export { expect_objectArray as objectArray };
 
 /**
  * Throws an exception if the value is not an Array or the array is empty
+ * @param {any} value - Value to check
  */
 export function expect_notEmptyArray(value) {
 	v.parse(v.pipe(v.instance(Array), v.nonEmpty()), value);

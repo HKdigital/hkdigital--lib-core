@@ -11,6 +11,9 @@
   let emailValue = $state('');
   let emailHasFocus = $state(false);
 
+  /**
+   * @param {any} value
+   */
   function validateName(value) {
     if (!value) return undefined;
     try {
@@ -24,6 +27,9 @@
     return undefined;
   }
 
+  /**
+   * @param {any} value
+   */
   function validateEmail(value) {
     if (!value) return undefined;
     try {

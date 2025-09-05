@@ -36,74 +36,15 @@ import * as expect from '$lib/util/expect.js';
  * Construct a Selector class
  */
 export default class Selector {
-	/** @type {function|null} test function */
-	#testFn = null;
+	/** @type {function} test function */
+	#testFn;
 
 	/**
 	 * Constructor
 	 *
-	 * @param {object|null} selector
+	 * @param {Record<string, any>|null} selector
 	 */
 	constructor(selector) {
-		this.#updateTestFn(selector);
-	}
-
-	// -------------------------------------------------------------------- Method
-
-	/**
-	 * Returns the first item from the list of items that matches the selector
-	 *
-	 * @template {object} T
-	 * @param {T[]|null} items
-	 *
-	 * @returns {T|null} item or null if not found
-	 */
-	findFirst(items) {
-		if (!items) {
-			return null;
-		}
-
-		for (const item of items) {
-			if (this.#testFn(item)) {
-				return item;
-			}
-		}
-
-		return null;
-	}
-
-	// -------------------------------------------------------------------- Method
-
-	/**
-	 * Returns all items from the list of items that match the selector
-	 *
-	 * @template {object} T
-	 * @param {T[]|null} items
-	 *
-	 * @returns {T[]|null} item or null if not found
-	 */
-	findAll(items) {
-		const result = [];
-
-		if (!items) {
-			return result;
-		}
-
-		for (const item of items) {
-			if (this.#testFn(item)) {
-				result.push(item);
-			}
-		}
-
-		return result;
-	}
-
-	/* ------------------------------------------------------- Internal methods */
-
-	/**
-	 * Update the internal selector function
-	 */
-	#updateTestFn(selector) {
 		// > Case A: selector=null
 
 		if (null === selector) {
@@ -132,6 +73,7 @@ export default class Selector {
 			const value = selector[key];
 
 			this.#testFn = this.#testKeyValue.bind(this, key, value);
+			return;
 		}
 
 		// > Case D: selector with multiple key-value pairs
@@ -145,7 +87,54 @@ export default class Selector {
 		this.#testFn = this.#testMultipleKeyValues.bind(this, keys, selectorValues);
 	}
 
-	// -------------------------------------------------------------------- Method
+	/**
+	 * Returns the first item from the list of items that matches the selector
+	 *
+	 * @template {object} T
+	 * @param {T[]|null} items
+	 *
+	 * @returns {T|null} item or null if not found
+	 */
+	findFirst(items) {
+		if (!items) {
+			return null;
+		}
+
+		for (const item of items) {
+			if (this.#testFn(item)) {
+				return item;
+			}
+		}
+
+		return null;
+	}
+
+	/**
+	 * Returns all items from the list of items that match the selector
+	 *
+	 * @template {object} T
+	 * @param {T[]|null} items
+	 *
+	 * @returns {T[]} array of matching items
+	 */
+	findAll(items) {
+		/** @type {T[]} */
+		const result = [];
+
+		if (!items) {
+			return result;
+		}
+
+		for (const item of items) {
+			if (this.#testFn(item)) {
+				result.push(item);
+			}
+		}
+
+		return result;
+	}
+
+	/* ------------------------------------------------------- Internal methods */
 
 	/**
 	 * Always return true
@@ -157,23 +146,27 @@ export default class Selector {
 		return true;
 	}
 
-	// -------------------------------------------------------------------- Method
-
 	/**
 	 * Return true if the item matches the key-value pair
 	 * - This function is used if the test function should test a
 	 *   single key-value pair
+	 * @param {string} key - Property key
+	 * @param {any} value - Expected value
+	 * @param {Record<string, any>} item - Item to test
+	 * @returns {boolean} True if item matches
 	 */
 	#testKeyValue(key, value, item) {
 		return value === item[key];
 	}
 
-	// -------------------------------------------------------------------- Method
-
 	/**
 	 * Return true if the item matches all key-value pairs
 	 * - This function is used if the test function should test multiple
 	 *   key-value pairs
+	 * @param {string[]} keys - Array of property keys
+	 * @param {any[]} values - Array of expected values
+	 * @param {Record<string, any>} item - Item to test
+	 * @returns {boolean} True if item matches all key-value pairs
 	 */
 	#testMultipleKeyValues(keys, values, item) {
 		let isMatch = true;

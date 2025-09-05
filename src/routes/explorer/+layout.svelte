@@ -5,7 +5,7 @@
    *   data: {
    *     navigationData: Object,
    *     scalingEnabled: boolean,
-   *     folders: Array
+   *     folders: Array<object>
    *   }
    * }}
    */
