@@ -1,5 +1,6 @@
 import { createServerLogger } from '$lib/logging/index.js';
 
+/** @type {import('$lib/logging/index.js').Logger} */
 let logger;
 
 // Initialize server logging and services
@@ -15,12 +16,13 @@ export async function init() {
 
     logger.info('Server initialization complete');
   } catch (error) {
-    logger.error('Server initialization failed:', error);
+    logger.error('Server initialization failed:', /** @type {Error} */ (error));
     throw error;
   }
 }
 
 // HandleServerError
+// @ts-ignore
 export const handleError = ({ error, /* event, */ status, message }) => {
   if (status !== 404) {
     logger.error(error);

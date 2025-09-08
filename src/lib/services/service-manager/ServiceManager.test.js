@@ -623,12 +623,71 @@ describe('ServiceManager', () => {
     });
   });
 
-  describe('onServiceLogEvent', () => {
+  describe('Log Event Methods', () => {
     it('should listen to service log events', () => {
       const listener = vi.fn();
       const unsubscribe = manager.onServiceLogEvent(listener);
 
       expect(typeof unsubscribe).toBe('function');
+    });
+
+    it('should listen to manager log events', () => {
+      const listener = vi.fn();
+      const unsubscribe = manager.onManagerLogEvent(listener);
+
+      expect(typeof unsubscribe).toBe('function');
+
+      // Trigger manager log event
+      manager.logger.info('Manager test log');
+
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'ServiceManager',
+          level: INFO,
+          message: 'Manager test log'
+        })
+      );
+    });
+
+    it('should listen to all log events (manager and services)', () => {
+      manager.register('testService', MockServiceA);
+      const instance = manager.get('testService');
+
+      const listener = vi.fn();
+      const unsubscribe = manager.onLogEvent(listener);
+
+      expect(typeof unsubscribe).toBe('function');
+
+      // Trigger manager log event
+      manager.logger.info('Manager log');
+
+      // Trigger service log event
+      instance.logger.info('Service log');
+
+      expect(listener).toHaveBeenCalledTimes(2);
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'ServiceManager',
+          level: INFO,
+          message: 'Manager log'
+        })
+      );
+      expect(listener).toHaveBeenCalledWith(
+        expect.objectContaining({
+          source: 'testService',
+          level: INFO,
+          message: 'Service log'
+        })
+      );
+
+      // Test unsubscribe removes both listeners
+      unsubscribe();
+      listener.mockClear();
+
+      manager.logger.info('Should not trigger');
+      instance.logger.info('Should not trigger');
+
+      expect(listener).not.toHaveBeenCalled();
     });
   });
 

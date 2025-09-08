@@ -339,7 +339,6 @@ console.log(features);
 - `getAllEnv(options)` - Get combined environment variables (server only)
 - `getPublicEnvByPrefix(prefix, options)` - Get public variables by prefix
 - `getPrivateEnvByPrefix(prefix, options)` - Get private variables by prefix
-- `getAllEnvByPrefix(prefix, options)` - Get combined variables by prefix
 
 ### Raw Access
 

@@ -21,13 +21,17 @@ src/
 │   │   ├── client.js       # Client logger setup
 │   │   └── server.js       # Server logger setup
 │   └── services/
-│       ├── client.js       # Re-exports from client/manager.js
-│       ├── server.js       # Re-exports from server/manager.js
+│       ├── client.js       # Re-exports from client/ folder
+│       ├── server.js       # Re-exports from server/ folder
 │       ├── client/
-│       │   ├── manager.js  # Client service manager
+│       │   ├── manager.js     # Client service manager
+│       │   ├── services.js    # Service accessor functions
+│       │   ├── service-names.js # Service name constants
 │       │   └── ...services
 │       └── server/
-│           ├── manager.js  # Server service manager
+│           ├── manager.js     # Server service manager
+│           ├── services.js    # Service accessor functions
+│           ├── service-names.js # Service name constants
 │           └── ...services
 ```
 
@@ -38,12 +42,15 @@ src/
 ```javascript
 import { createServerLogger } from '@hkdigital/lib-core/logging/index.js';
 
+/** @typedef {import('$hklib-core/logging/index.js').Logger} Logger */
+
+/** @type {Logger} */
 let logger;
 
 /**
  * Initialize the server logger
  *
- * @returns {object} The initialized logger instance
+ * @returns {Logger} The initialized logger instance
  */
 export function initServerLogger() {
   if (!logger) {
@@ -55,7 +62,7 @@ export function initServerLogger() {
 /**
  * Get the server logger instance
  *
- * @returns {object} The server logger
+ * @returns {Logger} The server logger
  */
 export function getServerLogger() {
   if (!logger) {
@@ -71,12 +78,15 @@ export function getServerLogger() {
 ```javascript
 import { createClientLogger } from '@hkdigital/lib-core/logging/index.js';
 
+/** @typedef {import('$hklib-core/logging/index.js').Logger} Logger */
+
+/** @type {Logger} */
 let logger;
 
 /**
  * Initialize the client logger
  *
- * @returns {object} The initialized logger instance
+ * @returns {Logger} The initialized logger instance
  */
 export function initClientLogger() {
   if (!logger) {
@@ -88,7 +98,7 @@ export function initClientLogger() {
 /**
  * Get the client logger instance
  *
- * @returns {object} The client logger
+ * @returns {Logger} The client logger
  */
 export function getClientLogger() {
   if (!logger) {
@@ -100,6 +110,29 @@ export function getClientLogger() {
 ```
 
 ## Service Manager Setup
+
+### Service Entry Points
+
+The services folder uses centralized entry files to re-export all functionality:
+
+#### Server Services (`src/lib/services/server.js`)
+```javascript
+export * from './server/manager.js';
+export * from './server/services.js';
+export * from './server/service-names.js';
+```
+
+#### Client Services (`src/lib/services/client.js`)
+```javascript
+export * from './client/manager.js';
+export * from './client/services.js';
+export * from './client/service-names.js';
+```
+
+This pattern allows importing everything from a single location:
+```javascript
+import { initServerServices, getSessionService, SERVICE_SESSION } from '$lib/services/server.js';
+```
 
 ### Server Service Manager (`src/lib/services/server/manager.js`)
 
@@ -118,11 +151,18 @@ export async function initServerServices() {
   if (!manager) {
     const logger = initServerLogger();
 
-    manager = new ServiceManager();
+    manager = new ServiceManager({
+      debug: false,           // Set to true for DEBUG level on all services
+      stopTimeout: 10000,     // Global shutdown timeout
+      managerLogLevel: 'INFO', // ServiceManager's own log level
+      serviceLogLevels: {     // Optional: per-service log levels
+        // 'session': 'DEBUG'   // Uncomment to debug specific services
+      }
+    });
 
-    // Listen to all log events and forward them to the logger
-    manager.on(SERVICE_LOG, (logEvent) => {
-      logger.logFromEvent('manager:log', logEvent);
+    // Listen to all log events (both manager and services)
+    manager.onLogEvent((logEvent) => {
+      logger.logFromEvent('log', logEvent);
     });
 
     // Register services
@@ -141,6 +181,11 @@ export function getManager() {
 
   return manager;
 }
+```
+
+### Service services (`src/lib/services/server/services.js`)
+
+```js
 
 export function getSessionService() {
   return getManager().get(SERVICE_SESSION);
@@ -166,11 +211,19 @@ export async function initClientServices() {
   if (!manager) {
     const logger = initClientLogger();
 
-    manager = new ServiceManager();
+    manager = new ServiceManager({
+      debug: false,           // Set to true for DEBUG level on all services
+      stopTimeout: 10000,     // Global shutdown timeout
+      managerLogLevel: 'INFO', // ServiceManager's own log level
+      serviceLogLevels: {     // Optional: per-service log levels
+        // 'audio': 'DEBUG',    // Uncomment to debug specific services
+        // 'player-data': 'DEBUG'
+      }
+    });
 
-    // Listen to all log events and forward them to the logger
-    manager.on(SERVICE_LOG, (logEvent) => {
-      logger.logFromEvent('manager:log', logEvent);
+    // Listen to all log events (both manager and services)
+    manager.onLogEvent((logEvent) => {
+      logger.logFromEvent('log', logEvent);
     });
 
     // Register services
@@ -191,6 +244,12 @@ export function getManager() {
 
   return manager;
 }
+```
+
+### Client services (`src/lib/services/client/services.js`)
+
+```js
+
 
 // Service accessor functions
 export function getAudioService() {

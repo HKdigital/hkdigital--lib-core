@@ -1,6 +1,6 @@
 import { Logger } from '$lib/logging/internal/logger/index.js';
 import { PinoAdapter } from '$lib/logging/internal/adapters/pino.js';
-import { INFO } from '$lib/logging/levels.js';
+import { INFO, LOG } from '$lib/logging/levels.js';
 // import { expectNoSSRContext } from '$lib/util/ssr/index.js';
 
 /**
@@ -26,7 +26,7 @@ export function createServerLogger(name, level = INFO, pinoOptions = {}) {
   //   determination to fail
   //   -> Stop and start the dev server
   //
-  logger.on('log', (logEvent) => adapter.handleLog(logEvent));
+  logger.on(LOG, (logEvent) => adapter.handleLog(logEvent));
 
   return logger;
 }

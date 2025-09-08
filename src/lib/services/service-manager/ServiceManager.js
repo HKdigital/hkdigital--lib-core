@@ -66,7 +66,16 @@
 import { EventEmitter } from '$lib/generic/events.js';
 import { Logger, DEBUG, INFO } from '$lib/logging/index.js';
 
-import { SERVICE_LOG } from './constants.js';
+import { 
+  SERVICE_LOG, 
+  STATE_CHANGED,
+  HEALTH_CHANGED,
+  ERROR,
+  LOG,
+  SERVICE_STATE_CHANGED,
+  SERVICE_HEALTH_CHANGED,
+  SERVICE_ERROR
+} from './constants.js';
 import { parseServiceLogLevels } from './util.js';
 
 import {
@@ -504,6 +513,36 @@ export class ServiceManager extends EventEmitter {
   }
 
   /**
+   * Listen to log messages emitted by the ServiceManager itself
+   *
+   * @param {(logEvent: LogEvent) => void} listener - Log event handler
+   *
+   * @returns {Function} Unsubscribe function
+   */
+  onManagerLogEvent(listener) {
+    return this.logger.on(LOG, listener);
+  }
+
+  /**
+   * Listen to all log messages (both manager and services)
+   *
+   * @param {(logEvent: LogEvent) => void} listener - Log event handler
+   *
+   * @returns {Function} Unsubscribe function
+   */
+  onLogEvent(listener) {
+    // Listen to both service and manager logs
+    const unsubscribeService = this.onServiceLogEvent(listener);
+    const unsubscribeManager = this.onManagerLogEvent(listener);
+
+    // Return combined unsubscribe function
+    return () => {
+      unsubscribeService();
+      unsubscribeManager();
+    };
+  }
+
+  /**
    * Set log level for the ServiceManager itself
    *
    * @param {string} level - Log level to set for the ServiceManager
@@ -587,21 +626,21 @@ export class ServiceManager extends EventEmitter {
    */
   _attachServiceEvents(name, instance) {
     // Forward service events
-    instance.on('stateChanged', (/** @type {StateChangeEvent} */ data) => {
-      this.emit('service:stateChanged', { service: name, data });
+    instance.on(STATE_CHANGED, (/** @type {StateChangeEvent} */ data) => {
+      this.emit(SERVICE_STATE_CHANGED, { service: name, data });
     });
 
-    instance.on('healthChanged', (/** @type {HealthChangeEvent} */ data) => {
-      this.emit('service:healthChanged', { service: name, data });
+    instance.on(HEALTH_CHANGED, (/** @type {HealthChangeEvent} */ data) => {
+      this.emit(SERVICE_HEALTH_CHANGED, { service: name, data });
     });
 
-    instance.on('error', (/** @type {ServiceErrorEvent} */ data) => {
-      this.emit('service:error', { service: name, data });
+    instance.on(ERROR, (/** @type {ServiceErrorEvent} */ data) => {
+      this.emit(SERVICE_ERROR, { service: name, data });
     });
 
     // Forward log events
-    instance.logger.on('log', (/** @type {LogEvent} */ logEvent) => {
-      this.emit('service:log', logEvent);
+    instance.logger.on(LOG, (/** @type {LogEvent} */ logEvent) => {
+      this.emit(SERVICE_LOG, logEvent);
     });
   }
 

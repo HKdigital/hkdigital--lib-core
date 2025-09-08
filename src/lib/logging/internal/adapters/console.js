@@ -1,5 +1,5 @@
 import { dev } from '$app/environment';
-import { LEVELS } from '$lib/logging/levels.js';
+import { LEVELS, DEBUG, INFO, WARN, ERROR } from '$lib/logging/levels.js';
 import {
   findRelevantFrameIndex,
   detectErrorMeta,
@@ -164,13 +164,13 @@ export class ConsoleAdapter {
    */
   #getConsoleMethod(level) {
     switch (level) {
-      case 'debug':
+      case DEBUG:
         return 'debug';
-      case 'info':
+      case INFO:
         return 'info';
-      case 'warn':
+      case WARN:
         return 'warn';
-      case 'error':
+      case ERROR:
       case 'fatal':
         return 'error';
       default:

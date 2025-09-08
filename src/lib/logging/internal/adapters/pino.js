@@ -5,6 +5,7 @@ import pino from 'pino';
 import { dev } from '$app/environment';
 
 import { HkPromise } from '$lib/generic/promises.js';
+import { ERROR } from '$lib/logging/levels.js';
 
 import {
   detectErrorMeta,
@@ -240,7 +241,7 @@ export class PinoAdapter {
 
     while (this.#messageQueue.length > 0) {
       const queuedLog = this.#messageQueue.shift();
-      console[queuedLog.level === 'error' ? 'error' : 'log'](
+      console[queuedLog.level === ERROR ? 'error' : 'log'](
         `[${queuedLog.level.toUpperCase()}] ${queuedLog.message}`,
         queuedLog.data
       );

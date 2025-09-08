@@ -1,6 +1,6 @@
 import { Logger } from '$lib/logging/internal/logger/index.js';
 import { ConsoleAdapter } from '$lib/logging/internal/adapters/console.js';
-import { INFO } from '$lib/logging/levels.js';
+import { INFO, LOG } from '$lib/logging/levels.js';
 
 /**
  * Create a client-side logger with console adapter
@@ -15,7 +15,7 @@ export function createClientLogger(name, level = INFO, consoleOptions = {}) {
   const adapter = new ConsoleAdapter({ ...consoleOptions, level });
 
   // Connect adapter to logger events
-  logger.on('log', (logEvent) => adapter.handleLog(logEvent));
+  logger.on(LOG, (logEvent) => adapter.handleLog(logEvent));
 
   return logger;
 }
