@@ -31,7 +31,7 @@ import { autoGroupEnvByPrefix } from './parsers.js';
  * @param {boolean} [options.autoGroup=true]
  *   Enable automatic prefix grouping
  *
- * @returns {Object} Grouped and parsed combined environment variables
+ * @returns {Record<string, any>} Grouped and parsed combined environment variables
  *
  * @example
  * // Environment variables:
@@ -66,27 +66,9 @@ export function getAllEnv(options = {}) {
 }
 
 /**
- * Get combined environment variables by prefix
- *
- * @param {string} prefix - Environment variable prefix (e.g., 'DATABASE')
- * @param {Object} [options={}] - Parsing options
- *
- * @returns {Object} Parsed configuration object
- */
-export function getAllEnvByPrefix(prefix, options = {}) {
-  const prefixWithUnderscore = prefix.endsWith('_') ? prefix : `${prefix}_`;
-  
-  return getAllEnv({
-    ...options,
-    prefix: prefixWithUnderscore,
-    removePrefix: true
-  });
-}
-
-/**
  * Get raw combined environment variables (no parsing)
  *
- * @returns {Object<string, string>} Raw combined environment variables
+ * @returns {Record<string, string|undefined>} Raw combined environment variables
  */
 export function getRawAllEnv() {
   const publicVars = getRawPublicEnv();

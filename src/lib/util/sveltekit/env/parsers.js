@@ -18,7 +18,7 @@
 /**
  * Parse environment object with type conversion and key transformation
  *
- * @param {Object<string, string>} env - Raw environment variables
+ * @param {Record<string, string | undefined>} env - Raw environment variables
  * @param {Object} [options={}] - Parsing options
  * @param {boolean} [options.camelCase=true]
  *   Convert env var names to camelCase object keys
@@ -28,7 +28,7 @@
  * @param {boolean} [options.removePrefix=true]
  *   Remove prefix from resulting keys
  *
- * @returns {Object} Parsed environment object
+ * @returns {Record<string, any>} Parsed environment object
  */
 export function parseEnv(env, options = {}) {
   const {
@@ -41,8 +41,8 @@ export function parseEnv(env, options = {}) {
   const result = {};
 
   for (const [key, value] of Object.entries(env || {})) {
-    // Skip if prefix specified and key doesn't match
-    if (prefix && !key.startsWith(prefix)) {
+    // Skip if value is undefined or if prefix specified and key doesn't match
+    if (value === undefined || (prefix && !key.startsWith(prefix))) {
       continue;
     }
 
@@ -73,11 +73,11 @@ export function parseEnv(env, options = {}) {
 /**
  * Parse environment variables by prefix
  *
- * @param {Object<string, string>} env - Raw environment variables
+ * @param {Record<string, string | undefined>} env - Raw environment variables
  * @param {string} prefix - Environment variable prefix (e.g., 'DATABASE')
  * @param {Object} [options={}] - Parsing options
  *
- * @returns {Object} Parsed configuration object
+ * @returns {Record<string, any>} Parsed configuration object
  */
 export function parseEnvByPrefix(env, prefix, options = {}) {
   const prefixWithUnderscore = prefix.endsWith('_') ? prefix : `${prefix}_`;
@@ -135,14 +135,14 @@ export function parseValue(value) {
  * them into configuration objects. All variables with underscores are 
  * grouped by their prefix (the part before the first underscore).
  *
- * @param {Object<string, string>} env - Raw environment variables
+ * @param {Record<string, string | undefined>} env - Raw environment variables
  * @param {Object} [options={}] - Parsing options
  * @param {boolean} [options.camelCase=true]
  *   Convert env var names to camelCase object keys
  * @param {boolean} [options.parseValues=true]
  *   Parse string values to numbers/booleans when possible
  *
- * @returns {Object<string, Object>} Grouped environment variables
+ * @returns {Record<string, Record<string, any> | any>} Grouped environment variables
  *
  * @example
  * // Input env vars:
@@ -197,7 +197,7 @@ export function autoGroupEnvByPrefix(env, options = {}) {
 
   // Add remaining variables (no underscore) as top-level properties
   for (const [key, value] of Object.entries(env)) {
-    if (!usedKeys.has(key)) {
+    if (!usedKeys.has(key) && value !== undefined) {
       const finalKey = camelCase ? toCamelCase(key) : key.toLowerCase();
       result[finalKey] = parseValues ? parseValue(value) : value;
     }
@@ -209,11 +209,11 @@ export function autoGroupEnvByPrefix(env, options = {}) {
 /**
  * Group environment variables by specific prefixes
  *
- * @param {Object<string, string>} env - Raw environment variables
+ * @param {Record<string, string | undefined>} env - Raw environment variables
  * @param {string[]} prefixes - Array of prefixes to group by
  * @param {Object} [options={}] - Parsing options
  *
- * @returns {Object<string, Object>} Grouped environment variables
+ * @returns {Record<string, Record<string, any>>} Grouped environment variables
  *
  * @example
  * const grouped = groupEnvByPrefixes(env, ['DATABASE', 'REDIS', 'JWT']);
@@ -236,19 +236,19 @@ export function groupEnvByPrefixes(env, prefixes, options = {}) {
 /**
  * Filter environment variables by pattern
  *
- * @param {Object<string, string>} env - Raw environment variables
+ * @param {Record<string, string | undefined>} env - Raw environment variables
  * @param {RegExp|string} pattern - Pattern to match against keys
  * @param {Object} [options={}] - Parsing options
  *
- * @returns {Object} Filtered and parsed environment variables
+ * @returns {Record<string, any>} Filtered and parsed environment variables
  */
 export function filterEnvByPattern(env, pattern, options = {}) {
   const regex = typeof pattern === 'string' ? new RegExp(pattern) : pattern;
-  /** @type {Object<string, string>} */
+  /** @type {Record<string, string>} */
   const filtered = {};
   
   for (const [key, value] of Object.entries(env || {})) {
-    if (regex.test(key)) {
+    if (regex.test(key) && value !== undefined) {
       filtered[key] = value;
     }
   }

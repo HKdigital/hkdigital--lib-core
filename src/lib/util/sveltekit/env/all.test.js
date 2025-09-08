@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { getAllEnv, getAllEnvByPrefix, getRawAllEnv } from './all.js';
+import { getAllEnv, getRawAllEnv } from './all.js';
 
 // Mock the public and private environment modules
 vi.mock('./public.js', () => ({
@@ -141,50 +141,6 @@ describe('getAllEnv', () => {
 
     expect(result).toEqual({});
     expect(autoGroupEnvByPrefix).toHaveBeenCalledWith({}, {});
-  });
-});
-
-describe('getAllEnvByPrefix', () => {
-  it('should add underscore to prefix if not present', () => {
-    const mockCombined = {
-      'DATABASE_HOST': 'localhost',
-      'DATABASE_PORT': '5432'
-    };
-    
-    getRawPublicEnv.mockReturnValue({});
-    getRawPrivateEnv.mockReturnValue(mockCombined);
-    autoGroupEnvByPrefix.mockReturnValue({
-      host: 'localhost',
-      port: 5432
-    });
-
-    const result = getAllEnvByPrefix('DATABASE');
-
-    expect(autoGroupEnvByPrefix).toHaveBeenCalledWith(mockCombined, {
-      prefix: 'DATABASE_',
-      removePrefix: true
-    });
-  });
-
-  it('should not add extra underscore if prefix already has one', () => {
-    const mockCombined = {
-      'API_KEY': 'secret',
-      'API_URL': 'https://api.example.com'
-    };
-    
-    getRawPublicEnv.mockReturnValue({});
-    getRawPrivateEnv.mockReturnValue(mockCombined);
-    autoGroupEnvByPrefix.mockReturnValue({
-      key: 'secret',
-      url: 'https://api.example.com'
-    });
-
-    const result = getAllEnvByPrefix('API_');
-
-    expect(autoGroupEnvByPrefix).toHaveBeenCalledWith(mockCombined, {
-      prefix: 'API_',
-      removePrefix: true
-    });
   });
 });
 

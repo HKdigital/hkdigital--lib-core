@@ -30,7 +30,7 @@ import { autoGroupEnvByPrefix, parseEnv } from './parsers.js';
  * @param {boolean} [options.autoGroup=true]
  *   Enable automatic prefix grouping
  *
- * @returns {Object} Grouped and parsed private environment variables
+ * @returns {Record<string, any>} Grouped and parsed private environment variables
  *
  * @example
  * // Environment variables:
@@ -65,7 +65,7 @@ export function getPrivateEnv(options = {}) {
  * @param {string} prefix - Environment variable prefix (e.g., 'DATABASE')
  * @param {Object} [options={}] - Parsing options
  *
- * @returns {Object} Parsed configuration object
+ * @returns {Record<string, any>} Parsed configuration object
  */
 export function getPrivateEnvByPrefix(prefix, options = {}) {
   const prefixWithUnderscore = prefix.endsWith('_') ? prefix : `${prefix}_`;
@@ -80,7 +80,7 @@ export function getPrivateEnvByPrefix(prefix, options = {}) {
 /**
  * Get raw private environment variables (no parsing)
  *
- * @returns {Object<string, string>} Raw private environment variables
+ * @returns {Record<string, string|undefined>} Raw private environment variables
  */
 export function getRawPrivateEnv() {
   return { ...env };

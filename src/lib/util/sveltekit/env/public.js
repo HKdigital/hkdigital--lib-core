@@ -29,7 +29,7 @@ import { autoGroupEnvByPrefix, parseEnv } from './parsers.js';
  * @param {boolean} [options.autoGroup=true]
  *   Enable automatic prefix grouping
  *
- * @returns {Object} Grouped and parsed public environment variables
+ * @returns {Record<string, any>} Grouped and parsed public environment variables
  *
  * @example
  * // Environment variables:
@@ -60,7 +60,7 @@ export function getPublicEnv(options = {}) {
  * @param {string} prefix - Environment variable prefix (e.g., 'PUBLIC_API')
  * @param {Object} [options={}] - Parsing options
  *
- * @returns {Object} Parsed configuration object
+ * @returns {Record<string, any>} Parsed configuration object
  */
 export function getPublicEnvByPrefix(prefix, options = {}) {
   const prefixWithUnderscore = prefix.endsWith('_') ? prefix : `${prefix}_`;
@@ -75,7 +75,7 @@ export function getPublicEnvByPrefix(prefix, options = {}) {
 /**
  * Get raw public environment variables (no parsing)
  *
- * @returns {Object<string, string>} Raw public environment variables
+ * @returns {Record<string, string>} Raw public environment variables
  */
 export function getRawPublicEnv() {
   return { ...env };
