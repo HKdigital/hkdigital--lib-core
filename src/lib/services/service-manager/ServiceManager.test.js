@@ -84,6 +84,9 @@ describe('ServiceManager', () => {
     });
 
     it('should register with options', () => {
+      // Register dependency first for stricter validation
+      manager.register('database', MockServiceA);
+      
       manager.register(
         'serviceA',
         MockServiceA,
@@ -138,9 +141,10 @@ describe('ServiceManager', () => {
       expect(instance1).toBe(instance2);
     });
 
-    it('should return null for unregistered services', () => {
-      const instance = manager.get('unknown');
-      expect(instance).toBeNull();
+    it('should throw error for unregistered services', () => {
+      expect(() => {
+        manager.get('unknown');
+      }).toThrow("Service [unknown] has not been registered");
     });
 
     it('should handle constructor errors', () => {
@@ -551,14 +555,9 @@ describe('ServiceManager', () => {
 
   describe('Circular Dependencies', () => {
     it('should detect circular dependencies', async () => {
-      manager.register(
-        'serviceA',
-        MockServiceA,
-        {},
-        {
-          dependencies: ['serviceB']
-        }
-      );
+      // Register services without dependencies first
+      // Register services in dependency order to avoid registration errors
+      manager.register('serviceC', MockServiceC);
       manager.register(
         'serviceB',
         MockServiceB,
@@ -568,13 +567,16 @@ describe('ServiceManager', () => {
         }
       );
       manager.register(
-        'serviceC',
-        MockServiceC,
+        'serviceA',
+        MockServiceA,
         {},
         {
-          dependencies: ['serviceA'] // Creates cycle
+          dependencies: ['serviceB']
         }
       );
+      
+      // Manually create circular dependency by modifying serviceC to depend on serviceA
+      manager.services.get('serviceC').dependencies = ['serviceA'];
 
       await expect(manager.startAll()).rejects.toThrow(
         'Circular dependency detected'
@@ -584,10 +586,24 @@ describe('ServiceManager', () => {
 
   describe('Error Handling', () => {
     it('should handle missing service in operations', async () => {
-      expect(await manager.configureService('unknown')).toBe(false);
-      expect(await manager.startService('unknown')).toBe(false);
-      expect(await manager.stopService('unknown')).toBe(true); // Already stopped
-      expect(await manager.recoverService('unknown')).toBe(false);
+      // configureService calls get() which now throws for unknown services
+      await expect(manager.configureService('unknown')).rejects.toThrow(
+        "Service [unknown] has not been registered"
+      );
+      
+      // startService now throws for unknown services due to stricter validation
+      await expect(manager.startService('unknown')).rejects.toThrow(
+        "Service [unknown] has not been registered"
+      );
+      // stopService now throws for unknown services due to stricter validation
+      await expect(manager.stopService('unknown')).rejects.toThrow(
+        "Service [unknown] has not been registered"
+      );
+      
+      // recoverService calls get() which now throws for unknown services  
+      await expect(manager.recoverService('unknown')).rejects.toThrow(
+        "Service [unknown] has not been registered"
+      );
     });
 
     it('should continue on partial startup failure', async () => {

@@ -14,7 +14,7 @@
 
 import { getPublicEnv, getRawPublicEnv } from './public.js';
 import { getPrivateEnv, getRawPrivateEnv } from './private.js';
-import { autoGroupEnvByPrefix, parseEnv } from './parsers.js';
+import { autoGroupEnvByPrefix } from './parsers.js';
 
 /**
  * Get all environment variables (public + private) with automatic grouping

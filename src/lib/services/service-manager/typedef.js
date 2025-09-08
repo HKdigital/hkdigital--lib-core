@@ -87,7 +87,8 @@
 // ============================================================================
 
 /**
- * Internal service registry entry
+ * Internal service registry entry, an internal registry entry that the
+ * ServiceManager uses to track each registered service.
  *
  * @typedef {Object} ServiceEntry
  * @property {ServiceConstructor} ServiceClass - Service class constructor

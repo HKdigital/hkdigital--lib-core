@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import { scanRouteFolders } from '$lib/util/sveltekit.js';
+import { scanRouteFolders } from '$lib/util/sveltekit/route-folders.js';
 
 export const trailingSlash = 'always';
 

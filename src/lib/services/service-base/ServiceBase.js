@@ -98,6 +98,11 @@ export class ServiceBase extends EventEmitter {
   constructor(name, options = {}) {
     super();
 
+    if( typeof name !== 'string' )
+    {
+      throw new Error(`Service misses constructor parameter [name]`);
+    }
+
     /** @type {string} */
     this.name = name;
 

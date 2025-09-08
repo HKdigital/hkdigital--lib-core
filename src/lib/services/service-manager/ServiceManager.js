@@ -85,6 +85,10 @@ import {
  * @typedef {import('./typedef.js').HealthCheckResult} HealthCheckResult
  *
  * @typedef {import('../service-base/typedef.js').StopOptions} StopOptions
+ * @typedef {import('../service-base/typedef.js').StateChangeEvent} StateChangeEvent
+ * @typedef {import('../service-base/typedef.js').HealthChangeEvent} HealthChangeEvent
+ * @typedef {import('../service-base/typedef.js').ServiceErrorEvent} ServiceErrorEvent
+ * @typedef {import('$lib/logging/typedef.js').LogEvent} LogEvent
  */
 
 /**
@@ -197,10 +201,8 @@ export class ServiceManager extends EventEmitter {
 
     // Track dependents
     entry.dependencies.forEach((dep) => {
-      const depEntry = this.services.get(dep);
-      if (depEntry) {
-        depEntry.dependents.add(name);
-      }
+      const depEntry = this.#getServiceEntry(dep);
+      depEntry.dependents.add(name);
     });
 
     this.services.set(name, entry);
@@ -220,11 +222,8 @@ export class ServiceManager extends EventEmitter {
    *   Service instance or null if not found
    */
   get(name) {
-    const entry = this.services.get(name);
-    if (!entry) {
-      this.logger.warn(`Service '${name}' not found`);
-      return null;
-    }
+    // @throws service not found
+    const entry = this.#getServiceEntry(name);
 
     if (!entry.instance) {
       try {
@@ -241,7 +240,10 @@ export class ServiceManager extends EventEmitter {
 
         this.logger.debug(`Created instance for '${name}'`);
       } catch (error) {
-        this.logger.error(`Failed to create instance for '${name}'`, error);
+        this.logger.error(
+          `Failed to create instance for '${name}'`,
+          /** @type {Error} */ (error)
+        );
         return null;
       }
     }
@@ -260,7 +262,8 @@ export class ServiceManager extends EventEmitter {
     const instance = this.get(name);
     if (!instance) return false;
 
-    const entry = this.services.get(name);
+    const entry = this.#getServiceEntry(name);
+
     const config = await this.#resolveServiceConfig(name, entry);
 
     return await instance.configure(config);
@@ -274,7 +277,7 @@ export class ServiceManager extends EventEmitter {
    * @returns {Promise<boolean>} True if service started successfully
    */
   async startService(name) {
-    const entry = this.services.get(name);
+    const entry = this.#getServiceEntry(name);
     if (!entry) {
       this.logger.warn(`Cannot start unregistered service '${name}'`);
       return false;
@@ -325,13 +328,15 @@ export class ServiceManager extends EventEmitter {
    */
   async stopService(name, options = {}) {
     const instance = this.get(name);
+
     if (!instance) {
       this.logger.warn(`Cannot stop unregistered service '${name}'`);
       return true; // Already stopped
     }
 
     // Check dependents
-    const entry = this.services.get(name);
+    const entry = this.#getServiceEntry(name);
+
     if (!options.force && entry && entry.dependents.size > 0) {
       const runningDependents = [];
       for (const dep of entry.dependents) {
@@ -490,7 +495,7 @@ export class ServiceManager extends EventEmitter {
   /**
    * Listen to log messages emitted by individual services
    *
-   * @param {Function} listener - Log event handler
+   * @param {(logEvent: LogEvent) => void} listener - Log event handler
    *
    * @returns {Function} Unsubscribe function
    */
@@ -582,26 +587,44 @@ export class ServiceManager extends EventEmitter {
    */
   _attachServiceEvents(name, instance) {
     // Forward service events
-    instance.on('stateChanged', (data) => {
+    instance.on('stateChanged', (/** @type {StateChangeEvent} */ data) => {
       this.emit('service:stateChanged', { service: name, data });
     });
 
-    instance.on('healthChanged', (data) => {
+    instance.on('healthChanged', (/** @type {HealthChangeEvent} */ data) => {
       this.emit('service:healthChanged', { service: name, data });
     });
 
-    instance.on('error', (data) => {
+    instance.on('error', (/** @type {ServiceErrorEvent} */ data) => {
       this.emit('service:error', { service: name, data });
     });
 
     // Forward log events
-
-    instance.logger.on('log', (logEvent) => {
+    instance.logger.on('log', (/** @type {LogEvent} */ logEvent) => {
       this.emit('service:log', logEvent);
     });
   }
 
   // Internal methods
+
+  /**
+   * Get internal service registration entry by name
+   *
+   * @param {string} name
+   *
+   * @throws {Error} service not registered
+   *
+   * @returns {ServiceEntry}
+   */
+  #getServiceEntry(name) {
+    const entry = this.services.get(name);
+
+    if (!entry) {
+      throw new Error(`Service [${name}] has not been registered`);
+    }
+
+    return entry;
+  }
 
   /**
    * Resolve service configuration using plugins
@@ -674,7 +697,10 @@ export class ServiceManager extends EventEmitter {
         const success = await this.stopService(name, options);
         results.set(name, success);
       } catch (error) {
-        this.logger.error(`Error stopping '${name}'`, error);
+        this.logger.error(
+          `Error stopping '${name}'`,
+          /** @type {Error} */ (error)
+        );
         results.set(name, false);
       }
     }
@@ -683,15 +709,18 @@ export class ServiceManager extends EventEmitter {
   /**
    * Sort services by dependencies using topological sort
    *
-   * @returns {string[]} Service names in dependency order
    * @throws {Error} If circular dependencies are detected
+   *
+   * @returns {string[]} Service names in dependency order
    */
   #topologicalSort() {
+    /** @type {string[]}*/
     const sorted = [];
+
     const visited = new Set();
     const visiting = new Set();
 
-    const visit = (name) => {
+    const visit = (/** @type {string} */ name) => {
       if (visited.has(name)) return;
       if (visiting.has(name)) {
         throw new Error(`Circular dependency detected involving '${name}'`);
@@ -699,11 +728,10 @@ export class ServiceManager extends EventEmitter {
 
       visiting.add(name);
 
-      const entry = this.services.get(name);
-      if (entry) {
-        for (const dep of entry.dependencies) {
-          visit(dep);
-        }
+      const entry = this.#getServiceEntry(name);
+
+      for (const dep of entry.dependencies) {
+        visit(dep);
       }
 
       visiting.delete(name);
