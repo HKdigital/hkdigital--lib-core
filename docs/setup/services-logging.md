@@ -162,7 +162,7 @@ export async function initServerServices() {
 
     // Listen to all log events (both manager and services)
     manager.onLogEvent((logEvent) => {
-      logger.logFromEvent('log', logEvent);
+      logger.logFromEvent(logEvent);
     });
 
     // Register services
@@ -223,7 +223,7 @@ export async function initClientServices() {
 
     // Listen to all log events (both manager and services)
     manager.onLogEvent((logEvent) => {
-      logger.logFromEvent('log', logEvent);
+      logger.logFromEvent(logEvent);
     });
 
     // Register services

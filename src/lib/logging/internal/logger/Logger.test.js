@@ -178,18 +178,18 @@ describe('Logger.logFromEvent()', () => {
       details: { userId: 'user123' }
     };
 
-    logger.logFromEvent('service:log', externalEventData);
+    logger.logFromEvent(externalEventData);
 
     // Should emit both specific level and generic log events
     expect(logHandler).toHaveBeenCalledTimes(1);
     expect(infoHandler).toHaveBeenCalledTimes(1);
 
-    // Should create a new LogEvent with eventName added
+    // Should forward the LogEvent preserving original properties
     const receivedLogEvent = logHandler.mock.calls[0][0];
     expect(receivedLogEvent.source).toBe('externalService'); // Original source preserved
     expect(receivedLogEvent.timestamp).toEqual(new Date('2024-01-01T10:00:00Z'));
     expect(receivedLogEvent.context).toEqual({ requestId: '12345' });
-    expect(receivedLogEvent.eventName).toBe('service:log'); // eventName added
+    // eventName is no longer added - it was internal routing info
   });
 
   it('should filter LogEvents based on current log level', () => {
@@ -209,7 +209,7 @@ describe('Logger.logFromEvent()', () => {
       details: null
     };
 
-    const result = logger.logFromEvent('debug:event', debugEventData);
+    const result = logger.logFromEvent(debugEventData);
 
     // Should be filtered out
     expect(result).toBe(false);
@@ -262,13 +262,13 @@ describe('Logger.logFromEvent()', () => {
     };
 
     // These should be filtered
-    logger.logFromEvent('debug:event', debugEvent);
-    logger.logFromEvent('info:event', infoEvent);
+    logger.logFromEvent(debugEvent);
+    logger.logFromEvent(infoEvent);
     expect(logHandler).toHaveBeenCalledTimes(0);
 
     // These should pass through
-    logger.logFromEvent('warn:event', warnEvent);
-    logger.logFromEvent('error:event', errorEvent);
+    logger.logFromEvent(warnEvent);
+    logger.logFromEvent(errorEvent);
     expect(logHandler).toHaveBeenCalledTimes(2);
   });
 
@@ -285,16 +285,16 @@ describe('Logger.logFromEvent()', () => {
       details: undefined
     };
 
-    logger.logFromEvent('error:minimal', minimalEventData);
+    logger.logFromEvent(minimalEventData);
 
     expect(logHandler).toHaveBeenCalledTimes(1);
     const receivedEvent = logHandler.mock.calls[0][0];
     expect(receivedEvent.context).toBeNull();
     expect(receivedEvent.details).toBeUndefined();
-    expect(receivedEvent.eventName).toBe('error:minimal');
+    // eventName is no longer part of the log output
   });
 
-  it('should preserve original LogEventData properties and add eventName', () => {
+  it('should preserve original LogEventData properties', () => {
     const logHandler = vi.fn();
     logger.on(LOG, logHandler);
 
@@ -317,7 +317,7 @@ describe('Logger.logFromEvent()', () => {
     // Create a deep copy to verify the original isn't modified
     const originalCopy = structuredClone(originalEventData);
 
-    logger.logFromEvent('auth:failed', originalEventData);
+    logger.logFromEvent(originalEventData);
 
     expect(logHandler).toHaveBeenCalledTimes(1);
     const forwardedEvent = logHandler.mock.calls[0][0];
@@ -330,8 +330,7 @@ describe('Logger.logFromEvent()', () => {
     expect(forwardedEvent.context).toEqual(originalEventData.context);
     expect(forwardedEvent.details).toEqual(originalEventData.details);
 
-    // Should add the eventName
-    expect(forwardedEvent.eventName).toBe('auth:failed');
+    // eventName is no longer added to the forwarded event
 
     // Verify original eventData wasn't modified
     expect(originalEventData).toEqual(originalCopy);
@@ -351,13 +350,13 @@ describe('Logger.logFromEvent()', () => {
       details: { userId: 'user_123', email: 'test@example.com' }
     };
 
-    logger.logFromEvent('service:log', serviceLogData);
+    logger.logFromEvent(serviceLogData);
 
     expect(logHandler).toHaveBeenCalledTimes(1);
     const logEvent = logHandler.mock.calls[0][0];
 
     expect(logEvent.source).toBe('UserService');
-    expect(logEvent.eventName).toBe('service:log');
+    // eventName is no longer part of log events
     expect(logEvent.message).toBe('User registration completed');
   });
 });

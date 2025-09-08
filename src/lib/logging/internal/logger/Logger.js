@@ -59,6 +59,8 @@ import { exportNotNullish } from '$lib/util/object.js';
 import * as is from '$lib/util/is.js';
 import { HttpError } from '$lib/network/errors.js';
 
+/** @typedef {import('$lib/logging/typedef.js').LogLevel} LogLevel */
+
 /**
  * Logger class for consistent logging
  * @extends EventEmitter
@@ -71,7 +73,7 @@ export default class Logger extends EventEmitter {
    * Create a new Logger instance
    *
    * @param {string} name - Name of the service/component for this logger
-   * @param {string} [defaultLevel=INFO] - Initial log level threshold
+   * @param {LogLevel} [defaultLevel=INFO] - Initial log level threshold
    * @param {Object} [context={}] - Default context data for all logs
    */
   constructor(name, defaultLevel = INFO, context = {}) {
@@ -86,7 +88,7 @@ export default class Logger extends EventEmitter {
   /**
    * Set the minimum log level threshold
    *
-   * @param {string} level - New log level (DEBUG, INFO, WARN, ERROR or NONE)
+   * @param {LogLevel} level - New log level (DEBUG, INFO, WARN, ERROR or NONE)
    * @returns {boolean} True if level was valid and set, false otherwise
    */
   setLevel(level) {
@@ -239,10 +241,9 @@ export default class Logger extends EventEmitter {
    * E.g. an event that was created by another Logger instance and should be
    * forwarded to this logger.
    *
-   * @param {string} eventName
    * @param {import('$lib/logging/typedef.js').LogEventData} eventData
    */
-  logFromEvent(eventName, eventData) {
+  logFromEvent(eventData) {
     const level = eventData.level;
 
     // Check if this log level should be filtered
@@ -250,13 +251,13 @@ export default class Logger extends EventEmitter {
       return false; // Below threshold, don't emit
     }
 
-    this.#logEvent({ ...eventData, eventName });
+    this.#logEvent(eventData);
   }
 
   /**
    * Internal logging method
    *
-   * @param {string} level - Log level
+   * @param {LogLevel} level - Log level
    * @param {string} message - Log message
    * @param {*} [details] - Additional details to include in the log
    * @returns {boolean} True if the log was emitted, false if filtered
@@ -355,8 +356,10 @@ export default class Logger extends EventEmitter {
       if (reason instanceof Error) {
         return reason;
       }
+      // @ts-ignore
       else if ( is.object(reason) && reason?.message ) {
         // reason is  an object with message property
+        // @ts-ignore
         return new DetailedError(reason?.message, reason);
       }
       else if ( typeof reason === "string" ) {

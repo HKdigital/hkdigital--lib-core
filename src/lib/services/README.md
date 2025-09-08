@@ -302,8 +302,8 @@ const manager = new ServiceManager();
 const logger = createServerLogger('SystemLogger');
 
 // Listen to all log events and forward them to the logger
-const unsubscribe = manager.onServiceLogEvent((logEvent) => {
-  logger.logFromEvent('manager:service:log', logEvent);
+const unsubscribe = manager.onLogEvent((logEvent) => {
+  logger.logFromEvent(logEvent);
 });
 
 // Register services
