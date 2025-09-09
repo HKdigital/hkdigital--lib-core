@@ -266,7 +266,8 @@ export class ServiceManager extends EventEmitter {
    *
    * @param {string} name - Service name
    *
-   * @returns {Promise<boolean>} True if configuration succeeded
+   * @returns {Promise<import('../service-base/typedef.js').OperationResult>}
+   *   Operation result
    */
   async configureService(name) {
     const instance = this.get(name);
@@ -287,7 +288,8 @@ export class ServiceManager extends EventEmitter {
    *
    * @param {string} name - Service name
    *
-   * @returns {Promise<boolean>} True if service started successfully
+   * @returns {Promise<import('../service-base/typedef.js').OperationResult>}
+   *   Operation result
    */
   async startService(name) {
     const entry = this.#getServiceEntry(name);
@@ -400,18 +402,22 @@ export class ServiceManager extends EventEmitter {
   /**
    * Start all registered services in dependency order
    *
-   * @returns {Promise<Object<string, boolean>>} Map of service results
+   * @throws {DetailedError} if one of the services did not start
+   *
+   * @returns {Promise<string[]>} list of started service names
    */
   async startAll() {
     this.logger.info('Starting all services');
 
     // Sort by priority and dependencies
     const sorted = this.#topologicalSort();
-    const results = new Map();
+
+    /** @type {string[]} */
+    const startedServiceNames = [];
 
     for (const name of sorted) {
       const result = await this.startService(name);
-      results.set(name, result);
+      startedServiceNames.push(name);
 
       if (!result.ok) {
         // Create detailed error with the actual service failure
@@ -424,7 +430,7 @@ export class ServiceManager extends EventEmitter {
       }
     }
 
-    return Object.fromEntries(results);
+    return startedServiceNames;
   }
 
   /**

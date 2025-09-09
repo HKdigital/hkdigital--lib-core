@@ -318,11 +318,7 @@ describe('ServiceManager', () => {
     it('should start all services in order', async () => {
       const results = await manager.startAll();
 
-      expect(results).toEqual({
-        serviceA: { ok: true },
-        serviceB: { ok: true },
-        serviceC: { ok: true }
-      });
+      expect(results).toEqual(['serviceA', 'serviceB', 'serviceC']);
 
       expect(manager.get('serviceA').state).toBe(STATE_RUNNING);
       expect(manager.get('serviceB').state).toBe(STATE_RUNNING);
