@@ -382,17 +382,17 @@ export class ConsoleAdapter {
       );
 
       // Clean up pnpm paths - convert complex pnpm paths to simple package names
-      // Before: node_modules/.pnpm/@hkdigital+lib-core@0.4.35_@eslint+js@9.35.0_.../node_modules/@hkdigital/lib-core/dist/...
-      // After: @hkdigital/lib-core/dist/...
+      // Before: functionName@node_modules/.pnpm/package+name@version_deps.../node_modules/package/dist/...
+      // After: functionName@package/dist/...
       cleaned = cleaned.replace(
-        /node_modules\/\.pnpm\/([^\/]+)@[^_]+[^\/]*\/node_modules\/([^\/]+(?:\/[^\/]+)?)\//g,
-        '$2/'
+        /node_modules\/\.pnpm\/[^\/]+@[^_]+[^\/]*\/node_modules\/(@[^\/]+\/[^\/]+|[^\/]+)\//g,
+        '$1/'
       );
 
-      // Clean up regular node_modules paths for known HK packages
+      // Clean up regular node_modules paths - convert to simple package names
       cleaned = cleaned.replace(
-        /node_modules\/@hkdigital\/([^\/]+)\//g,
-        '@hkdigital/$1/'
+        /node_modules\/(@[^\/]+\/[^\/]+|[^\/]+)\//g,
+        '$1/'
       );
 
       // Clean up query parameters on source files
