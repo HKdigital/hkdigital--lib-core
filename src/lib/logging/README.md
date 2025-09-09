@@ -103,40 +103,92 @@ export async function handle({ event, resolve }) {
 ### Client-side logging (src/hooks.client.js)
 
 ```javascript
-import { createClientLogger } from '@hkdigital/lib-core/logging/index.js';
+import { initClientServices } from '$lib/services/client.js';
+import { getClientLogger } from '$lib/logging/client.js';
 
-const logger = createClientLogger('client');
+export async function init() {
+  // Init services
+  try {
+    await initClientServices();
+
+    getClientLogger().info('Client initialization complete');
+  } catch (error) {
+    getClientLogger().error('Client initialization failed', 
+      /** @type {Error} */ (error));
+    // throw error;
+  }
+  finally {
+    getClientLogger().info('Client application initialized', {
+      userAgent: navigator.userAgent,
+      viewport: `${window.innerWidth}x${window.innerHeight}`
+    });
+  }
+}
 
 /** @type {import('@sveltejs/kit').HandleClientError} */
 export function handleError({ error, event }) {
-  logger.error(error, { 
-    url: event.url?.pathname, 
-    userAgent: navigator.userAgent 
+  // Handle SvelteKit-specific errors:
+  // navigation errors, load function failures, component errors, ...
+  getClientLogger().error(/** @type {Error} */ (error), {
+    url: event.url?.pathname,
+    userAgent: navigator.userAgent
   });
 }
+```
 
-// Initialize client-side logging
-export function init() {
-  logger.info('Client application initialized', {
-    userAgent: navigator.userAgent,
-    viewport: `${window.innerWidth}x${window.innerHeight}`
-  });
-  
-  // Log unhandled errors
-  window.addEventListener('error', (event) => {
-    logger.error(event, { url: window.location.pathname });
-  });
-  
-  // Log unhandled promise rejections
-  window.addEventListener('unhandledrejection', (event) => {
-    logger.error(event, { url: window.location.pathname });
-  });
+### Client Service Integration
+
+When integrating with a service management system, you can set up global 
+error handling and forward service logs to the main logger:
+
+```javascript
+import { ServiceManager } from '$hklib-core/services/index.js';
+import { initClientLogger } from '$lib/logging/client.js';
+
+/** @type {ServiceManager} */
+let manager;
+
+export async function initClientServices() {
+  if (!manager) {
+    const logger = initClientLogger();
+
+    // Catch errors and unhandled promise rejections
+    
+    // Log unhandled errors
+    window.addEventListener('error', (event) => {
+      logger.error(event, { url: window.location.pathname });
+      event.preventDefault();
+    });
+
+    // Log unhandled promise rejections
+    window.addEventListener('unhandledrejection', (event) => {
+      logger.error(event, { url: window.location.pathname });
+      // Ignored by Firefox
+      event.preventDefault();
+    });
+
+    manager = new ServiceManager({ debug: true });
+
+    // Listen to all log events and forward them to the logger
+    manager.onLogEvent((logEvent) => {
+      logger.logFromEvent(logEvent);
+    });
+
+    // Register services
+    manager.register(SERVICE_AUDIO, AudioService);
+    manager.register(SERVICE_EVENT_LOG, EventLogService);
+    manager.register(SERVICE_PLAYER_DATA, PlayerDataService);
+  }
+
+  await manager.startAll();
+  return manager;
 }
 
-// Cleanup when app is destroyed
-export function destroy() {
-  logger.info('Client application destroyed');
-  // Note: Console adapter doesn't require cleanup
+export function getManager() {
+  if (!manager) {
+    throw new Error('Client services should be initialised first');
+  }
+  return manager;
 }
 ```
 

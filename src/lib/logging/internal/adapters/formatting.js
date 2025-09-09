@@ -404,8 +404,6 @@ export function isMeaningfulFunctionName(functionName) {
   if (
     !functionName ||
     functionName === '' ||
-    functionName.includes('<') ||
-    functionName.includes('/') ||
     functionName.startsWith('async ') ||
     functionName === 'async' ||
     functionName === 'Promise' ||
@@ -416,6 +414,13 @@ export function isMeaningfulFunctionName(functionName) {
     return false;
   }
 
+  // Skip pure anonymous functions (just '<' without a parent function name)
+  if (functionName === '<' || functionName === '</') {
+    return false;
+  }
+
+  // Allow function names that contain '/<' (anonymous functions within named functions)
+  // These are meaningful as they show "parentFunction/<anonymous>"
   return true;
 }
 
@@ -429,17 +434,35 @@ export function parseFunctionName(frame) {
   // Handle both Firefox format: "functionName@file:line:col"
   // and Node.js format: "at functionName (file:line:col)" or "at Module.functionName (file:line:col)"
 
+  let functionName = null;
+
   // Firefox format
   const firefoxMatch = frame.match(/^([^@]+)@/);
   if (firefoxMatch) {
-    return firefoxMatch[1];
+    functionName = firefoxMatch[1];
+  } else {
+    // Node.js format
+    const nodeMatch = frame.match(/^\s*at\s+(?:Module\.)?([^\s(]+)/);
+    if (nodeMatch) {
+      functionName = nodeMatch[1];
+    }
   }
 
-  // Node.js format
-  const nodeMatch = frame.match(/^\s*at\s+(?:Module\.)?([^\s(]+)/);
-  if (nodeMatch) {
-    return nodeMatch[1];
+  if (!functionName) {
+    return null;
   }
 
-  return null;
+  // Clean up common patterns
+  functionName = functionName.trim();
+
+  // Handle anonymous functions within named functions
+  // Convert "functionName/<" to "functionName (anonymous)"
+  if (functionName.endsWith('/<')) {
+    const baseName = functionName.slice(0, -2);
+    if (baseName) {
+      functionName = `${baseName} (anonymous)`;
+    }
+  }
+
+  return functionName;
 }

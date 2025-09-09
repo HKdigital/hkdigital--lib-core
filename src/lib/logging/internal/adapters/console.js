@@ -381,8 +381,22 @@ export class ConsoleAdapter {
         'node_modules/vite-deps'
       );
 
+      // Clean up pnpm paths - convert complex pnpm paths to simple package names
+      // Before: node_modules/.pnpm/@hkdigital+lib-core@0.4.35_@eslint+js@9.35.0_.../node_modules/@hkdigital/lib-core/dist/...
+      // After: @hkdigital/lib-core/dist/...
+      cleaned = cleaned.replace(
+        /node_modules\/\.pnpm\/([^\/]+)@[^_]+[^\/]*\/node_modules\/([^\/]+(?:\/[^\/]+)?)\//g,
+        '$2/'
+      );
+
+      // Clean up regular node_modules paths for known HK packages
+      cleaned = cleaned.replace(
+        /node_modules\/@hkdigital\/([^\/]+)\//g,
+        '@hkdigital/$1/'
+      );
+
       // Clean up query parameters on source files
-      cleaned = cleaned.replace(/\?t=\d+/g, '');
+      cleaned = cleaned.replace(/\?[tv]=[a-f0-9]+/g, '');
 
       // Skip vite-deps (Svelte framework internals) but keep other node_modules
       if (cleaned.includes('node_modules/vite-deps')) {

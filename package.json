@@ -27,6 +27,7 @@
 		"format": "prettier --write .",
 		"lint": "run-s lint:*",
 		"test": "run-s test:unit-run",
+		"test:file": "vitest run",
 		"prepack": "run-s prepack:*",
 		"publish:npm": "run-s publish:npm:version publish:npm:publish git:push",
 		"upgrade:hk": "run-s upgrade:hk:update pnpm:install",

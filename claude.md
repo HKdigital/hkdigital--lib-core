@@ -38,6 +38,12 @@ This is a modern SvelteKit library built with Svelte 5 and Skeleton.dev v3 compo
 - English for all documentation and comments
 - No dollar signs in variable names (reserved for Svelte)
 
+### Testing Commands
+- Run all tests: `pnpm test`
+- Run specific test file: `pnpm test:file path/to/test.js`
+- Run tests in directory: `pnpm test:file src/lib/logging/`
+- Use `pnpm test:file` for single test execution - it's cross-platform compatible
+
 ### ESLint Rule Suppression
 - Use specific rule suppression instead of blanket disables
 - For unused variables in method signatures (e.g., base class methods to be overridden):

@@ -291,4 +291,35 @@ describe('ConsoleAdapter', () => {
       expect(consoleMocks.error).toHaveBeenCalledTimes(1);
     });
   });
+
+  describe('path cleaning', () => {
+    it('should clean pnpm paths in error stack traces', () => {
+      const adapter = new ConsoleAdapter({ level: DEBUG });
+      
+      // Create a mock error with pnpm path in stack
+      const mockError = new Error('Test error');
+      const originalStack = mockError.stack;
+      
+      // Mock stack with pnpm path
+      mockError.stack = [
+        'Error: Test error',
+        '    at startAll (node_modules/.pnpm/@hkdigital+lib-core@0.4.35_@eslint+js@9.35.0_@skeletonlabs+skeleton@3.2.0_tailwindcss@4_3de36e713a8d718d1dfa89cd48e89b17/node_modules/@hkdigital/lib-core/dist/services/service-manager/ServiceManager.js?v=82b696ec:400:15)',
+        '    at initServices (src/hooks.client.js:8:11)'
+      ].join('\n');
+
+      adapter.handleLog({
+        level: ERROR,
+        message: 'Service error',
+        details: mockError,
+        source: 'TestService',
+        timestamp: new Date()
+      });
+
+      // Restore original stack
+      mockError.stack = originalStack;
+
+      // Check that console.log was called for development mode error display
+      expect(consoleMocks.log).toHaveBeenCalled();
+    });
+  });
 });

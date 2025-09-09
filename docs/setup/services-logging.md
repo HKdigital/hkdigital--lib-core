@@ -195,33 +195,43 @@ export function getSessionService() {
 ### Client Service Manager (`src/lib/services/client/manager.js`)
 
 ```javascript
-import { ServiceManager } from '$hklib-core/services';
-import { SERVICE_LOG } from '@hkdigital/lib-core/services/index.js';
+import { ServiceManager } from '$hklib-core/services/index.js';
 
 import { initClientLogger } from '$lib/logging/client.js';
 
 import { SERVICE_AUDIO, SERVICE_EVENT_LOG, SERVICE_PLAYER_DATA } from './service-names.js';
+
 import AudioService from './AudioService.svelte.js';
 import EventLogService from './EventLogService.js';
 import PlayerDataService from './PlayerDataService.svelte.js';
 
+/** @type {ServiceManager} */
 let manager;
 
 export async function initClientServices() {
   if (!manager) {
     const logger = initClientLogger();
 
-    manager = new ServiceManager({
-      debug: false,           // Set to true for DEBUG level on all services
-      stopTimeout: 10000,     // Global shutdown timeout
-      managerLogLevel: 'INFO', // ServiceManager's own log level
-      serviceLogLevels: {     // Optional: per-service log levels
-        // 'audio': 'DEBUG',    // Uncomment to debug specific services
-        // 'player-data': 'DEBUG'
-      }
+    // Catch errors and unhandled promise rejections
+
+    // Log unhandled errors
+    window.addEventListener('error', (event) => {
+      logger.error(event, { url: window.location.pathname });
+      event.preventDefault();
     });
 
-    // Listen to all log events (both manager and services)
+    // Log unhandled promise rejections
+    window.addEventListener('unhandledrejection', (event) => {
+      logger.error(event, { url: window.location.pathname });
+      // Ignored by Firefox
+      event.preventDefault();
+    });
+
+    console.log("done addEventListener");
+
+    manager = new ServiceManager({ debug: true });
+
+    // Listen to all log events and forward them to the logger
     manager.onLogEvent((logEvent) => {
       logger.logFromEvent(logEvent);
     });
@@ -330,16 +340,32 @@ import { initClientServices } from '$lib/services/client.js';
 import { getClientLogger } from '$lib/logging/client.js';
 
 export async function init() {
+  // Init services
   try {
     await initClientServices();
 
-    const logger = getClientLogger();
-    logger.info('Client initialization complete');
+    getClientLogger().info('Client initialization complete');
   } catch (error) {
-    const logger = getClientLogger();
-    logger.error('Client initialization failed:', error);
-    throw error;
+    getClientLogger().error('Client initialization failed', 
+      /** @type {Error} */ (error));
+    // throw error;
   }
+  finally {
+    getClientLogger().info('Client application initialized', {
+      userAgent: navigator.userAgent,
+      viewport: `${window.innerWidth}x${window.innerHeight}`
+    });
+  }
+}
+
+/** @type {import('@sveltejs/kit').HandleClientError} */
+export function handleError({ error, event }) {
+  // Handle SvelteKit-specific errors:
+  // navigation errors, load function failures, component errors, ...
+  getClientLogger().error(/** @type {Error} */ (error), {
+    url: event.url?.pathname,
+    userAgent: navigator.userAgent
+  });
 }
 ```
 
