@@ -25,19 +25,16 @@ export default class AudioScene extends SceneBase {
 
 	targetGain = $derived( this.#targetGain );
 
-	/** @type {AudioContext|null} */
-	#audioContext = null;
+	/** @type {AudioContext|undefined} */
+	#audioContext;
 
-	/** {GainNode} */
-	#targetGainNode = null;
+	/** @type {GainNode|undefined} */
+	#targetGainNode;
 
 	/** @type {MemorySource[]} */
 	#memorySources = $state([]);
 
 
-	/**
-	 * Construct AudioScene
-	 */
 	constructor() {
 		super();
 	}
@@ -71,10 +68,7 @@ export default class AudioScene extends SceneBase {
 	 * Add in-memory audio source
 	 * - Uses an AudioLoader instance to load audio data from network
 	 *
-	 * @param {object} _
-	 * @param {string} _.label
-	 * @param {string} _.url
-	 * @param {SourceConfig} [_.config]
+	 * @param {import('./typedef.js').MemorySourceParams} params
 	 */
 	defineMemorySource({ label, url, config }) {
 		expect.notEmptyString(label);
@@ -95,8 +89,10 @@ export default class AudioScene extends SceneBase {
 	 * @returns {Promise<AudioBufferSourceNode>}
 	 */
 	async getSourceNode(label) {
+
 		// @note Gain setup
-		// https://stackoverflow.com/questions/46203191/should-i-disconnect-nodes-that-cant-be-used-anymore
+		// https://stackoverflow.com/
+		//   questions/46203191/should-i-disconnect-nodes-that-cant-be-used-anymore
 
 		const { audioLoader /*, config */ } = this.#getMemorySource(label);
 
@@ -149,9 +145,9 @@ export default class AudioScene extends SceneBase {
 	}
 
 	/**
-	 * Get the current target gain (volume level)
+	 * Get the current target gain
 	 *
-	 * @returns {number} Target gain value (0.0 to 1.0+)
+	 * @returns {number}
 	 */
 	getTargetGain()
 	{
@@ -191,6 +187,11 @@ export default class AudioScene extends SceneBase {
 
 	/* ==== Internals */
 
+	/**
+	 * Get or create the master gain node
+	 *
+	 * @returns {GainNode}
+	 */
 	#getGainNode()
 	{
 		if( !this.#targetGainNode )
@@ -205,6 +206,11 @@ export default class AudioScene extends SceneBase {
 		return this.#targetGainNode;
 	}
 
+	/**
+	 * Get or create the audio context
+	 *
+	 * @returns {AudioContext}
+	 */
 	#getAudioContext()
 	{
 		if( !this.#audioContext )
@@ -216,7 +222,7 @@ export default class AudioScene extends SceneBase {
 	}
 
 	/**
-	 * Get memory source
+	 * Find memory source by label
 	 *
 	 * @param {string} label
 	 *

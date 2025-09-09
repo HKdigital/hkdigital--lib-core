@@ -422,7 +422,7 @@ export class ServiceManager extends EventEmitter {
       if (!result.ok) {
         // Create detailed error with the actual service failure
         const detailedError = new DetailedError(
-          `Failed to start service [${name}], stopping`,
+          `Failed to start service [${name}]`,
           null,
           result.error
         );

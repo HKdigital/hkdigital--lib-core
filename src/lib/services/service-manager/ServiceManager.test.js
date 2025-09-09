@@ -611,7 +611,7 @@ describe('ServiceManager', () => {
       );
 
       await expect(manager.startAll()).rejects.toThrow(
-        'Failed to start service [serviceA], stopping'
+        'Failed to start service [serviceA]'
       );
     });
   });
