@@ -65,6 +65,7 @@
 
 import { EventEmitter } from '$lib/generic/events.js';
 import { Logger, DEBUG, INFO } from '$lib/logging/index.js';
+import { DetailedError } from '$lib/generic/errors.js';
 
 import {
   SERVICE_LOG,
@@ -269,7 +270,10 @@ export class ServiceManager extends EventEmitter {
    */
   async configureService(name) {
     const instance = this.get(name);
-    if (!instance) return false;
+    if (!instance) {
+      const error = new Error(`Service [${name}] not found`);
+      return { ok: false, error };
+    }
 
     const entry = this.#getServiceEntry(name);
 
@@ -288,8 +292,9 @@ export class ServiceManager extends EventEmitter {
   async startService(name) {
     const entry = this.#getServiceEntry(name);
     if (!entry) {
-      this.logger.warn(`Cannot start unregistered service '${name}'`);
-      return false;
+      const error = new Error(`Service [${name}] not registered`);
+      this.logger.warn(error.message);
+      return { ok: false, error };
     }
 
     // Start dependencies first
@@ -297,19 +302,25 @@ export class ServiceManager extends EventEmitter {
       if (!(await this.isRunning(dep))) {
         this.logger.debug(`Starting dependency '${dep}' for '${name}'`);
 
-        const started = await this.startService(dep);
+        const dependencyResult = await this.startService(dep);
 
-        if (!started) {
-          this.logger.error(
-            new Error(`Failed to start dependency '${dep}' for '${name}'`)
+        if (!dependencyResult.ok) {
+          const error = new DetailedError(
+            `Failed to start dependency [${dep}] for service [${name}]`,
+            null,
+            dependencyResult.error
           );
-          return false;
+          this.logger.error(error);
+          return { ok: false, error };
         }
       }
     }
 
     const instance = this.get(name);
-    if (!instance) return false;
+    if (!instance) {
+      const error = new Error(`Service [${name}] instance not found`);
+      return { ok: false, error };
+    }
 
     if (
       instance.state === STATE_CREATED ||
@@ -318,10 +329,10 @@ export class ServiceManager extends EventEmitter {
       // Service is not created or has been destroyed
       // => configure needed
 
-      const configured = await this.configureService(name);
+      const configResult = await this.configureService(name);
 
-      if (!configured) {
-        return false;
+      if (!configResult.ok) {
+        return configResult; // Forward the configuration error
       }
     }
 
@@ -334,14 +345,15 @@ export class ServiceManager extends EventEmitter {
    * @param {string} name - Service name
    * @param {StopOptions} [options={}] - Stop options
    *
-   * @returns {Promise<boolean>} True if service stopped successfully
+   * @returns {Promise<import('../service-base/typedef.js').OperationResult>}
+   *   Operation result
    */
   async stopService(name, options = {}) {
     const instance = this.get(name);
 
     if (!instance) {
       this.logger.warn(`Cannot stop unregistered service '${name}'`);
-      return true; // Already stopped
+      return { ok: true }; // Already stopped
     }
 
     // Check dependents
@@ -356,10 +368,11 @@ export class ServiceManager extends EventEmitter {
       }
 
       if (runningDependents.length > 0) {
-        this.logger.warn(
-          `Cannot stop '${name}' - required by: ${runningDependents.join(', ')}`
+        const error = new Error(
+          `Cannot stop [${name}] - required by: ${runningDependents.join(', ')}`
         );
-        return false;
+        this.logger.warn(error.message);
+        return { ok: false, error };
       }
     }
 
@@ -371,11 +384,15 @@ export class ServiceManager extends EventEmitter {
    *
    * @param {string} name - Service name
    *
-   * @returns {Promise<boolean>} True if recovery succeeded
+   * @returns {Promise<import('../service-base/typedef.js').OperationResult>}
+   *   Operation result
    */
   async recoverService(name) {
     const instance = this.get(name);
-    if (!instance) return false;
+    if (!instance) {
+      const error = new Error(`Service [${name}] not found`);
+      return { ok: false, error };
+    }
 
     return await instance.recover();
   }
@@ -393,11 +410,17 @@ export class ServiceManager extends EventEmitter {
     const results = new Map();
 
     for (const name of sorted) {
-      const success = await this.startService(name);
-      results.set(name, success);
+      const result = await this.startService(name);
+      results.set(name, result);
 
-      if (!success) {
-        throw new Error(`Failed to start service [${name}], stopping`);
+      if (!result.ok) {
+        // Create detailed error with the actual service failure
+        const detailedError = new DetailedError(
+          `Failed to start service [${name}], stopping`,
+          null,
+          result.error
+        );
+        throw detailedError;
       }
     }
 
@@ -729,8 +752,8 @@ export class ServiceManager extends EventEmitter {
   async #stopAllSequentially(serviceNames, results, options) {
     for (const name of serviceNames) {
       try {
-        const success = await this.stopService(name, options);
-        results.set(name, success);
+        const result = await this.stopService(name, options);
+        results.set(name, result.ok);
       } catch (error) {
         this.logger.error(
           `Error stopping '${name}'`,

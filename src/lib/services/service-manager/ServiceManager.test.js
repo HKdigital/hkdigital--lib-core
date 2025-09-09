@@ -171,7 +171,7 @@ describe('ServiceManager', () => {
       const result = await manager.configureService('serviceA');
       const instance = manager.get('serviceA');
 
-      expect(result).toBe(true);
+      expect(result.ok).toBe(true);
       expect(instance.state).toBe(STATE_CONFIGURED);
       expect(instance.config).toEqual({ configA: true });
     });
@@ -180,7 +180,7 @@ describe('ServiceManager', () => {
       const result = await manager.startService('serviceA');
       const instance = manager.get('serviceA');
 
-      expect(result).toBe(true);
+      expect(result.ok).toBe(true);
       expect(instance.state).toBe(STATE_RUNNING);
       expect(instance.started).toBe(true);
     });
@@ -190,7 +190,7 @@ describe('ServiceManager', () => {
       const result = await manager.stopService('serviceA');
       const instance = manager.get('serviceA');
 
-      expect(result).toBe(true);
+      expect(result.ok).toBe(true);
       expect(instance.state).toBe(STATE_STOPPED);
       expect(instance.started).toBe(false);
     });
@@ -206,7 +206,7 @@ describe('ServiceManager', () => {
 
       const result = await manager.recoverService('serviceA');
 
-      expect(result).toBe(true);
+      expect(result.ok).toBe(true);
       expect(instance.state).toBe(STATE_RUNNING);
       expect(instance.error).toBeNull();
     });
@@ -268,7 +268,7 @@ describe('ServiceManager', () => {
 
       const result = await manager.startService('cache');
 
-      expect(result).toBe(false);
+      expect(result.ok).toBe(false);
       const cache = manager.get('cache');
       expect(cache.state).not.toBe(STATE_RUNNING);
     });
@@ -278,7 +278,7 @@ describe('ServiceManager', () => {
 
       const result = await manager.stopService('database');
 
-      expect(result).toBe(false);
+      expect(result.ok).toBe(false);
       const database = manager.get('database');
       expect(database.state).toBe(STATE_RUNNING);
     });
@@ -288,7 +288,7 @@ describe('ServiceManager', () => {
 
       const result = await manager.stopService('database', { force: true });
 
-      expect(result).toBe(true);
+      expect(result.ok).toBe(true);
       const database = manager.get('database');
       expect(database.state).toBe(STATE_STOPPED);
     });
@@ -319,9 +319,9 @@ describe('ServiceManager', () => {
       const results = await manager.startAll();
 
       expect(results).toEqual({
-        serviceA: true,
-        serviceB: true,
-        serviceC: true
+        serviceA: { ok: true },
+        serviceB: { ok: true },
+        serviceC: { ok: true }
       });
 
       expect(manager.get('serviceA').state).toBe(STATE_RUNNING);
@@ -606,7 +606,7 @@ describe('ServiceManager', () => {
       );
     });
 
-    it('should continue on partial startup failure', async () => {
+    it('should throw on partial startup failure', async () => {
       manager.register('serviceA', MockServiceA);
       manager.register('serviceB', MockServiceB);
 
@@ -614,12 +614,9 @@ describe('ServiceManager', () => {
         new Error('Start failed')
       );
 
-      const results = await manager.startAll();
-
-      expect(results).toEqual({
-        serviceA: false,
-        serviceB: false // Stops on first failure
-      });
+      await expect(manager.startAll()).rejects.toThrow(
+        'Failed to start service [serviceA], stopping'
+      );
     });
   });
 

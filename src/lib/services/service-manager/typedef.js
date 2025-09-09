@@ -26,6 +26,8 @@
  * manager.register('auth', AuthService, {}, options);
  */
 
+/** @typedef {import('$lib/logging/typedef.js').LogLevel} LogLevel */
+
 // ============================================================================
 // PUBLIC TYPES
 // ============================================================================
@@ -52,9 +54,9 @@
  * @property {boolean} [debug=false] - Debug mode switch
  * @property {boolean} [autoStart=false] - Auto-start services on registration
  * @property {number} [stopTimeout=10000] - Default timeout for stopping services
- * @property {string} [defaultLogLevel] - Default log level for new services
- * @property {string} [managerLogLevel] - Initial log level for ServiceManager
- * @property {string|Object<string,string>} [serviceLogLevels]
+ * @property {LogLevel} [defaultLogLevel] - Default log level for new services
+ * @property {LogLevel} [managerLogLevel] - Initial log level for ServiceManager
+ * @property {string|Object<string,LogLevel>} [serviceLogLevels]
  *   Per-service log levels:
  *   - String: "auth:debug,database:info"
  *   - Object: { auth: "debug", database: "info" }

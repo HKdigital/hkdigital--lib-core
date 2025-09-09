@@ -24,6 +24,14 @@
 // ============================================================================
 
 /**
+ * Result of a service operation
+ *
+ * @typedef {Object} OperationResult
+ * @property {boolean} ok - Whether the operation succeeded
+ * @property {Error} [error] - Error details if operation failed
+ */
+
+/**
  * All possible service states during lifecycle management
  *
  * @typedef {import('./constants.js').STATE_NOT_CREATED |

@@ -60,17 +60,17 @@ describe('ServiceBase', () => {
       service.on('stateChanged', (e) => stateChanges.push(e.newState));
 
       // Initialize
-      expect(await service.configure({ test: true })).toBe(true);
+      expect((await service.configure({ test: true })).ok).toBe(true);
       expect(service.state).toBe(STATE_CONFIGURED);
       expect(service._configure).toHaveBeenCalledWith({ test: true }, null);
 
       // Start
-      expect(await service.start()).toBe(true);
+      expect((await service.start()).ok).toBe(true);
       expect(service.state).toBe(STATE_RUNNING);
       expect(service.healthy).toBe(true);
 
       // Stop
-      expect(await service.stop()).toBe(true);
+      expect((await service.stop()).ok).toBe(true);
       expect(service.state).toBe(STATE_STOPPED);
       expect(service.healthy).toBe(false);
 
@@ -90,12 +90,12 @@ describe('ServiceBase', () => {
 
       // Initial configuration
       const initialConfig = { setting1: 'value1' };
-      expect(await service.configure(initialConfig)).toBe(true);
+      expect((await service.configure(initialConfig)).ok).toBe(true);
       expect(service._configure).toHaveBeenCalledWith(initialConfig, null);
 
       // Reconfiguration
       const newConfig = { setting1: 'value2', setting2: 'newValue' };
-      expect(await service.configure(newConfig)).toBe(true);
+      expect((await service.configure(newConfig)).ok).toBe(true);
       expect(service._configure).toHaveBeenCalledWith(newConfig, initialConfig);
 
       expect(service._configure).toHaveBeenCalledTimes(2);
@@ -112,7 +112,7 @@ describe('ServiceBase', () => {
 
       // Live reconfiguration
       const newConfig = { setting: 'updated' };
-      expect(await service.configure(newConfig)).toBe(true);
+      expect((await service.configure(newConfig)).ok).toBe(true);
       expect(service.state).toBe(STATE_RUNNING); // Should stay running
       expect(service._configure).toHaveBeenCalledWith(newConfig, initialConfig);
     });
@@ -125,18 +125,18 @@ describe('ServiceBase', () => {
       expect(service.state).toBe(STATE_STOPPED);
 
       // Should be able to start again
-      expect(await service.start()).toBe(true);
+      expect((await service.start()).ok).toBe(true);
       expect(service.state).toBe(STATE_RUNNING);
     });
 
     it('should prevent invalid state transitions', async () => {
       // Can't start from STATE_CREATED
-      expect(await service.start()).toBe(false);
+      expect((await service.start()).ok).toBe(false);
       expect(service.state).toBe(STATE_CREATED);
 
       // Can't stop from STATE_CONFIGURED
       await service.configure();
-      expect(await service.stop()).toBe(true); // Returns true but does nothing
+      expect((await service.stop()).ok).toBe(true); // Returns true but does nothing
       expect(service.state).toBe(STATE_CONFIGURED);
     });
   });
@@ -149,7 +149,7 @@ describe('ServiceBase', () => {
       const errorEvents = [];
       service.on('error', (e) => errorEvents.push(e));
 
-      expect(await service.configure()).toBe(false);
+      expect((await service.configure()).ok).toBe(false);
       expect(service.state).toBe(STATE_ERROR);
       expect(service.error.cause).toBe(error);
       expect(service.healthy).toBe(false);
@@ -169,7 +169,7 @@ describe('ServiceBase', () => {
       vi.spyOn(service, '_start').mockRejectedValue(new Error('Start failed'));
 
       await service.configure();
-      expect(await service.start()).toBe(false);
+      expect((await service.start()).ok).toBe(false);
       expect(service.state).toBe(STATE_ERROR);
       expect(service.healthy).toBe(false);
     });
@@ -182,7 +182,7 @@ describe('ServiceBase', () => {
 
       // Should be able to stop
       vi.spyOn(service, '_stop').mockResolvedValue();
-      expect(await service.stop()).toBe(true);
+      expect((await service.stop()).ok).toBe(true);
       expect(service.state).toBe(STATE_STOPPED);
     });
   });
@@ -198,7 +198,7 @@ describe('ServiceBase', () => {
     it('should recover using custom _recover method', async () => {
       vi.spyOn(service, '_recover').mockResolvedValue();
 
-      expect(await service.recover()).toBe(true);
+      expect((await service.recover()).ok).toBe(true);
       expect(service._recover).toHaveBeenCalled();
       expect(service.state).toBe(STATE_RUNNING);
       expect(service.healthy).toBe(true);
@@ -225,7 +225,7 @@ describe('ServiceBase', () => {
       service.error = new Error('Some error');
 
       // Now test recovery - it should stop then start
-      expect(await service.recover()).toBe(true);
+      expect((await service.recover()).ok).toBe(true);
       expect(service.state).toBe(STATE_RUNNING);
       expect(service.healthy).toBe(true);
       expect(service.error).toBeNull();
@@ -236,7 +236,7 @@ describe('ServiceBase', () => {
         new Error('Recovery failed')
       );
 
-      expect(await service.recover()).toBe(false);
+      expect((await service.recover()).ok).toBe(false);
       expect(service.state).toBe(STATE_ERROR);
       expect(service.error.message).toBe('recovery failed');
     });
@@ -246,7 +246,7 @@ describe('ServiceBase', () => {
       service.state = STATE_RUNNING;
       service.error = null;
 
-      expect(await service.recover()).toBe(false);
+      expect((await service.recover()).ok).toBe(false);
       expect(service.state).toBe(STATE_RUNNING);
     });
   });
@@ -337,7 +337,7 @@ describe('ServiceBase', () => {
       // Advance past timeout
       await vi.advanceTimersByTimeAsync(1100);
 
-      expect(await stopPromise).toBe(false);
+      expect((await stopPromise).ok).toBe(false);
       expect(service.state).toBe(STATE_ERROR);
       expect(service.error.message).toBe('shutdown failed');
     });
@@ -355,7 +355,7 @@ describe('ServiceBase', () => {
       const stopPromise = service.stop({ force: true, timeout: 100 });
       await vi.advanceTimersByTimeAsync(150);
 
-      expect(await stopPromise).toBe(true);
+      expect((await stopPromise).ok).toBe(true);
       expect(service.state).toBe(STATE_STOPPED);
     });
   });

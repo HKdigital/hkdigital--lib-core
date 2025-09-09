@@ -130,7 +130,7 @@ export class ServiceBase extends EventEmitter {
    *
    * @param {Object<string,any>|null} [config={}]
    *
-   * @returns {Promise<boolean>} True if configuration succeeded
+   * @returns {Promise<import('./typedef.js').OperationResult>} Operation result
    */
   async configure(config = {}) {
     if (
@@ -140,8 +140,9 @@ export class ServiceBase extends EventEmitter {
       this.state !== STATE_STOPPED &&
       this.state !== STATE_DESTROYED
     ) {
-      this.logger.warn(`Cannot configure from state: ${this.state}`);
-      return false;
+      const error = new Error(`Cannot configure from state: ${this.state}`);
+      this.logger.warn(error.message);
+      return { ok: false, error };
     }
 
     const wasRunning = this.state === STATE_RUNNING;
@@ -156,10 +157,10 @@ export class ServiceBase extends EventEmitter {
 
       this._setState(wasRunning ? STATE_RUNNING : STATE_CONFIGURED);
       this.logger.info('Service configured');
-      return true;
+      return { ok: true };
     } catch (error) {
       this._setError('configuration', /** @type {Error} */ (error));
-      return false;
+      return { ok: false, error: this.error };
     }
   }
 
@@ -175,12 +176,13 @@ export class ServiceBase extends EventEmitter {
   /**
    * Start the service
    *
-   * @returns {Promise<boolean>} True if the service started successfully
+   * @returns {Promise<import('./typedef.js').OperationResult>} Operation result
    */
   async start() {
     if (this.state !== STATE_CONFIGURED && this.state !== STATE_STOPPED) {
-      this.logger.warn(`Cannot start from state: ${this.state}`);
-      return false;
+      const error = new Error(`Cannot start from state: ${this.state}`);
+      this.logger.warn(error.message);
+      return { ok: false, error };
     }
 
     try {
@@ -193,10 +195,10 @@ export class ServiceBase extends EventEmitter {
       this._setState(STATE_RUNNING);
       this._setHealthy(true);
       this.logger.info('Service started');
-      return true;
+      return { ok: true };
     } catch (error) {
       this._setError('startup', /** @type {Error} */ (error));
-      return false;
+      return { ok: false, error: this.error };
     }
   }
 
@@ -205,12 +207,12 @@ export class ServiceBase extends EventEmitter {
    *
    * @param {import('./typedef.js').StopOptions} [options={}] - Stop options
    *
-   * @returns {Promise<boolean>} True if the service stopped successfully
+   * @returns {Promise<import('./typedef.js').OperationResult>} Operation result
    */
   async stop(options = {}) {
     if (this.state !== STATE_RUNNING && this.state !== STATE_ERROR) {
       this.logger.warn(`Cannot stop from state: ${this.state}`);
-      return true; // Already stopped
+      return { ok: true }; // Already stopped
     }
 
     const timeout = options.timeout ?? this._shutdownTimeout;
@@ -237,7 +239,7 @@ export class ServiceBase extends EventEmitter {
 
       this._setState(STATE_STOPPED);
       this.logger.info('Service stopped');
-      return true;
+      return { ok: true };
     } catch (error) {
       if (
         /** @type {Error} */ (error).message === 'Shutdown timeout' &&
@@ -245,24 +247,25 @@ export class ServiceBase extends EventEmitter {
       ) {
         this.logger.warn('Forced shutdown after timeout');
         this._setState(STATE_STOPPED);
-        return true;
+        return { ok: true };
       }
       this._setError('shutdown', /** @type {Error} */ (error));
-      return false;
+      return { ok: false, error: this.error };
     }
   }
 
   /**
    * Recover the service from error state
    *
-   * @returns {Promise<boolean>} True if recovery succeeded
+   * @returns {Promise<import('./typedef.js').OperationResult>} Operation result
    */
   async recover() {
     if (this.state !== STATE_ERROR) {
-      this.logger.warn(
+      const error = new Error(
         `Can only recover from ERROR state, current: ${this.state}`
       );
-      return false;
+      this.logger.warn(error.message);
+      return { ok: false, error };
     }
 
     try {
@@ -278,31 +281,37 @@ export class ServiceBase extends EventEmitter {
       } else {
         // Default: restart
         this._setState(STATE_STOPPED);
-        await this.start();
+        const startResult = await this.start();
+        if (!startResult.ok) {
+          return startResult; // Forward the start error
+        }
       }
 
       this.error = null;
       this.logger.info('Recovery successful');
-      return true;
+      return { ok: true };
     } catch (error) {
       this._setError('recovery', /** @type {Error} */ (error));
-      return false;
+      return { ok: false, error: this.error };
     }
   }
 
   /**
    * Destroy the service and cleanup resources
    *
-   * @returns {Promise<boolean>} True if destruction succeeded
+   * @returns {Promise<import('./typedef.js').OperationResult>} Operation result
    */
   async destroy() {
     if (this.state === STATE_DESTROYED) {
-      return true;
+      return { ok: true };
     }
 
     try {
       if (this.state === STATE_RUNNING) {
-        await this.stop();
+        const stopResult = await this.stop();
+        if (!stopResult.ok) {
+          return stopResult; // Forward the stop error
+        }
       }
 
       this._setTargetState(STATE_DESTROYED);
@@ -321,10 +330,10 @@ export class ServiceBase extends EventEmitter {
       this.removeAllListeners();
       this.logger.removeAllListeners();
 
-      return true;
+      return { ok: true };
     } catch (error) {
       this._setError('destruction', /** @type {Error} */ (error));
-      return false;
+      return { ok: false, error: this.error };
     }
   }
 
@@ -361,7 +370,7 @@ export class ServiceBase extends EventEmitter {
   /**
    * Set the service log level
    *
-   * @param {string} level - New log level
+   * @param {import('$lib/logging/typedef.js').LogLevel} level - New log level
    *
    * @returns {boolean} True if the level was set successfully
    */
