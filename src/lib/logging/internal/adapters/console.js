@@ -382,18 +382,21 @@ export class ConsoleAdapter {
       );
 
       // Clean up pnpm paths - convert complex pnpm paths to simple package names
-      // Before: functionName@node_modules/.pnpm/package+name@version_deps.../node_modules/package/dist/...
+      // Before: functionName@node_modules/.pnpm/package+name@version_deps.../node_modules/package/dist/...  
       // After: functionName@package/dist/...
       cleaned = cleaned.replace(
         /node_modules\/\.pnpm\/[^\/]+@[^_]+[^\/]*\/node_modules\/(@[^\/]+\/[^\/]+|[^\/]+)\//g,
         '$1/'
       );
 
-      // Clean up regular node_modules paths - convert to simple package names
+      // Clean up regular node_modules paths - convert to simple package names  
       cleaned = cleaned.replace(
         /node_modules\/(@[^\/]+\/[^\/]+|[^\/]+)\//g,
         '$1/'
       );
+
+      // Fix double @@ that can occur from the above replacements
+      cleaned = cleaned.replace(/@@/g, '@');
 
       // Clean up query parameters on source files
       cleaned = cleaned.replace(/\?[tv]=[a-f0-9]+/g, '');
