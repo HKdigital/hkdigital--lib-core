@@ -50,5 +50,16 @@ export const actions = {
   triggerExpectError: () => handleServerTest('expect validation', throwExpectError),
   triggerRethrowChain: () => handleServerTest('rethrow chain', throwRethrowChainError),
   triggerRawValibotError: () => handleServerTest('raw valibot', throwRawValibotError),
-  triggerSvelteKitError: () => handleServerTest('SvelteKit error', throwSvelteKitError)
+  triggerSvelteKitError: () => handleServerTest('SvelteKit error', throwSvelteKitError),
+  
+  // Test case for logger.error with only message (no Error object)
+  triggerStringOnlyError: async () => {
+    logger.error('This is a string-only error message without Error object');
+    return {
+      success: false,
+      message: 'Server string-only error logged',
+      error: 'String-only logger.error call',
+      errorType: 'DetailedError (validation)'
+    };
+  }
 };

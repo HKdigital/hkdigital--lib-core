@@ -200,6 +200,10 @@ export default class Logger extends EventEmitter {
       // Log without message
       return this.#log(ERROR, errorObject.message, errorObject);
     }
+    // else if( message ) {
+    //   // Only log message, no Error object supplied
+    //   return this.#log(ERROR, message);
+    // }
     else {
       // Missing error like object
       // => invalid parameters supplied to logger.error

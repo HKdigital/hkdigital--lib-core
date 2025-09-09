@@ -212,7 +212,9 @@ export class ConsoleAdapter {
           message: details.message,
           stack: cleanedStack,
           errorType: formatErrorDisplay(errorMeta),
-          ...(relevantFrameIndex >= 0 && { relevantFrameIndex })
+          ...(relevantFrameIndex >= 0 && { relevantFrameIndex }),
+          ...('details' in details && { details: details.details }),
+          ...('status' in details && { status: details.status })
         };
       }
     } else if (details.error instanceof Error) {
@@ -233,7 +235,9 @@ export class ConsoleAdapter {
           message: details.error.message,
           stack: cleanedStack,
           errorType: formatErrorDisplay(errorMeta),
-          ...(relevantFrameIndex >= 0 && { relevantFrameIndex })
+          ...(relevantFrameIndex >= 0 && { relevantFrameIndex }),
+          ...('details' in details.error && { details: details.error.details }),
+          ...('status' in details.error && { status: details.error.status })
         };
       }
       // Include other details except the error

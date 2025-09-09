@@ -45,6 +45,14 @@
     }
   }
 
+  /**
+   * Test function for logger.error with only string message
+   */
+  function throwStringOnlyError() {
+    // This will trigger the logger validation since no Error object is provided
+    throw new Error('This should not be called - logger.error with string only');
+  }
+
   // Test functions
   const testSimpleError = () => handleClientTest('simple error', throwSimpleError);
   const testErrorInSubFunction = () => handleClientTest('nested error', throwErrorInSubFunction);
@@ -54,6 +62,18 @@
   const testExpectError = () => handleClientTest('expect validation', throwExpectError);
   const testRethrowChain = () => handleClientTest('rethrow chain', throwRethrowChainError);
   const testRawValibotError = () => handleClientTest('raw valibot', throwRawValibotError);
+
+  const testStringOnlyError = () => {
+    // Test logger.error with only string message (no Error object)
+    logger.error('This is a string-only error message without Error object');
+    clientResults['string-only error'] = {
+      success: false,
+      message: 'Client string-only error logged (check console)',
+      error: 'String-only logger.error call',
+      errorType: 'DetailedError (validation)',
+      timestamp: new Date().toLocaleTimeString()
+    };
+  };
 </script>
 
 <div class="container mx-auto p-20up" data-page>
@@ -130,6 +150,12 @@
             SvelteKit error
           </TextButton>
         </form>
+
+        <form method="POST" action="?/triggerStringOnlyError" use:enhance>
+          <TextButton data-role="secondary" data-size="sm" buttonType="submit">
+            String-only error
+          </TextButton>
+        </form>
       </div>
 
       {#if form}
@@ -188,6 +214,10 @@
 
         <TextButton data-role="secondary" data-size="sm" onclick={testRawValibotError}>
           Raw valibot error
+        </TextButton>
+
+        <TextButton data-role="secondary" data-size="sm" onclick={testStringOnlyError}>
+          String-only error
         </TextButton>
       </div>
 

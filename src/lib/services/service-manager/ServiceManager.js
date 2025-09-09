@@ -66,8 +66,8 @@
 import { EventEmitter } from '$lib/generic/events.js';
 import { Logger, DEBUG, INFO } from '$lib/logging/index.js';
 
-import { 
-  SERVICE_LOG, 
+import {
+  SERVICE_LOG,
   STATE_CHANGED,
   HEALTH_CHANGED,
   ERROR,
@@ -396,14 +396,7 @@ export class ServiceManager extends EventEmitter {
       results.set(name, success);
 
       if (!success) {
-        this.logger.error(`Failed to start '${name}', stopping`);
-        // Mark remaining services as not started
-        for (const remaining of sorted) {
-          if (!results.has(remaining)) {
-            results.set(remaining, false);
-          }
-        }
-        break;
+        throw new Error(`Failed to start service [${name}], stopping`);
       }
     }
 
@@ -430,7 +423,7 @@ export class ServiceManager extends EventEmitter {
     const results = new Map();
 
     // Handle global timeout if specified
-    if (stopOptions.timeout > 0) {
+    if (stopOptions.timeout) {
       const timeoutPromise = new Promise((_, reject) =>
         setTimeout(
           () => reject(new Error('Global shutdown timeout')),
@@ -445,7 +438,9 @@ export class ServiceManager extends EventEmitter {
           timeoutPromise
         ]);
       } catch (error) {
-        if (error.message === 'Global shutdown timeout') {
+        if (
+          /** @type {Error} */ (error).message === 'Global shutdown timeout'
+        ) {
           this.logger.error('Global shutdown timeout reached');
           // Mark any remaining services as failed
           for (const name of sorted) {
