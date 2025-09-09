@@ -298,9 +298,10 @@ export class ServiceManager extends EventEmitter {
         this.logger.debug(`Starting dependency '${dep}' for '${name}'`);
 
         const started = await this.startService(dep);
+
         if (!started) {
           this.logger.error(
-            `Failed to start dependency '${dep}' for '${name}'`
+            new Error(`Failed to start dependency '${dep}' for '${name}'`)
           );
           return false;
         }
@@ -441,7 +442,7 @@ export class ServiceManager extends EventEmitter {
         if (
           /** @type {Error} */ (error).message === 'Global shutdown timeout'
         ) {
-          this.logger.error('Global shutdown timeout reached');
+          this.logger.error( new Error('Global shutdown timeout reached' ) );
           // Mark any remaining services as failed
           for (const name of sorted) {
             if (!results.has(name)) {
