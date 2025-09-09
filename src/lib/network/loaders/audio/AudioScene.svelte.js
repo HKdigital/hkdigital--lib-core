@@ -3,17 +3,7 @@ import * as expect from '$lib/util/expect.js';
 import SceneBase from '../base/SceneBase.svelte.js';
 import AudioLoader from './AudioLoader.svelte.js';
 
-/**
- * @typedef {object} SourceConfig
- * // property ...
- */
-
-/**
- * @typedef {object} MemorySource
- * @property {string} label
- * @property {AudioLoader} audioLoader
- * @property {SourceConfig} [config]
- */
+/** @typedef {import('./typedef.js').MemorySource} MemorySource */
 
 export default class AudioScene extends SceneBase {
 

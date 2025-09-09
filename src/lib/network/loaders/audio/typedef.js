@@ -6,6 +6,13 @@
  */
 
 /**
+ * @typedef {object} MemorySource
+ * @property {string} label
+ * @property {import('./AudioLoader.svelte.js').default} audioLoader
+ * @property {SourceConfig} [config]
+ */
+
+/**
  * @typedef {object} SourceConfig
  * // property ...
  */

@@ -15,6 +15,8 @@ import {
 
 import { waitForState } from '$lib/util/svelte.js';
 
+/** @typedef {import('./typedef.js').SceneLoadingProgress} SceneLoadingProgress */
+
 /**
  * Base class for scene loaders that manage collections of media sources
  */
@@ -28,6 +30,7 @@ export default class SceneBase {
     return this.state === STATE_LOADED;
   });
 
+  /** @type {SceneLoadingProgress} */
   #progress = $derived.by(() => {
     let totalSize = 0;
     let totalBytesLoaded = 0;
@@ -130,9 +133,9 @@ export default class SceneBase {
   /**
    * Extract the loader from a source object
    *
-   * @param {*} source
+   * @param {object} source - Source object
    *
-   * @returns {*} Loader object with progress and state properties
+   * @returns {import('$lib/network/states/index.js').NetworkLoader} loader
    */
   // eslint-disable-next-line no-unused-vars
   getLoaderFromSource(source) {
@@ -171,21 +174,24 @@ export default class SceneBase {
 
   /**
    * Preload all sources with progress tracking and abort capability
-   * - Starts loading and waits for completion
-   * - Supports timeout and progress callbacks
-   * - Returns object with promise and abort function
    *
    * @param {object} [options]
-   * @param {number} [options.timeoutMs=10000] - Timeout in milliseconds
-   * @param {Function} [options.onProgress] - Progress callback function
+   * @param {number} [options.timeoutMs=10000]
+   *   Timeout in milliseconds
+   * @param {(progress: SceneLoadingProgress) => void} [options.onProgress]
+   *   Progress callback function
    *
-   * @returns {object} Object with promise and abort function
-   * @returns {Promise<SceneBase>} returns.promise - Promise that resolves when loaded
-   * @returns {Function} returns.abort - Function to abort preloading
+   * @returns {{promise: Promise<SceneBase>, abort: Function}}
+   *   Object with promise that resolves when loaded and abort function
    */
   preload({ timeoutMs = 10000, onProgress } = {}) {
+
+    /** @type {number|NodeJS.Timeout|null} */
     let timeoutId = null;
+
+    /** @type {number|NodeJS.Timeout|null} */
     let progressIntervalId = null;
+
     let isAborted = false;
 
     const abort = () => {
