@@ -1,5 +1,5 @@
 <script>
-  import { createClientLogger } from '$lib/logging/index.js';
+  import { createClientLogger, DEBUG } from '$lib/logging/index.js';
   import { TextButton } from '$lib/ui/primitives.js';
   import { enhance } from '$app/forms';
   import {
@@ -15,7 +15,7 @@
 
   let { data, form } = $props();
 
-  const logger = createClientLogger('test-logger');
+  const logger = createClientLogger('test-logger', DEBUG);
 
   let clientResults = $state({});
 

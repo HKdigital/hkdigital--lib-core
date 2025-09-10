@@ -1,7 +1,7 @@
 
-import { createServerLogger } from '$lib/logging/index.js';
+import { createServerLogger, DEBUG } from '$lib/logging/index.js';
 
-const logger = createServerLogger('page-server-logger');
+const logger = createServerLogger('page-server-logger', DEBUG);
 
 import {
   throwSimpleError,

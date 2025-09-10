@@ -29,8 +29,7 @@ import { ERROR_NOT_LOADED, ERROR_TRANSFERRED } from './constants.js';
  * - Loaded data can be transferred to an AudioBufferSourceNode
  */
 export default class NetworkLoader {
-  // _state = $state(new LoadingStateMachine());
-  _state = new LoadingStateMachine();
+  _state = $state(new LoadingStateMachine());
 
   state = $derived.by(() => {
     return this._state.current;
@@ -90,34 +89,22 @@ export default class NetworkLoader {
     const state = this._state;
     // const progress = this.progress;
 
-    this._state.onenter = () => {
+    this._state.onenter = (currentState) => {
       switch (state.current) {
         case STATE_LOADING:
           {
-            // console.log('**** NetworkLoader:loading');
             this.#load();
           }
           break;
 
         case STATE_UNLOADING:
           {
-            // console.log('NetworkLoader:unloading');
             this.#unload();
           }
           break;
 
         case STATE_LOADED:
           {
-            // console.debug('NetworkLoader:loaded', $state.snapshot(state));
-
-            // setTimeout(() => {
-            //   console.debug(
-            //     'NetworkLoader:loaded',
-            //     $state.snapshot(state),
-            //     progress
-            //   );
-            // }, 500);
-
             // Abort function is no longer needed
             this._abortLoading = null;
           }
@@ -125,7 +112,6 @@ export default class NetworkLoader {
 
         case STATE_ABORTING:
           {
-            // console.log('NetworkLoader:aborting');
             if (this._abortLoading) {
               this._abortLoading();
               this._abortLoading = null;
@@ -148,7 +134,6 @@ export default class NetworkLoader {
    * Start loading all network data
    */
   load() {
-    // console.debug('NetworkLoader: load() called');
     this._state.send(LOAD);
   }
 
@@ -273,10 +258,7 @@ export default class NetworkLoader {
    */
   async #load() {
     try {
-      // console.log('>>>> NetworkLoader:#load', this._url);
-
       if (this._abortLoading) {
-        // console.log('Abort loading');
         this._abortLoading();
         this._abortLoading = null;
       }
@@ -300,9 +282,6 @@ export default class NetworkLoader {
 
       this._headers = response.headers;
 
-      // console.log('headers', this._headers);
-      // console.log('response', response);
-
       const { bufferPromise, abort: abortLoadBody } = loadResponseBuffer(
         response,
         ({ bytesLoaded, size }) => {
@@ -318,7 +297,11 @@ export default class NetworkLoader {
 
       this._buffer = await bufferPromise;
 
-      // console.debug('#load', this._buffer, this._bytesLoaded);
+      // if (this._size === 0 && this._buffer) {
+      //   // Fallback: if size was unknown (0),
+      //   // => set it to actual buffer size when loaded
+      //   this._size = this._buffer.byteLength;
+      // }
 
       this._state.send(LOADED);
     } catch (e) {

@@ -1,11 +1,11 @@
-import { createServerLogger } from '$lib/logging/index.js';
+import { createServerLogger, DEBUG } from '$lib/logging/index.js';
 
 /** @type {import('$lib/logging/index.js').Logger} */
 let logger;
 
 // Initialize server logging and services
 export async function init() {
-  logger = createServerLogger('app-server-logger');
+  logger = createServerLogger('app-server-logger', DEBUG);
 
   try {
     logger.info('Initializing server');

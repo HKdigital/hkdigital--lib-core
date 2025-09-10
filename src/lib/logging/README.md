@@ -12,13 +12,14 @@ pnpm add -D pino-pretty
 
 ```javascript
 import { createServerLogger,
-         createClientLogger } from '@hkdigital/lib-core/logging/index.js';
+         createClientLogger,
+         DEBUG } from '@hkdigital/lib-core/logging/index.js';
 
 // Server-side logging (uses pino)
-const serverLogger = createServerLogger('app');
+const serverLogger = createServerLogger('app', DEBUG);
 
 // Client-side logging (uses console)
-const clientLogger = createClientLogger('app'); 
+const clientLogger = createClientLogger('app', DEBUG); 
 
 // Log at different levels
 serverLogger.debug('Debug info', { data: 'details' });
@@ -32,13 +33,13 @@ serverLogger.error('Error message', { error: new Error('Something went wrong') }
 ### Server-side logging (src/hooks.server.js)
 
 ```javascript
-import { createServerLogger } from '@hkdigital/lib-core/logging/index.js';
+import { createServerLogger, DEBUG } from '@hkdigital/lib-core/logging/index.js';
 
 let logger;
 
 // Initialize server logging and services
 export async function init() {
-  logger = createServerLogger('server');
+  logger = createServerLogger('server', DEBUG);
   
   try {
     logger.info('Initializing server');

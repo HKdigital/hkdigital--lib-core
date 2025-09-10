@@ -296,10 +296,10 @@ Forward all service log events to a centralised logger:
 
 ```javascript
 import { ServiceManager } from '$lib/services/index.js';
-import { createServerLogger } from '$lib/logging/index.js';
+import { createServerLogger, DEBUG } from '$lib/logging/index.js';
 
 const manager = new ServiceManager();
-const logger = createServerLogger('SystemLogger');
+const logger = createServerLogger('SystemLogger', DEBUG);
 
 // Listen to all log events and forward them to the logger
 const unsubscribe = manager.onLogEvent((logEvent) => {

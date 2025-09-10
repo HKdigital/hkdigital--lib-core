@@ -40,7 +40,7 @@ src/
 ### Server Logging (`src/lib/logging/server.js`)
 
 ```javascript
-import { createServerLogger } from '@hkdigital/lib-core/logging/index.js';
+import { createServerLogger, DEBUG } from '@hkdigital/lib-core/logging/index.js';
 
 /** @typedef {import('$hklib-core/logging/index.js').Logger} Logger */
 
@@ -54,7 +54,7 @@ let logger;
  */
 export function initServerLogger() {
   if (!logger) {
-    logger = createServerLogger('server-logger');
+    logger = createServerLogger('server-logger', DEBUG);
   }
   return logger;
 }
@@ -76,7 +76,7 @@ export function getServerLogger() {
 ### Client Logging (`src/lib/logging/client.js`)
 
 ```javascript
-import { createClientLogger } from '@hkdigital/lib-core/logging/index.js';
+import { createClientLogger, DEBUG } from '@hkdigital/lib-core/logging/index.js';
 
 /** @typedef {import('$hklib-core/logging/index.js').Logger} Logger */
 
@@ -90,7 +90,7 @@ let logger;
  */
 export function initClientLogger() {
   if (!logger) {
-    logger = createClientLogger('client-logger');
+    logger = createClientLogger('client-logger', DEBUG);
   }
   return logger;
 }

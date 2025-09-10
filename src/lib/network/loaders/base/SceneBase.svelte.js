@@ -90,7 +90,7 @@ export default class SceneBase {
     const state = this.#state;
 
     $effect(() => {
-      if (this.#state.current === STATE_LOADING) {
+      if (this.state === STATE_LOADING) {
         const { sourcesLoaded, numberOfSources } = this.#progress;
 
         if (sourcesLoaded === numberOfSources && numberOfSources > 0) {
@@ -100,7 +100,7 @@ export default class SceneBase {
     });
 
     $effect(() => {
-      if (this.#state.current === STATE_ABORTING) {
+      if (this.state === STATE_ABORTING) {
         const { sourcesAborted, numberOfSources } = this.#abortProgress;
 
         if (sourcesAborted === numberOfSources && numberOfSources > 0) {
@@ -289,8 +289,10 @@ export default class SceneBase {
   /* ==== Internal methods */
 
   #startLoading() {
-    for (const source of this.sources) {
+    for (let i = 0; i < this.sources.length; i++) {
+      const source = this.sources[i];
       const loader = this.getLoaderFromSource(source);
+
       loader.load();
     }
   }

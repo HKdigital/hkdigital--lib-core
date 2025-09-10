@@ -30,7 +30,7 @@ export function waitForState(checkFn, maxWaitMs = 1000) {
       }
 
       await tick();
-      checkLoop();
+      setTimeout( checkLoop, 5 );
     }
 
     checkLoop();
