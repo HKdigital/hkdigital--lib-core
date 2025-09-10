@@ -10,7 +10,8 @@ import {
   LOAD,
   LOADED,
   ABORT,
-  ABORTED
+  ABORTED,
+  ERROR
 } from '$lib/state/machines.js';
 
 import { waitForState } from '$lib/util/svelte.js';
@@ -104,6 +105,20 @@ export default class SceneBase {
 
         if (sourcesAborted === numberOfSources && numberOfSources > 0) {
           this.#state.send(ABORTED);
+        }
+      }
+    });
+
+    $effect(() => {
+      if (this.#state.current === STATE_LOADING) {
+        // Check if any source failed during loading
+        const sources = this.sources;
+        for (const source of sources) {
+          const loader = this.getLoaderFromSource(source);
+          if (loader.state === STATE_ERROR) {
+            this.#state.send(ERROR, loader.error || new Error('Source loading failed'));
+            break;
+          }
         }
       }
     });
@@ -253,7 +268,7 @@ export default class SceneBase {
           if (isAborted || this.state === STATE_ABORTED) {
             reject(new Error('Preload was aborted'));
           } else if (this.state === STATE_ERROR) {
-            reject(new Error('Preload failed due to error'));
+            reject(this.#state.error);
           } else if (this.loaded) {
             resolve(this);
           } else {

@@ -147,6 +147,90 @@ describe('AudioScene', () => {
     cleanup();
   });
 
+  it('should handle multiple sources with proper Response object handling', async () => {
+    // Test for the Response reuse bug that causes preload hanging
+    // @ts-ignore - Each fetch call needs a fresh Response object
+    fetch.mockImplementation(() => Promise.resolve(createWavResponse()));
+
+    /** @type {AudioScene} */
+    let audioScene;
+
+    const cleanup = $effect.root(() => {
+      audioScene = new AudioScene();
+
+      // Define multiple sources - this would fail with Response reuse
+      audioScene.defineMemorySource({
+        label: 'sound1',
+        url: 'http://localhost/sound1.wav'
+      });
+      
+      audioScene.defineMemorySource({
+        label: 'sound2', 
+        url: 'http://localhost/sound2.wav'
+      });
+    });
+
+    // Test preload completes successfully for all sources
+    const { promise } = audioScene.preload({ timeoutMs: 1000 });
+    
+    const result = await promise;
+
+    // Verify all sources loaded successfully
+    expect(result).toBe(audioScene);
+    expect(audioScene.loaded).toBe(true);
+    
+    const progress = audioScene.progress;
+    expect(progress.sourcesLoaded).toBe(2);
+    expect(progress.numberOfSources).toBe(2);
+    expect(progress.totalBytesLoaded).toBeGreaterThan(0);
+    
+    cleanup();
+  });
+
+  it('should fail with shared Response objects (demonstrating the bug)', async () => {
+    // This test demonstrates the bug when using shared Response objects
+    const sharedResponse = createWavResponse();
+    // @ts-ignore - Using shared response (this causes the bug)
+    fetch.mockResolvedValue(sharedResponse);
+
+    /** @type {AudioScene} */
+    let audioScene;
+
+    const cleanup = $effect.root(() => {
+      audioScene = new AudioScene();
+
+      audioScene.defineMemorySource({
+        label: 'sound1',
+        url: 'http://localhost/sound1.wav'
+      });
+      
+      audioScene.defineMemorySource({
+        label: 'sound2', 
+        url: 'http://localhost/sound2.wav'
+      });
+    });
+
+    // This should timeout due to Response reuse
+    const { promise } = audioScene.preload({ timeoutMs: 500 });
+    
+    let error;
+    try {
+      await promise;
+    } catch (e) {
+      error = e;
+    }
+
+    // Should fail due to second source unable to read from consumed Response
+    expect(error).toBeDefined();
+    expect(error.message).toContain('timed out');
+    
+    // Only first source should have loaded
+    const progress = audioScene.progress;
+    expect(progress.sourcesLoaded).toBeLessThan(progress.numberOfSources);
+    
+    cleanup();
+  });
+
   it('should detect preload timing issue with reactive state synchronization', async () => {
     // @ts-ignore - Each fetch call needs a fresh Response object
     fetch.mockImplementation(() => Promise.resolve(createWavResponse()));

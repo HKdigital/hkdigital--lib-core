@@ -315,4 +315,79 @@ describe('SceneBase', () => {
 
     cleanup();
   });
+
+  it('should transition to error state when a loader fails', async () => {
+    let scene;
+
+    const cleanup = $effect.root(() => {
+      scene = new TestScene();
+      
+      // Add successful loader
+      const successLoader = createMockLoader();
+      scene.addMockSource('success-source', successLoader);
+      
+      // Add failing loader
+      const failLoader = createMockLoader();
+      failLoader.load = () => {
+        failLoader.setState(STATE_ERROR);
+      };
+      scene.addMockSource('fail-source', failLoader);
+    });
+
+    // Start preload - should fail due to error loader
+    const { promise } = scene.preload({ timeoutMs: 1000 });
+    
+    let error;
+    try {
+      await promise;
+    } catch (e) {
+      error = e;
+    }
+
+    // Scene should be in error state
+    expect(error).toBeDefined();
+    expect(scene.state).toBe(STATE_ERROR);
+    expect(scene.loaded).toBe(false);
+    
+    // Progress should show partial loading
+    const progress = scene.progress;
+    expect(progress.sourcesLoaded).toBe(1); // Only success loader completed
+    expect(progress.numberOfSources).toBe(2);
+    
+    cleanup();
+  });
+
+  it('should handle loader error with error object', async () => {
+    let scene;
+    const testError = new Error('Network connection failed');
+
+    const cleanup = $effect.root(() => {
+      scene = new TestScene();
+      
+      // Add failing loader with specific error
+      const failLoader = createMockLoader();
+      failLoader.error = testError;
+      failLoader.load = () => {
+        failLoader.setState(STATE_ERROR);
+      };
+      scene.addMockSource('fail-source', failLoader);
+    });
+
+    // Start preload - should fail with specific error
+    const { promise } = scene.preload({ timeoutMs: 1000 });
+    
+    let error;
+    try {
+      await promise;
+    } catch (e) {
+      error = e;
+    }
+
+    // Scene should be in error state with correct error
+    expect(error).toBeDefined();
+    expect(scene.state).toBe(STATE_ERROR);
+    expect(error.message).toContain('Network connection failed');
+    
+    cleanup();
+  });
 });

@@ -65,6 +65,7 @@ export default class LoadingStateMachine extends FiniteStateMachine {
       },
       [STATE_ABORTED]: {
         [LOAD]: STATE_LOADING,
+        [LOADED]: STATE_LOADED,
         [UNLOAD]: STATE_UNLOADING
       },
       [STATE_TIMEOUT]: {
