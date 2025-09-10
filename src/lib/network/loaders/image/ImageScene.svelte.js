@@ -6,11 +6,6 @@ import SceneBase from '../base/SceneBase.svelte.js';
 import ImageLoader from './ImageLoader.svelte.js';
 
 /**
- * @typedef {object} SourceConfig
- * // property ...
- */
-
-/**
  * @typedef {object} ImageSceneSource
  * @property {string} label
  * @property {ImageLoader} imageLoader

@@ -23,4 +23,8 @@
  * "2em center"       // Length + keyword
  */
 
+export * from './audio/typedef.js';
+export * from './base/typedef.js';
+export * from './image/typedef.js';
+
 export default {};
