@@ -23,11 +23,11 @@ import { DEBUG, INFO, WARN, ERROR } from '$lib/logging/index.js';
  */
 export function parseServiceLogLevels(configString) {
   if (!configString || typeof configString !== 'string') {
-    /** @type {Object<string, string>} */
+    /** @type {Record<string, LogLevel>} */
     return {};
   }
 
-  /** @type {Object<string, string>} */
+  /** @type {Record<string, LogLevel>} */
   const result = {};
 
   const services = configString.split(',');
@@ -39,7 +39,7 @@ export function parseServiceLogLevels(configString) {
     const parts = trimmed.split(':');
     if (parts.length === 2) {
       const [serviceName, logLevel] = parts;
-      result[serviceName.trim()] = logLevel.trim();
+      result[serviceName.trim()] = /** @type {LogLevel} */ (logLevel.trim());
     }
   }
 

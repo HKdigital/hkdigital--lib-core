@@ -89,20 +89,20 @@ export default class SceneBase {
     const state = this.#state;
 
     $effect(() => {
-      if (state.current === STATE_LOADING) {
+      if (this.#state.current === STATE_LOADING) {
         const { sourcesLoaded, numberOfSources } = this.#progress;
 
-        if (sourcesLoaded === numberOfSources) {
+        if (sourcesLoaded === numberOfSources && numberOfSources > 0) {
           this.#state.send(LOADED);
         }
       }
     });
 
     $effect(() => {
-      if (state.current === STATE_ABORTING) {
+      if (this.#state.current === STATE_ABORTING) {
         const { sourcesAborted, numberOfSources } = this.#abortProgress;
 
-        if (sourcesAborted === numberOfSources) {
+        if (sourcesAborted === numberOfSources && numberOfSources > 0) {
           this.#state.send(ABORTED);
         }
       }

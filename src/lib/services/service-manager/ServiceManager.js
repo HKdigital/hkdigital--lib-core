@@ -130,14 +130,24 @@ export class ServiceManager extends EventEmitter {
     /** @type {Logger} */
     this.logger = new Logger('ServiceManager', managerLogLevel);
 
-    /** @type {ServiceManagerConfig} */
+    /**
+     * @type {{
+     *   debug: boolean,
+     *   autoStart: boolean,
+     *   stopTimeout: number,
+     *   defaultLogLevel: LogLevel,
+     *   managerLogLevel: LogLevel,
+     *   serviceLogLevels?: Record<string,LogLevel>
+     * }}
+     **/
+    // @ts-ignore (managerLogLevel set later)
     this.config = {
       debug: config.debug ?? false,
       autoStart: config.autoStart ?? false,
       stopTimeout: config.stopTimeout || 10000,
       defaultLogLevel
       // managerLogLevel will be set bysetManagerLogLevel()
-      // serviceLogLevels will be set by setServiceLogLevel()
+      // serviceLogLevels will be optionally set by setServiceLogLevel()
     };
 
     this.setManagerLogLevel(managerLogLevel);
@@ -145,7 +155,8 @@ export class ServiceManager extends EventEmitter {
     if (serviceLogLevels) {
       // Parse and store service log levels, but don't apply them yet
       // They will be applied when services are created in get()
-      /** @type {{[name:string]: LogLevel}} */
+
+      /** @type {Record<string,LogLevel>} */
       let parsedServiceLevels = {};
 
       if (typeof serviceLogLevels === 'string') {
@@ -591,7 +602,7 @@ export class ServiceManager extends EventEmitter {
   /**
    * Set log level for the ServiceManager itself
    *
-   * @param {string} level - Log level to set for the ServiceManager
+   * @param {LogLevel} level - Log level to set for the ServiceManager
    */
   setManagerLogLevel(level) {
     this.config.managerLogLevel = level;
@@ -601,7 +612,7 @@ export class ServiceManager extends EventEmitter {
   /**
    * Set log level for individual services
    *
-   * @param {string|Object<string,string>} nameOrConfig
+   * @param {string|Record<string,LogLevel>} nameOrConfig
    *   Service configuration:
    *   - String with service name: 'auth' (requires level parameter)
    *   - String with config: 'auth:debug,database:info'
@@ -609,7 +620,7 @@ export class ServiceManager extends EventEmitter {
    * @param {LogLevel} [level] - Log level (required when nameOrConfig is service name)
    */
   setServiceLogLevel(nameOrConfig, level) {
-    /** @type {{[name:string]: LogLevel}} */
+    /** @type {Record<string,LogLevel>} */
     let serviceLevels = {};
 
     if (typeof nameOrConfig === 'string') {
@@ -630,7 +641,9 @@ export class ServiceManager extends EventEmitter {
       serviceLevels = nameOrConfig;
     }
 
+    // Ensure serviceLogLevels is initialized as an object
     if (!this.config.serviceLogLevels) {
+      /** @type {Record<string,LogLevel>} */
       this.config.serviceLogLevels = {};
     }
 

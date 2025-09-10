@@ -34,6 +34,8 @@
 
 /** @typedef {import('$lib/generic/typedef.js').ErrorDetails} ErrorDetails */
 
+import * as expect from '$lib/util/expect.js';
+
 import { EventEmitter } from '$lib/generic/events.js';
 
 import {
@@ -248,6 +250,8 @@ export default class Logger extends EventEmitter {
    * @param {import('$lib/logging/typedef.js').LogEventData} eventData
    */
   logFromEvent(eventData) {
+    expect.object(eventData);
+
     const level = eventData.level;
 
     // Check if this log level should be filtered

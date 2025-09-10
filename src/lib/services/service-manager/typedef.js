@@ -56,7 +56,7 @@
  * @property {number} [stopTimeout=10000] - Default timeout for stopping services
  * @property {LogLevel} [defaultLogLevel] - Default log level for new services
  * @property {LogLevel} [managerLogLevel] - Initial log level for ServiceManager
- * @property {string|Object<string,LogLevel>} [serviceLogLevels]
+ * @property {string|Record<string,LogLevel>} [serviceLogLevels]
  *   Per-service log levels:
  *   - String: "auth:debug,database:info"
  *   - Object: { auth: "debug", database: "info" }
