@@ -37,7 +37,7 @@ describe('createClientLogger', () => {
   });
 
   it('should create a logger with default INFO level', () => {
-    const logger = createClientLogger('testService');
+    const logger = createClientLogger('testService', INFO);
     
     expect(logger.name).toBe('testService');
     expect(logger.level).toBe(INFO);
@@ -68,7 +68,7 @@ describe('createClientLogger', () => {
   it('should connect adapter to logger events', async () => {
     // @ts-ignore
     const { ConsoleAdapter } = await import('$lib/logging/internal/adapters/console.js');
-    const logger = createClientLogger('testService');
+    const logger = createClientLogger('testService', INFO);
 
     // Get the adapter instance
     // @ts-ignore
@@ -107,7 +107,7 @@ describe('createClientLogger', () => {
   it('should handle log events from child logger', async () => {
     // @ts-ignore
     const { ConsoleAdapter } = await import('$lib/logging/internal/adapters/console.js');
-    const logger = createClientLogger('testService');
+    const logger = createClientLogger('testService', INFO);
 
     // Get the adapter instance
     // @ts-ignore

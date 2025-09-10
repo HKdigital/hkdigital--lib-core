@@ -210,7 +210,7 @@ describe('AudioScene', () => {
       });
     });
 
-    // This should timeout due to Response reuse
+    // This should fail due to Response reuse (fast failure due to error handling)
     const { promise } = audioScene.preload({ timeoutMs: 500 });
     
     let error;
@@ -222,7 +222,8 @@ describe('AudioScene', () => {
 
     // Should fail due to second source unable to read from consumed Response
     expect(error).toBeDefined();
-    expect(error.message).toContain('timed out');
+    expect(error.message).toContain('Source loading failed');
+    expect(audioScene.state).toBe('error');
     
     // Only first source should have loaded
     const progress = audioScene.progress;

@@ -20,7 +20,7 @@ describe('createServerLogger', () => {
   });
 
   it('should create a logger with default INFO level', () => {
-    const logger = createServerLogger('apiService');
+    const logger = createServerLogger('apiService', INFO);
     
     expect(logger.name).toBe('apiService');
     expect(logger.level).toBe(INFO);
@@ -50,7 +50,7 @@ describe('createServerLogger', () => {
   it('should connect adapter to logger events', async () => {
     // @ts-ignore
     const { PinoAdapter } = await import('$lib/logging/internal/adapters/pino.js');
-    const logger = createServerLogger('apiService');
+    const logger = createServerLogger('apiService', INFO);
 
     // Get the adapter instance
     // @ts-ignore
@@ -94,7 +94,7 @@ describe('createServerLogger', () => {
   it('should handle log events from child logger', async () => {
     // @ts-ignore
     const { PinoAdapter } = await import('$lib/logging/internal/adapters/pino.js');
-    const logger = createServerLogger('apiService');
+    const logger = createServerLogger('apiService', INFO);
 
     // Get the adapter instance
     // @ts-ignore
@@ -122,7 +122,7 @@ describe('createServerLogger', () => {
   });
 
   it('should handle multiple child contexts', async () => {
-    const logger = createServerLogger('apiService');
+    const logger = createServerLogger('apiService', INFO);
 
     // Create first child with request context
     const requestLogger = logger.context('request', { requestId: 'req-001' });
