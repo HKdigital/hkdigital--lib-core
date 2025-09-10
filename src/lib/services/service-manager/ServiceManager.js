@@ -86,6 +86,8 @@ import {
   STATE_DESTROYED
 } from '$lib/services/service-base/constants.js';
 
+/** @typedef {import('$lib/logging/typedef.js').LogLevel} LogLevel */
+
 /**
  * @typedef {import('./typedef.js').ServiceConstructor} ServiceConstructor
  * @typedef {import('./typedef.js').ServiceRegistrationOptions} ServiceRegistrationOptions
@@ -141,7 +143,26 @@ export class ServiceManager extends EventEmitter {
     this.setManagerLogLevel(managerLogLevel);
 
     if (serviceLogLevels) {
-      this.setServiceLogLevel(serviceLogLevels);
+      // Parse and store service log levels, but don't apply them yet
+      // They will be applied when services are created in get()
+      /** @type {{[name:string]: LogLevel}} */
+      let parsedServiceLevels = {};
+
+      if (typeof serviceLogLevels === 'string') {
+        if (serviceLogLevels.includes(':')) {
+          // Parse string config: 'auth:debug,database:info'
+          parsedServiceLevels = parseServiceLogLevels(serviceLogLevels);
+        } else {
+          throw new Error(
+            'Service log levels string must include service:level pairs'
+          );
+        }
+      } else {
+        // Object config: { auth: 'debug', database: 'info' }
+        parsedServiceLevels = serviceLogLevels;
+      }
+
+      this.config.serviceLogLevels = parsedServiceLevels;
     }
   }
 
@@ -585,10 +606,10 @@ export class ServiceManager extends EventEmitter {
    *   - String with service name: 'auth' (requires level parameter)
    *   - String with config: 'auth:debug,database:info'
    *   - Object: { auth: 'debug', database: 'info' }
-   * @param {string} [level] - Log level (required when nameOrConfig is service name)
+   * @param {LogLevel} [level] - Log level (required when nameOrConfig is service name)
    */
   setServiceLogLevel(nameOrConfig, level) {
-    /** @type {{[name:string]: string}} */
+    /** @type {{[name:string]: LogLevel}} */
     let serviceLevels = {};
 
     if (typeof nameOrConfig === 'string') {
@@ -617,10 +638,10 @@ export class ServiceManager extends EventEmitter {
     for (const [name, logLevel] of Object.entries(serviceLevels)) {
       this.config.serviceLogLevels[name] = logLevel;
 
-      // Apply to existing instance
-      const instance = this.get(name);
-      if (instance) {
-        instance.setLogLevel(logLevel);
+      // Apply to existing instance if it exists and is registered
+      const entry = this.services.get(name);
+      if (entry?.instance) {
+        entry.instance.setLogLevel(logLevel);
       }
     }
   }

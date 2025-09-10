@@ -519,6 +519,36 @@ describe('ServiceManager', () => {
       expect(instance.setLogLevel).toHaveBeenCalledWith(DEBUG);
       expect(manager.config.serviceLogLevels.serviceA).toBe(DEBUG);
     });
+
+    it('should handle serviceLogLevels in constructor without throwing', () => {
+      // This reproduces the bug where serviceLogLevels in constructor
+      // would throw because services weren't registered yet
+      expect(() => {
+        const testManager = new ServiceManager({
+          serviceLogLevels: 'serviceA:debug,serviceB:info'
+        });
+
+        // Verify the config was stored correctly
+        expect(testManager.config.serviceLogLevels).toEqual({
+          serviceA: 'debug',
+          serviceB: 'info'
+        });
+      }).not.toThrow();
+    });
+
+    it('should apply log levels from constructor when services are created', () => {
+      // Create manager with pre-configured service log levels
+      const testManager = new ServiceManager({
+        serviceLogLevels: { serviceA: 'debug' }
+      });
+
+      // Register and get service
+      testManager.register('serviceA', MockServiceA);
+      const instance = testManager.get('serviceA');
+
+      // Verify the log level was applied when service was created
+      expect(instance.logger.level).toBe('debug');
+    });
   });
 
   describe('Service Tags', () => {

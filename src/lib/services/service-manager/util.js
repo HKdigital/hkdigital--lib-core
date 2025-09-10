@@ -7,13 +7,15 @@
 
 import { DEBUG, INFO, WARN, ERROR } from '$lib/logging/index.js';
 
+/** @typedef {import('$lib/logging/typedef.js').LogLevel} LogLevel */
+
 /**
  * Parse comma-separated service:level configuration string
  *
  * @param {string} configString
  *   Comma-separated string like "auth:debug,database:info,cache:warn"
  *
- * @returns {Object<string, string>} Service name to log level mapping
+ * @returns {Record<string, LogLevel>} Service name to log level mapping
  *
  * @example
  * const config = parseServiceLogLevels("auth:debug,database:info");
