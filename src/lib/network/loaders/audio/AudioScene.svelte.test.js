@@ -232,7 +232,7 @@ describe('AudioScene', () => {
     cleanup();
   });
 
-  it('should detect preload timing issue with reactive state synchronization', async () => {
+  it('should handle reactive state transitions correctly', async () => {
     // @ts-ignore - Each fetch call needs a fresh Response object
     fetch.mockImplementation(() => Promise.resolve(createWavResponse()));
 
@@ -242,7 +242,6 @@ describe('AudioScene', () => {
     const cleanup = $effect.root(() => {
       audioScene = new AudioScene();
 
-      // Define multiple sources to increase chance of timing issues
       audioScene.defineMemorySource({
         label: 'sound1',
         url: 'http://localhost/sound1.wav'
@@ -254,67 +253,19 @@ describe('AudioScene', () => {
       });
     });
 
-    // Track the sequence of state changes
-    const stateLog = [];
-    
-    const logCleanup = $effect.root(() => {
-      $effect(() => {
-        const progress = audioScene.progress;
-        const allLoaded = progress.sourcesLoaded === progress.numberOfSources;
-        
-        if (allLoaded && progress.numberOfSources > 0) {
-          stateLog.push({
-            type: 'progress_complete',
-            timestamp: Date.now(),
-            sourcesLoaded: progress.sourcesLoaded,
-            numberOfSources: progress.numberOfSources
-          });
-        }
-      });
-
-      $effect(() => {
-        if (audioScene.loaded) {
-          stateLog.push({
-            type: 'scene_loaded', 
-            timestamp: Date.now(),
-            state: audioScene.state
-          });
-        }
-      });
-    });
-
-    // Test preload with short timeout to expose timing issue
+    // Test preload completes successfully
     const { promise } = audioScene.preload({ timeoutMs: 1000 });
     
-    let result;
-    let error;
+    const result = await promise;
+
+    // Verify successful completion
+    expect(result).toBe(audioScene);
+    expect(audioScene.loaded).toBe(true);
+    expect(audioScene.state).toBe('loaded');
     
-    try {
-      result = await promise;
-    } catch (e) {
-      error = e;
-    }
-
-    logCleanup();
-    
-    // Analysis: Check if we can detect the timing issue
-    console.log('State change log:', stateLog);
-    console.log('Final progress:', audioScene.progress);
-    console.log('Final loaded state:', audioScene.loaded);
-    console.log('Result:', result ? 'success' : 'failed');
-    console.log('Error:', error?.message);
-
-    const progressComplete = stateLog.find(entry => entry.type === 'progress_complete');
-    const sceneLoaded = stateLog.find(entry => entry.type === 'scene_loaded');
-
-    if (progressComplete && !sceneLoaded && error) {
-      console.log('🚨 TIMING ISSUE DETECTED: Progress complete but scene not loaded');
-      console.log('This confirms the reactive state synchronization delay issue');
-    }
-
-    // For now, just verify the test structure works
-    // The actual timing issue would need to be reproduced with real network delays
-    expect(audioScene).toBeDefined();
+    const progress = audioScene.progress;
+    expect(progress.sourcesLoaded).toBe(2);
+    expect(progress.numberOfSources).toBe(2);
     
     cleanup();
   });
