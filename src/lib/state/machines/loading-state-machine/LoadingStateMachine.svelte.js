@@ -61,11 +61,12 @@ export default class LoadingStateMachine extends FiniteStateMachine {
       },
       [STATE_ABORTING]: {
         [ERROR]: STATE_ERROR,
+        [LOADED]: STATE_LOADED, // A load signal might still come during ABORT
         [ABORTED]: STATE_ABORTED
       },
       [STATE_ABORTED]: {
         [LOAD]: STATE_LOADING,
-        [LOADED]: STATE_LOADED,
+        [LOADED]: STATE_LOADED, // A load signal might still come after ABORT
         [UNLOAD]: STATE_UNLOADING
       },
       [STATE_TIMEOUT]: {

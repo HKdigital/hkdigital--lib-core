@@ -288,10 +288,8 @@ describe('ImageScene', () => {
       return imageScene.state === STATE_ABORTED;
     });
 
-    // Test abort progress calculation
-    const abortProgress = imageScene.abortProgress;
-    expect(abortProgress.sourcesAborted).toEqual(1);
-    expect(abortProgress.numberOfSources).toEqual(1);
+    // Verify abort completed successfully
+    expect(imageScene.state).toEqual(STATE_ABORTED);
 
     cleanup();
   });

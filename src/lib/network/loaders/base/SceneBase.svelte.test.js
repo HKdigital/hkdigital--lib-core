@@ -132,9 +132,6 @@ describe('SceneBase', () => {
       scene.addMockSource('source2', loader2);
       scene.addMockSource('source3', loader3);
 
-      const abortProgress = scene.abortProgress;
-      expect(abortProgress.sourcesAborted).toEqual(2);
-      expect(abortProgress.numberOfSources).toEqual(3);
     });
 
     cleanup();
@@ -151,7 +148,6 @@ describe('SceneBase', () => {
       expect(typeof scene.destroy).toEqual('function');
       expect(typeof scene.preload).toEqual('function');
       expect(typeof scene.progress).toEqual('object');
-      expect(typeof scene.abortProgress).toEqual('object');
     });
 
     cleanup();

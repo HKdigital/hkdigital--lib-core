@@ -45,6 +45,9 @@ export default class FiniteStateMachine extends EventEmitter {
   /** @type {boolean} */
   #enableConsoleWarnings = !isTestEnv;
 
+  /** @type {boolean} */
+  #isTransitioning = false;
+
   /**
    * Constructor
    *
@@ -81,21 +84,27 @@ export default class FiniteStateMachine extends EventEmitter {
     /** @type {TransitionData} */
     const transition = { from: this.#current, to: newState, event, args };
 
-    // Call onexit callback before leaving current state
-    this.onexit?.(this.#current, transition);
+    this.#isTransitioning = true;
 
-    // Emit EXIT event for external listeners
-    this.emit(EXIT, { state: this.#current, transition });
+    try {
+      // Call onexit callback before leaving current state
+      this.onexit?.(this.#current, transition);
 
-    this.#executeAction('_exit', transition);
-    this.#current = newState;
-    this.#executeAction('_enter', transition);
+      // Emit EXIT event for external listeners
+      this.emit(EXIT, { state: this.#current, transition });
 
-    // Emit ENTER event for external listeners
-    this.emit(ENTER, { state: newState, transition });
+      this.#executeAction('_exit', transition);
+      this.#current = newState;
+      this.#executeAction('_enter', transition);
 
-    // Call onenter callback after state change
-    this.onenter?.(newState, transition);
+      // Emit ENTER event for external listeners
+      this.emit(ENTER, { state: newState, transition });
+
+      // Call onenter callback after state change
+      this.onenter?.(newState, transition);
+    } finally {
+      this.#isTransitioning = false;
+    }
   }
 
   /**
@@ -147,6 +156,15 @@ export default class FiniteStateMachine extends EventEmitter {
    * @param {any[]} args
    */
   send(event, ...args) {
+    if (this.#isTransitioning) {
+      throw new Error(
+        `Cannot send event '${event}' while state machine is transitioning. ` +
+        `This indicates a re-entrant call from within onenter, onexit, or ` +
+        `lifecycle callbacks (_enter/_exit). Consider using setTimeout() to ` +
+        `defer the event or restructure to avoid nested state transitions.`
+      );
+    }
+
     const newState = this.#executeAction(event, ...args);
 
     if (newState && newState !== this.#current) {

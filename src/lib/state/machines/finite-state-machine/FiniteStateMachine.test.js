@@ -417,3 +417,124 @@ describe('FiniteStateMachine - EventEmitter Integration', () => {
     );
   });
 });
+
+describe('FiniteStateMachine - Transition Guards', () => {
+  it('should prevent re-entrant send() calls during transition', () => {
+    const machine = new FiniteStateMachine('idle', {
+      idle: { start: 'loading' },
+      loading: { complete: 'loaded' },
+      loaded: {}
+    });
+
+    // Set up onenter callback that tries to send another event
+    machine.onenter = (state) => {
+      if (state === 'loading') {
+        // This should throw an error
+        expect(() => {
+          machine.send('complete');
+        }).toThrow('Cannot send event \'complete\' while state machine is transitioning');
+      }
+    };
+
+    // This should not throw (the send inside onenter should be caught)
+    expect(() => {
+      machine.send('start');
+    }).not.toThrow();
+
+    // Machine should be in 'loading' state (not 'loaded')
+    expect(machine.current).toBe('loading');
+  });
+
+  it('should prevent re-entrant send() calls during _enter lifecycle', () => {
+    let enterCallbackRan = false;
+
+    const machine = new FiniteStateMachine('idle', {
+      idle: { start: 'loading' },
+      loading: {
+        _enter: () => {
+          enterCallbackRan = true;
+          // This should throw an error
+          expect(() => {
+            machine.send('complete');
+          }).toThrow('Cannot send event \'complete\' while state machine is transitioning');
+        },
+        complete: 'loaded'
+      },
+      loaded: {}
+    });
+
+    machine.send('start');
+
+    expect(enterCallbackRan).toBe(true);
+    expect(machine.current).toBe('loading'); // Should not have transitioned to 'loaded'
+  });
+
+  it('should prevent re-entrant send() calls during onexit callback', () => {
+    let exitCallbackRan = false;
+
+    const machine = new FiniteStateMachine('idle', {
+      idle: { start: 'loading' },
+      loading: { complete: 'loaded' },
+      loaded: {}
+    });
+
+    machine.onexit = (state) => {
+      if (state === 'idle') {
+        exitCallbackRan = true;
+        // This should throw an error
+        expect(() => {
+          machine.send('complete');
+        }).toThrow('Cannot send event \'complete\' while state machine is transitioning');
+      }
+    };
+
+    machine.send('start');
+
+    expect(exitCallbackRan).toBe(true);
+    expect(machine.current).toBe('loading'); // Should be in target state
+  });
+
+  it('should allow send() calls after transition is complete', () => {
+    const machine = new FiniteStateMachine('idle', {
+      idle: { start: 'loading' },
+      loading: { complete: 'loaded' },
+      loaded: {}
+    });
+
+    machine.onenter = (state) => {
+      if (state === 'loading') {
+        // Schedule send for after current transition completes
+        setTimeout(() => {
+          expect(() => {
+            machine.send('complete');
+          }).not.toThrow();
+          expect(machine.current).toBe('loaded');
+        }, 0);
+      }
+    };
+
+    machine.send('start');
+    expect(machine.current).toBe('loading');
+  });
+
+  it('should provide helpful error message with suggestions', () => {
+    const machine = new FiniteStateMachine('idle', {
+      idle: { start: 'loading' },
+      loading: { complete: 'loaded' },
+      loaded: {}
+    });
+
+    machine.onenter = (state) => {
+      if (state === 'loading') {
+        try {
+          machine.send('complete');
+        } catch (error) {
+          expect(error.message).toContain('Cannot send event \'complete\'');
+          expect(error.message).toContain('while state machine is transitioning');
+        }
+      }
+    };
+
+    machine.send('start');
+  });
+});

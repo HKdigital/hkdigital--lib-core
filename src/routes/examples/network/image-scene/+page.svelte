@@ -51,6 +51,8 @@
         loadingStatus = 'Preloading...';
         const result = await promise;
         
+        // Update progress one final time with actual scene progress
+        progress = imageScene.progress;
         loadingStatus = 'Preload complete!';
         console.log('Preload successful:', result);
         
@@ -119,8 +121,11 @@
     
     {#if progress}
       <div class="mb-12bt">
-        <p class="type-base-sm">Progress: {progress.sourcesLoaded}/{progress.numberOfSources} sources</p>
-        <p class="type-base-sm">Bytes: {progress.totalBytesLoaded}/{progress.totalSize}</p>
+        <p class="type-base-sm">Progress: {progress.sourcesLoaded}/{progress.numberOfSources} sources loaded</p>
+        <p class="type-base-sm">Data: {progress.totalBytesLoaded.toLocaleString()} / {progress.totalSize.toLocaleString()} bytes</p>
+        {#if progress.sourcesLoaded === progress.numberOfSources && progress.numberOfSources > 0}
+          <p class="type-base-sm text-success-600">✓ All sources loaded successfully</p>
+        {/if}
       </div>
     {/if}
     

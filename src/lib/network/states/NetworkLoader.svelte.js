@@ -29,19 +29,33 @@ import { ERROR_NOT_LOADED, ERROR_TRANSFERRED } from './constants.js';
  * - Loaded data can be transferred to an AudioBufferSourceNode
  */
 export default class NetworkLoader {
-  _state = $state(new LoadingStateMachine());
+  #state = $state(new LoadingStateMachine());
 
-  state = $derived.by(() => {
-    return this._state.current;
-  });
+  // state = $derived.by(() => {
+  //   return this.#state.current;
+  // });
+
+  // initial = $derived.by(() => {
+  //   return this.#state.current === STATE_INITIAL;
+  // });
+
+  // loaded = $derived.by(() => {
+  //   return this.#state.current === STATE_LOADED;
+  // });
+
+  state = $state(STATE_INITIAL);
 
   initial = $derived.by(() => {
-    return this._state.current === STATE_INITIAL;
+    return this.state === STATE_INITIAL;
   });
 
   loaded = $derived.by(() => {
-    return this._state.current === STATE_LOADED;
+    return this.state === STATE_LOADED;
   });
+
+  // aborted = $derived.by(() => {
+  //   return this.state === STATE_ABORTED;
+  // });
 
   /** @type {string|null} */
   _url = null;
@@ -86,11 +100,10 @@ export default class NetworkLoader {
 
     this._url = url;
 
-    const state = this._state;
-    // const progress = this.progress;
+    this.#state.onenter = (currentState) => {
+      this.state = currentState;
 
-    this._state.onenter = (currentState) => {
-      switch (state.current) {
+      switch (currentState) {
         case STATE_LOADING:
           {
             this.#load();
@@ -116,8 +129,17 @@ export default class NetworkLoader {
               this._abortLoading();
               this._abortLoading = null;
             }
-            // Transition to aborted state after abort completes
-            this._state.send(ABORTED);
+
+            //
+            // _abortLoading has been called (is set)
+            // => Transition to state ABORTED (deferred to avoid re-entrant call)
+            //
+            setTimeout(() => {
+              // Only transition to ABORTED if still in ABORTING state
+              if (this.#state.current === STATE_ABORTING) {
+                this.#state.send(ABORTED);
+              }
+            }, 0);
           }
           break;
 
@@ -134,14 +156,14 @@ export default class NetworkLoader {
    * Start loading all network data
    */
   load() {
-    this._state.send(LOAD);
+    this.#state.send(LOAD);
   }
 
   /**
    * Unoad all network data
    */
   unload() {
-    this._state.send(UNLOAD);
+    this.#state.send(UNLOAD);
   }
 
   /**
@@ -150,7 +172,7 @@ export default class NetworkLoader {
    * - Aborts network requests and transitions to STATE_ABORTING
    */
   abort() {
-    this._state.send(ABORT);
+    this.#state.send(ABORT);
   }
 
   /**
@@ -303,9 +325,9 @@ export default class NetworkLoader {
       //   this._size = this._buffer.byteLength;
       // }
 
-      this._state.send(LOADED);
+      this.#state.send(LOADED);
     } catch (e) {
-      this._state.send(ERROR, e);
+      this.#state.send(ERROR, e);
     }
   }
 
@@ -325,9 +347,9 @@ export default class NetworkLoader {
       this._headers = null;
       this._buffer = null;
 
-      this._state.send(INITIAL);
+      this.#state.send(INITIAL);
     } catch (e) {
-      this._state.send(ERROR, e);
+      this.#state.send(ERROR, e);
     }
   }
 } // end class

@@ -27,12 +27,22 @@ export default class SceneBase {
   // @note this exported state is set by onenter
   state = $state(STATE_INITIAL);
 
+  initial = $derived.by(() => {
+    return this.state === STATE_INITIAL;
+  });
+
   loaded = $derived.by(() => {
     return this.state === STATE_LOADED;
   });
 
+  // aborted = $derived.by(() => {
+  //   return this.state === STATE_ABORTED;
+  // });
+
+
+
   /** @type {SceneLoadingProgress} */
-  #progress = $derived.by(() => {
+  progress = $derived.by(() => {
     let totalSize = 0;
     let totalBytesLoaded = 0;
     let sourcesLoaded = 0;
@@ -62,68 +72,12 @@ export default class SceneBase {
     };
   });
 
-  #abortProgress = $derived.by(() => {
-    let sourcesAborted = 0;
-    const sources = this.sources;
-    const numberOfSources = sources.length;
-
-    for (let j = 0; j < numberOfSources; j++) {
-      const source = sources[j];
-      const loader = this.getLoaderFromSource(source);
-      const loaderState = loader.state;
-
-      if (loaderState === STATE_ABORTED || loaderState === STATE_ERROR) {
-        sourcesAborted++;
-      }
-    }
-
-    return {
-      sourcesAborted,
-      numberOfSources
-    };
-  });
 
   /**
    * Construct SceneBase
    */
   constructor() {
-    const state = this.#state;
-
-    $effect(() => {
-      if (this.state === STATE_LOADING) {
-        const { sourcesLoaded, numberOfSources } = this.#progress;
-
-        if (sourcesLoaded === numberOfSources && numberOfSources > 0) {
-          this.#state.send(LOADED);
-        }
-      }
-    });
-
-    $effect(() => {
-      if (this.state === STATE_ABORTING) {
-        const { sourcesAborted, numberOfSources } = this.#abortProgress;
-
-        if (sourcesAborted === numberOfSources && numberOfSources > 0) {
-          this.#state.send(ABORTED);
-        }
-      }
-    });
-
-    $effect(() => {
-      if (this.#state.current === STATE_LOADING) {
-        // Check if any source failed during loading
-        const sources = this.sources;
-        for (const source of sources) {
-          const loader = this.getLoaderFromSource(source);
-          if (loader.state === STATE_ERROR) {
-            this.#state.send(ERROR, loader.error || new Error('Source loading failed'));
-            break;
-          }
-        }
-      }
-    });
-
-    state.onenter = (currentState) => {
+    this.#state.onenter = (currentState) => {
       if (currentState === STATE_LOADING) {
         this.#startLoading();
       } else if (currentState === STATE_ABORTING) {
@@ -132,7 +86,35 @@ export default class SceneBase {
 
       this.state = currentState;
     };
-  }
+
+    $effect(() => {
+      if (this.state === STATE_LOADING) {
+        const { sourcesLoaded, numberOfSources } = this.progress;
+
+        if (sourcesLoaded === numberOfSources && numberOfSources > 0) {
+          this.#state.send(LOADED);
+        }
+      }
+    });
+
+
+    $effect(() => {
+      if (this.state === STATE_LOADING) {
+
+        // Check if any source failed during loading
+        const sources = this.sources;
+
+        for (const source of sources) {
+          const loader = this.getLoaderFromSource(source);
+          if (loader.state === STATE_ERROR) {
+            this.#state.send(ERROR, loader.error || new Error('Source loading failed'));
+            break;
+          }
+        }
+      }
+
+    });
+  } // end constructor
 
   /* ==== Abstract methods - must be implemented by subclasses */
 
@@ -158,20 +140,6 @@ export default class SceneBase {
   }
 
   /* ==== Common loader interface */
-
-  /**
-   * Get scene loading progress
-   */
-  get progress() {
-    return this.#progress;
-  }
-
-  /**
-   * Get scene abort progress
-   */
-  get abortProgress() {
-    return this.#abortProgress;
-  }
 
   /**
    * Start loading all sources
@@ -302,5 +270,13 @@ export default class SceneBase {
       const loader = this.getLoaderFromSource(source);
       loader.abort();
     }
+    
+    // Defer ABORTED transition to avoid re-entrant state machine calls
+    setTimeout(() => {
+      // Only transition to ABORTED if still in ABORTING state
+      if (this.#state.current === STATE_ABORTING) {
+        this.#state.send(ABORTED);
+      }
+    }, 0);
   }
 }
