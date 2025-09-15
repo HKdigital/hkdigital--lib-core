@@ -71,6 +71,7 @@
   data-component="icon"
   data-type="steeze"
   data-size={size}
+  data-variant={variant}
   {...icon?.a}
   xmlns="http://www.w3.org/2000/svg"
   class="{base} {classes}"
