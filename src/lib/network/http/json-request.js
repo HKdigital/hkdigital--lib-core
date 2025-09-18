@@ -165,6 +165,7 @@ export async function jsonPost(options) {
   // Apply JSON-specific defaults and validation
   expect.defined(body);
 
+  /** @type {Record<string, string>} */
   const jsonHeaders = headers || {};
   jsonHeaders[ACCEPT] = APPLICATION_JSON;
   jsonHeaders[CONTENT_TYPE] = APPLICATION_JSON;

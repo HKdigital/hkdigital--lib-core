@@ -7,7 +7,7 @@
  *   Parameters to add to the URL
  *
  * @property {*} [body] Request body (for POST, PUT, etc.)
- * @property {Object} [headers] HTTP headers as name-value pairs
+ * @property {Record<string, string>} [headers] HTTP headers as name-value pairs
  * @property {boolean} [withCredentials] Whether to include credentials
  * @property {number} [timeoutMs] Request timeout in milliseconds
  * @property {Function} [requestHandler] Handler for abort/timeout control
@@ -41,7 +41,7 @@
  * @property {Object|URLSearchParams} [urlSearchParams]
  *   Parameters to add to the URL
  *
- * @property {Object} [headers] HTTP headers as name-value pairs
+ * @property {Record<string, string>} [headers] HTTP headers as name-value pairs
  * @property {boolean} [withCredentials] Whether to include credentials
  * @property {number} [timeoutMs] Request timeout in milliseconds
  * @property {RequestHandler} [requestHandler] Handler for abort/timeout control
@@ -60,7 +60,7 @@
  * @property {Object|URLSearchParams} [urlSearchParams]
  *   Parameters to add to the URL
  *
- * @property {Object} [headers] HTTP headers as name-value pairs
+ * @property {Record<string, string>} [headers] HTTP headers as name-value pairs
  * @property {boolean} [withCredentials] Whether to include credentials
  * @property {number} [timeoutMs] Request timeout in milliseconds
  * @property {RequestHandler} [requestHandler] Handler for abort/timeout control

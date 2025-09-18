@@ -23,11 +23,12 @@
    * theme - name of the icon theme (e.g. 'solid' or 'outline')
    *
    * @type {{
-   *   src: import('./typedef.js').IconSource,
-   *   size?: string,
-   *   theme?: string,
    *   base?: string,
    *   classes?: string
+   *   size?: string,
+   *   variant?: string,
+   *   src: import('./typedef.js').IconSource,
+   *   theme?: string,
    * } & { [attr: string]: any }}
    */
   let {

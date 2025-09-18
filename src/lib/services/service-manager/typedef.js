@@ -64,13 +64,15 @@
 
 /**
  * Result of health check for all services
- * @typedef {Object<string, import('../service-base/typedef.js').HealthStatus>} HealthCheckResult
+ * @typedef {Object<string,
+ *   import('../service-base/typedef.js').HealthStatus>} HealthCheckResult
  */
 
 /**
  * Service class constructor type
  *
- * @typedef {new (name: string, options?: import('../service-base/typedef.js').ServiceOptions) => import('../service-base/typedef.js').ServiceInstance} ServiceConstructor
+ * @typedef {new (name: string, options?: import('../service-base/typedef.js').ServiceOptions)
+ *   => import('../service-base/typedef.js').ServiceInstance} ServiceConstructor
  */
 
 /**
@@ -81,7 +83,9 @@
  * @property {import('./ServiceManager.js').ServiceManager|null} manager - ServiceManager reference
  * @property {function(import('./ServiceManager.js').ServiceManager): void} attach - Attach to ServiceManager
  * @property {function(): void} detach - Detach from ServiceManager
- * @property {function(string, ServiceEntry, *): Promise<*|undefined>} [resolveServiceConfig] - Optional config resolution method
+ * @property {function(string,
+ *   ServiceEntry<import('../service-base/typedef.js').ServiceInstance>, *
+ * ): Promise<*|undefined>} [resolveServiceConfig] - Optional config resolution
  */
 
 // ============================================================================
@@ -92,9 +96,10 @@
  * Internal service registry entry, an internal registry entry that the
  * ServiceManager uses to track each registered service.
  *
+ * @template {import('../service-base/typedef.js').ServiceInstance} T
  * @typedef {Object} ServiceEntry
- * @property {ServiceConstructor} ServiceClass - Service class constructor
- * @property {import('../service-base/typedef.js').ServiceInstance|null} instance - Service instance (lazy-created)
+ * @property {new (name: string, options?: *) => T} ServiceClass - Service class constructor
+ * @property {T|null} instance - Service instance (lazy-created)
  * @property {ServiceConfigOrLabel} serviceConfigOrLabel
  * @property {string[]} dependencies
  * @property {Set<string>} dependents - Services that depend on this service

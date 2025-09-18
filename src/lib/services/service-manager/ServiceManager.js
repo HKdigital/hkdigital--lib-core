@@ -258,10 +258,10 @@ export class ServiceManager extends EventEmitter {
   /**
    * Get or create a service instance
    *
+   * @template {import('../service-base/typedef.js').ServiceInstance} T
    * @param {string} name - Service name
    *
-   * @returns {import('../service-base/typedef.js').ServiceInstance|null}
-   *   Service instance or null if not found
+   * @returns {T|null} Service instance or null if not found
    */
   get(name) {
     // @throws service not found

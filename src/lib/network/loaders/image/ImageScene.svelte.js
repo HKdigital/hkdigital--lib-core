@@ -42,7 +42,6 @@ export default class ImageScene extends SceneBase {
    *
    * @returns {ImageLoader}
    */
-  // eslint-disable-next-line no-unused-vars
   getLoaderFromSource(source) {
     return source.imageLoader;
   }
