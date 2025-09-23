@@ -53,8 +53,7 @@
  * Options for creating a service instance
  *
  * @typedef {Object} ServiceOptions
- * @property {string} [logLevel] - Initial log level for the service
- * @property {number} [shutdownTimeout=5000] - Timeout for graceful shutdown
+ * @property {import('../service-manager/ServiceManager.js').default} manager
  */
 
 /**

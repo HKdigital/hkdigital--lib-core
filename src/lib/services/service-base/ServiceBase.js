@@ -93,9 +93,10 @@ export class ServiceBase extends EventEmitter {
    * Create a new service instance
    *
    * @param {string} name - Service name
-   * @param {import('./typedef.js').ServiceOptions} [options={}] - Service options
+   * @param {import('./typedef.js').ServiceOptions} options
    */
-  constructor(name, options = {}) {
+  // eslint-disable-next-line no-unused-vars
+  constructor(name, options) {
     super();
 
     if( typeof name !== 'string' )
@@ -119,10 +120,13 @@ export class ServiceBase extends EventEmitter {
     this.error = null;
 
     /** @type {Logger} */
-    this.logger = new Logger(name, options.logLevel || INFO);
+    this.logger = new Logger(name, INFO);
+    // this.logger = new Logger(name, options.logLevel || INFO);
 
     /** @private @type {number} */
-    this._shutdownTimeout = options.shutdownTimeout || 5000;
+    // this._shutdownTimeout = options.shutdownTimeout || 5000;
+
+    // this.manager = options.manager;
   }
 
   /**

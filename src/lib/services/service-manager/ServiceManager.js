@@ -269,7 +269,9 @@ export class ServiceManager extends EventEmitter {
 
     if (!entry.instance) {
       try {
-        entry.instance = new entry.ServiceClass(name);
+        const options = { manager: this };
+
+        entry.instance = new entry.ServiceClass(name, options);
 
         // Apply log level
         const logLevel = this.#getServiceLogLevel(name);
