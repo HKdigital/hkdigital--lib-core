@@ -175,6 +175,46 @@ describe('ServiceManager', () => {
     });
   });
 
+  describe('getService (strict access)', () => {
+    it('should return service instance when found', () => {
+      manager.register('serviceA', MockServiceA);
+      
+      const instance = manager.getService('serviceA');
+      
+      expect(instance).toBeInstanceOf(MockServiceA);
+      expect(instance.name).toBe('serviceA');
+    });
+
+    it('should throw error for unregistered service', () => {
+      expect(() => {
+        manager.getService('unknown');
+      }).toThrow("Service [unknown] has not been registered");
+    });
+
+    it('should throw error when service creation fails', () => {
+      class FailingService extends ServiceBase {
+        constructor() {
+          throw new Error('Constructor failed');
+        }
+      }
+
+      manager.register('failing', FailingService);
+      
+      expect(() => {
+        manager.getService('failing');
+      }).toThrow('Service [failing] not found or could not be created');
+    });
+
+    it('should return same instance as get() when successful', () => {
+      manager.register('serviceA', MockServiceA);
+      
+      const instance1 = manager.get('serviceA');
+      const instance2 = manager.getService('serviceA');
+      
+      expect(instance1).toBe(instance2);
+    });
+  });
+
   describe('Service Lifecycle', () => {
     beforeEach(() => {
       manager.register('serviceA', MockServiceA, { configA: true });
