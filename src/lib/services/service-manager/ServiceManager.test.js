@@ -141,6 +141,20 @@ describe('ServiceManager', () => {
       expect(instance1).toBe(instance2);
     });
 
+    it('should pass manager reference in options', () => {
+      class TestService extends ServiceBase {
+        constructor(name, options) {
+          super(name, options);
+          this.receivedManager = options.manager;
+        }
+      }
+
+      manager.register('testService', TestService);
+      const instance = manager.get('testService');
+
+      expect(instance.receivedManager).toBe(manager);
+    });
+
     it('should throw error for unregistered services', () => {
       expect(() => {
         manager.get('unknown');
@@ -157,7 +171,7 @@ describe('ServiceManager', () => {
       manager.register('failing', FailingService);
       const instance = manager.get('failing');
 
-      expect(instance).toBeNull();
+      expect(instance).toBeUndefined();
     });
   });
 

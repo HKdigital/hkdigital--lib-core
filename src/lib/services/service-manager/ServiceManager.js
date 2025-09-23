@@ -261,7 +261,7 @@ export class ServiceManager extends EventEmitter {
    * @template {import('../service-base/typedef.js').ServiceInstance} T
    * @param {string} name - Service name
    *
-   * @returns {T|null} Service instance or null if not found
+   * @returns {T|undefined} Service instance or undefined if not found
    */
   get(name) {
     // @throws service not found
@@ -288,7 +288,7 @@ export class ServiceManager extends EventEmitter {
           `Failed to create instance for '${name}'`,
           /** @type {Error} */ (error)
         );
-        return null;
+        return undefined;
       }
     }
 
