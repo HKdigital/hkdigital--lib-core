@@ -54,6 +54,8 @@
  *
  * @typedef {Object} ServiceOptions
  * @property {import('../service-manager/ServiceManager.js').default} manager
+ * @property {import('$lib/logging/typedef.js').LogLevel} [logLevel] - Initial log level for the service
+ * @property {number} [shutdownTimeout=5000] - Timeout for graceful shutdown
  */
 
 /**
