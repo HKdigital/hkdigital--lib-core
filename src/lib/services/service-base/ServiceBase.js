@@ -93,7 +93,7 @@ export class ServiceBase extends EventEmitter {
    * Create a new service instance
    *
    * @param {string} name - Service name
-   * @param {import('./typedef.js').ServiceOptions} options
+   * @param {import('./typedef.js').ServiceOptions} [options]
    */
   // eslint-disable-next-line no-unused-vars
   constructor(name, options) {
