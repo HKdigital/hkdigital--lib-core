@@ -141,18 +141,39 @@ describe('ServiceManager', () => {
       expect(instance1).toBe(instance2);
     });
 
-    it('should pass manager reference in options', () => {
+    it('should pass getManager function in options', () => {
       class TestService extends ServiceBase {
         constructor(name, options) {
           super(name, options);
-          this.receivedManager = options.manager;
+          this.getManager = options.getManager;
         }
       }
 
       manager.register('testService', TestService);
       const instance = manager.get('testService');
 
-      expect(instance.receivedManager).toBe(manager);
+      expect(typeof instance.getManager).toBe('function');
+      expect(instance.getManager()).toBe(manager);
+    });
+
+    it('should pass getService function in options', () => {
+      class TestService extends ServiceBase {
+        constructor(name, options) {
+          super(name, options);
+          this.getService = options.getService;
+        }
+      }
+
+      manager.register('testService', TestService);
+      manager.register('otherService', MockServiceA);
+      
+      const instance = manager.get('testService');
+
+      expect(typeof instance.getService).toBe('function');
+      
+      // Test that bound getService works
+      const otherService = instance.getService('otherService');
+      expect(otherService).toBeInstanceOf(MockServiceA);
     });
 
     it('should throw error for unregistered services', () => {

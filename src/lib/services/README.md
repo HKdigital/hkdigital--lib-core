@@ -199,6 +199,56 @@ const health = await manager.checkHealth();
 await manager.stopAll();
 ```
 
+### Service Access Patterns
+
+Services receive helpful utilities in their constructor options for accessing other services:
+
+```javascript
+class AuthService extends ServiceBase {
+  constructor(serviceName, options) {
+    super(serviceName, options);
+    
+    // Store service access utilities
+    this.getManager = options.getManager;   // Function to get manager (lazy)
+    this.getService = options.getService;   // Bound getService function
+  }
+  
+  async authenticateUser(credentials) {
+    // Access other services with full type safety and error checking
+    const database = this.getService('database');
+    const user = await database.findUser(credentials.username);
+    
+    // Access manager for advanced operations
+    const manager = this.getManager();
+    const health = await manager.checkHealth();
+    
+    return user;
+  }
+}
+```
+
+**Service Access Methods:**
+
+```javascript
+// ServiceManager provides two access patterns:
+
+// 1. Permissive - returns undefined if not found/created
+const service = manager.get('optional-service');
+if (service) {
+  // Use service safely
+}
+
+// 2. Strict - throws error if not found/created  
+const service = manager.getService('required-service'); // Throws if missing
+```
+
+**Benefits of constructor utilities:**
+
+- **Lightweight** - Functions don't serialize, keeping services serialization-safe
+- **Lazy access** - Manager is only accessed when needed
+- **Type safety** - Full generic support with `getService<DatabaseService>('database')`
+- **Error handling** - Clear errors when services are missing
+
 ### Service Registration
 
 ```javascript

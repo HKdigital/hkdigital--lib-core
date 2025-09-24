@@ -269,7 +269,10 @@ export class ServiceManager extends EventEmitter {
 
     if (!entry.instance) {
       try {
-        const options = { manager: this };
+        const options = { 
+          getManager: () => this,
+          getService: this.getService.bind(this)
+        };
 
         entry.instance = new entry.ServiceClass(name, options);
 
