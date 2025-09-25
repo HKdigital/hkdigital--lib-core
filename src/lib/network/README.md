@@ -27,6 +27,85 @@ const result = await jsonRequest('https://api.example.com/users', {
 });
 ```
 
+### HTTP Methods
+
+Convenient methods for common HTTP operations:
+
+```javascript
+import { 
+  httpGet, 
+  httpPost, 
+  httpPut, 
+  httpPatch, 
+  httpDelete 
+} from '$lib/network/http.js';
+
+// GET request
+const response = await httpGet({ url: '/api/users' });
+const data = await response.text();
+
+// POST request with form data
+const formResponse = await httpPost({
+  url: '/api/users',
+  body: new FormData(form)
+});
+
+// PUT request with custom headers
+const putResponse = await httpPut({
+  url: '/api/users/123',
+  body: 'raw data',
+  headers: { 'Content-Type': 'text/plain' }
+});
+
+// PATCH request
+const patchResponse = await httpPatch({
+  url: '/api/users/123',
+  body: JSON.stringify({ status: 'active' }),
+  headers: { 'Content-Type': 'application/json' }
+});
+
+// DELETE request
+const deleteResponse = await httpDelete({ url: '/api/users/123' });
+```
+
+### JSON HTTP Methods
+
+Convenient methods for common JSON API operations:
+
+```javascript
+import { 
+  jsonGet, 
+  jsonPost, 
+  jsonPut, 
+  jsonPatch, 
+  jsonDelete 
+} from '$lib/network/http.js';
+
+// GET request for JSON data
+const users = await jsonGet({ url: '/api/users' });
+
+// POST request with JSON body
+const newUser = await jsonPost({
+  url: '/api/users',
+  body: JSON.stringify({ name: 'Jane', email: 'jane@example.com' })
+});
+
+// PUT request to update resource
+const updatedUser = await jsonPut({
+  url: '/api/users/123',
+  body: JSON.stringify({ name: 'Jane Smith' })
+});
+
+// PATCH request for partial updates
+const patchedUser = await jsonPatch({
+  url: '/api/users/123', 
+  body: JSON.stringify({ email: 'newemail@example.com' })
+});
+
+// DELETE request
+const result = await jsonDelete({ url: '/api/users/123' });
+```
+
 ### URL Utilities
 
 ```javascript
@@ -128,7 +207,9 @@ class CustomLoader extends NetworkLoader {
 
 ### HTTP (`$lib/network/http.js`)
 - `httpRequest()` - Make HTTP requests with configuration
-- `jsonRequest()` - Make JSON API requests  
+- `httpGet()`, `httpPost()`, `httpPut()`, `httpPatch()`, `httpDelete()` - Convenient HTTP methods
+- `jsonRequest()` - Make JSON API requests
+- `jsonGet()`, `jsonPost()`, `jsonPut()`, `jsonPatch()`, `jsonDelete()` - Convenient JSON HTTP methods
 - `toURL()` - Convert strings to URL objects with params
 - `setRequestHeaders()` - Set and merge request headers
 - `waitForAndCheckResponse()` - Handle responses with error checking
