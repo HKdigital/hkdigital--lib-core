@@ -204,25 +204,76 @@ await manager.stopAll();
 Services receive helpful utilities in their constructor options for accessing other services:
 
 ```javascript
+/**
+ * Example service that depends on other services
+ */
 class AuthService extends ServiceBase {
+  /** @type {(<T>(serviceName: string) => T)} */
+  #getService;
+
+  /** @type {() => import('$hklib-core/services/index.js').ServiceManager} */
+  #getManager;
+
   constructor(serviceName, options) {
     super(serviceName, options);
     
-    // Store service access utilities
-    this.getManager = options.getManager;   // Function to get manager (lazy)
-    this.getService = options.getService;   // Bound getService function
+    // Store service access utilities as private methods
+    this.#getService = options.getService;   // Bound getService function
+    this.#getManager = options.getManager;   // Function to get manager (lazy)
   }
   
   async authenticateUser(credentials) {
     // Access other services with full type safety and error checking
-    const database = this.getService('database');
+    const database = this.#getService('database');
     const user = await database.findUser(credentials.username);
     
-    // Access manager for advanced operations
-    const manager = this.getManager();
+    // Access manager for advanced operations when needed
+    const manager = this.#getManager();
     const health = await manager.checkHealth();
     
     return user;
+  }
+}
+```
+
+**Best Practice Pattern:**
+
+The recommended approach is to store service access functions as **private methods** using the hash prefix. This pattern:
+
+- **Keeps the API clean** - No public getService/getManager methods exposed
+- **Prevents serialization issues** - Private fields don't serialize to JSON
+- **Enforces proper encapsulation** - Service dependencies stay internal
+- **Provides type safety** - Full generic support with `this.#getService<DatabaseService>('database')`
+
+```javascript
+/**
+ * Unified service for tracking complete player data including progress and 
+ * profile matches
+ */
+export default class PlayerService extends ServiceBase {
+  
+  /** @type {(<T>(serviceName: string) => T)} */
+  #getService;
+
+  /**
+   * @param {string} serviceName
+   * @param {import('$hklib-core/services/typedef.js').ServiceOptions} [options]
+   */
+  constructor(serviceName, options) {
+    super(serviceName, options);
+
+    this.#getService = options?.getService;
+  }
+
+  async getPlayerProfile(playerId) {
+    // Access dependent services cleanly
+    const database = this.#getService('database');
+    const analytics = this.#getService('analytics');
+    
+    const profile = await database.getPlayer(playerId);
+    const stats = await analytics.getPlayerStats(playerId);
+    
+    return { ...profile, stats };
   }
 }
 ```
