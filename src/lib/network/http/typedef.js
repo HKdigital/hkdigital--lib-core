@@ -72,6 +72,62 @@
  */
 
 /**
+ * @typedef {Object} JsonPutOptions
+ * @property {string|URL} url URL string or URL object for the request
+ * @property {*} body Request body (will be sent as JSON)
+ *
+ * @property {Object|URLSearchParams} [urlSearchParams]
+ *   Parameters to add to the URL
+ *
+ * @property {Record<string, string>} [headers] HTTP headers as name-value pairs
+ * @property {boolean} [withCredentials] Whether to include credentials
+ * @property {number} [timeoutMs] Request timeout in milliseconds
+ * @property {RequestHandler} [requestHandler] Handler for abort/timeout control
+ * @property {string} [mode] CORS mode ('cors', 'no-cors', 'same-origin')
+ * @property {string} [cache] Cache mode ('default', 'no-cache', etc.)
+ * @property {string} [redirect] Redirect mode ('follow', 'error', 'manual')
+ * @property {string} [referrerPolicy] Referrer policy
+ * @property {boolean} [cacheEnabled] Enable or disabled automatic caching
+ */
+
+/**
+ * @typedef {Object} JsonPatchOptions
+ * @property {string|URL} url URL string or URL object for the request
+ * @property {*} body Request body (will be sent as JSON)
+ *
+ * @property {Object|URLSearchParams} [urlSearchParams]
+ *   Parameters to add to the URL
+ *
+ * @property {Record<string, string>} [headers] HTTP headers as name-value pairs
+ * @property {boolean} [withCredentials] Whether to include credentials
+ * @property {number} [timeoutMs] Request timeout in milliseconds
+ * @property {RequestHandler} [requestHandler] Handler for abort/timeout control
+ * @property {string} [mode] CORS mode ('cors', 'no-cors', 'same-origin')
+ * @property {string} [cache] Cache mode ('default', 'no-cache', etc.)
+ * @property {string} [redirect] Redirect mode ('follow', 'error', 'manual')
+ * @property {string} [referrerPolicy] Referrer policy
+ * @property {boolean} [cacheEnabled] Enable or disabled automatic caching
+ */
+
+/**
+ * @typedef {Object} JsonDeleteOptions
+ * @property {string|URL} url URL string or URL object for the request
+ *
+ * @property {Object|URLSearchParams} [urlSearchParams]
+ *   Parameters to add to the URL
+ *
+ * @property {Record<string, string>} [headers] HTTP headers as name-value pairs
+ * @property {boolean} [withCredentials] Whether to include credentials
+ * @property {number} [timeoutMs] Request timeout in milliseconds
+ * @property {RequestHandler} [requestHandler] Handler for abort/timeout control
+ * @property {string} [mode] CORS mode ('cors', 'no-cors', 'same-origin')
+ * @property {string} [cache] Cache mode ('default', 'no-cache', etc.')
+ * @property {string} [redirect] Redirect mode ('follow', 'error', 'manual')
+ * @property {string} [referrerPolicy] Referrer policy
+ * @property {boolean} [cacheEnabled] Enable or disabled automatic caching
+ */
+
+/**
  * @typedef {Object} StaleInfo
  * @property {boolean} isStale Whether the response contains stale data
  *
