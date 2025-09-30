@@ -144,3 +144,51 @@ export function castJwtError(error) {
   // Return original error if not a known JWT error
   return error;
 }
+
+/**
+ * Decodes the payload of a JSON Web Token without verification
+ *
+ * @param {string} token - A JSON Web Token
+ *
+ * @returns {object} claims - The decoded JWT payload
+ */
+export function decodePayload(token) {
+  expect.notEmptyString(token);
+
+  const firstDot = token.indexOf('.');
+
+  if (firstDot === -1) {
+    throw new Error(
+      'Invalid token, missing [.] token as payload start indicator'
+    );
+  }
+
+  const lastDot = token.lastIndexOf('.');
+
+  if (lastDot === firstDot) {
+    throw new Error(
+      'Invalid token, missing second [.] token as payload end indicator'
+    );
+  }
+
+  const payload = token.slice(firstDot + 1, lastDot);
+
+  return JSON.parse(atob(payload));
+}
+
+/**
+ * Returns the "exp" (expiresAt) property of a token as UTC string
+ *
+ * @param {object} token - Decoded JWT payload/claims
+ *
+ * @returns {string|null} "expires at" as UTC string or null if no exp claim
+ */
+export function expiresAtUTC(token) {
+  expect.object(token);
+
+  if ('exp' in token) {
+    return new Date(1000 * token.exp).toUTCString();
+  }
+
+  return null;
+}

@@ -6,4 +6,6 @@
  * @property {boolean} outputIntermediateNodes
  */
 
+export * from './util/typedef.js';
+
 export default {};

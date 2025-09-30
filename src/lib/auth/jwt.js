@@ -3,7 +3,7 @@
  *
  * @description
  * This module provides a clean API for JWT operations including signing,
- * verifying tokens, and generating secret keys.
+ * verifying tokens, decoding payloads, and generating secret keys.
  */
 
 export * from './jwt/util.js';

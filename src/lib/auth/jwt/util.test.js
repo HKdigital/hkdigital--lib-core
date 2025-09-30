@@ -4,7 +4,7 @@ import { TokenExpiredError as JwtTokenExpiredError,
          JsonWebTokenError as JwtJsonWebTokenError,
          NotBeforeError as JwtNotBeforeError }  from 'jsonwebtoken';
 
-import { castJwtError, sign, verify } from './util.js';
+import { castJwtError, sign, verify, decodePayload, expiresAtUTC } from './util.js';
 
 import {
   TokenExpiredError,
@@ -205,5 +205,128 @@ describe('castJwtError', () => {
     const result = castJwtError(notAnError);
     
     expect(result).toBe(notAnError);
+  });
+});
+
+describe('decodePayload', () => {
+  const secret = 'test-secret-key';
+  const payload = { userId: 123, username: 'testuser' };
+  let validToken;
+
+  beforeAll(() => {
+    validToken = sign(payload, secret);
+  });
+
+  it('should decode JWT payload without verification', () => {
+    const decoded = decodePayload(validToken);
+
+    expect(decoded.userId).toBe(123);
+    expect(decoded.username).toBe('testuser');
+    expect(typeof decoded.exp).toBe('number');
+    expect(typeof decoded.iat).toBe('number');
+  });
+
+  it('should decode expired token payload without error', () => {
+    const expiredToken = sign(payload, secret, { expiresIn: '1ms' });
+    
+    // Should decode even if expired (no verification)
+    const decoded = decodePayload(expiredToken);
+    expect(decoded.userId).toBe(123);
+  });
+
+  it('should decode token with wrong secret without error', () => {
+    const tokenWithWrongSecret = sign(payload, 'wrong-secret');
+    
+    // Should decode regardless of secret (no verification)
+    const decoded = decodePayload(tokenWithWrongSecret);
+    expect(decoded.userId).toBe(123);
+  });
+
+  it('should throw error for invalid token format - no dots', () => {
+    expect(() => decodePayload('invalidtoken')).toThrow(
+      'Invalid token, missing [.] token as payload start indicator'
+    );
+  });
+
+  it('should throw error for invalid token format - only one dot', () => {
+    expect(() => decodePayload('header.payload')).toThrow(
+      'Invalid token, missing second [.] token as payload end indicator'
+    );
+  });
+
+  it('should throw error for empty token', () => {
+    expect(() => decodePayload('')).toThrow();
+    expect(() => decodePayload(null)).toThrow();
+    expect(() => decodePayload(undefined)).toThrow();
+  });
+
+  it('should throw error for malformed base64 payload', () => {
+    const malformedToken = 'header.invalid-base64!.signature';
+    expect(() => decodePayload(malformedToken)).toThrow();
+  });
+
+  it('should throw error for non-JSON payload', () => {
+    // Create a token with non-JSON payload
+    const invalidPayload = btoa('not-json-content');
+    const malformedToken = `header.${invalidPayload}.signature`;
+    expect(() => decodePayload(malformedToken)).toThrow();
+  });
+});
+
+describe('expiresAtUTC', () => {
+  it('should convert exp timestamp to UTC string', () => {
+    const token = { exp: 1672531200 }; // 2023-01-01 00:00:00 UTC
+    const result = expiresAtUTC(token);
+
+    expect(result).toBe('Sun, 01 Jan 2023 00:00:00 GMT');
+  });
+
+  it('should return null when no exp claim', () => {
+    const token = { userId: 123, username: 'testuser' };
+    const result = expiresAtUTC(token);
+
+    expect(result).toBeNull();
+  });
+
+  it('should handle exp value of 0', () => {
+    const token = { exp: 0 }; // Unix epoch
+    const result = expiresAtUTC(token);
+
+    expect(result).toBe('Thu, 01 Jan 1970 00:00:00 GMT');
+  });
+
+  it('should handle future exp timestamp', () => {
+    const futureTimestamp = Math.floor(Date.now() / 1000) + 3600; // 1 hour from now
+    const token = { exp: futureTimestamp };
+    const result = expiresAtUTC(token);
+
+    expect(typeof result).toBe('string');
+    expect(result).toContain('GMT');
+  });
+
+  it('should throw error for invalid token parameter', () => {
+    expect(() => expiresAtUTC(null)).toThrow();
+    expect(() => expiresAtUTC(undefined)).toThrow();
+    expect(() => expiresAtUTC('not-an-object')).toThrow();
+    expect(() => expiresAtUTC(123)).toThrow();
+  });
+
+  it('should handle empty object', () => {
+    const token = {};
+    const result = expiresAtUTC(token);
+
+    expect(result).toBeNull();
+  });
+
+  it('should work with decoded token from decodePayload', () => {
+    const secret = 'test-secret-key';
+    const originalPayload = { userId: 123 };
+    const token = sign(originalPayload, secret, { expiresIn: 1672531200 });
+    
+    const decoded = decodePayload(token);
+    const expiresAt = expiresAtUTC(decoded);
+
+    expect(typeof expiresAt).toBe('string');
+    expect(expiresAt).toContain('GMT');
   });
 });
