@@ -2,8 +2,6 @@
 
 import * as expect from '$lib/util/expect.js';
 
-import IterableTree from '../classes/IterableTree.js';
-
 /* ------------------------------------------------------------------ Exports */
 
 /**
@@ -11,11 +9,10 @@ import IterableTree from '../classes/IterableTree.js';
  *
  * @template {object} T
  * @param {import('./typedef.js').FlatTree<T>} flatTree - Flat tree data
- * @param {import('./typedef.js').FlatTreeOptions} [options] - Configuration
  *
  * @returns {T|null} reconstructed hierarchical tree or null
  */
-export function buildTree(flatTree, options = {}) {
+export function buildTree(flatTree) {
   expect.object(flatTree);
 
   const { format, properties, nodes, edges } = flatTree;
@@ -83,14 +80,11 @@ export function buildTree(flatTree, options = {}) {
  *
  * @template {object} T
  * @param {T} hierarchicalTree - Hierarchical tree with nested children
- * @param {import('./typedef.js').FlatTreeOptions} [options] - Configuration
  *
  * @returns {import('./typedef.js').FlatTree<T>} flat tree data
  */
-export function flattenTree(hierarchicalTree, options = {}) {
+export function flattenTree(hierarchicalTree) {
   expect.object(hierarchicalTree);
-
-  const { childrenKey = 'children' } = options;
 
   /** @type {T[]} */
   const nodes = [];
@@ -106,7 +100,7 @@ export function flattenTree(hierarchicalTree, options = {}) {
 
   // First pass: collect all child-containing properties
   const childProperties = new Set();
-  findChildProperties(hierarchicalTree, childProperties, childrenKey);
+  findChildProperties(hierarchicalTree, childProperties);
 
   // Add root node (always index 0)
   const rootCopy = extractNodeData(hierarchicalTree, childProperties);
@@ -168,15 +162,9 @@ function extractNodeData(node, propertiesToRemove) {
  *
  * @param {object} node - Node to analyze
  * @param {Set<string>} childProperties - Set to collect property names
- * @param {string} childrenKey - Primary children property name
  */
-function findChildProperties(node, childProperties, childrenKey) {
-  // Always include the main children key if it exists
-  if (node[childrenKey] && Array.isArray(node[childrenKey])) {
-    childProperties.add(childrenKey);
-  }
-
-  // Find other array properties that contain objects
+function findChildProperties(node, childProperties) {
+  // Find array properties that contain objects (potential children)
   for (const [key, value] of Object.entries(node)) {
     if (Array.isArray(value) && value.length > 0) {
       // Check if array contains objects (potential children)
@@ -188,12 +176,12 @@ function findChildProperties(node, childProperties, childrenKey) {
   }
 
   // Recursively check child nodes
-  for (const key of childProperties) {
+  for (const key of [...childProperties]) {  // Copy set to avoid modification during iteration
     const children = node[key];
     if (Array.isArray(children)) {
       for (const child of children) {
         if (child && typeof child === 'object') {
-          findChildProperties(child, childProperties, childrenKey);
+          findChildProperties(child, childProperties);
         }
       }
     }
