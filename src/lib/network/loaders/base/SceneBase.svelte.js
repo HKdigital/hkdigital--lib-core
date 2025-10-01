@@ -64,11 +64,24 @@ export default class SceneBase {
       }
     }
 
+    let percentageLoaded;
+    if (totalSize > 0) {
+      // Byte-based progress
+      percentageLoaded = Math.round((totalBytesLoaded / totalSize) * 100);
+    } else if (numberOfSources > 0) {
+      // Source-based progress
+      percentageLoaded = Math.round((sourcesLoaded / numberOfSources) * 100);
+    } else {
+      // No sources to load
+      percentageLoaded = 0;
+    }
+
     return {
       totalBytesLoaded,
       totalSize,
       sourcesLoaded,
-      numberOfSources
+      numberOfSources,
+      percentageLoaded
     };
   });
 
@@ -201,7 +214,7 @@ export default class SceneBase {
       // Set up progress tracking with polling
       if (onProgress) {
         progressIntervalId = setInterval(() => {
-          if (!isAborted) {
+          if (!isAborted && this.state === STATE_LOADING) {
             const currentProgress = this.progress;
             lastSentProgress = currentProgress;
             onProgress(currentProgress);
@@ -234,17 +247,16 @@ export default class SceneBase {
           }
 
           if (progressIntervalId) {
+            clearInterval(progressIntervalId);
+            progressIntervalId = null;
+            
             if (onProgress) {
               const finalProgress = this.progress;
-              // Only send final update if progress has changed
-              if (!lastSentProgress || 
-                  finalProgress.sourcesLoaded !== lastSentProgress.sourcesLoaded ||
-                  finalProgress.totalBytesLoaded !== lastSentProgress.totalBytesLoaded) {
+              // Always send final progress when loading completes
+              if (this.loaded) {
                 onProgress(finalProgress);
               }
             }
-            clearInterval(progressIntervalId);
-            progressIntervalId = null;
           }
 
           if (isAborted || this.state === STATE_ABORTED) {

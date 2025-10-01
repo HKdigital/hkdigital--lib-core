@@ -88,6 +88,7 @@ describe('SceneBase', () => {
       expect(progress.totalSize).toEqual(0);
       expect(progress.sourcesLoaded).toEqual(0);
       expect(progress.numberOfSources).toEqual(0);
+      expect(progress.percentageLoaded).toEqual(0);
     });
 
     cleanup();
@@ -113,6 +114,7 @@ describe('SceneBase', () => {
       expect(progress.totalSize).toEqual(250);
       expect(progress.sourcesLoaded).toEqual(1);
       expect(progress.numberOfSources).toEqual(2);
+      expect(progress.percentageLoaded).toEqual(30); // 75/250 = 30%
     });
 
     cleanup();
@@ -349,6 +351,7 @@ describe('SceneBase', () => {
     const progress = scene.progress;
     expect(progress.sourcesLoaded).toBe(1); // Only success loader completed
     expect(progress.numberOfSources).toBe(2);
+    expect(progress.percentageLoaded).toBe(50); // 1/2 sources = 50%
     
     cleanup();
   });
@@ -384,6 +387,49 @@ describe('SceneBase', () => {
     expect(scene.state).toBe(STATE_ERROR);
     expect(error.message).toContain('Network connection failed');
     
+    cleanup();
+  });
+
+  it('should calculate percentageLoaded correctly - byte-based vs source-based', () => {
+    let scene;
+
+    const cleanup = $effect.root(() => {
+      scene = new TestScene();
+
+      // Test byte-based percentage (when totalSize > 0)
+      const loader1 = createMockLoader();
+      loader1.setProgress({ bytesLoaded: 30, size: 100, loaded: false });
+      
+      const loader2 = createMockLoader();
+      loader2.setProgress({ bytesLoaded: 70, size: 100, loaded: true });
+
+      scene.addMockSource('source1', loader1);
+      scene.addMockSource('source2', loader2);
+
+      let progress = scene.progress;
+      expect(progress.totalSize).toEqual(200);
+      expect(progress.totalBytesLoaded).toEqual(100);
+      expect(progress.percentageLoaded).toEqual(50); // 100/200 = 50%
+
+      // Test source-based percentage (when totalSize = 0)
+      scene = new TestScene();
+      
+      const loader3 = createMockLoader();
+      loader3.setProgress({ bytesLoaded: 0, size: 0, loaded: true });
+      
+      const loader4 = createMockLoader();
+      loader4.setProgress({ bytesLoaded: 0, size: 0, loaded: false });
+
+      scene.addMockSource('source3', loader3);
+      scene.addMockSource('source4', loader4);
+
+      progress = scene.progress;
+      expect(progress.totalSize).toEqual(0);
+      expect(progress.sourcesLoaded).toEqual(1);
+      expect(progress.numberOfSources).toEqual(2);
+      expect(progress.percentageLoaded).toEqual(50); // 1/2 = 50%
+    });
+
     cleanup();
   });
 });

@@ -4,6 +4,7 @@
  * @property {number} totalSize - Total size across all sources
  * @property {number} sourcesLoaded - Number of sources fully loaded
  * @property {number} numberOfSources - Total number of sources
+ * @property {number} percentageLoaded - Loading percentage (0-100)
  */
 
 export default {};
