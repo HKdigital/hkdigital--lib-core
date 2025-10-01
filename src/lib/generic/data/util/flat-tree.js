@@ -4,6 +4,8 @@ import * as expect from '$lib/util/expect.js';
 
 /* ------------------------------------------------------------------ Exports */
 
+export const FORMAT_FT1 = 'ft1';
+
 /**
  * Build a hierarchical tree from ft1 flat tree format
  *
@@ -17,8 +19,8 @@ export function buildTree(flatTree) {
 
   const { format, properties, nodes, edges } = flatTree;
 
-  if (format !== 'ft1') {
-    throw new Error(`Unsupported format: ${format}. Expected 'ft1'`);
+  if (format !== FORMAT_FT1) {
+    throw new Error(`Unsupported format: ${format}.`);
   }
 
   if (!nodes || !nodes.length) {
@@ -34,7 +36,7 @@ export function buildTree(flatTree) {
   }
 
   // Create copies of all nodes to avoid mutating original data
-  const nodesCopy = nodes.map(node => ({ ...node }));
+  const nodesCopy = nodes.map((node) => ({ ...node }));
 
   // Process edges in groups of 3: [from, prop, to]
   for (let i = 0; i < edges.length; i += 3) {
@@ -44,7 +46,9 @@ export function buildTree(flatTree) {
 
     // Validate indices
     if (fromIndex >= nodesCopy.length || toIndex >= nodesCopy.length) {
-      throw new Error(`Invalid node index in edge [${fromIndex}, ${propIndex}, ${toIndex}]`);
+      throw new Error(
+        `Invalid node index in edge [${fromIndex}, ${propIndex}, ${toIndex}]`
+      );
     }
 
     if (propIndex >= properties.length) {
@@ -88,13 +92,19 @@ export function flattenTree(hierarchicalTree) {
 
   /** @type {T[]} */
   const nodes = [];
-  
+
   /** @type {number[]} */
-  const edges = [];
-  
+  const edgeFrom = [];
+
+  /** @type {string[]} */
+  const edgePropertyNames = [];
+
+  /** @type {number[]} */
+  const edgeTo = [];
+
   /** @type {Set<string>} */
   const propertySet = new Set();
-  
+
   /** @type {WeakMap<object, number>} */
   const objectToIndex = new WeakMap();
 
@@ -104,7 +114,7 @@ export function flattenTree(hierarchicalTree) {
 
   // Add root node (always index 0)
   const rootCopy = extractNodeData(hierarchicalTree, childProperties);
-  nodes.push(rootCopy);
+  nodes.push( /** @type {T} */ (rootCopy) );
   objectToIndex.set(hierarchicalTree, 0);
 
   // Process children recursively
@@ -112,7 +122,9 @@ export function flattenTree(hierarchicalTree) {
     hierarchicalTree,
     0,
     nodes,
-    edges,
+    edgeFrom,
+    edgePropertyNames,
+    edgeTo,
     propertySet,
     objectToIndex,
     childProperties
@@ -121,14 +133,19 @@ export function flattenTree(hierarchicalTree) {
   // Convert property set to sorted array for consistent output
   const properties = Array.from(propertySet).sort();
 
-  // Convert property names to indices in edges array
-  for (let i = 1; i < edges.length; i += 3) {
-    const propertyName = /** @type {string} */ (edges[i]);
-    edges[i] = properties.indexOf(propertyName);
+  // Build final edges array with property indices
+  /** @type {number[]} */
+  const edges = [];
+  for (let i = 0; i < edgeFrom.length; i++) {
+    edges.push(
+      edgeFrom[i],
+      properties.indexOf(edgePropertyNames[i]),
+      edgeTo[i]
+    );
   }
 
   return /** @type {import('./typedef.js').FlatTree<T>} */ ({
-    format: 'ft1',
+    format: FORMAT_FT1,
     properties,
     nodes,
     edges
@@ -140,10 +157,10 @@ export function flattenTree(hierarchicalTree) {
 /**
  * Extract node data excluding children properties
  *
- * @param {object} node - Source node
+ * @param {Record<string,any>} node - Source node
  * @param {Set<string>} propertiesToRemove - Set of property names to remove
  *
- * @returns {object} node data without children properties
+ * @returns {Record<string,any>} node data without children properties
  */
 function extractNodeData(node, propertiesToRemove) {
   /** @type {any} */
@@ -160,7 +177,7 @@ function extractNodeData(node, propertiesToRemove) {
 /**
  * Find all properties that contain child objects
  *
- * @param {object} node - Node to analyze
+ * @param {Record<string,any>} node - Node to analyze
  * @param {Set<string>} childProperties - Set to collect property names
  */
 function findChildProperties(node, childProperties) {
@@ -168,7 +185,7 @@ function findChildProperties(node, childProperties) {
   for (const [key, value] of Object.entries(node)) {
     if (Array.isArray(value) && value.length > 0) {
       // Check if array contains objects (potential children)
-      const hasObjects = value.some(item => item && typeof item === 'object');
+      const hasObjects = value.some((item) => item && typeof item === 'object');
       if (hasObjects) {
         childProperties.add(key);
       }
@@ -176,7 +193,8 @@ function findChildProperties(node, childProperties) {
   }
 
   // Recursively check child nodes
-  for (const key of [...childProperties]) {  // Copy set to avoid modification during iteration
+  for (const key of [...childProperties]) {
+    // Copy set to avoid modification during iteration
     const children = node[key];
     if (Array.isArray(children)) {
       for (const child of children) {
@@ -191,31 +209,65 @@ function findChildProperties(node, childProperties) {
 /**
  * Recursively process children for ft1 format
  *
- * @param {object} parentNode - Parent node with children
+ * @param {Record<string,any>} parentNode - Parent node with children
  * @param {number} parentIndex - Parent node index
  * @param {object[]} nodes - Nodes array to populate
- * @param {(number|string)[]} edges - Edges array to populate (mixed types temporarily)
+ * @param {number[]} edgeFrom - From node indices
+ * @param {string[]} edgePropertyNames - Property names
+ * @param {number[]} edgeTo - To node indices
  * @param {Set<string>} propertySet - Set of property names
  * @param {WeakMap<object, number>} objectToIndex - Map of objects to indices
  * @param {Set<string>} childProperties - Set of all child-containing properties
  */
-function processChildrenFt1(parentNode, parentIndex, nodes, edges, propertySet, objectToIndex, childProperties) {
+function processChildrenFt1(
+  parentNode,
+  parentIndex,
+  nodes,
+  edgeFrom,
+  edgePropertyNames,
+  edgeTo,
+  propertySet,
+  objectToIndex,
+  childProperties
+) {
   // Process all child-containing properties
   for (const property of childProperties) {
     const children = parentNode[property];
-    
+
     if (!children) {
       continue;
     }
-    
+
     if (Array.isArray(children)) {
       for (const child of children) {
         if (child && typeof child === 'object') {
-          processChildFt1(child, parentIndex, property, nodes, edges, propertySet, objectToIndex, childProperties);
+          processChildFt1(
+            child,
+            parentIndex,
+            property,
+            nodes,
+            edgeFrom,
+            edgePropertyNames,
+            edgeTo,
+            propertySet,
+            objectToIndex,
+            childProperties
+          );
         }
       }
     } else if (children && typeof children === 'object') {
-      processChildFt1(children, parentIndex, property, nodes, edges, propertySet, objectToIndex, childProperties);
+      processChildFt1(
+        children,
+        parentIndex,
+        property,
+        nodes,
+        edgeFrom,
+        edgePropertyNames,
+        edgeTo,
+        propertySet,
+        objectToIndex,
+        childProperties
+      );
     }
   }
 }
@@ -223,16 +275,29 @@ function processChildrenFt1(parentNode, parentIndex, nodes, edges, propertySet, 
 /**
  * Process a single child node for ft1 format
  *
- * @param {object} child - Child node
+ * @param {Record<string,any>} child - Child node
  * @param {number} parentIndex - Parent node index
  * @param {string} property - Property name where this child belongs
- * @param {object[]} nodes - Nodes array to populate
- * @param {(number|string)[]} edges - Edges array to populate (mixed types temporarily)
+ * @param {Record<string,any>[]} nodes - Nodes array to populate
+ * @param {number[]} edgeFrom - From node indices
+ * @param {string[]} edgePropertyNames - Property names
+ * @param {number[]} edgeTo - To node indices
  * @param {Set<string>} propertySet - Set of property names
  * @param {WeakMap<object, number>} objectToIndex - Map of objects to indices
  * @param {Set<string>} childProperties - Set of all child-containing properties
  */
-function processChildFt1(child, parentIndex, property, nodes, edges, propertySet, objectToIndex, childProperties) {
+function processChildFt1(
+  child,
+  parentIndex,
+  property,
+  nodes,
+  edgeFrom,
+  edgePropertyNames,
+  edgeTo,
+  propertySet,
+  objectToIndex,
+  childProperties
+) {
   if (!child || typeof child !== 'object') {
     return;
   }
@@ -242,7 +307,7 @@ function processChildFt1(child, parentIndex, property, nodes, edges, propertySet
 
   // Check if we've seen this object before
   let childIndex = objectToIndex.get(child);
-  
+
   if (childIndex === undefined) {
     // First time seeing this object - add it to nodes
     childIndex = nodes.length;
@@ -251,11 +316,23 @@ function processChildFt1(child, parentIndex, property, nodes, edges, propertySet
     objectToIndex.set(child, childIndex);
   }
 
-  // Add edge (temporarily store property name as string, will convert to index later)
-  edges.push(parentIndex, property, childIndex);
-  
+  // Add edge using separate arrays
+  edgeFrom.push(parentIndex);
+  edgePropertyNames.push(property);
+  edgeTo.push(childIndex);
+
   // If this is a new object, recursively process its children
   if (objectToIndex.get(child) === childIndex) {
-    processChildrenFt1(child, childIndex, nodes, edges, propertySet, objectToIndex, childProperties);
+    processChildrenFt1(
+      child,
+      childIndex,
+      nodes,
+      edgeFrom,
+      edgePropertyNames,
+      edgeTo,
+      propertySet,
+      objectToIndex,
+      childProperties
+    );
   }
 }

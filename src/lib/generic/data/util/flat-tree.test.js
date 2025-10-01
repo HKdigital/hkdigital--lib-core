@@ -25,7 +25,7 @@ describe('buildTree', () => {
     };
     
     expect(() => buildTree(flatTree)).toThrow(
-      "Unsupported format: unknown. Expected 'ft1'"
+      "Unsupported format: unknown."
     );
   });
 
@@ -247,7 +247,7 @@ describe('flattenTree', () => {
     });
   });
 
-  it('should handle custom childrenKey option', () => {
+  it('should auto-detect child properties', () => {
     const hierarchicalTree = {
       _id: 'root',
       name: 'Root',
@@ -256,7 +256,7 @@ describe('flattenTree', () => {
       ]
     };
     
-    const result = flattenTree(hierarchicalTree, { childrenKey: 'items' });
+    const result = flattenTree(hierarchicalTree);
     
     expect(result).toEqual({
       format: 'ft1',
