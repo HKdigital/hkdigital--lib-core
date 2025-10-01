@@ -176,6 +176,9 @@ export default class SceneBase {
     let progressIntervalId = null;
 
     let isAborted = false;
+    
+    /** @type {SceneLoadingProgress|null} */
+    let lastSentProgress = null;
 
     const abort = () => {
       if (isAborted) return;
@@ -199,7 +202,9 @@ export default class SceneBase {
       if (onProgress) {
         progressIntervalId = setInterval(() => {
           if (!isAborted) {
-            onProgress(this.progress);
+            const currentProgress = this.progress;
+            lastSentProgress = currentProgress;
+            onProgress(currentProgress);
           }
         }, 50); // Poll every 50ms
       }
@@ -229,6 +234,15 @@ export default class SceneBase {
           }
 
           if (progressIntervalId) {
+            if (onProgress) {
+              const finalProgress = this.progress;
+              // Only send final update if progress has changed
+              if (!lastSentProgress || 
+                  finalProgress.sourcesLoaded !== lastSentProgress.sourcesLoaded ||
+                  finalProgress.totalBytesLoaded !== lastSentProgress.totalBytesLoaded) {
+                onProgress(finalProgress);
+              }
+            }
             clearInterval(progressIntervalId);
             progressIntervalId = null;
           }
