@@ -292,7 +292,7 @@ class DragState {
 
         const entry = this.getDraggableById(draggableId);
 
-        console.debug('getDraggable', draggableId, entry);
+        // console.debug('getDraggable', draggableId, entry);
 
         return entry;
       }
