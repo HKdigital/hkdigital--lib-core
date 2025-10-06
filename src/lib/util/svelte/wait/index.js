@@ -1,5 +1,7 @@
 import { tick } from 'svelte';
 
+import { TimeoutError } from '$lib/generic/errors.js';
+
 /**
  * Waits for a state condition to be met by running the checkFn
  * function after each Svelte tick
@@ -25,7 +27,7 @@ export function waitForState(checkFn, maxWaitMs = 1000) {
       }
 
       if (Date.now() - startedAt >= maxWaitMs) {
-        reject(new Error(`State change timeout`));
+        reject(new TimeoutError(`State change timeout`));
         return;
       }
 

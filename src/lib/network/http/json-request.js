@@ -93,9 +93,8 @@ export async function jsonGet(options) {
   } catch (e) {
     throw new ResponseError(
       `Failed to JSON decode server response from [${decodeURI(url.href)}]`,
-      {
-        cause: e
-      }
+      null,
+      e
     );
   }
 
@@ -206,9 +205,8 @@ export async function jsonPost(options) {
   } catch (e) {
     throw new ResponseError(
       `Failed to JSON decode server response from [${decodeURI(url.href)}]`,
-      {
-        cause: e
-      }
+      null,
+      e
     );
   }
 
@@ -322,9 +320,8 @@ export async function jsonPut(options) {
   } catch (e) {
     throw new ResponseError(
       `Failed to JSON decode server response from [${decodeURI(url.href)}]`,
-      {
-        cause: e
-      }
+      null,
+      e
     );
   }
 
@@ -437,9 +434,8 @@ export async function jsonPatch(options) {
   } catch (e) {
     throw new ResponseError(
       `Failed to JSON decode server response from [${decodeURI(url.href)}]`,
-      {
-        cause: e
-      }
+      null,
+      e
     );
   }
 
@@ -529,9 +525,8 @@ export async function jsonDelete(options) {
   } catch (e) {
     throw new ResponseError(
       `Failed to JSON decode server response from [${decodeURI(url.href)}]`,
-      {
-        cause: e
-      }
+      null,
+      e
     );
   }
 

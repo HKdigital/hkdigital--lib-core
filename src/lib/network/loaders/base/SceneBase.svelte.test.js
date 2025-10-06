@@ -272,6 +272,33 @@ describe('SceneBase', () => {
     cleanup();
   });
 
+  it('should timeout when loading takes too long', async () => {
+    let scene;
+
+    const cleanup = $effect.root(() => {
+      scene = new TestScene();
+
+      // Create loader that never completes
+      const slowLoader = createMockLoader();
+      slowLoader.load = () => {
+        // Don't change state - simulates hanging loader
+      };
+      scene.addMockSource('slow-source', slowLoader);
+    });
+
+    // Use a very short timeout to keep test fast
+    const { promise } = scene.preload({ timeoutMs: 50 });
+
+    try {
+      await promise;
+      expect.fail('Promise should have timed out');
+    } catch (error) {
+      expect(error.message).toContain('Preload timed out after 50ms');
+    }
+
+    cleanup();
+  });
+
   it('should handle preload with no timeout', async () => {
     let scene;
 

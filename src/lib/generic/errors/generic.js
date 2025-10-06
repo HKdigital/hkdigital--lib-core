@@ -1,9 +1,3 @@
-export class TypeOrValueError extends Error {}
-
-export class InternalError extends Error {}
-
-export class InternalEventOrLogError extends Error {}
-
 export class DetailedError extends Error
 {
   /**
@@ -28,3 +22,11 @@ export class DetailedError extends Error
     }
   }
 }
+
+export class TypeOrValueError extends Error {}
+
+export class InternalError extends Error {}
+
+export class InternalEventOrLogError extends Error {}
+
+export class TimeoutError extends DetailedError {}

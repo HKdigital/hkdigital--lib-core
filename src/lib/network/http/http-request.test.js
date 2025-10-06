@@ -12,7 +12,8 @@ import {
 } from './http-request.js';
 
 import { METHOD_GET } from '$lib/constants/http/methods.js';
-import { AbortError, TimeoutError } from '../errors/api.js';
+import { AbortError } from '../errors/api.js';
+import { TimeoutError } from '$lib/generic/errors.js';
 
 import { createJsonFetchResponse } from './mocks.js';
 

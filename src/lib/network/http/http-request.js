@@ -11,7 +11,8 @@ import {
 import { APPLICATION_JSON } from '$lib/constants/mime/application.js';
 import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
 
-import { AbortError, TimeoutError } from '../errors/api.js';
+import { AbortError } from '../errors/api.js';
+import { TimeoutError } from '$lib/generic/errors.js';
 
 import * as expect from '$lib/util/expect.js';
 

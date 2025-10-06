@@ -91,7 +91,8 @@ export async function expectResponseOk(response, url) {
   throw new ResponseError(
     `Server returned - ${response.status} ${response.statusText} ` +
       `[url=${href(url)}]`,
-    { cause: error }
+    null,
+    error
   );
 }
 
@@ -186,9 +187,8 @@ export async function waitForAndCheckResponse(responsePromise, url) {
     } else if (e instanceof TypeError || response?.ok === false) {
       throw new ResponseError(
         `A network error occurred for request [${href(url)}]`,
-        {
-          cause: e
-        }
+        null,
+        e
       );
     } else {
       throw e;

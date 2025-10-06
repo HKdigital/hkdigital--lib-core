@@ -1,9 +1,11 @@
-export class ResponseError extends Error {}
+import { DetailedError } from '$lib/generic/errors.js';
 
-export class AuthenticationError extends Error {}
+export class ResponseError extends DetailedError {}
 
-export class BadRequestError extends Error {}
+export class AuthenticationError extends DetailedError {}
 
-export class AbortError extends Error {}
+export class BadRequestError extends DetailedError {}
 
-export class TimeoutError extends Error {}
+export class AbortError extends DetailedError {}
+
+// @note import TimeoutError from '$lib/generic/errors.js';

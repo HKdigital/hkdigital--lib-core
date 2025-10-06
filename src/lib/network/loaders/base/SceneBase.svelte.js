@@ -1,3 +1,5 @@
+import { DetailedError } from '$lib/generic/errors.js';
+
 import { LoadingStateMachine } from '$lib/state/machines.js';
 
 import {
@@ -15,6 +17,7 @@ import {
 } from '$lib/state/machines.js';
 
 import { waitForState } from '$lib/util/svelte.js';
+import { TimeoutError } from '$lib/generic/errors.js';
 
 /** @typedef {import('./typedef.js').SceneLoadingProgress} SceneLoadingProgress */
 
@@ -39,7 +42,8 @@ export default class SceneBase {
   //   return this.state === STATE_ABORTED;
   // });
 
-
+  /** @type {((progress:SceneLoadingProgress)=>void)[]} */
+  #preloadListeners = [];
 
   /** @type {SceneLoadingProgress} */
   progress = $derived.by(() => {
@@ -85,7 +89,6 @@ export default class SceneBase {
     };
   });
 
-
   /**
    * Construct SceneBase
    */
@@ -110,24 +113,47 @@ export default class SceneBase {
       }
     });
 
-
     $effect(() => {
       if (this.state === STATE_LOADING) {
-
         // Check if any source failed during loading
         const sources = this.sources;
 
         for (const source of sources) {
           const loader = this.getLoaderFromSource(source);
           if (loader.state === STATE_ERROR) {
-            this.#state.send(ERROR, loader.error || new Error('Source loading failed'));
+            this.#state.send(
+              ERROR,
+              loader.error || new Error('Source loading failed')
+            );
             break;
           }
         }
       }
+    });
 
+    $effect(() => {
+      this.#updatePreloadProgressListeners(this.progress);
     });
   } // end constructor
+
+  /**
+   * Call preload progress listeners
+   *
+   * @param {SceneLoadingProgress} progress
+   */
+  #updatePreloadProgressListeners(progress) {
+    for (const fn of this.#preloadListeners) {
+      try {
+        fn(progress);
+      } catch (e) {
+        throw new DetailedError(
+          'Error in progress listener',
+          null,
+          /** @type {Error} */ (e)
+        );
+      }
+    }
+  }
 
   /* ==== Abstract methods - must be implemented by subclasses */
 
@@ -181,7 +207,6 @@ export default class SceneBase {
    *   Object with promise that resolves when loaded and abort function
    */
   preload({ timeoutMs = 10000, onProgress } = {}) {
-
     /** @type {number|NodeJS.Timeout|null} */
     let timeoutId = null;
 
@@ -189,9 +214,6 @@ export default class SceneBase {
     let progressIntervalId = null;
 
     let isAborted = false;
-    
-    /** @type {SceneLoadingProgress|null} */
-    let lastSentProgress = null;
 
     const abort = () => {
       if (isAborted) return;
@@ -216,40 +238,28 @@ export default class SceneBase {
         progressIntervalId = setInterval(() => {
           if (!isAborted && this.state === STATE_LOADING) {
             const currentProgress = this.progress;
-            lastSentProgress = currentProgress;
             onProgress(currentProgress);
           }
         }, 50); // Poll every 50ms
       }
 
-      // Set up timeout
-      if (timeoutMs > 0) {
-        timeoutId = setTimeout(() => {
-          abort();
-          reject(new Error(`Preload timed out after ${timeoutMs}ms`));
-        }, timeoutMs);
-      }
-
       // Start loading
       this.load();
 
-      // Wait for completion with extended timeout
-      const waitTimeout = Math.max(timeoutMs + 1000, 2000);
+      // Wait for completion with timeout
+      const waitTimeout = timeoutMs > 0 ? timeoutMs : 30000; // Default 30s if no timeout
       waitForState(() => {
-        return this.loaded ||
-               this.state === STATE_ABORTED ||
-               this.state === STATE_ERROR;
+        return (
+          this.loaded ||
+          this.state === STATE_ABORTED ||
+          this.state === STATE_ERROR
+        );
       }, waitTimeout)
         .then(() => {
-          if (timeoutId) {
-            clearTimeout(timeoutId);
-            timeoutId = null;
-          }
-
           if (progressIntervalId) {
             clearInterval(progressIntervalId);
             progressIntervalId = null;
-            
+
             if (onProgress) {
               const finalProgress = this.progress;
               // Always send final progress when loading completes
@@ -269,7 +279,15 @@ export default class SceneBase {
             reject(new Error(`Preload failed: unexpected state ${this.state}`));
           }
         })
-        .catch(reject);
+        .catch((error) => {
+          // Handle timeout errors from waitForState
+          if (error instanceof TimeoutError) {
+            abort();
+            reject(new Error(`Preload timed out after ${timeoutMs}ms`));
+          } else {
+            reject(error);
+          }
+        });
     });
 
     return { promise, abort };
@@ -296,7 +314,7 @@ export default class SceneBase {
       const loader = this.getLoaderFromSource(source);
       loader.abort();
     }
-    
+
     // Defer ABORTED transition to avoid re-entrant state machine calls
     setTimeout(() => {
       // Only transition to ABORTED if still in ABORTING state
