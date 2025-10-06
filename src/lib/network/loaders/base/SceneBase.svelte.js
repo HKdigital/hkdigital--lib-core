@@ -364,6 +364,17 @@ export default class SceneBase {
   /* ==== Internal methods */
 
   #startLoading() {
+    // Handle empty scenes - immediately transition to loaded if no sources
+    if (this.sources.length === 0) {
+      // Use setTimeout to avoid re-entrant state machine calls
+      setTimeout(() => {
+        if (this.#state.current === STATE_LOADING) {
+          this.#state.send(LOADED);
+        }
+      }, 0);
+      return;
+    }
+
     for (let i = 0; i < this.sources.length; i++) {
       const source = this.sources[i];
       const loader = this.getLoaderFromSource(source);

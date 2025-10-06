@@ -465,4 +465,23 @@ describe('SceneBase', () => {
 
     cleanup();
   });
+
+  it('should preload empty scenes successfully', async () => {
+    let scene;
+
+    const cleanup = $effect.root(() => {
+      scene = new TestScene();
+      // Don't add any sources - test empty scene
+    });
+
+    const { promise } = scene.preload({ timeoutMs: 1000 });
+    
+    const result = await promise;
+    expect(result).toBe(scene);
+    expect(scene.loaded).toEqual(true);
+    expect(scene.progress.numberOfSources).toEqual(0);
+    expect(scene.progress.percentageLoaded).toEqual(0);
+
+    cleanup();
+  });
 });
