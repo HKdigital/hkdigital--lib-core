@@ -45,6 +45,9 @@ export default class SceneBase {
   /** @type {((progress:SceneLoadingProgress)=>void)[]} */
   #preloadListeners = [];
 
+  /** @type {SceneLoadingProgress|null} */
+  #lastReportedProgress = null;
+
   /** @type {SceneLoadingProgress} */
   progress = $derived.by(() => {
     let totalSize = 0;
@@ -137,11 +140,24 @@ export default class SceneBase {
   } // end constructor
 
   /**
-   * Call preload progress listeners
+   * Call preload progress listeners (with deduplication)
    *
    * @param {SceneLoadingProgress} progress
    */
   #updatePreloadProgressListeners(progress) {
+    // Skip if progress hasn't actually changed
+    if (this.#lastReportedProgress && 
+        this.#lastReportedProgress.totalBytesLoaded === progress.totalBytesLoaded &&
+        this.#lastReportedProgress.totalSize === progress.totalSize &&
+        this.#lastReportedProgress.sourcesLoaded === progress.sourcesLoaded &&
+        this.#lastReportedProgress.numberOfSources === progress.numberOfSources &&
+        this.#lastReportedProgress.percentageLoaded === progress.percentageLoaded) {
+      return;
+    }
+
+    // Update last reported progress
+    this.#lastReportedProgress = { ...progress };
+
     for (const fn of this.#preloadListeners) {
       try {
         fn(progress);

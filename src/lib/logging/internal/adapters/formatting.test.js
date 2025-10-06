@@ -40,6 +40,12 @@ describe('formatting', () => {
       expect(parseFunctionName('invalid frame format')).toBe(null);
       expect(parseFunctionName('')).toBe(null);
     });
+
+    it('should strip Firefox function naming artifacts', () => {
+      expect(parseFunctionName('preload/promise</timeoutId<@file.js:10:5')).toBe('preload/promise');
+      expect(parseFunctionName('myFunction</someId<@file.js:10:5')).toBe('myFunction');
+      expect(parseFunctionName('</timeoutId<@file.js:10:5')).toBe('');
+    });
   });
 
   describe('isMeaningfulFunctionName', () => {
