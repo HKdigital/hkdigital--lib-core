@@ -18,7 +18,8 @@
    *   zone?: string,
    *   group?: string,
    *   disabled?: boolean,
-   *   accepts?: (dragData: any, target: { zone:string, group: string }) => boolean,
+   *   accepts?: (dragData: DragData, target: { zone:string, group: string }) => boolean,
+   *   enableDebug?: boolean,
    *   base?: string,
    *   classes?: string,
    *   minHeight?: string,
@@ -63,6 +64,7 @@
     group = 'default',
     disabled = false,
     accepts = () => true,
+    enableDebug = false,
     base = '',
     classes = '',
     minHeight = '',
@@ -86,7 +88,9 @@
   const dropZoneId = generateLocalId();
 
   let currentState = $state(READY);
-  let dropZoneElement = $state(null);
+
+  /** @type {HTMLElement|undefined} */
+  let dropZoneElement = $state();
 
   // Computed height classes based on mode
   let heightClasses = $derived.by(() => {
@@ -137,24 +141,91 @@
       dragState.registerDropZone(dropZoneId, {
         zone,
         group,
-        accepts: (dragData) => {
-          if (disabled) return false;
-          if (!dragData) return false;
+        accepts: (/** @type {DragData} */ dragData) => {
+          if (enableDebug) {
+            console.debug(
+              `[DropZone] accepts() called for zone="${zone}", group="${group}"`,
+              {
+                disabled,
+                dragData: dragData
+                  ? {
+                      group: dragData.group,
+                      source: dragData.source,
+                      item: dragData.item
+                    }
+                  : null
+              }
+            );
+          }
 
-          return accepts(dragData, { zone, group });
+          if (disabled) {
+            if (enableDebug) console.debug(`[DropZone] Rejected: disabled`);
+            return false;
+          }
+          if (!dragData) {
+            if (enableDebug) console.debug(`[DropZone] Rejected: no dragData`);
+            return false;
+          }
+
+          const result = accepts(dragData, { zone, group });
+
+          if (enableDebug) {
+            console.debug(`[DropZone] User accepts() result: ${result}`, {
+              dragGroup: dragData.group,
+              targetGroup: group,
+              groupsMatch: dragData.group === group
+            });
+          }
+
+          return result;
         },
-        onDragEnter: (detail) => {
+        onDragEnter: (
+          /** @type {{ event: DragEvent, zone: string, canDrop: boolean }} */ detail
+        ) => {
+          if (enableDebug) {
+            console.debug(
+              `[DropZone] onDragEnter zone="${zone}", group="${group}"`,
+              {
+                canDrop: detail.canDrop,
+                newState: detail.canDrop ? 'CAN_DROP' : 'CANNOT_DROP'
+              }
+            );
+          }
           currentState = detail.canDrop ? CAN_DROP : CANNOT_DROP;
           onDragEnter?.(detail);
         },
-        onDragOver: (detail) => {
+        onDragOver: (
+          /** @type {{ event: DragEvent, zone: string }} */ detail
+        ) => {
           onDragOver?.(detail);
         },
-        onDragLeave: (detail) => {
+        onDragLeave: (
+          /** @type {{ event: DragEvent, zone: string }} */ detail
+        ) => {
+          if (enableDebug) {
+            console.debug(
+              `[DropZone] onDragLeave zone="${zone}", group="${group}"`
+            );
+          }
           currentState = READY;
           onDragLeave?.(detail);
         },
         onDrop: async (dropData) => {
+          if (enableDebug) {
+            console.debug(
+              `[DropZone] onDrop zone="${zone}", group="${group}"`,
+              {
+                dropData: {
+                  zone: dropData.zone,
+                  source: dropData.source,
+                  item: dropData.item,
+                  x: dropData.x,
+                  y: dropData.y
+                }
+              }
+            );
+          }
+
           currentState = READY;
 
           try {
@@ -166,6 +237,10 @@
 
             const result = await onDrop?.(dropData);
 
+            if (enableDebug) {
+              console.debug(`[DropZone] onDrop completed successfully`);
+            }
+
             onDropEnd?.({
               event: dropData.drop.event,
               zone: dropData.zone,
@@ -175,13 +250,18 @@
 
             return result;
           } catch (error) {
+            if (enableDebug) {
+              console.debug(`[DropZone] onDrop failed:`, error);
+            }
+
             onDropEnd?.({
               event: dropData.drop.event,
               zone: dropData.zone,
               data: dropData.drag,
               success: false,
-              error
+              error: /** @type {Error} */ (error)
             });
+
             throw error;
           }
         },
