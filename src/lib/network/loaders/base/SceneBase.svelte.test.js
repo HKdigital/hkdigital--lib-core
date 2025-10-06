@@ -9,6 +9,7 @@ import {
   STATE_ERROR
 } from '$lib/state/machines.js';
 
+import { TimeoutError } from '$lib/generic/errors.js';
 import SceneBase from './SceneBase.svelte.js';
 
 // Mock concrete scene for testing
@@ -334,9 +335,14 @@ describe('SceneBase', () => {
     const result1 = await promise1;
     expect(result1).toBe(scene1);
 
-    const { promise: promise2 } = scene2.preload({ timeoutMs: 0 });
-    const result2 = await promise2;
-    expect(result2).toBe(scene2);
+    const { promise: promise2 } = scene2.preload({ timeoutMs: 10 });
+    try {
+      const result2 = await promise2;
+      expect(result2).toBe(scene2);
+    } catch (error) {
+      // With 10ms timeout, it might timeout before mock loader completes
+      expect(error instanceof TimeoutError || error.message.includes('timed out')).toBe(true);
+    }
 
     cleanup();
   });

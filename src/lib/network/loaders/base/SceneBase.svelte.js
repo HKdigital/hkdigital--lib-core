@@ -219,9 +219,12 @@ export default class SceneBase {
       if (isAborted) return;
       isAborted = true;
 
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-        timeoutId = null;
+      // Remove progress listener
+      if (onProgress) {
+        const index = this.#preloadListeners.indexOf(onProgress);
+        if (index >= 0) {
+          this.#preloadListeners.splice(index, 1);
+        }
       }
 
       if (progressIntervalId) {
@@ -233,21 +236,38 @@ export default class SceneBase {
     };
 
     const promise = new Promise((resolve, reject) => {
-      // Set up progress tracking with polling
+      // Set up progress tracking with reactive listener
       if (onProgress) {
-        progressIntervalId = setInterval(() => {
-          if (!isAborted && this.state === STATE_LOADING) {
-            const currentProgress = this.progress;
-            onProgress(currentProgress);
-          }
-        }, 50); // Poll every 50ms
+        this.#preloadListeners.push(onProgress);
       }
+
+      // // Set up progress tracking with polling (fallback if reactive doesn't work)
+      // if (onProgress) {
+      //   progressIntervalId = setInterval(() => {
+      //     if (!isAborted && this.state === STATE_LOADING) {
+      //       const currentProgress = this.progress;
+      //       onProgress(currentProgress);
+      //     }
+      //   }, 50); // Poll every 50ms
+      // }
+
+      // // Set up progress tracking with polling (fallback if reactive doesn't work)
+      // if (onProgress) {
+      //   progressIntervalId = setInterval(() => {
+      //     if (!isAborted && this.state === STATE_LOADING) {
+      //       const currentProgress = this.progress;
+      //       onProgress(currentProgress);
+      //     }
+      //   }, 50); // Poll every 50ms
+      // }
 
       // Start loading
       this.load();
 
       // Wait for completion with timeout
-      const waitTimeout = timeoutMs > 0 ? timeoutMs : 30000; // Default 30s if no timeout
+      // 0 means no timeout, but we still need a reasonable value for waitForState
+      const waitTimeout = timeoutMs > 0 ? timeoutMs : 120000;
+
       waitForState(() => {
         return (
           this.loaded ||
@@ -256,16 +276,24 @@ export default class SceneBase {
         );
       }, waitTimeout)
         .then(() => {
+          // Remove progress listener
+          if (onProgress) {
+            const index = this.#preloadListeners.indexOf(onProgress);
+            if (index >= 0) {
+              this.#preloadListeners.splice(index, 1);
+            }
+
+          }
+
+          // Cleanup polling (fallback if reactive doesn't work)
           if (progressIntervalId) {
             clearInterval(progressIntervalId);
             progressIntervalId = null;
 
-            if (onProgress) {
+            // Send final progress when loading completes (for polling fallback)
+            if (onProgress && this.loaded) {
               const finalProgress = this.progress;
-              // Always send final progress when loading completes
-              if (this.loaded) {
-                onProgress(finalProgress);
-              }
+              onProgress(finalProgress);
             }
           }
 
@@ -287,6 +315,25 @@ export default class SceneBase {
           } else {
             reject(error);
           }
+        })
+        .finally(() => {
+          // Send final progress update regardless of success/failure
+          if (onProgress) {
+            const finalProgress = this.progress;
+            onProgress(finalProgress);
+            
+            // Remove progress listener
+            const index = this.#preloadListeners.indexOf(onProgress);
+            if (index >= 0) {
+              this.#preloadListeners.splice(index, 1);
+            }
+          }
+
+          // // Cleanup polling (fallback if reactive doesn't work)
+          // if (progressIntervalId) {
+          //   clearInterval(progressIntervalId);
+          //   progressIntervalId = null;
+          // }
         });
     });
 
