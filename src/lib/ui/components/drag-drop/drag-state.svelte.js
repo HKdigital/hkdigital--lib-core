@@ -165,7 +165,7 @@ class DragState {
     if (dropZone && dropZone.config.canDrop) {
       const dragData = this.getDraggable(event);
 
-      console.debug('handleDropAtPoint', event, dragData);
+      // console.debug('handleDropAtPoint', event, dragData);
 
 
       if (dragData && dropZone.config.element) {
