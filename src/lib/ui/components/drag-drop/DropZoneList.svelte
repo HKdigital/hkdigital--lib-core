@@ -6,7 +6,8 @@
    *   zone?: string,
    *   group?: string,
    *   disabled?: boolean,
-   *   accepts?: (item: any) => boolean,
+   *   accepts?: (dragData: import('$lib/ui/components/drag-drop/typedef.js').DragData, target: { zone: string, group: string }) => boolean,
+   *   enableDebug?: boolean,
    *   minHeight?: string,
    *   maxHeight?: string,
    *   gap?: string,
@@ -52,6 +53,7 @@
     group = 'default',
     disabled = false,
     accepts = () => true,
+    enableDebug = false,
     minHeight = 'min-h-[200px]',
     maxHeight = '',
     gap = 'gap-2',
@@ -102,6 +104,7 @@
   {group}
   {disabled}
   {accepts}
+  {enableDebug}
   {minHeight}
   {maxHeight}
   heightMode="flexible"

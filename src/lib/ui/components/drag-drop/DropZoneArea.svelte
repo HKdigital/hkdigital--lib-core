@@ -6,7 +6,8 @@
    *   zone?: string,
    *   group?: string,
    *   disabled?: boolean,
-   *   accepts?: (item: any) => boolean,
+   *   accepts?: (dragData: import('$lib/ui/components/drag-drop/typedef.js').DragData, target: { zone: string, group: string }) => boolean,
+   *   enableDebug?: boolean,
    *   fillContainer?: boolean,
    *   aspectRatio?: string,
    *   overflow?: 'auto' | 'hidden' | 'visible' | 'scroll',
@@ -51,6 +52,7 @@
     group = 'default',
     disabled = false,
     accepts = () => true,
+    enableDebug = false,
     fillContainer = true,
     aspectRatio = '',
     overflow = 'hidden',
@@ -98,6 +100,7 @@
   {group}
   {disabled}
   {accepts}
+  {enableDebug}
   heightMode={fillContainer ? 'fill' : 'fixed'}
   {base}
   classes={combinedClasses}
