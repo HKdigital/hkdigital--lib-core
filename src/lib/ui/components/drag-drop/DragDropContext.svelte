@@ -1,5 +1,5 @@
 <script>
-  import { createDragState } from './drag-state.svelte.js';
+  import { createOrGetDragState } from './drag-state.svelte.js';
 
   import { activeTouchMove, activeDragOver, activeDrop } from './actions.js';
 
@@ -16,7 +16,7 @@
 
   // Create the state context at this level to ensure all children
   // have access to the same state instance
-  const dragState = createDragState(contextKey);
+  const dragState = createOrGetDragState(contextKey);
 
   /**
    * Handle drag enter at context level
