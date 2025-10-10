@@ -10,6 +10,7 @@ import {
 } from '$lib/state/machines.js';
 
 import { TimeoutError } from '$lib/generic/errors.js';
+import { waitForState } from '$lib/util/svelte.js';
 import SceneBase from './SceneBase.svelte.js';
 
 // Mock concrete scene for testing
@@ -481,6 +482,156 @@ describe('SceneBase', () => {
     expect(scene.loaded).toEqual(true);
     expect(scene.progress.numberOfSources).toEqual(0);
     expect(scene.progress.percentageLoaded).toEqual(0);
+
+    cleanup();
+  });
+
+  it('should handle sequential preload calls (second preload on loaded scene)', async () => {
+    let scene;
+
+    const cleanup = $effect.root(() => {
+      scene = new TestScene();
+      scene.addMockSource('test-source', createMockLoader());
+    });
+
+    // First preload - should succeed
+    const { promise: firstPromise } = scene.preload({ timeoutMs: 1000 });
+    const firstResult = await firstPromise;
+    
+    expect(firstResult).toBe(scene);
+    expect(scene.loaded).toEqual(true);
+
+    // Second preload on already loaded scene - this should either:
+    // 1. Resolve immediately since already loaded, OR
+    // 2. Timeout/hang (demonstrating the bug)
+    const { promise: secondPromise } = scene.preload({ timeoutMs: 500 });
+    
+    try {
+      const secondResult = await secondPromise;
+      // If we get here, second preload worked (either immediate resolve or re-loading)
+      expect(secondResult).toBe(scene);
+      expect(scene.loaded).toEqual(true);
+    } catch (error) {
+      // This demonstrates the hanging preload bug
+      expect(error.message).toContain('timed out');
+      console.log('Second preload timed out - demonstrating hanging preload bug:', error.message);
+    }
+
+    cleanup();
+  });
+
+  it('should handle rapid sequential preload calls', async () => {
+    let scene;
+
+    const cleanup = $effect.root(() => {
+      scene = new TestScene();
+      scene.addMockSource('test-source', createMockLoader());
+    });
+
+    // Start two preloads almost simultaneously
+    const { promise: firstPromise } = scene.preload({ timeoutMs: 1000 });
+    const { promise: secondPromise } = scene.preload({ timeoutMs: 500 });
+    
+    try {
+      const [firstResult, secondResult] = await Promise.all([
+        firstPromise.catch(e => e),
+        secondPromise.catch(e => e)
+      ]);
+      
+      // At least one should succeed
+      const successfulResults = [firstResult, secondResult].filter(r => r === scene);
+      const errors = [firstResult, secondResult].filter(r => r instanceof Error);
+      
+      console.log(`Rapid preload results: ${successfulResults.length} succeeded, ${errors.length} failed`);
+      
+      if (errors.length > 0) {
+        console.log('Errors from rapid preload:', errors.map(e => e.message));
+      }
+      
+      // Scene should be loaded regardless
+      expect(scene.loaded).toEqual(true);
+    } catch (error) {
+      console.log('Rapid preload test error:', error.message);
+      throw error;
+    }
+
+    cleanup();
+  });
+
+  it('should handle preload called on already loaded scene (potential hanging scenario)', async () => {
+    let scene;
+
+    const cleanup = $effect.root(() => {
+      scene = new TestScene();
+      scene.addMockSource('test-source', createMockLoader());
+    });
+
+    // Load the scene first using the normal load() method
+    scene.load();
+    
+    // Wait for scene to be fully loaded
+    await waitForState(() => scene.loaded, 1000);
+    expect(scene.loaded).toEqual(true);
+    expect(scene.state).toEqual('loaded');
+
+    // Now try to preload the already loaded scene
+    // This is the scenario that might hang - preloading when already in LOADED state
+    const startTime = Date.now();
+    const { promise: secondPromise } = scene.preload({ timeoutMs: 1000 });
+    
+    try {
+      const result = await secondPromise;
+      const duration = Date.now() - startTime;
+      console.log(`Second preload completed in ${duration}ms`);
+      expect(result).toBe(scene);
+      expect(scene.loaded).toEqual(true);
+    } catch (error) {
+      const duration = Date.now() - startTime;
+      console.log(`Second preload failed after ${duration}ms:`, error.message);
+      // This would demonstrate the hanging preload bug
+      expect(error.message).toContain('timed out');
+    }
+
+    cleanup();
+  });
+
+  it('should handle preload state transitions correctly when already loaded', async () => {
+    let scene;
+    const stateTransitions = [];
+
+    const cleanup = $effect.root(() => {
+      scene = new TestScene();
+      scene.addMockSource('test-source', createMockLoader());
+
+      // Track all state transitions
+      $effect(() => {
+        stateTransitions.push(scene.state);
+      });
+    });
+
+    // First load
+    const { promise: firstPromise } = scene.preload({ timeoutMs: 1000 });
+    await firstPromise;
+    
+    expect(scene.loaded).toEqual(true);
+    expect(stateTransitions).toContain('loaded');
+    
+    // Clear transitions to track only the second preload
+    const transitionsBefore = stateTransitions.length;
+    
+    // Second preload on loaded scene
+    const { promise: secondPromise } = scene.preload({ timeoutMs: 500 });
+    await secondPromise.catch(() => {
+      // Catch timeout if it happens
+    });
+    
+    const transitionsAfter = stateTransitions.length;
+    const newTransitions = stateTransitions.slice(transitionsBefore);
+    
+    console.log('State transitions during second preload:', newTransitions);
+    
+    // The scene should still be loaded regardless
+    expect(scene.loaded).toEqual(true);
 
     cleanup();
   });

@@ -465,7 +465,7 @@ export function parseFunctionName(frame) {
   }
 
   // Strip Firefox function naming artifacts like "</timeoutId<"
-  functionName = functionName.replace(/<\/[^<>]*</g, '');
+  functionName = functionName.replace(/<\/[^<>]*</, '');
 
   return functionName;
 }
