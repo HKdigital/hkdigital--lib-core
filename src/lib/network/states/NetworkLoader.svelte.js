@@ -307,6 +307,7 @@ export default class NetworkLoader {
       const { bufferPromise, abort: abortLoadBody } = loadResponseBuffer(
         response,
         ({ bytesLoaded, size }) => {
+          console.debug(`loader:progress [${this._url}] ${bytesLoaded}/${size} bytes`);
           this._bytesLoaded = bytesLoaded;
           this._size = size;
         }

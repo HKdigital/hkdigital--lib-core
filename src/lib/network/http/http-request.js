@@ -387,6 +387,7 @@ export async function httpRequest(options) {
     if (!isTestEnv) {
       if (cachedResponse) {
         console.debug(`http:cache-hit [${url.pathname}]`);
+        console.debug(`cached-response has body: ${!!cachedResponse.body}`);
         return cachedResponse;
       } else {
         console.debug(`http:cache-miss [${url.pathname}]`);

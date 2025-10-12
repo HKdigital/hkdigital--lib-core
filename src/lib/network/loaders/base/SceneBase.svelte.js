@@ -19,6 +19,8 @@ import {
 import { waitForState } from '$lib/util/svelte.js';
 import { TimeoutError } from '$lib/generic/errors.js';
 
+const MAX_TIMEOUT_MS = 120000;
+
 /** @typedef {import('./typedef.js').SceneLoadingProgress} SceneLoadingProgress */
 
 /**
@@ -224,9 +226,6 @@ export default class SceneBase {
    */
   preload({ timeoutMs = 10000, onProgress } = {}) {
     /** @type {number|NodeJS.Timeout|null} */
-    let timeoutId = null;
-
-    /** @type {number|NodeJS.Timeout|null} */
     let progressIntervalId = null;
 
     let isAborted = false;
@@ -281,8 +280,8 @@ export default class SceneBase {
       this.load();
 
       // Wait for completion with timeout
-      // 0 means no timeout, but we still need a reasonable value for waitForState
-      const waitTimeout = timeoutMs > 0 ? timeoutMs : 120000;
+      // 0 means no timeout, but actually we use max timeout
+      const waitTimeout = timeoutMs > 0 ? timeoutMs : MAX_TIMEOUT_MS;
 
       waitForState(() => {
         return (

@@ -245,6 +245,7 @@ export function loadResponseBuffer(response, onProgress) {
   let bytesLoaded = 0;
 
   if (onProgress /*&& size*/) {
+    console.debug(`loadResponseBuffer:initial-progress size=${size}`);
     onProgress({ bytesLoaded, size });
   }
 
@@ -274,6 +275,7 @@ export function loadResponseBuffer(response, onProgress) {
         chunks.push(value);
 
         if (onProgress /*&& size*/) {
+          console.debug(`loadResponseBuffer:chunk-progress ${bytesLoaded}/${size}`);
           onProgress({ bytesLoaded, size });
         }
       }

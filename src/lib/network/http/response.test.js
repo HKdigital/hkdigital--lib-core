@@ -297,4 +297,149 @@ describe('loadResponseBuffer', () => {
 			loadResponseBuffer(response);
 		}).toThrow('Missing [response.body]');
 	});
+
+	it('should handle cached response (single chunk, immediate completion)', async () => {
+		const responseSize = 100;
+		const responseData = new Uint8Array(responseSize);
+		responseData.fill(42); // Fill with test data
+
+		// Mock cached response - returns all data in single chunk then done
+		const mockReader = {
+			read: vi.fn()
+				.mockResolvedValueOnce({
+					done: false,
+					value: responseData // All data in first chunk
+				})
+				.mockResolvedValueOnce({
+					done: true,
+					value: undefined // Immediate completion
+				})
+		};
+
+		const mockBody = { getReader: () => mockReader };
+		const mockResponse = {
+			body: mockBody,
+			headers: new Headers({ 'content-length': responseSize.toString() })
+		};
+
+		const progressCalls = [];
+		const onProgress = (progress) => {
+			progressCalls.push({ ...progress });
+		};
+
+		// @ts-ignore
+		const { bufferPromise } = loadResponseBuffer(mockResponse, onProgress);
+		const buffer = await bufferPromise;
+
+		// Should have complete buffer
+		expect(buffer.byteLength).toBe(responseSize);
+
+		// Should have at least initial call and final call
+		expect(progressCalls.length).toBeGreaterThanOrEqual(2);
+		
+		// First call should be initial (0 bytes)
+		expect(progressCalls[0]).toEqual({ bytesLoaded: 0, size: responseSize });
+		
+		// Last call should show completion
+		const lastCall = progressCalls[progressCalls.length - 1];
+		expect(lastCall.bytesLoaded).toBe(responseSize);
+		expect(lastCall.size).toBe(responseSize);
+	});
+
+	it('should handle network response (multiple chunks)', async () => {
+		const totalSize = 100;
+		const chunk1 = new Uint8Array(30);
+		const chunk2 = new Uint8Array(70);
+		chunk1.fill(1);
+		chunk2.fill(2);
+
+		// Mock network response - multiple chunks
+		const mockReader = {
+			read: vi.fn()
+				.mockResolvedValueOnce({
+					done: false,
+					value: chunk1
+				})
+				.mockResolvedValueOnce({
+					done: false, 
+					value: chunk2
+				})
+				.mockResolvedValueOnce({
+					done: true,
+					value: undefined
+				})
+		};
+
+		const mockBody = { getReader: () => mockReader };
+		const mockResponse = {
+			body: mockBody,
+			headers: new Headers({ 'content-length': totalSize.toString() })
+		};
+
+		const progressCalls = [];
+		const onProgress = (progress) => {
+			progressCalls.push({ ...progress });
+		};
+
+		// @ts-ignore
+		const { bufferPromise } = loadResponseBuffer(mockResponse, onProgress);
+		const buffer = await bufferPromise;
+
+		// Should have complete buffer
+		expect(buffer.byteLength).toBe(totalSize);
+
+		// Should have: initial(0), chunk1(30), chunk2(100)
+		expect(progressCalls.length).toBe(3);
+		expect(progressCalls[0]).toEqual({ bytesLoaded: 0, size: totalSize });
+		expect(progressCalls[1]).toEqual({ bytesLoaded: 30, size: totalSize });
+		expect(progressCalls[2]).toEqual({ bytesLoaded: 100, size: totalSize });
+	});
+
+	it('should compare cached vs network progress patterns', async () => {
+		const testData = new Uint8Array(50);
+		testData.fill(123);
+
+		// Test cached response pattern
+		const cachedReader = {
+			read: vi.fn()
+				.mockResolvedValueOnce({ done: false, value: testData })
+				.mockResolvedValueOnce({ done: true, value: undefined })
+		};
+		const cachedResponse = {
+			body: { getReader: () => cachedReader },
+			headers: new Headers({ 'content-length': '50' })
+		};
+
+		// Test network response pattern  
+		const chunk1 = testData.slice(0, 25);
+		const chunk2 = testData.slice(25);
+		const networkReader = {
+			read: vi.fn()
+				.mockResolvedValueOnce({ done: false, value: chunk1 })
+				.mockResolvedValueOnce({ done: false, value: chunk2 })
+				.mockResolvedValueOnce({ done: true, value: undefined })
+		};
+		const networkResponse = {
+			body: { getReader: () => networkReader },
+			headers: new Headers({ 'content-length': '50' })
+		};
+
+		const cachedProgress = [];
+		const networkProgress = [];
+
+		// @ts-ignore
+		const cachedResult = loadResponseBuffer(cachedResponse, (p) => cachedProgress.push({...p}));
+		// @ts-ignore  
+		const networkResult = loadResponseBuffer(networkResponse, (p) => networkProgress.push({...p}));
+
+		await Promise.all([cachedResult.bufferPromise, networkResult.bufferPromise]);
+
+		// Both should end with same final state
+		const cachedFinal = cachedProgress[cachedProgress.length - 1];
+		const networkFinal = networkProgress[networkProgress.length - 1];
+		
+		expect(cachedFinal.bytesLoaded).toBe(50);
+		expect(networkFinal.bytesLoaded).toBe(50);
+		expect(cachedFinal.size).toBe(networkFinal.size);
+	});
 });

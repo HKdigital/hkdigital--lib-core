@@ -514,7 +514,6 @@ describe('SceneBase', () => {
     } catch (error) {
       // This demonstrates the hanging preload bug
       expect(error.message).toContain('timed out');
-      console.log('Second preload timed out - demonstrating hanging preload bug:', error.message);
     }
 
     cleanup();
@@ -540,18 +539,10 @@ describe('SceneBase', () => {
       
       // At least one should succeed
       const successfulResults = [firstResult, secondResult].filter(r => r === scene);
-      const errors = [firstResult, secondResult].filter(r => r instanceof Error);
-      
-      console.log(`Rapid preload results: ${successfulResults.length} succeeded, ${errors.length} failed`);
-      
-      if (errors.length > 0) {
-        console.log('Errors from rapid preload:', errors.map(e => e.message));
-      }
       
       // Scene should be loaded regardless
       expect(scene.loaded).toEqual(true);
     } catch (error) {
-      console.log('Rapid preload test error:', error.message);
       throw error;
     }
 
@@ -581,13 +572,9 @@ describe('SceneBase', () => {
     
     try {
       const result = await secondPromise;
-      const duration = Date.now() - startTime;
-      console.log(`Second preload completed in ${duration}ms`);
       expect(result).toBe(scene);
       expect(scene.loaded).toEqual(true);
     } catch (error) {
-      const duration = Date.now() - startTime;
-      console.log(`Second preload failed after ${duration}ms:`, error.message);
       // This would demonstrate the hanging preload bug
       expect(error.message).toContain('timed out');
     }
@@ -626,13 +613,10 @@ describe('SceneBase', () => {
     });
     
     const transitionsAfter = stateTransitions.length;
-    const newTransitions = stateTransitions.slice(transitionsBefore);
-    
-    console.log('State transitions during second preload:', newTransitions);
-    
     // The scene should still be loaded regardless
     expect(scene.loaded).toEqual(true);
 
     cleanup();
   });
+
 });
