@@ -403,6 +403,19 @@ export default class IndexedDbCache {
           try {
             let responseHeaders = new Headers(entry.headers);
 
+            // Calculate actual content length from the body and fix Content-Length header
+            const bodySize = responseBody instanceof ArrayBuffer ? 
+              responseBody.byteLength : 
+              responseBody instanceof Blob ?
+              responseBody.size :
+              responseBody.length || 0;
+            
+            console.debug(`cache-retrieval: fixing content-length from ${responseHeaders.get('content-length')} to ${bodySize}`);
+            console.debug(`cache-retrieval: body type=${typeof responseBody}, constructor=${responseBody?.constructor?.name}, byteLength=${responseBody?.byteLength}`);
+            
+            // Add/fix Content-Length header with actual size
+            responseHeaders.set('content-length', bodySize.toString());
+
             // Create Response safely
             let response;
             try {

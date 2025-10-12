@@ -388,6 +388,7 @@ export async function httpRequest(options) {
       if (cachedResponse) {
         console.debug(`http:cache-hit [${url.pathname}]`);
         console.debug(`cached-response has body: ${!!cachedResponse.body}`);
+        console.debug(`cached-response content-length: ${cachedResponse.headers.get('content-length')}`);
         return cachedResponse;
       } else {
         console.debug(`http:cache-miss [${url.pathname}]`);

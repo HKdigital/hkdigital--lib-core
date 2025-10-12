@@ -69,8 +69,34 @@ export default class MemoryResponseCache {
     // Update last accessed time
     entry.lastAccessed = Date.now();
 
+    // Get body data safely (works with both real Response and mocks)
+    let responseBody;
+    try {
+      responseBody = await entry.response.arrayBuffer();
+    } catch (err) {
+      // Fallback for test mocks or consumed responses
+      responseBody = entry.response.body || new ArrayBuffer(0);
+    }
+    
+    // Calculate size from body data
+    const bodySize = responseBody instanceof ArrayBuffer ? 
+      responseBody.byteLength : 
+      responseBody instanceof Blob ?
+      responseBody.size :
+      responseBody.length || 0;
+    
+    // Create new response with corrected Content-Length header
+    const fixedHeaders = new Headers(entry.response.headers);
+    fixedHeaders.set('content-length', bodySize.toString());
+    
+    const enhancedResponse = new Response(responseBody, {
+      status: entry.response.status,
+      statusText: entry.response.statusText,
+      headers: fixedHeaders
+    });
+
     return {
-      response: entry.response.clone(),
+      response: enhancedResponse,
       metadata: entry.metadata,
       url: entry.url,
       timestamp: entry.timestamp,
