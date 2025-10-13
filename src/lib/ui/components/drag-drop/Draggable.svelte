@@ -124,6 +124,7 @@
       !canDropInActiveZone
   });
 
+  // @ts-ignore
   let stateClasses = $derived(toStateClasses(stateObject));
 
   // Update bindable props
@@ -531,13 +532,13 @@
     pointer-events: auto;
   }
 
-  /* Prevent ALL child elements from interfering with drag */
+  /* Prevent ALL descendant elements from interfering with drag */
   [data-component='draggable'] :global(*) {
     -webkit-user-drag: none;
     -moz-user-select: none;
     -webkit-user-select: none;
     user-select: none;
-    /* Override any pointer-events: auto that child components might have */
+    /* On windows child components with pointer events might interfere drag */
     pointer-events: none;
   }
 
