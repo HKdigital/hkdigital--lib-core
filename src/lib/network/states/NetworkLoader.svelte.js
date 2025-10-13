@@ -101,6 +101,7 @@ export default class NetworkLoader {
     this._url = url;
 
     this.#state.onenter = (currentState) => {
+      console.debug(`loader:onenter [${this._url}] ${currentState}`);
       this.state = currentState;
 
       switch (currentState) {
@@ -326,6 +327,7 @@ export default class NetworkLoader {
       //   this._size = this._buffer.byteLength;
       // }
 
+      console.debug(`loader:sending-LOADED [${this._url}]`);
       this.#state.send(LOADED);
     } catch (e) {
       this.#state.send(ERROR, e);
