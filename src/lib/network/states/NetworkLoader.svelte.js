@@ -106,7 +106,7 @@ export default class NetworkLoader {
     this._url = url;
 
     this.#state.onenter = (currentState) => {
-      console.debug(`loader:onenter [${this._url}] ${currentState}`);
+      // console.debug(`loader:onenter [${this._url}] ${currentState}`);
       this.state = currentState;
 
       // Check if we've reached a terminal state
@@ -328,7 +328,7 @@ export default class NetworkLoader {
       const { bufferPromise, abort: abortLoadBody } = loadResponseBuffer(
         response,
         ({ bytesLoaded, size }) => {
-          console.debug(`loader:progress [${this._url}] ${bytesLoaded}/${size} bytes`);
+          // console.debug(`loader:progress [${this._url}] ${bytesLoaded}/${size} bytes`);
           this._bytesLoaded = bytesLoaded;
           this._size = size;
         }
@@ -349,11 +349,11 @@ export default class NetworkLoader {
 
       // Check if we've been aborted before sending LOADED
       if (this.#state.current === STATE_ABORTING || this.#state.current === STATE_ABORTED) {
-        console.debug(`loader:already-aborted [${this._url}] - not sending LOADED`);
+        // console.debug(`loader:already-aborted [${this._url}] - not sending LOADED`);
         return;
       }
       
-      console.debug(`loader:sending-LOADED [${this._url}]`);
+      // console.debug(`loader:sending-LOADED [${this._url}]`);
       this.#state.send(LOADED);
     } catch (e) {
       this.#state.send(ERROR, e);

@@ -104,7 +104,7 @@ export default class SceneBase {
    */
   constructor() {
     this.#state.onenter = (currentState) => {
-      console.debug('SceneBase:onenter', currentState);
+      // console.debug('SceneBase:onenter', currentState);
 
       if (currentState === STATE_LOADING) {
         this.#startLoading();
@@ -119,7 +119,7 @@ export default class SceneBase {
       if (this.state === STATE_LOADING) {
         const { sourcesLoaded, numberOfSources } = this.progress;
 
-        console.debug( 'SceneBase:check-for-loaded', {sourcesLoaded, numberOfSources} );
+        // console.debug( 'SceneBase:check-for-loaded', {sourcesLoaded, numberOfSources} );
 
         if (sourcesLoaded === numberOfSources) {
           this.#state.send(LOADED);
@@ -292,7 +292,7 @@ export default class SceneBase {
       // 0 means no timeout, but actually we use max timeout
       const waitTimeout = timeoutMs > 0 ? timeoutMs : MAX_TIMEOUT_MS;
 
-      console.debug('SceneBase:waitForState:currentState', this.state);
+      // console.debug('SceneBase:waitForState:currentState', this.state);
 
       waitForState(() => {
         const ready = (
@@ -301,7 +301,7 @@ export default class SceneBase {
           this.state === STATE_ERROR
         );
 
-        console.debug( { loaded: this.loaded, state: this.state, ready } );
+        // console.debug( { loaded: this.loaded, state: this.state, ready } );
 
         return ready;
       }, waitTimeout)
@@ -398,7 +398,7 @@ export default class SceneBase {
       const loader = this.getLoaderFromSource(source);
 
       loader.load((completedLoader, finalState) => {
-        console.debug(`SceneBase:loader-finished [${completedLoader._url}] ${finalState}`);
+        // console.debug(`SceneBase:loader-finished [${completedLoader._url}] ${finalState}`);
 
         // Check for errors
         if (finalState === STATE_ERROR) {
@@ -409,18 +409,18 @@ export default class SceneBase {
         // Check for abort - don't count aborted loaders as completed
         if (finalState === STATE_ABORTED) {
           // Aborted loaders are handled by SceneBase's own abort logic
-          console.debug(`SceneBase:loader-aborted [${completedLoader._url}] - not counting toward completion`);
+          // console.debug(`SceneBase:loader-aborted [${completedLoader._url}] - not counting toward completion`);
           return;
         }
 
         // Only count successfully loaded loaders
         if (finalState === STATE_LOADED) {
           completedCount++;
-          console.debug(`SceneBase:loader-completed [${completedLoader._url}] (${completedCount}/${totalLoaders})`);
+          // console.debug(`SceneBase:loader-completed [${completedLoader._url}] (${completedCount}/${totalLoaders})`);
 
           // Check for completion
           if (completedCount === totalLoaders) {
-            console.debug('SceneBase:all-loaders-completed-via-callback');
+            // console.debug('SceneBase:all-loaders-completed-via-callback');
             this.#state.send(LOADED);
           }
         }
