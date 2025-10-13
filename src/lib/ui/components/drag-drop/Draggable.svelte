@@ -533,12 +533,12 @@
 
   /* Prevent ALL child elements from interfering with drag */
   [data-component='draggable'] :global(*) {
-    -webkit-user-drag: none !important;
-    -moz-user-select: none !important;
-    -webkit-user-select: none !important;
-    user-select: none !important;
+    -webkit-user-drag: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
     /* Override any pointer-events: auto that child components might have */
-    pointer-events: none !important;
+    pointer-events: none;
   }
 
   /* Provide proper drag cursors */
