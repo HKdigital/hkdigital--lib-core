@@ -410,8 +410,8 @@ export default class IndexedDbCache {
               responseBody.size :
               responseBody.length || 0;
             
-            console.debug(`cache-retrieval: fixing content-length from ${responseHeaders.get('content-length')} to ${bodySize}`);
-            console.debug(`cache-retrieval: body type=${typeof responseBody}, constructor=${responseBody?.constructor?.name}, byteLength=${responseBody?.byteLength}`);
+            // console.debug(`cache-retrieval: fixing content-length from ${responseHeaders.get('content-length')} to ${bodySize}`);
+            // console.debug(`cache-retrieval: body type=${typeof responseBody}, constructor=${responseBody?.constructor?.name}, bodySize=${bodySize}`);
             
             // Add/fix Content-Length header with actual size
             responseHeaders.set('content-length', bodySize.toString());

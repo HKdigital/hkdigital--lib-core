@@ -99,6 +99,8 @@ export default class SceneBase {
    */
   constructor() {
     this.#state.onenter = (currentState) => {
+      console.debug('SceneBase:onenter', currentState);
+
       if (currentState === STATE_LOADING) {
         this.#startLoading();
       } else if (currentState === STATE_ABORTING) {
@@ -282,6 +284,8 @@ export default class SceneBase {
       // Wait for completion with timeout
       // 0 means no timeout, but actually we use max timeout
       const waitTimeout = timeoutMs > 0 ? timeoutMs : MAX_TIMEOUT_MS;
+
+      console.debug('SceneBase:waitForState:currentState', this.state);
 
       waitForState(() => {
         return (
