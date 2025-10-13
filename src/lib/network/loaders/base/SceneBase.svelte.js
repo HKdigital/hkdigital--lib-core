@@ -290,11 +290,15 @@ export default class SceneBase {
       console.debug('SceneBase:waitForState:currentState', this.state);
 
       waitForState(() => {
-        return (
+        const ready = (
           this.loaded ||
           this.state === STATE_ABORTED ||
           this.state === STATE_ERROR
         );
+
+        console.debug( { loaded: this.loaded, state: this.state } );
+
+        return ready;
       }, waitTimeout)
         .then(() => {
           // Remove progress listener
