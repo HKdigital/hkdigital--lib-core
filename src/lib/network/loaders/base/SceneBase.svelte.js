@@ -380,31 +380,43 @@ export default class SceneBase {
       return;
     }
 
-    // Start all loaders
+    let completedCount = 0;
+    const totalLoaders = this.sources.length;
+
+    // Start all loaders with completion callbacks
     for (let i = 0; i < this.sources.length; i++) {
       const source = this.sources[i];
       const loader = this.getLoaderFromSource(source);
-      loader.load();
-    }
 
-    // Check if all loaders have already completed synchronously (e.g., from cache)
-    setTimeout(() => {
-      if (this.#state.current === STATE_LOADING) {
-        let allLoaded = true;
-        for (const source of this.sources) {
-          const loader = this.getLoaderFromSource(source);
-          if (loader.state !== STATE_LOADED) {
-            allLoaded = false;
-            break;
+      loader.load((completedLoader, finalState) => {
+        console.debug(`SceneBase:loader-finished [${completedLoader._url}] ${finalState}`);
+
+        // Check for errors
+        if (finalState === STATE_ERROR) {
+          this.#state.send(ERROR, completedLoader.error || new Error('Loader failed'));
+          return;
+        }
+
+        // Check for abort - don't count aborted loaders as completed
+        if (finalState === STATE_ABORTED) {
+          // Aborted loaders are handled by SceneBase's own abort logic
+          console.debug(`SceneBase:loader-aborted [${completedLoader._url}] - not counting toward completion`);
+          return;
+        }
+
+        // Only count successfully loaded loaders
+        if (finalState === STATE_LOADED) {
+          completedCount++;
+          console.debug(`SceneBase:loader-completed [${completedLoader._url}] (${completedCount}/${totalLoaders})`);
+
+          // Check for completion
+          if (completedCount === totalLoaders) {
+            console.debug('SceneBase:all-loaders-completed-via-callback');
+            this.#state.send(LOADED);
           }
         }
-
-        if (allLoaded) {
-          console.debug('SceneBase:all-loaders-already-loaded, sending LOADED');
-          this.#state.send(LOADED);
-        }
-      }
-    }, 0);
+      });
+    }
   }
 
   #startAbort() {

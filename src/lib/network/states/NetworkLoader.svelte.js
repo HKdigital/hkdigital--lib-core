@@ -8,6 +8,8 @@ import {
   STATE_UNLOADING,
   STATE_LOADED,
   STATE_ABORTING,
+  STATE_ABORTED,
+  STATE_ERROR,
   LOAD,
   ERROR,
   LOADED,
@@ -89,6 +91,9 @@ export default class NetworkLoader {
   /** @type {null|(()=>void)} */
   _abortLoading = null;
 
+  /** @type {null|((loader: NetworkLoader, finalState: string) => void)} */
+  #completionCallback = null;
+
   /**
    * Construct NetworkLoader
    *
@@ -103,6 +108,17 @@ export default class NetworkLoader {
     this.#state.onenter = (currentState) => {
       console.debug(`loader:onenter [${this._url}] ${currentState}`);
       this.state = currentState;
+
+      // Check if we've reached a terminal state
+      const isTerminalState = currentState === STATE_LOADED || 
+                             currentState === STATE_ERROR || 
+                             currentState === STATE_ABORTED;
+
+      if (isTerminalState && this.#completionCallback) {
+        const callback = this.#completionCallback;
+        this.#completionCallback = null; // Clean up immediately
+        callback(this, currentState); // Call with loader and final state
+      }
 
       switch (currentState) {
         case STATE_LOADING:
@@ -155,8 +171,12 @@ export default class NetworkLoader {
 
   /**
    * Start loading all network data
+   *
+   * @param {null|((loader: NetworkLoader, finalState: string) => void)} [onCompletion]
+   *   Optional callback called when loader reaches a terminal state (loaded/error/aborted)
    */
-  load() {
+  load(onCompletion = null) {
+    this.#completionCallback = onCompletion;
     this.#state.send(LOAD);
   }
 
@@ -327,6 +347,12 @@ export default class NetworkLoader {
       //   this._size = this._buffer.byteLength;
       // }
 
+      // Check if we've been aborted before sending LOADED
+      if (this.#state.current === STATE_ABORTING || this.#state.current === STATE_ABORTED) {
+        console.debug(`loader:already-aborted [${this._url}] - not sending LOADED`);
+        return;
+      }
+      
       console.debug(`loader:sending-LOADED [${this._url}]`);
       this.#state.send(LOADED);
     } catch (e) {

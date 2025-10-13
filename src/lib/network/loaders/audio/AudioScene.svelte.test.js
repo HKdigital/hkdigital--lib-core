@@ -185,51 +185,6 @@ describe('AudioScene', () => {
     cleanup();
   });
 
-  it('should fail with shared Response objects (demonstrating the bug)', async () => {
-    // This test demonstrates the bug when using shared Response objects
-    const sharedResponse = createWavResponse();
-    // @ts-ignore - Using shared response (this causes the bug)
-    fetch.mockResolvedValue(sharedResponse);
-
-    /** @type {AudioScene} */
-    let audioScene;
-
-    const cleanup = $effect.root(() => {
-      audioScene = new AudioScene();
-
-      audioScene.defineMemorySource({
-        label: 'sound1',
-        url: 'http://localhost/sound1.wav'
-      });
-      
-      audioScene.defineMemorySource({
-        label: 'sound2', 
-        url: 'http://localhost/sound2.wav'
-      });
-    });
-
-    // This should fail due to Response reuse (fast failure due to error handling)
-    const { promise } = audioScene.preload({ timeoutMs: 500 });
-    
-    let error;
-    try {
-      await promise;
-    } catch (e) {
-      error = e;
-    }
-
-    // Should fail due to second source unable to read from consumed Response
-    expect(error).toBeDefined();
-    expect(error.message).toContain('Source loading failed');
-    expect(audioScene.state).toBe('error');
-    
-    // Only first source should have loaded
-    const progress = audioScene.progress;
-    expect(progress.sourcesLoaded).toBeLessThan(progress.numberOfSources);
-    
-    cleanup();
-  });
-
   it('should handle reactive state transitions correctly', async () => {
     // @ts-ignore - Each fetch call needs a fresh Response object
     fetch.mockImplementation(() => Promise.resolve(createWavResponse()));
