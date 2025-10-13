@@ -20,18 +20,25 @@
   } = $props();
 </script>
 
-{#if !dragPreview && data.currentZone==ZONE_ONE}
-  <div data-section="heading">
-    {data.currentZone}
-  </div>
-{/if}
+<div data-component>
+  {#if !dragPreview && data.currentZone==ZONE_ONE}
+    <div data-section="heading">
+      {data.currentZone}
+    </div>
+  {/if}
 
-<div data-section="body" {...attrs}
-    style:background-color={data.bg}>
-  GameItem
+  <div data-section="body" {...attrs}
+      style:background-color={data.bg}>
+    GameItem
+  </div>
 </div>
 
 <style>
+  [data-component] {
+    /*touch-action: none;*/
+    cursor: grab;
+  }
+
   [data-section="heading"] {
     width: 100px;
     background-color: black;
@@ -42,7 +49,7 @@
   [data-section="body"] {
     width: 100px;
     height: 100px;
-    pointer-events: auto;
+    /*pointer-events: auto;*/
     color: #ddd;
     border: solid 1px black;
     padding: 8px;

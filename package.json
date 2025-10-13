@@ -33,7 +33,7 @@
 		"upgrade:hk": "run-s upgrade:hk:update pnpm:install",
 		"upgrade:all": "run-s upgrade:all:update pnpm:install",
 		"svelte:sync": "svelte-kit sync",
-		"dev:start": "vite dev",
+		"dev:start": "vite dev --host",
 		"build:vite": "vite build",
 		"check:run": "svelte-check --tsconfig ./jsconfig.json",
 		"check:watch-run": "svelte-check --tsconfig ./jsconfig.json --watch",

@@ -85,14 +85,14 @@
         >
           <Draggable
             item={data}
-            classes="w-full h-full"
+            classes="w-full h-full border-4 border-yellow-500"
             source={zone}
             onDragStart={async ({ item }) => {
-              // console.log('Started dragging:', item);
+              console.log('Started dragging:', item);
               dragIndex = index;
             }}
             onDragEnd={({ item }) => {
-              // console.log('Ended dragging:', item);
+              console.log('Ended dragging:', item);
               dragIndex = -1;
             }}
           >
