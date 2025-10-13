@@ -114,7 +114,9 @@ export default class SceneBase {
       if (this.state === STATE_LOADING) {
         const { sourcesLoaded, numberOfSources } = this.progress;
 
-        if (sourcesLoaded === numberOfSources && numberOfSources > 0) {
+        console.debug( 'SceneBase:check-for-loaded', {sourcesLoaded, numberOfSources} );
+
+        if (sourcesLoaded === numberOfSources) {
           this.#state.send(LOADED);
         }
       }
