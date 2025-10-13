@@ -32,6 +32,9 @@ export default class SceneBase {
   // @note this exported state is set by onenter
   state = $state(STATE_INITIAL);
 
+  // Version counter to force reactivity on new preloads
+  _preloadVersion = $state(0);
+
   initial = $derived.by(() => {
     return this.state === STATE_INITIAL;
   });
@@ -52,6 +55,9 @@ export default class SceneBase {
 
   /** @type {SceneLoadingProgress} */
   progress = $derived.by(() => {
+    // Include version to force recalculation on new preloads
+    const version = this._preloadVersion;
+    
     let totalSize = 0;
     let totalBytesLoaded = 0;
     let sourcesLoaded = 0;
@@ -90,7 +96,8 @@ export default class SceneBase {
       totalSize,
       sourcesLoaded,
       numberOfSources,
-      percentageLoaded
+      percentageLoaded,
+      version
     };
   });
 
@@ -206,6 +213,9 @@ export default class SceneBase {
    * Start loading all sources
    */
   load() {
+    // Increment version to force reactivity
+    this._preloadVersion++;
+    console.debug('SceneBase:load version incremented to', this._preloadVersion);
     this.#state.send(LOAD);
   }
 
