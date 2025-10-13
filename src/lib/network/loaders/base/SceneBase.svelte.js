@@ -291,12 +291,12 @@ export default class SceneBase {
 
       waitForState(() => {
         const ready = (
-          this.loaded ||
+          this.state === STATE_LOADED ||
           this.state === STATE_ABORTED ||
           this.state === STATE_ERROR
         );
 
-        console.debug( { loaded: this.loaded, state: this.state } );
+        console.debug( { loaded: this.loaded, state: this.state, ready } );
 
         return ready;
       }, waitTimeout)
