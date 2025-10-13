@@ -29,16 +29,10 @@ const MAX_TIMEOUT_MS = 120000;
 export default class SceneBase {
   #state = new LoadingStateMachine();
 
-  // @note this exported state is set by onenter
+  // @note this exported state is set by #setState
   state = $state(STATE_INITIAL);
-
-  initial = $derived.by(() => {
-    return this.state === STATE_INITIAL;
-  });
-
-  loaded = $derived.by(() => {
-    return this.state === STATE_LOADED;
-  });
+  initial = $state(true);
+  loaded = $state(false);
 
   // aborted = $derived.by(() => {
   //   return this.state === STATE_ABORTED;
@@ -95,6 +89,17 @@ export default class SceneBase {
   });
 
   /**
+   * Internal state setter that updates all related state properties
+   *
+   * @param {string} newState - The new state value
+   */
+  #setState(newState) {
+    this.state = newState;
+    this.initial = newState === STATE_INITIAL;
+    this.loaded = newState === STATE_LOADED;
+  }
+
+  /**
    * Construct SceneBase
    */
   constructor() {
@@ -107,7 +112,7 @@ export default class SceneBase {
         this.#startAbort();
       }
 
-      this.state = currentState;
+      this.#setState(currentState);
     };
 
     $effect(() => {
@@ -291,7 +296,7 @@ export default class SceneBase {
 
       waitForState(() => {
         const ready = (
-          this.state === STATE_LOADED ||
+          this.loaded ||
           this.state === STATE_ABORTED ||
           this.state === STATE_ERROR
         );
