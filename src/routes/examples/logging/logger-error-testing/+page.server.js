@@ -1,5 +1,5 @@
 
-import { createServerLogger, DEBUG } from '$lib/logging/index.js';
+import { createServerLogger, DEBUG } from '$lib/logging/server.js';
 
 const logger = createServerLogger('page-server-logger', DEBUG);
 

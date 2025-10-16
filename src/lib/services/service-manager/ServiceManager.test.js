@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ServiceManager } from './ServiceManager.js';
-import { DEBUG, INFO } from '$lib/logging/index.js';
+import { DEBUG, INFO } from '$lib/logging/common.js';
 import { ServiceBase } from '$lib/services/service-base/ServiceBase.js';
 import {
   STATE_NOT_CREATED,

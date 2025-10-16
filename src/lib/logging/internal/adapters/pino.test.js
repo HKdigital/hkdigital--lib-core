@@ -2,7 +2,7 @@
  * @fileoverview Unit tests for PinoAdapter
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { DEBUG, INFO, WARN, ERROR } from '$lib/logging/index.js';
+import { DEBUG, INFO, WARN, ERROR } from '$lib/logging/common.js';
 
 // Mock pino module
 vi.mock('pino', () => ({

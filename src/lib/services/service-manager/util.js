@@ -5,7 +5,7 @@
  * log level hierarchies, and managing service-specific operations.
  */
 
-import { DEBUG, INFO, WARN, ERROR } from '$lib/logging/index.js';
+import { DEBUG, INFO, WARN, ERROR } from '$lib/logging/common.js';
 
 /** @typedef {import('$lib/logging/typedef.js').LogLevel} LogLevel */
 

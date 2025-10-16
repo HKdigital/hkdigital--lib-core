@@ -2,7 +2,7 @@
  * @fileoverview Unit tests for service-manager utilities
  */
 import { describe, it, expect } from 'vitest';
-import { DEBUG, INFO, WARN, ERROR } from '$lib/logging/index.js';
+import { DEBUG, INFO, WARN, ERROR } from '$lib/logging/common.js';
 import {
   parseServiceLogLevels,
   expandLogLevels

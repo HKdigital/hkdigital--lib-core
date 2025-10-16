@@ -186,6 +186,7 @@ The library includes a comprehensive logging system that provides:
 - **Server-side**: Structured JSON logging with pino and beautiful terminal formatting via pino-pretty
 - **Client-side**: Enhanced console logging with structured data display in browser inspector
 - **Consistent API**: Same logging interface for both server and client environments
+- **Tree-shaking optimized**: Separate entry points for client and server code ensure optimal bundle sizes
 
 ## Documentation
 

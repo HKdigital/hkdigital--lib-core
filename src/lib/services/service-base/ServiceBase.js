@@ -51,7 +51,7 @@
  */
 
 import { EventEmitter } from '$lib/generic/events.js';
-import { Logger, INFO } from '$lib/logging/index.js';
+import { Logger, INFO } from '$lib/logging/common.js';
 import { DetailedError } from '$lib/generic/errors.js';
 
 import {
