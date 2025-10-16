@@ -103,6 +103,8 @@
   let iosWindowHeight = $state();
 
   function getIsLandscape() {
+    // console.debug('getIsLandscape', { isPwa, isAppleMobile });
+
     if (isPwa && isAppleMobile) {
       return iosWindowWidth > iosWindowHeight;
     } else {
@@ -257,16 +259,16 @@
 
       updateIosWidthHeight();
 
-      console.debug(
-        `ScreenOrientation change: ${type}, ${angle} degrees.`,
-        isPwa,
-        windowWidth,
-        windowHeight,
-        screen.width,
-        screen.height,
-        iosWindowWidth,
-        iosWindowHeight
-      );
+      // console.debug(
+      //   `ScreenOrientation change: ${type}, ${angle} degrees.`,
+      //   isPwa,
+      //   windowWidth,
+      //   windowHeight,
+      //   screen.width,
+      //   screen.height,
+      //   iosWindowWidth,
+      //   iosWindowHeight
+      // );
 
       // if( angle
     }
@@ -339,7 +341,7 @@
   }
 
   async function requestFullscreen() {
-    console.debug('Request full screen');
+    // console.debug('Request full screen');
     show = false;
 
     await document.documentElement.requestFullscreen();
