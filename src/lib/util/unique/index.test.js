@@ -7,11 +7,12 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
-import { 
-  randomString, 
-  randomStringBase58, 
+import {
+  randomString,
+  randomStringBase58,
   randomStringBaseHuman,
   generateLocalId,
+  generateServerId,
   getTimeBasedNumber30s,
   getTwoChar10ms,
   bootTimePrefix
@@ -127,6 +128,64 @@ describe('generateLocalId', () => {
     const id2 = generateLocalId(time2);
 
     expect(id1).not.toBe(id2);
+  });
+});
+
+describe('generateServerId', () => {
+  it('should generate a string ID', () => {
+    const serverId = generateServerId();
+    expect(typeof serverId).toBe('string');
+    expect(serverId.length).toBeGreaterThan(0);
+  });
+
+  it('should generate unique IDs for consecutive calls', () => {
+    const id1 = generateServerId();
+    const id2 = generateServerId();
+    expect(id1).not.toBe(id2);
+  });
+
+  it('should use default random size of 8 characters', () => {
+    const serverId = generateServerId();
+
+    // Server ID format:
+    // base58(timeBasedNumber30s) + randomStringBase58(8)
+    // Minimum length is 1 (for time part) + 8 (random part) = 9
+    expect(serverId.length).toBeGreaterThanOrEqual(9);
+  });
+
+  it('should respect custom random size parameter', () => {
+    const randomSize = 16;
+    const serverId = generateServerId(randomSize);
+
+    // Should be at least: 1 (time part) + 16 (random part) = 17
+    expect(serverId.length).toBeGreaterThanOrEqual(randomSize + 1);
+  });
+
+  it('should only use characters from base58 alphabet', () => {
+    const serverId = generateServerId(20);
+
+    // Verify each character is from the base58 alphabet
+    for (let i = 0; i < serverId.length; i++) {
+      expect(ALPHABET_BASE_58).toContain(serverId[i]);
+    }
+  });
+
+  it('should generate different IDs with same random size', () => {
+    const randomSize = 12;
+    const id1 = generateServerId(randomSize);
+    const id2 = generateServerId(randomSize);
+
+    expect(id1).not.toBe(id2);
+    expect(id1.length).toBeGreaterThanOrEqual(randomSize + 1);
+    expect(id2.length).toBeGreaterThanOrEqual(randomSize + 1);
+  });
+
+  it('should work with minimal random size', () => {
+    const serverId = generateServerId(1);
+
+    // Should be at least: 1 (time part) + 1 (random part) = 2
+    expect(serverId.length).toBeGreaterThanOrEqual(2);
+    expect(typeof serverId).toBe('string');
   });
 });
 

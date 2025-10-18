@@ -6,7 +6,7 @@
  *
  * @example
  *
- *   import { generateLocalId } from './unqiue.js';
+ *   import { generateLocalId } from './unique.js';
  *
  *   async function test()
  *   {
@@ -124,6 +124,20 @@ export function randomAccessCode() {
  */
 export function generateClientSessionId() {
   return randomStringBase58(48);
+}
+
+/**
+ * Generate an id that can used to identify a server
+ * - Output format: <base58-time-based> + <random-chars>
+ *
+ * @param {number} [randomSize=8] - Number of random base58 characters
+ *
+ * @returns {string} server id
+ */
+export function generateServerId(randomSize = 8) {
+  return (
+    base58fromNumber(getTimeBasedNumber30s()) + randomStringBase58(randomSize)
+  );
 }
 
 /**

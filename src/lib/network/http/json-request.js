@@ -76,6 +76,7 @@ export async function jsonGet(options) {
     urlSearchParams,
     headers: jsonHeaders,
     withCredentials,
+    cache: 'no-store', // Disable caching for JSON API requests
     ...otherOptions // Pass through any other options
   });
 
@@ -188,6 +189,7 @@ export async function jsonPost(options) {
     urlSearchParams,
     headers: jsonHeaders,
     withCredentials,
+    cache: 'no-store', // Disable caching for JSON API requests
     ...otherOptions // Pass through any other options
   });
 
@@ -303,6 +305,7 @@ export async function jsonPut(options) {
     urlSearchParams,
     headers: jsonHeaders,
     withCredentials,
+    cache: 'no-store', // Disable caching for JSON API requests
     ...otherOptions // Pass through any other options
   });
 
@@ -417,6 +420,7 @@ export async function jsonPatch(options) {
     urlSearchParams,
     headers: jsonHeaders,
     withCredentials,
+    cache: 'no-store', // Disable caching for JSON API requests
     ...otherOptions // Pass through any other options
   });
 
@@ -508,6 +512,7 @@ export async function jsonDelete(options) {
     urlSearchParams,
     headers: jsonHeaders,
     withCredentials,
+    cache: 'no-store', // Disable caching for JSON API requests
     ...otherOptions // Pass through any other options
   });
 
