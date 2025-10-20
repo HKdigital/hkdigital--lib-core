@@ -85,7 +85,7 @@
   let iosWindowHeight = $state();
 
   function getIsLandscape() {
-    // console.debug('getIsLandscape', { isPwa, isAppleMobile});
+    console.debug('getIsLandscape', { isPwa, isAppleMobile});
 
     if (isPwa && isAppleMobile) {
       return iosWindowWidth > iosWindowHeight;
@@ -102,7 +102,9 @@
     isLandscape = getIsLandscape();
   });
 
-  // $inspect('isLandscape', isLandscape);
+  $inspect('isLandscape', isLandscape);
+  $inspect('windowWidth/Height', windowWidth, windowHeight);
+  $inspect('iosWindowWidth/Height', iosWindowWidth, iosWindowHeight);
 
   // Game container reference
   let gameContainer = $state();
@@ -198,14 +200,14 @@
           iosWindowWidth = screen.width;
           iosWindowHeight = screen.height;
         }
-        // console.debug( { iosWindowWidth, iosWindowHeight } );
+        console.debug( { iosWindowWidth, iosWindowHeight } );
       }
     }
 
     updateIosWidthHeight();
 
     function updateOrientation(event) {
-      // console.debug('updateOrientation');
+      console.debug('updateOrientation');
       const type = event.target.type;
       const angle = event.target.angle;
 
