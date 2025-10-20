@@ -175,15 +175,19 @@
     if (isPwa && isAppleMobile) {
       const angle = screen.orientation.angle;
 
+      // Use window.inner dimensions instead of screen dimensions
+      // because screen.width/height don't rotate on iOS PWA
       if (angle === 90 || angle === 270) {
-        iosWindowWidth = screen.height;
-        iosWindowHeight = screen.width;
+        iosWindowWidth = window.innerHeight;
+        iosWindowHeight = window.innerWidth;
       } else {
-        iosWindowWidth = screen.width;
-        iosWindowHeight = screen.height;
+        iosWindowWidth = window.innerWidth;
+        iosWindowHeight = window.innerHeight;
       }
       console.debug('updateIosWidthHeight', {
         angle,
+        'window.innerWidth': window.innerWidth,
+        'window.innerHeight': window.innerHeight,
         iosWindowWidth,
         iosWindowHeight
       });
