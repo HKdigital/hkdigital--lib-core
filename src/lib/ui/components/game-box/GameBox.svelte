@@ -191,7 +191,10 @@
   }
 
   function updateOrientation(event) {
-    console.debug('updateOrientation', event.target.angle);
+    console.debug('*** updateOrientation EVENT FIRED ***', {
+      angle: event.target.angle,
+      type: event.target.type
+    });
     updateIosWidthHeight();
   }
 
