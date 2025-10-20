@@ -5,13 +5,24 @@ import { resolve } from 'path';
  * Generates a Vite configuration object with common HKdigital settings
  *
  * @param {object} [options] Configuration options
- * @param {boolean} [options.enableImagetools=true] Enable vite-imagetools plugin
- * @param {boolean} [options.enableVitest=true] Include Vitest configuration
- * @param {boolean} [options.enableSvelteKit=true] Enable SvelteKit plugin
- * @param {object} [options.customDefines={}] Additional define values
- * @param {Array<any>} [options.customPlugins=[]] Additional Vite plugins
- * @param {object} [options.imagetoolsOptions={}] Options for imagetools config
- * @param {string} [options.packageJsonPath='./package.json'] Path to package.json
+ * @param {boolean} [options.enableImagetools=true]
+ *   Enable vite-imagetools plugin
+ * @param {boolean} [options.enableVitest=true]
+ *   Include Vitest configuration
+ * @param {boolean} [options.enableVitestWorkspace=false]
+ *   Use Vitest workspace with separate browser/node projects
+ * @param {boolean} [options.enableSvelteKit=true]
+ *   Enable SvelteKit plugin
+ * @param {object} [options.customDefines={}]
+ *   Additional define values
+ * @param {Array<any>} [options.customPlugins=[]]
+ *   Additional Vite plugins
+ * @param {object} [options.imagetoolsOptions={}]
+ *   Options for imagetools config
+ * @param {string} [options.packageJsonPath='./package.json']
+ *   Path to package.json
+ * @param {object} [options.vitestOptions={}]
+ *   Custom Vitest configuration options
  *
  * @returns {Promise<object>} Vite configuration object
  */
@@ -19,11 +30,13 @@ export async function generateViteConfig(options = {}) {
   const {
     enableImagetools = true,
     enableVitest = true,
+    enableVitestWorkspace = false,
     enableSvelteKit = true,
     customDefines = {},
     customPlugins = [],
     imagetoolsOptions = {},
-    packageJsonPath = './package.json'
+    packageJsonPath = './package.json',
+    vitestOptions = {}
   } = options;
 
   // Read package.json for version
@@ -86,11 +99,45 @@ export async function generateViteConfig(options = {}) {
     },
   };
 
-  if (enableVitest) {
+  if (enableVitest && !enableVitestWorkspace) {
     config.test = {
       include: [
         'src/**/*.{test,spec}.{js,ts}',
         'src/**/*.svelte.{test,spec}.{js,ts}'
+      ],
+      ...vitestOptions
+    };
+  }
+
+  if (enableVitest && enableVitestWorkspace) {
+    // Workspace mode: separate projects for jsdom and node tests
+    // jsdom tests: *.svelte.test.js (component tests with jsdom)
+    // node tests: *.test.js, *.spec.js (server-side tests)
+    config.test = {
+      ...vitestOptions,
+      projects: [
+        {
+          plugins,
+          test: {
+            name: 'jsdom',
+            environment: 'jsdom',
+            include: ['src/**/*.svelte.{test,spec}.{js,ts}'],
+            ...vitestOptions.jsdom
+          },
+          resolve: {
+            conditions: ['browser']
+          }
+        },
+        {
+          plugins,
+          test: {
+            name: 'node',
+            environment: 'node',
+            include: ['src/**/*.{test,spec}.{js,ts}'],
+            exclude: ['src/**/*.svelte.{test,spec}.{js,ts}'],
+            ...vitestOptions.node
+          }
+        }
       ]
     };
   }
@@ -130,7 +177,8 @@ export function generateViteDefines(options = {}) {
  * Generates Vitest configuration
  *
  * @param {object} [options] Configuration options
- * @param {string[]} [options.additionalPatterns=[]] Additional test patterns
+ * @param {string[]} [options.additionalPatterns=[]]
+ *   Additional test patterns
  *
  * @returns {object} Vitest configuration object
  */
