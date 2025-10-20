@@ -54,6 +54,8 @@ support.
 - `marginTop?: number` - Top margin in pixels (default: 0)
 - `marginBottom?: number` - Bottom margin in pixels (default: 0)
 - `center?: boolean` - Center the game box in viewport
+- `preserveOnOrientationChange?: boolean` - Keep components mounted during
+  orientation changes (default: true)
 
 ### Scaling Props
 - `enableScaling?: boolean` - Enable design system scaling (default: false)
@@ -225,6 +227,17 @@ These can be used in your CSS for responsive styling:
   height: calc(var(--game-height) * 0.2);
 }
 ```
+
+## Orientation Behavior
+
+By default, `preserveOnOrientationChange` is `true`, which means both
+landscape and portrait content are rendered and toggled with CSS visibility.
+This prevents components from being destroyed and recreated during orientation
+changes, preserving state like audio players, game progress, etc.
+
+Set `preserveOnOrientationChange={false}` to use the original behavior where
+components are completely destroyed and recreated on orientation change. This
+can be useful for simpler use cases where state preservation isn't needed.
 
 ## Mobile PWA Considerations
 
