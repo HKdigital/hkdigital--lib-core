@@ -169,6 +169,30 @@
 
   let supportsFullscreen = $state(false);
 
+  function updateIosWidthHeight() {
+    if (isPwa && isAppleMobile) {
+      const angle = screen.orientation.angle;
+
+      if (angle === 90 || angle === 270) {
+        iosWindowWidth = screen.height;
+        iosWindowHeight = screen.width;
+      } else {
+        iosWindowWidth = screen.width;
+        iosWindowHeight = screen.height;
+      }
+      console.debug('updateIosWidthHeight', {
+        angle,
+        iosWindowWidth,
+        iosWindowHeight
+      });
+    }
+  }
+
+  function updateOrientation(event) {
+    console.debug('updateOrientation', event.target.angle);
+    updateIosWidthHeight();
+  }
+
   onMount(() => {
     supportsFullscreen = document.fullscreenEnabled;
 
@@ -182,63 +206,15 @@
       '(display-mode: fullscreen) or (display-mode: standalone)'
     ).matches;
 
-    show = true;
-
-    function updateIosWidthHeight() {
-      // const isPwa = window.matchMedia(
-      //   '(display-mode: fullscreen) or (display-mode: standalone)'
-      // ).matches;
-
-      if (isPwa && isAppleMobile) {
-        const angle = screen.orientation.angle;
-
-        if (angle === 90 || angle === 270) {
-          iosWindowWidth = screen.height;
-          iosWindowHeight = screen.width;
-        } else {
-          iosWindowWidth = screen.width;
-          iosWindowHeight = screen.height;
-        }
-        console.debug( { iosWindowWidth, iosWindowHeight } );
-      }
-    }
-
     updateIosWidthHeight();
 
-    function updateOrientation(event) {
-      console.debug('updateOrientation');
-      const type = event.target.type;
-      const angle = event.target.angle;
+    screen.orientation.addEventListener('change', updateOrientation);
 
-      // isPwa = window.matchMedia(
-      //   '(display-mode: fullscreen) or (display-mode: standalone)'
-      // ).matches;
+    show = true;
 
-      updateIosWidthHeight();
-
-      // console.debug(
-      //   `ScreenOrientation change: ${type}, ${angle} degrees.`,
-      //   isPwa,
-      //   windowWidth,
-      //   windowHeight,
-      //   screen.width,
-      //   screen.height,
-      //   iosWindowWidth,
-      //   iosWindowHeight
-      // );
-
-      // if( angle
-    }
-
-    $effect(() => {
-      screen.orientation.addEventListener('change', updateOrientation);
-
-      return () => {
-        screen.orientation.removeEventListener('change', updateOrientation);
-      };
-    });
-
-    //
+    return () => {
+      screen.orientation.removeEventListener('change', updateOrientation);
+    };
   });
 
   onMount(() => {
