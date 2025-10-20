@@ -31,6 +31,7 @@ import { sinceMs } from '$lib/util/time';
 /**
  * @type {{
  *   bootTimePrefix?:string,
+ *   serverId?: string,
  *   lastTimeBasedNumber?: number,
  *   lastTimeBasedValue58?: string,
  *   lastCountBasedNumber?: number
@@ -129,15 +130,21 @@ export function generateClientSessionId() {
 /**
  * Generate an id that can used to identify a server
  * - Output format: <base58-time-based> + <random-chars>
+ * - The ID will be generated only once,
  *
  * @param {number} [randomSize=8] - Number of random base58 characters
+ * @param {boolean} [reset=false] - Reset the previously generated id
  *
  * @returns {string} server id
  */
-export function generateServerId(randomSize = 8) {
-  return (
-    base58fromNumber(getTimeBasedNumber30s()) + randomStringBase58(randomSize)
-  );
+export function generateServerId(randomSize = 8, reset=false) {
+  if (!vars.serverId || reset) {
+    vars.serverId =
+      base58fromNumber(getTimeBasedNumber30s()) +
+      randomStringBase58(randomSize);
+  }
+
+  return vars.serverId;
 }
 
 /**

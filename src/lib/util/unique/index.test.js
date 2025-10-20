@@ -133,19 +133,19 @@ describe('generateLocalId', () => {
 
 describe('generateServerId', () => {
   it('should generate a string ID', () => {
-    const serverId = generateServerId();
+    const serverId = generateServerId(8, true);
     expect(typeof serverId).toBe('string');
     expect(serverId.length).toBeGreaterThan(0);
   });
 
-  it('should generate unique IDs for consecutive calls', () => {
-    const id1 = generateServerId();
+  it('should return the same ID for consecutive calls', () => {
+    const id1 = generateServerId(8, true);
     const id2 = generateServerId();
-    expect(id1).not.toBe(id2);
+    expect(id1).toBe(id2);
   });
 
   it('should use default random size of 8 characters', () => {
-    const serverId = generateServerId();
+    const serverId = generateServerId(8, true);
 
     // Server ID format:
     // base58(timeBasedNumber30s) + randomStringBase58(8)
@@ -153,16 +153,8 @@ describe('generateServerId', () => {
     expect(serverId.length).toBeGreaterThanOrEqual(9);
   });
 
-  it('should respect custom random size parameter', () => {
-    const randomSize = 16;
-    const serverId = generateServerId(randomSize);
-
-    // Should be at least: 1 (time part) + 16 (random part) = 17
-    expect(serverId.length).toBeGreaterThanOrEqual(randomSize + 1);
-  });
-
   it('should only use characters from base58 alphabet', () => {
-    const serverId = generateServerId(20);
+    const serverId = generateServerId(8, true);
 
     // Verify each character is from the base58 alphabet
     for (let i = 0; i < serverId.length; i++) {
@@ -170,22 +162,39 @@ describe('generateServerId', () => {
     }
   });
 
-  it('should generate different IDs with same random size', () => {
-    const randomSize = 12;
-    const id1 = generateServerId(randomSize);
-    const id2 = generateServerId(randomSize);
+  it('should ignore random size parameter on subsequent calls', () => {
+    const id1 = generateServerId(8, true);
+    const id2 = generateServerId(16);
 
-    expect(id1).not.toBe(id2);
-    expect(id1.length).toBeGreaterThanOrEqual(randomSize + 1);
-    expect(id2.length).toBeGreaterThanOrEqual(randomSize + 1);
+    // Both calls should return the same ID regardless of parameter
+    expect(id1).toBe(id2);
   });
 
-  it('should work with minimal random size', () => {
-    const serverId = generateServerId(1);
+  it('should work with custom random size when reset is true', () => {
+    const randomSize = 12;
+    const serverId = generateServerId(randomSize, true);
 
-    // Should be at least: 1 (time part) + 1 (random part) = 2
-    expect(serverId.length).toBeGreaterThanOrEqual(2);
+    // Should be at least: 1 (time part) + 12 (random part) = 13
+    expect(serverId.length).toBeGreaterThanOrEqual(randomSize + 1);
     expect(typeof serverId).toBe('string');
+  });
+
+  it('should generate new ID when reset parameter is true', () => {
+    const id1 = generateServerId(8, true);
+    const id2 = generateServerId(8, true);
+
+    // Reset should generate a new ID
+    expect(id1).not.toBe(id2);
+  });
+
+  it('should be memoized across calls without reset', () => {
+    const id1 = generateServerId(8, true);
+    const id2 = generateServerId(12);
+    const id3 = generateServerId(1);
+
+    // All calls without reset return the same memoized ID
+    expect(id1).toBe(id2);
+    expect(id2).toBe(id3);
   });
 });
 
