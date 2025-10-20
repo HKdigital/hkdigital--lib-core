@@ -97,6 +97,8 @@
     });
 
     if (isPwa && isAppleMobile) {
+      // For iOS PWA, update dimensions on window size change
+      updateIosWidthHeight();
       isLandscape = iosWindowWidth > iosWindowHeight;
     } else {
       isLandscape = windowWidth > windowHeight;
