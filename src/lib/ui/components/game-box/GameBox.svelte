@@ -84,22 +84,23 @@
   let iosWindowWidth = $state();
   let iosWindowHeight = $state();
 
-  function getIsLandscape() {
-    console.debug('getIsLandscape', { isPwa, isAppleMobile});
-
-    if (isPwa && isAppleMobile) {
-      return iosWindowWidth > iosWindowHeight;
-    } else {
-      return windowWidth > windowHeight;
-    }
-  }
-
   let isLandscape = $state();
 
-  // $derived.by(getIsLandscape);
-
   $effect(() => {
-    isLandscape = getIsLandscape();
+    console.debug('getIsLandscape effect running', {
+      isPwa,
+      isAppleMobile,
+      windowWidth,
+      windowHeight,
+      iosWindowWidth,
+      iosWindowHeight
+    });
+
+    if (isPwa && isAppleMobile) {
+      isLandscape = iosWindowWidth > iosWindowHeight;
+    } else {
+      isLandscape = windowWidth > windowHeight;
+    }
   });
 
   $inspect('isLandscape', isLandscape);
@@ -180,8 +181,6 @@
     isPwa = window.matchMedia(
       '(display-mode: fullscreen) or (display-mode: standalone)'
     ).matches;
-
-    isLandscape = getIsLandscape();
 
     show = true;
 
