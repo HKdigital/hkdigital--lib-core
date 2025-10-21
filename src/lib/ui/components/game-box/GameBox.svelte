@@ -170,16 +170,16 @@
   });
 
   $effect(() => {
-    console.debug('getIsLandscape effect running', {
-      isPwa,
-      isAppleMobile,
-      windowWidth,
-      windowHeight,
-      debouncedWindowWidth,
-      debouncedWindowHeight,
-      iosWindowWidth,
-      iosWindowHeight
-    });
+    // console.debug('getIsLandscape effect running', {
+    //   isPwa,
+    //   isAppleMobile,
+    //   windowWidth,
+    //   windowHeight,
+    //   debouncedWindowWidth,
+    //   debouncedWindowHeight,
+    //   iosWindowWidth,
+    //   iosWindowHeight
+    // });
 
     if (isPwa && isAppleMobile) {
       // For iOS PWA, use iOS-specific dimensions
@@ -190,9 +190,9 @@
     }
   });
 
-  $inspect('isLandscape', isLandscape);
-  $inspect('windowWidth/Height', windowWidth, windowHeight);
-  $inspect('iosWindowWidth/Height', iosWindowWidth, iosWindowHeight);
+  // $inspect('isLandscape', isLandscape);
+  // $inspect('windowWidth/Height', windowWidth, windowHeight);
+  // $inspect('iosWindowWidth/Height', iosWindowWidth, iosWindowHeight);
 
   // Update game dimensions based on window size and orientation
   $effect(() => {
@@ -277,13 +277,13 @@
         iosWindowWidth = window.innerWidth;
         iosWindowHeight = window.innerHeight;
       }
-      console.debug('updateIosWidthHeight', {
-        angle,
-        'window.innerWidth': window.innerWidth,
-        'window.innerHeight': window.innerHeight,
-        iosWindowWidth,
-        iosWindowHeight
-      });
+      // console.debug('updateIosWidthHeight', {
+      //   angle,
+      //   'window.innerWidth': window.innerWidth,
+      //   'window.innerHeight': window.innerHeight,
+      //   iosWindowWidth,
+      //   iosWindowHeight
+      // });
     }
   }
 
@@ -427,7 +427,10 @@
 <!-- margin: /* top | right | bottom | left */ -->
 
 {#if gameHeight}
-  <div class:center>
+  <div
+    class:center
+    style:height={center ? `${iosWindowHeight ?? windowHeight}px` : undefined}
+  >
     <div
       data-component="game-box"
       data-orientation={isLandscape ? 'landscape' : 'portrait'}
