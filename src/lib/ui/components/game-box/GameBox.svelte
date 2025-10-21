@@ -140,7 +140,8 @@
         return; // Skip first of the two resize events
       }
 
-      skipNextResize = true;
+      // skipNextResize = true; // disabled to test <<
+
       debouncedWindowWidth = windowWidth;
       debouncedWindowHeight = windowHeight;
 
