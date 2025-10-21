@@ -75,6 +75,11 @@
 
     center,
 
+    enableScaling,
+    designLandscape,
+    designPortrait,
+    clamping,
+
     // > Snippets
     snippetLandscape,
     snippetPortrait,
