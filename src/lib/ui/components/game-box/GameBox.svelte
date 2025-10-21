@@ -79,15 +79,37 @@
 
   let debouncedWindowWidth = $state();
   let debouncedWindowHeight = $state();
+
   let debounceTimer;
 
-  let gameWidth = $state();
-  let gameHeight = $state();
+  let gameWidthOnPortrait = $state();
+  let gameHeightOnPortrait = $state();
+
+  let gameWidthOnLandscape = $state();
+  let gameHeightOnLandscape = $state();
 
   let iosWindowWidth = $state();
   let iosWindowHeight = $state();
 
   let isLandscape = $state();
+
+  let gameWidth = $derived.by( () => {
+    if( isLandscape ) {
+      return gameWidthOnLandscape;
+    }
+    else {
+      return gameWidthOnPortrait;
+    }
+  } );
+
+  let gameHeight = $derived.by( () => {
+    if( isLandscape ) {
+      return gameHeightOnLandscape;
+    }
+    else {
+      return gameHeightOnPortrait;
+    }
+  } );
 
   const isAppleMobile = /iPhone|iPod/.test(navigator.userAgent);
 
@@ -175,28 +197,38 @@
     //   marginBottom
     // });
 
-    let gameAspect;
-
     if (availWidth > availHeight) {
-      gameWidth = getGameWidthOnLandscape({
+      gameWidthOnLandscape = getGameWidthOnLandscape({
         windowWidth: availWidth,
         windowHeight: availHeight,
         aspectOnLandscape
       });
-      gameAspect = aspectOnLandscape;
+
+      if( aspectOnLandscape )
+      {
+        gameHeightOnLandscape = gameWidthOnLandscape / aspectOnLandscape;
+      }
+      else {
+        gameHeightOnLandscape = availHeight;
+      }
+
+      isLandscape = true;
     } else {
-      gameWidth = getGameWidthOnPortrait({
+      gameWidthOnPortrait = getGameWidthOnPortrait({
         windowWidth: availWidth,
         windowHeight: availHeight,
         aspectOnPortrait
       });
-      gameAspect = aspectOnPortrait;
-    }
 
-    if (gameAspect) {
-      gameHeight = gameWidth / gameAspect;
-    } else {
-      gameHeight = availHeight;
+      if( aspectOnPortrait )
+      {
+        gameHeightOnPortrait = gameWidthOnPortrait / aspectOnPortrait;
+      }
+      else {
+        gameHeightOnPortrait = availHeight;
+      }
+
+      isLandscape = false;
     }
   });
 
@@ -403,8 +435,8 @@
             <!-- Landscape content -->
             <div
               class:hidden={!isLandscape}
-              style:width="{gameWidth}px"
-              style:height="{gameHeight}px"
+              style:width="{gameWidthOnLandscape}px"
+              style:height="{gameHeightOnLandscape}px"
             >
               {@render snippetLandscape({
                 isLandscape,
@@ -424,8 +456,8 @@
             <!-- Portrait content -->
             <div
               class:hidden={isLandscape}
-              style:width="{gameWidth}px"
-              style:height="{gameHeight}px"
+              style:width="{gameWidthOnPortrait}px"
+              style:height="{gameHeightOnPortrait}px"
             >
               {@render snippetPortrait({
                 isLandscape,
@@ -482,8 +514,8 @@
             <!-- Landscape content -->
             <div
               class:hidden={!isLandscape}
-              style:width="{gameWidth}px"
-              style:height="{gameHeight}px"
+              style:width="{gameWidthOnLandscape}px"
+              style:height="{gameHeightOnLandscape}px"
             >
               {@render snippetLandscape({
                 isLandscape,
@@ -503,8 +535,8 @@
             <!-- Portrait content -->
             <div
               class:hidden={isLandscape}
-              style:width="{gameWidth}px"
-              style:height="{gameHeight}px"
+              style:width="{gameWidthOnPortrait}px"
+              style:height="{gameHeightOnPortrait}px"
             >
               {@render snippetPortrait({
                 isLandscape,
@@ -527,8 +559,8 @@
           <!-- Landscape content -->
           <div
             class:hidden={!isLandscape}
-            style:width="{gameWidth}px"
-            style:height="{gameHeight}px"
+            style:width="{gameWidthOnLandscape}px"
+            style:height="{gameHeightOnLandscape}px"
           >
             {@render snippetLandscape({
               isLandscape,
@@ -546,8 +578,8 @@
           <!-- Portrait content -->
           <div
             class:hidden={isLandscape}
-            style:width="{gameWidth}px"
-            style:height="{gameHeight}px"
+            style:width="{gameWidthOnPortrait}px"
+            style:height="{gameHeightOnPortrait}px"
           >
             {@render snippetPortrait({
               isLandscape,
