@@ -121,6 +121,13 @@
     }
   });
 
+  // Update iOS dimensions when debounced window size changes
+  $effect(() => {
+    if (isPwa && isAppleMobile && debouncedWindowWidth && debouncedWindowHeight) {
+      updateIosWidthHeight();
+    }
+  });
+
   $effect(() => {
     console.debug('getIsLandscape effect running', {
       isPwa,
@@ -134,10 +141,10 @@
     });
 
     if (isPwa && isAppleMobile) {
-      // For iOS PWA, update dimensions on window size change
-      updateIosWidthHeight();
+      // For iOS PWA, use iOS-specific dimensions
       isLandscape = iosWindowWidth > iosWindowHeight;
     } else {
+      // For non-PWA, use debounced window dimensions
       isLandscape = debouncedWindowWidth > debouncedWindowHeight;
     }
   });
