@@ -6,6 +6,8 @@
     getGameWidthOnPortrait
   } from './gamebox.util.js';
 
+  import { enableContainerScaling } from '$lib/design/index.js';
+
   /**
    * @typedef {{
    *   isLandscape: boolean,
