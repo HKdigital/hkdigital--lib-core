@@ -6,7 +6,7 @@
     getGameWidthOnPortrait
   } from './gamebox.util.js';
 
-  import { enableContainerScaling } from '$lib/design/index.js';
+  import ScaledContainer from './ScaledContainer.svelte';
 
   /**
    * @typedef {{
@@ -193,9 +193,6 @@
   $inspect('windowWidth/Height', windowWidth, windowHeight);
   $inspect('iosWindowWidth/Height', iosWindowWidth, iosWindowHeight);
 
-  // Game container reference
-  let gameContainer = $state();
-
   // Update game dimensions based on window size and orientation
   $effect(() => {
     const width = iosWindowWidth ?? windowWidth;
@@ -246,33 +243,6 @@
 
       isLandscape = false;
     }
-  });
-
-  // Set up scaling if enabled, with orientation awareness
-  $effect(() => {
-    if (!enableScaling || !gameContainer || !gameWidth || !gameHeight) {
-      return () => {}; // No-op cleanup if scaling not enabled or required elements missing
-    }
-
-    // Select the appropriate design based on orientation
-    const activeDesign = isLandscape ? designLandscape : designPortrait;
-
-    // console.debug(
-    //   `GameBox scaling [${isLandscape ? 'landscape' : 'portrait'}]:`,
-    //   `game: ${gameWidth}x${gameHeight}`,
-    //   `design: ${activeDesign.width}x${activeDesign.height}`
-    // );
-
-    // Apply scaling with the current design based on orientation
-    return enableContainerScaling({
-      container: gameContainer,
-      design: activeDesign,
-      clamping,
-      getDimensions: () => ({
-        width: gameWidth,
-        height: gameHeight
-      })
-    });
   });
 
   let show = $state(false);
@@ -460,7 +430,6 @@
     <div
       data-component="game-box"
       data-orientation={isLandscape ? 'landscape' : 'portrait'}
-      bind:this={gameContainer}
       class="{base} {bg} {classes}"
       class:isMobile
       style:width="{gameWidth}px"
@@ -476,10 +445,13 @@
           <!-- Require fullscreen -->
           {#if isFullscreen && !isDevMode}
             <!-- Landscape content -->
-            <div
-              class:hidden={!isLandscape}
-              style:width="{gameWidthOnLandscape}px"
-              style:height="{gameHeightOnLandscape}px"
+            <ScaledContainer
+              enableScaling={enableScaling}
+              design={designLandscape}
+              {clamping}
+              width={gameWidthOnLandscape}
+              height={gameHeightOnLandscape}
+              hidden={!isLandscape}
             >
               {@render snippetLandscape({
                 isLandscape,
@@ -495,12 +467,15 @@
                 gameWidth,
                 gameHeight
               })}
-            </div>
+            </ScaledContainer>
             <!-- Portrait content -->
-            <div
-              class:hidden={isLandscape}
-              style:width="{gameWidthOnPortrait}px"
-              style:height="{gameHeightOnPortrait}px"
+            <ScaledContainer
+              enableScaling={enableScaling}
+              design={designPortrait}
+              {clamping}
+              width={gameWidthOnPortrait}
+              height={gameHeightOnPortrait}
+              hidden={isLandscape}
             >
               {@render snippetPortrait({
                 isLandscape,
@@ -516,10 +491,16 @@
                 gameWidth,
                 gameHeight
               })}
-            </div>
+            </ScaledContainer>
           {:else if supportsFullscreen && !isDevMode}
             <!-- Require fullscreen -->
-            <div style:width="{gameWidth}px" style:height="{gameHeight}px">
+            <ScaledContainer
+              enableScaling={enableScaling}
+              design={isLandscape ? designLandscape : designPortrait}
+              {clamping}
+              width={gameWidth}
+              height={gameHeight}
+            >
               {@render snippetRequireFullscreen({
                 isLandscape,
                 isPortrait: !isLandscape,
@@ -534,10 +515,16 @@
                 gameWidth,
                 gameHeight
               })}
-            </div>
+            </ScaledContainer>
           {:else if isMobile && snippetInstallOnHomeScreen && !isDevMode}
             <!-- Require install on home screen on mobile -->
-            <div style:width="{gameWidth}px" style:height="{gameHeight}px">
+            <ScaledContainer
+              enableScaling={enableScaling}
+              design={isLandscape ? designLandscape : designPortrait}
+              {clamping}
+              width={gameWidth}
+              height={gameHeight}
+            >
               {@render snippetInstallOnHomeScreen({
                 isLandscape,
                 isPortrait: !isLandscape,
@@ -552,13 +539,16 @@
                 gameWidth,
                 gameHeight
               })}
-            </div>
+            </ScaledContainer>
           {:else}
             <!-- Landscape content -->
-            <div
-              class:hidden={!isLandscape}
-              style:width="{gameWidthOnLandscape}px"
-              style:height="{gameHeightOnLandscape}px"
+            <ScaledContainer
+              enableScaling={enableScaling}
+              design={designLandscape}
+              {clamping}
+              width={gameWidthOnLandscape}
+              height={gameHeightOnLandscape}
+              hidden={!isLandscape}
             >
               {@render snippetLandscape({
                 isLandscape,
@@ -574,12 +564,15 @@
                 gameWidth,
                 gameHeight
               })}
-            </div>
+            </ScaledContainer>
             <!-- Portrait content -->
-            <div
-              class:hidden={isLandscape}
-              style:width="{gameWidthOnPortrait}px"
-              style:height="{gameHeightOnPortrait}px"
+            <ScaledContainer
+              enableScaling={enableScaling}
+              design={designPortrait}
+              {clamping}
+              width={gameWidthOnPortrait}
+              height={gameHeightOnPortrait}
+              hidden={isLandscape}
             >
               {@render snippetPortrait({
                 isLandscape,
@@ -595,15 +588,18 @@
                 gameWidth,
                 gameHeight
               })}
-            </div>
+            </ScaledContainer>
           {/if}
         {:else}
           <!-- Do not require fullscreen -->
           <!-- Landscape content -->
-          <div
-            class:hidden={!isLandscape}
-            style:width="{gameWidthOnLandscape}px"
-            style:height="{gameHeightOnLandscape}px"
+          <ScaledContainer
+            enableScaling={enableScaling}
+            design={designLandscape}
+            {clamping}
+            width={gameWidthOnLandscape}
+            height={gameHeightOnLandscape}
+            hidden={!isLandscape}
           >
             {@render snippetLandscape({
               isLandscape,
@@ -617,12 +613,15 @@
               gameWidth,
               gameHeight
             })}
-          </div>
+          </ScaledContainer>
           <!-- Portrait content -->
-          <div
-            class:hidden={isLandscape}
-            style:width="{gameWidthOnPortrait}px"
-            style:height="{gameHeightOnPortrait}px"
+          <ScaledContainer
+            enableScaling={enableScaling}
+            design={designPortrait}
+            {clamping}
+            width={gameWidthOnPortrait}
+            height={gameHeightOnPortrait}
+            hidden={isLandscape}
           >
             {@render snippetPortrait({
               isLandscape,
@@ -636,7 +635,7 @@
               gameWidth,
               gameHeight
             })}
-          </div>
+          </ScaledContainer>
         {/if}
       {/if}
     </div>
@@ -651,10 +650,6 @@
     justify-items: center;
     align-items: center;
     /* border: solid 1px red;*/
-  }
-
-  .hidden {
-    visibility: hidden;
   }
 
   :global(html.game-box-no-scroll) {
