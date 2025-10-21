@@ -40,7 +40,6 @@
    *   marginTop?: number,
    *   marginBottom?: number,
    *   center?: boolean,
-   *   preserveOnOrientationChange?: boolean,
    *   snippetLandscape?:GameBoxSnippet,
    *   snippetPortrait?: GameBoxSnippet,
    *   snippetRequireFullscreen?: GameBoxSnippet,
@@ -66,8 +65,6 @@
     marginBottom = 0,
 
     center,
-
-    preserveOnOrientationChange = true,
 
     // > Snippets
     snippetLandscape,
@@ -123,7 +120,12 @@
 
   // Update iOS dimensions when debounced window size changes
   $effect(() => {
-    if (isPwa && isAppleMobile && debouncedWindowWidth && debouncedWindowHeight) {
+    if (
+      isPwa &&
+      isAppleMobile &&
+      debouncedWindowWidth &&
+      debouncedWindowHeight
+    ) {
       updateIosWidthHeight();
     }
   });
@@ -204,8 +206,8 @@
 
   let os = $state();
 
-  let isIos = $derived( os === 'iOS' );
-  let isAndroid = $derived( os === 'Android' );
+  let isIos = $derived(os === 'iOS');
+  let isAndroid = $derived(os === 'Android');
 
   let isMobile = $state(false);
 
@@ -272,8 +274,7 @@
       return 'iOS';
     } else if (/Android/.test(navigator.userAgent)) {
       return 'Android';
-    }
-    else {
+    } else {
       return 'unknown';
     }
   }
@@ -395,47 +396,55 @@
       {style}
     >
       {#if show}
-        {#if preserveOnOrientationChange}
-          <!-- Preserve mode: render both orientations, toggle visibility -->
-          {#if snippetRequireFullscreen}
+        <!-- Render both orientations, toggle visibility to preserve state -->
+        {#if snippetRequireFullscreen}
+          <!-- Require fullscreen -->
+          {#if isFullscreen && !isDevMode}
+            <!-- Landscape content -->
+            <div
+              class:hidden={!isLandscape}
+              style:width="{gameWidth}px"
+              style:height="{gameHeight}px"
+            >
+              {@render snippetLandscape({
+                isLandscape,
+                isPortrait: !isLandscape,
+                isMobile,
+                isIos,
+                isAndroid,
+                os,
+                isFullscreen,
+                isDevMode,
+                requestDevmode,
+                requestFullscreen,
+                gameWidth,
+                gameHeight
+              })}
+            </div>
+            <!-- Portrait content -->
+            <div
+              class:hidden={isLandscape}
+              style:width="{gameWidth}px"
+              style:height="{gameHeight}px"
+            >
+              {@render snippetPortrait({
+                isLandscape,
+                isPortrait: !isLandscape,
+                isMobile,
+                isIos,
+                isAndroid,
+                os,
+                isFullscreen,
+                isDevMode,
+                requestDevmode,
+                requestFullscreen,
+                gameWidth,
+                gameHeight
+              })}
+            </div>
+          {:else if supportsFullscreen && !isDevMode}
             <!-- Require fullscreen -->
-            {#if isFullscreen && !isDevMode}
-              <!-- Landscape content -->
-              <div class:hidden={!isLandscape}>
-                {@render snippetLandscape({
-                  isLandscape,
-                  isPortrait: !isLandscape,
-                  isMobile,
-                  isIos,
-                  isAndroid,
-                  os,
-                  isFullscreen,
-                  isDevMode,
-                  requestDevmode,
-                  requestFullscreen,
-                  gameWidth,
-                  gameHeight
-                })}
-              </div>
-              <!-- Portrait content -->
-              <div class:hidden={isLandscape}>
-                {@render snippetPortrait({
-                  isLandscape,
-                  isPortrait: !isLandscape,
-                  isMobile,
-                  isIos,
-                  isAndroid,
-                  os,
-                  isFullscreen,
-                  isDevMode,
-                  requestDevmode,
-                  requestFullscreen,
-                  gameWidth,
-                  gameHeight
-                })}
-              </div>
-            {:else if supportsFullscreen && !isDevMode}
-              <!-- Require fullscreen -->
+            <div style:width="{gameWidth}px" style:height="{gameHeight}px">
               {@render snippetRequireFullscreen({
                 isLandscape,
                 isPortrait: !isLandscape,
@@ -450,8 +459,10 @@
                 gameWidth,
                 gameHeight
               })}
-            {:else if isMobile && snippetInstallOnHomeScreen && !isDevMode}
-              <!-- Require install on home screen on mobile -->
+            </div>
+          {:else if isMobile && snippetInstallOnHomeScreen && !isDevMode}
+            <!-- Require install on home screen on mobile -->
+            <div style:width="{gameWidth}px" style:height="{gameHeight}px">
               {@render snippetInstallOnHomeScreen({
                 isLandscape,
                 isPortrait: !isLandscape,
@@ -466,50 +477,20 @@
                 gameWidth,
                 gameHeight
               })}
-            {:else}
-              <!-- Landscape content -->
-              <div class:hidden={!isLandscape}>
-                {@render snippetLandscape({
-                  isLandscape,
-                  isPortrait: !isLandscape,
-                  isMobile,
-                  isIos,
-                  isAndroid,
-                  os,
-                  isFullscreen,
-                  isDevMode,
-                  requestDevmode,
-                  requestFullscreen,
-                  gameWidth,
-                  gameHeight
-                })}
-              </div>
-              <!-- Portrait content -->
-              <div class:hidden={isLandscape}>
-                {@render snippetPortrait({
-                  isLandscape,
-                  isPortrait: !isLandscape,
-                  isMobile,
-                  isIos,
-                  isAndroid,
-                  os,
-                  isFullscreen,
-                  isDevMode,
-                  requestDevmode,
-                  requestFullscreen,
-                  gameWidth,
-                  gameHeight
-                })}
-              </div>
-            {/if}
+            </div>
           {:else}
-            <!-- Do not require fullscreen -->
             <!-- Landscape content -->
-            <div class:hidden={!isLandscape}>
+            <div
+              class:hidden={!isLandscape}
+              style:width="{gameWidth}px"
+              style:height="{gameHeight}px"
+            >
               {@render snippetLandscape({
                 isLandscape,
                 isPortrait: !isLandscape,
                 isMobile,
+                isIos,
+                isAndroid,
                 os,
                 isFullscreen,
                 isDevMode,
@@ -520,11 +501,17 @@
               })}
             </div>
             <!-- Portrait content -->
-            <div class:hidden={isLandscape}>
+            <div
+              class:hidden={isLandscape}
+              style:width="{gameWidth}px"
+              style:height="{gameHeight}px"
+            >
               {@render snippetPortrait({
                 isLandscape,
                 isPortrait: !isLandscape,
                 isMobile,
+                isIos,
+                isAndroid,
                 os,
                 isFullscreen,
                 isDevMode,
@@ -536,166 +523,45 @@
             </div>
           {/if}
         {:else}
-          <!-- Destroy/recreate mode: original behavior -->
-          {#if isLandscape}
-            <!-- Landscape -->
-            {#if snippetRequireFullscreen}
-              <!-- Require fullscreen -->
-              {#if isFullscreen && !isDevMode}
-                {@render snippetLandscape({
-                  isLandscape,
-                  isPortrait: !isLandscape,
-                  isMobile,
-                  isIos,
-                  isAndroid,
-                  os,
-                  isFullscreen,
-                  isDevMode,
-                  requestDevmode,
-                  requestFullscreen,
-                  gameWidth,
-                  gameHeight
-                })}
-              {:else if supportsFullscreen && !isDevMode}
-                <!-- Require fullscreen (on landscape) -->
-                {@render snippetRequireFullscreen({
-                  isLandscape,
-                  isPortrait: !isLandscape,
-                  isMobile,
-                  os,
-                  isFullscreen,
-                  isDevMode,
-                  requestDevmode,
-                  requestFullscreen,
-                  gameWidth,
-                  gameHeight
-                })}
-              {:else if isMobile && snippetInstallOnHomeScreen && !isDevMode}
-                <!-- Require install on home screen on mobile -->
-                {@render snippetInstallOnHomeScreen({
-                  isLandscape,
-                  isPortrait: !isLandscape,
-                  isMobile,
-                  os,
-                  isFullscreen,
-                  isDevMode,
-                  requestDevmode,
-                  requestFullscreen,
-                  gameWidth,
-                  gameHeight
-                })}
-              {:else}
-                {@render snippetLandscape({
-                  isLandscape,
-                  isPortrait: !isLandscape,
-                  isMobile,
-                  isIos,
-                  isAndroid,
-                  os,
-                  isFullscreen,
-                  isDevMode,
-                  requestDevmode,
-                  requestFullscreen,
-                  gameWidth,
-                  gameHeight
-                })}
-              {/if}
-            {:else}
-              <!-- Do not require fullscreen -->
-              <!-- *we do not try install home app -->
-              {@render snippetLandscape({
-                isLandscape,
-                isPortrait: !isLandscape,
-                isMobile,
-                os,
-                isFullscreen,
-                isDevMode,
-                requestDevmode,
-                requestFullscreen,
-                gameWidth,
-                gameHeight
-              })}
-            {/if}
-          {:else}
-            <!-- Portrait -->
-            {#if snippetRequireFullscreen}
-              <!-- Require fullscreen -->
-              {#if isFullscreen && !isDevMode}
-                {@render snippetPortrait({
-                  isLandscape,
-                  isPortrait: !isLandscape,
-                  isMobile,
-                  isIos,
-                  isAndroid,
-                  os,
-                  isFullscreen,
-                  isDevMode,
-                  requestDevmode,
-                  requestFullscreen,
-                  gameWidth,
-                  gameHeight
-                })}
-              {:else if supportsFullscreen && !isDevMode}
-                <!-- Require fullscreen (on landscape) -->
-                {@render snippetRequireFullscreen({
-                  isLandscape,
-                  isPortrait: !isLandscape,
-                  isMobile,
-                  os,
-                  isFullscreen,
-                  isDevMode,
-                  requestDevmode,
-                  requestFullscreen,
-                  gameWidth,
-                  gameHeight
-                })}
-              {:else if isMobile && snippetInstallOnHomeScreen && !isDevMode}
-                <!-- Require install on home screen on mobile -->
-                {@render snippetInstallOnHomeScreen({
-                  isLandscape,
-                  isPortrait: !isLandscape,
-                  isMobile,
-                  os,
-                  isFullscreen,
-                  isDevMode,
-                  requestDevmode,
-                  requestFullscreen,
-                  gameWidth,
-                  gameHeight
-                })}
-              {:else}
-                {@render snippetPortrait({
-                  isLandscape,
-                  isPortrait: !isLandscape,
-                  isMobile,
-                  isIos,
-                  isAndroid,
-                  os,
-                  isFullscreen,
-                  isDevMode,
-                  requestDevmode,
-                  requestFullscreen,
-                  gameWidth,
-                  gameHeight
-                })}
-              {/if}
-            {:else}
-              <!-- Do not require fullscreen -->
-              <!-- *we do not try install home app -->
-              {@render snippetPortrait({
-                isLandscape,
-                isPortrait: !isLandscape,
-                isMobile,
-                os,
-                isFullscreen,
-                isDevMode,
-                requestDevmode,
-                requestFullscreen,
-                gameWidth,
-                gameHeight
-              })}
-            {/if}
-          {/if}
+          <!-- Do not require fullscreen -->
+          <!-- Landscape content -->
+          <div
+            class:hidden={!isLandscape}
+            style:width="{gameWidth}px"
+            style:height="{gameHeight}px"
+          >
+            {@render snippetLandscape({
+              isLandscape,
+              isPortrait: !isLandscape,
+              isMobile,
+              os,
+              isFullscreen,
+              isDevMode,
+              requestDevmode,
+              requestFullscreen,
+              gameWidth,
+              gameHeight
+            })}
+          </div>
+          <!-- Portrait content -->
+          <div
+            class:hidden={isLandscape}
+            style:width="{gameWidth}px"
+            style:height="{gameHeight}px"
+          >
+            {@render snippetPortrait({
+              isLandscape,
+              isPortrait: !isLandscape,
+              isMobile,
+              os,
+              isFullscreen,
+              isDevMode,
+              requestDevmode,
+              requestFullscreen,
+              gameWidth,
+              gameHeight
+            })}
+          </div>
         {/if}
       {/if}
     </div>
