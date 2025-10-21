@@ -11,6 +11,8 @@
    *   isLandscape: boolean,
    *   isPortrait: boolean,
    *   isMobile:boolean,
+   *   isIos:boolean,
+   *   isAndroid:boolean,
    *   os:'Android'|'iOS',
    *   isFullscreen:boolean,
    *   isDevMode:boolean,
@@ -78,6 +80,10 @@
   let windowWidth = $state();
   let windowHeight = $state();
 
+  let debouncedWindowWidth = $state();
+  let debouncedWindowHeight = $state();
+  let debounceTimer;
+
   let gameWidth = $state();
   let gameHeight = $state();
 
@@ -86,12 +92,43 @@
 
   let isLandscape = $state();
 
+  const isAppleMobile = /iPhone|iPod/.test(navigator.userAgent);
+
+  // Debounce window dimensions on iOS to skip intermediate resize events
+  let skipNextResize = false;
+  let resetTimer;
+
+  $effect(() => {
+    if (isAppleMobile && windowWidth && windowHeight) {
+      if (skipNextResize) {
+        skipNextResize = false;
+        return; // Skip first of the two resize events
+      }
+
+      skipNextResize = true;
+      debouncedWindowWidth = windowWidth;
+      debouncedWindowHeight = windowHeight;
+
+      // Reset flag after resize events settle
+      clearTimeout(resetTimer);
+      resetTimer = setTimeout(() => {
+        skipNextResize = false;
+      }, 500);
+    } else {
+      // Non-iOS: use dimensions immediately
+      debouncedWindowWidth = windowWidth;
+      debouncedWindowHeight = windowHeight;
+    }
+  });
+
   $effect(() => {
     console.debug('getIsLandscape effect running', {
       isPwa,
       isAppleMobile,
       windowWidth,
       windowHeight,
+      debouncedWindowWidth,
+      debouncedWindowHeight,
       iosWindowWidth,
       iosWindowHeight
     });
@@ -101,7 +138,7 @@
       updateIosWidthHeight();
       isLandscape = iosWindowWidth > iosWindowHeight;
     } else {
-      isLandscape = windowWidth > windowHeight;
+      isLandscape = debouncedWindowWidth > debouncedWindowHeight;
     }
   });
 
@@ -156,11 +193,12 @@
 
   let show = $state(false);
 
-  const isAppleMobile = /iPhone|iPod/.test(navigator.userAgent);
-
   let isPwa = $state(false);
 
   let os = $state();
+
+  let isIos = $derived( os === 'iOS' );
+  let isAndroid = $derived( os === 'Android' );
 
   let isMobile = $state(false);
 
@@ -194,14 +232,6 @@
     }
   }
 
-  function updateOrientation(event) {
-    console.debug('*** updateOrientation EVENT FIRED ***', {
-      angle: event.target.angle,
-      type: event.target.type
-    });
-    updateIosWidthHeight();
-  }
-
   onMount(() => {
     supportsFullscreen = document.fullscreenEnabled;
 
@@ -217,13 +247,7 @@
 
     updateIosWidthHeight();
 
-    screen.orientation.addEventListener('change', updateOrientation);
-
     show = true;
-
-    return () => {
-      screen.orientation.removeEventListener('change', updateOrientation);
-    };
   });
 
   onMount(() => {
@@ -241,6 +265,9 @@
       return 'iOS';
     } else if (/Android/.test(navigator.userAgent)) {
       return 'Android';
+    }
+    else {
+      return 'unknown';
     }
   }
 
@@ -372,6 +399,8 @@
                   isLandscape,
                   isPortrait: !isLandscape,
                   isMobile,
+                  isIos,
+                  isAndroid,
                   os,
                   isFullscreen,
                   isDevMode,
@@ -387,6 +416,8 @@
                   isLandscape,
                   isPortrait: !isLandscape,
                   isMobile,
+                  isIos,
+                  isAndroid,
                   os,
                   isFullscreen,
                   isDevMode,
@@ -402,6 +433,8 @@
                 isLandscape,
                 isPortrait: !isLandscape,
                 isMobile,
+                isIos,
+                isAndroid,
                 os,
                 isFullscreen,
                 isDevMode,
@@ -416,6 +449,8 @@
                 isLandscape,
                 isPortrait: !isLandscape,
                 isMobile,
+                isIos,
+                isAndroid,
                 os,
                 isFullscreen,
                 isDevMode,
@@ -431,6 +466,8 @@
                   isLandscape,
                   isPortrait: !isLandscape,
                   isMobile,
+                  isIos,
+                  isAndroid,
                   os,
                   isFullscreen,
                   isDevMode,
@@ -446,6 +483,8 @@
                   isLandscape,
                   isPortrait: !isLandscape,
                   isMobile,
+                  isIos,
+                  isAndroid,
                   os,
                   isFullscreen,
                   isDevMode,
@@ -500,6 +539,8 @@
                   isLandscape,
                   isPortrait: !isLandscape,
                   isMobile,
+                  isIos,
+                  isAndroid,
                   os,
                   isFullscreen,
                   isDevMode,
@@ -541,6 +582,8 @@
                   isLandscape,
                   isPortrait: !isLandscape,
                   isMobile,
+                  isIos,
+                  isAndroid,
                   os,
                   isFullscreen,
                   isDevMode,
@@ -575,6 +618,8 @@
                   isLandscape,
                   isPortrait: !isLandscape,
                   isMobile,
+                  isIos,
+                  isAndroid,
                   os,
                   isFullscreen,
                   isDevMode,
@@ -616,6 +661,8 @@
                   isLandscape,
                   isPortrait: !isLandscape,
                   isMobile,
+                  isIos,
+                  isAndroid,
                   os,
                   isFullscreen,
                   isDevMode,
