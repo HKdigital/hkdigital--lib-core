@@ -40,6 +40,15 @@
    *   marginTop?: number,
    *   marginBottom?: number,
    *   center?: boolean,
+   *   enableScaling?: boolean,
+   *   designLandscape?: {width: number, height: number},
+   *   designPortrait?: {width: number, height: number},
+   *   clamping?: {
+   *     ui: {min: number, max: number},
+   *     textBase: {min: number, max: number},
+   *     textHeading: {min: number, max: number},
+   *     textUi: {min: number, max: number}
+   *   },
    *   snippetLandscape?:GameBoxSnippet,
    *   snippetPortrait?: GameBoxSnippet,
    *   snippetRequireFullscreen?: GameBoxSnippet,
@@ -230,6 +239,33 @@
 
       isLandscape = false;
     }
+  });
+
+  // Set up scaling if enabled, with orientation awareness
+  $effect(() => {
+    if (!enableScaling || !gameContainer || !gameWidth || !gameHeight) {
+      return () => {}; // No-op cleanup if scaling not enabled or required elements missing
+    }
+
+    // Select the appropriate design based on orientation
+    const activeDesign = isLandscape ? designLandscape : designPortrait;
+
+    // console.debug(
+    //   `GameBox scaling [${isLandscape ? 'landscape' : 'portrait'}]:`,
+    //   `game: ${gameWidth}x${gameHeight}`,
+    //   `design: ${activeDesign.width}x${activeDesign.height}`
+    // );
+
+    // Apply scaling with the current design based on orientation
+    return enableContainerScaling({
+      container: gameContainer,
+      design: activeDesign,
+      clamping,
+      getDimensions: () => ({
+        width: gameWidth,
+        height: gameHeight
+      })
+    });
   });
 
   let show = $state(false);
