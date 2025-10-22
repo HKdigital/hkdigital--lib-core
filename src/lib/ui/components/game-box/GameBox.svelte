@@ -360,9 +360,9 @@
   $effect(() => {
     const html = document.documentElement;
     if (iosLandscapeHeightQuirk) {
-      html.classList.add('game-box-has-quirk');
+      html.classList.add('ios-height-quirck');
     } else {
-      html.classList.remove('game-box-has-quirk');
+      html.classList.remove('ios-height-quirck');
     }
   });
 
@@ -725,7 +725,7 @@
     -ms-overflow-style: none; /* IE and Edge */
   }
   /* Only add overflow content when quirk is detected */
-  :global(html.game-box-no-scroll.game-box-has-quirk::after) {
+  :global(html.game-box-no-scroll.ios-height-quirck::after) {
     content: '\A'; /* newline character */
     white-space: pre; /* preserve newline */
     display: block;
