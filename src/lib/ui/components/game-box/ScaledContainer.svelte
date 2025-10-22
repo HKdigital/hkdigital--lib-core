@@ -61,7 +61,7 @@
       return;
     }
 
-    console.debug(`Enable scaling [${width},${height}]`);
+    // console.debug(`Enable scaling [${width},${height}]`);
 
     return enableContainerScaling({
       container,

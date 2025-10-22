@@ -16,11 +16,16 @@
   clamping={designTokens.CLAMPING}
   enableScaling={true}
 >
-  {#snippet snippetLandscape()}
+  {#snippet snippetLandscape( { iosLandscapeHeightQuirk } )}
     <div class="m-20up">
       <h3 class="text-heading-h3 font-heading heading-font-weight pb-30up">
         On landscape
       </h3>
+      <p class="type-base-md">
+        {#if iosLandscapeHeightQuirk}
+          iosLandscapeHeightQuirk
+          {/if}
+      </p>
       <div class="w-100up h-100up bg-red-500"></div>
     </div>
   {/snippet}
@@ -34,3 +39,6 @@
     </div>
   {/snippet}
 </GameBox>
+<!--<br>&nbsp;
+<br>&nbsp;
+<br>-->

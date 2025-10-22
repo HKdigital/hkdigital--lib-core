@@ -21,7 +21,8 @@
    *   requestDevmode:function,
    *   requestFullscreen:function,
    *   gameWidth: number,
-   *   gameHeight: number
+   *   gameHeight: number,
+   *   iosLandscapeHeightQuirk: boolean
    * }} SnippetParams
    */
 
@@ -129,6 +130,38 @@
 
   const isAppleMobile = /iPhone|iPod/.test(navigator.userAgent);
 
+  let os = $state();
+  let isIos = $derived(os === 'iOS');
+  let isAndroid = $derived(os === 'Android');
+
+  /**
+   * Detect iOS landscape height quirk (status bar appears/disappears)
+   *
+   * Detection: in landscape, innerHeight is ~20px less than screen.width
+   *
+   * NOTE: This detection is reactive and will update when dimensions change.
+   * iOS PWA only fires viewport resize events when there's scrollable
+   * overflow content, which we add via CSS ::after when quirk is detected.
+   */
+  let iosLandscapeHeightQuirk = $derived.by(() => {
+    // Force reactivity by accessing these variables
+    const currentLandscape = isLandscape;
+    const currentIos = isIos;
+    const width = iosWindowWidth ?? windowWidth;
+    const height = iosWindowHeight ?? windowHeight;
+
+    if (!currentLandscape || !currentIos) return false;
+
+    if (!width || !height || !window.screen) return false;
+
+    // In landscape: window.innerHeight should equal screen.width
+    // If it's 20px less, the quirk is active
+    const screenWidth = window.screen.width;
+    const heightDifference = screenWidth - height;
+
+    return heightDifference >= 18 && heightDifference <= 22;
+  });
+
   // Debounce window dimensions on iOS to skip intermediate resize events
   let skipNextResize = false;
   let resetTimer;
@@ -170,24 +203,13 @@
   });
 
   $effect(() => {
-    // console.debug('getIsLandscape effect running', {
-    //   isPwa,
-    //   isAppleMobile,
-    //   windowWidth,
-    //   windowHeight,
-    //   debouncedWindowWidth,
-    //   debouncedWindowHeight,
-    //   iosWindowWidth,
-    //   iosWindowHeight
-    // });
+    // Use matchMedia for orientation detection (works on all iOS versions)
+    // This is more reliable than screen.orientation.angle
+    const isPortraitMedia =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(orientation: portrait)').matches;
 
-    if (isPwa && isAppleMobile) {
-      // For iOS PWA, use iOS-specific dimensions
-      isLandscape = iosWindowWidth > iosWindowHeight;
-    } else {
-      // For non-PWA, use debounced window dimensions
-      isLandscape = debouncedWindowWidth > debouncedWindowHeight;
-    }
+    isLandscape = !isPortraitMedia;
   });
 
   // $inspect('isLandscape', isLandscape);
@@ -250,11 +272,6 @@
 
   let isPwa = $state(false);
 
-  let os = $state();
-
-  let isIos = $derived(os === 'iOS');
-  let isAndroid = $derived(os === 'Android');
-
   let isMobile = $state(false);
 
   let isDevMode = $state(false);
@@ -302,7 +319,23 @@
 
     updateIosWidthHeight();
 
+    // Listen for orientation changes using matchMedia (works on all iOS)
+    const portraitMediaQuery = window.matchMedia('(orientation: portrait)');
+    const handleOrientationChange = (e) => {
+      isLandscape = !e.matches;
+
+      // Update iOS dimensions if needed
+      if (isPwa && isAppleMobile) {
+        updateIosWidthHeight();
+      }
+    };
+    portraitMediaQuery.addEventListener('change', handleOrientationChange);
+
     show = true;
+
+    return () => {
+      portraitMediaQuery.removeEventListener('change', handleOrientationChange);
+    };
   });
 
   onMount(() => {
@@ -310,9 +343,27 @@
     const html = document.documentElement;
     html.classList.add(gameBoxNoScroll);
 
+    // Prevent page scroll while allowing child elements to scroll
+    const preventPageScroll = () => {
+      window.scrollTo(0, 0);
+    };
+
+    window.addEventListener('scroll', preventPageScroll, { passive: true });
+
     return () => {
       html.classList.remove(gameBoxNoScroll);
+      window.removeEventListener('scroll', preventPageScroll);
     };
+  });
+
+  // Toggle overflow content based on quirk detection
+  $effect(() => {
+    const html = document.documentElement;
+    if (iosLandscapeHeightQuirk) {
+      html.classList.add('game-box-has-quirk');
+    } else {
+      html.classList.remove('game-box-has-quirk');
+    }
   });
 
   function getOS() {
@@ -469,7 +520,8 @@
                 requestDevmode,
                 requestFullscreen,
                 gameWidth,
-                gameHeight
+                gameHeight,
+                iosLandscapeHeightQuirk
               })}
             </ScaledContainer>
             <!-- Portrait content -->
@@ -493,7 +545,8 @@
                 requestDevmode,
                 requestFullscreen,
                 gameWidth,
-                gameHeight
+                gameHeight,
+                iosLandscapeHeightQuirk
               })}
             </ScaledContainer>
           {:else if supportsFullscreen && !isDevMode}
@@ -517,7 +570,8 @@
                 requestDevmode,
                 requestFullscreen,
                 gameWidth,
-                gameHeight
+                gameHeight,
+                iosLandscapeHeightQuirk
               })}
             </ScaledContainer>
           {:else if isMobile && snippetInstallOnHomeScreen && !isDevMode}
@@ -541,7 +595,8 @@
                 requestDevmode,
                 requestFullscreen,
                 gameWidth,
-                gameHeight
+                gameHeight,
+                iosLandscapeHeightQuirk
               })}
             </ScaledContainer>
           {:else}
@@ -566,7 +621,8 @@
                 requestDevmode,
                 requestFullscreen,
                 gameWidth,
-                gameHeight
+                gameHeight,
+                iosLandscapeHeightQuirk
               })}
             </ScaledContainer>
             <!-- Portrait content -->
@@ -590,7 +646,8 @@
                 requestDevmode,
                 requestFullscreen,
                 gameWidth,
-                gameHeight
+                gameHeight,
+                iosLandscapeHeightQuirk
               })}
             </ScaledContainer>
           {/if}
@@ -609,13 +666,16 @@
               isLandscape,
               isPortrait: !isLandscape,
               isMobile,
+              isIos,
+              isAndroid,
               os,
               isFullscreen,
               isDevMode,
               requestDevmode,
               requestFullscreen,
               gameWidth,
-              gameHeight
+              gameHeight,
+              iosLandscapeHeightQuirk
             })}
           </ScaledContainer>
           <!-- Portrait content -->
@@ -631,13 +691,16 @@
               isLandscape,
               isPortrait: !isLandscape,
               isMobile,
+              isIos,
+              isAndroid,
               os,
               isFullscreen,
               isDevMode,
               requestDevmode,
               requestFullscreen,
               gameWidth,
-              gameHeight
+              gameHeight,
+              iosLandscapeHeightQuirk
             })}
           </ScaledContainer>
         {/if}
@@ -657,9 +720,16 @@
   }
 
   :global(html.game-box-no-scroll) {
-    overflow: clip;
+    overflow: hidden; /* allow resize events, prevent via JavaScript */
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
+  }
+  /* Only add overflow content when quirk is detected */
+  :global(html.game-box-no-scroll.game-box-has-quirk::after) {
+    content: '\A'; /* newline character */
+    white-space: pre; /* preserve newline */
+    display: block;
+    height: 20px; /* create overflow to trigger iOS resize events */
   }
   :global(html.game-box-no-scroll::-webkit-scrollbar) {
     display: none;
