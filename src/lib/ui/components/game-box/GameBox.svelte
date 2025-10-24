@@ -302,10 +302,39 @@
     };
     portraitMediaQuery.addEventListener('change', handleOrientationChange);
 
+    // App visibility detection for iOS debugging
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        // console.log('App became visible:', {
+        //   'window.innerWidth': window.innerWidth,
+        //   'window.innerHeight': window.innerHeight,
+        //   'screen.width': screen.width,
+        //   'screen.height': screen.height,
+        //   'screen.orientation.angle': screen.orientation.angle,
+        //   'screen.orientation.type': screen.orientation.type,
+        //   'matchMedia portrait':
+        //     window.matchMedia('(orientation: portrait)').matches,
+        //   'isLandscape': isLandscape,
+        //   'gameWidth': gameWidth,
+        //   'gameHeight': gameHeight,
+        //   'iosWindowWidth': iosWindowWidth,
+        //   'iosWindowHeight': iosWindowHeight
+        // });
+
+        // Force iOS dimension update when app becomes visible
+        if (isPwa && isAppleMobile) {
+          updateIosWidthHeight();
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     show = true;
 
     return () => {
       portraitMediaQuery.removeEventListener('change', handleOrientationChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   });
 
