@@ -33,11 +33,7 @@ export const disablePageZoom = true;
  *
  * Advanced format: Override defaults with object notation
  *
- * @type {Array<string | {
- *   path: string,
- *   priority?: number,
- *   changefreq?: 'always'|'hourly'|'daily'|'weekly'|'monthly'|'yearly'|'never'
- * }>}
+ * @type {import('$lib/meta/sitemap/typedef.js').SitemapRoute[]}
  *
  * @example
  * // Simple format (recommended)
@@ -69,11 +65,7 @@ export const siteRoutes = [
  *
  * Control which hosts can be indexed and which paths to block
  *
- * @type {{
- *   allowedHosts?: string[] | '*',
- *   disallowedPaths?: string[],
- *   includeSitemap?: boolean
- * }}
+ * @type {import('$lib/meta/robots/typedef.js').RobotsConfig}
  *
  * @example
  * // Allow only production domains
