@@ -2,6 +2,25 @@ const DEFAULT_WIDTHS = [1920, 1536, 1024, 640];
 
 const DEFAULT_THUMBNAIL_WIDTH = 150;
 
+const FAVICON_SIZES = [
+  16,  // classic browser tab icon
+  32,  // high-resolution browser support
+  48,  // Windows desktop shortcuts
+  120, // iPhone older retina
+  152, // iPad retina, iOS Safari bookmarks
+  167, // iPad Pro
+  180, // iPhone retina, iOS home screen
+  192, // Android home screen, Chrome PWA
+  512  // PWA application icon, Android splash
+];
+
+const APPLE_TOUCH_SIZES = [
+  120, // iPhone older retina
+  152, // iPad retina, iOS Safari bookmarks
+  167, // iPad Pro
+  180  // iPhone retina, iOS home screen
+];
+
 const DEFAULT_PRESETS = {
 	default: {
 		format: 'avif',
@@ -74,15 +93,47 @@ export function generateResponseConfigs(options) {
 
 		// @ts-ignore
 		const responsiveConfig = entries.find(([key]) => key === 'responsive');
+		// @ts-ignore
+		const faviconsConfig = entries.find(([key]) => key === 'favicons');
+		// @ts-ignore
+		const appleTouchIconsConfig = entries.find(([key]) => key === 'apple-touch-icons');
 		// console.log('responsiveConfig found:', !!responsiveConfig);
 
 		const widths = options?.widths ?? DEFAULT_WIDTHS;
+		const faviconSizes = options?.faviconSizes ?? FAVICON_SIZES;
+		const appleTouchSizes = options?.appleTouchSizes ?? APPLE_TOUCH_SIZES;
 
 		// Always include the main image(s) and a thumbnail version
 		const thumbnailConfig = {
 			...configPairs,
 			w: String(options?.thumbnailWidth ?? DEFAULT_THUMBNAIL_WIDTH)
 		};
+
+		// Handle favicons directive - generate all favicon sizes as PNG
+		if (faviconsConfig) {
+			const faviconConfigs = faviconSizes.map((w) => {
+				return {
+					...configPairs,
+					w: String(w),
+					format: 'png'
+				};
+			});
+			// console.log('Returning favicon configs:', faviconConfigs);
+			return faviconConfigs;
+		}
+
+		// Handle apple-touch-icons directive - generate Apple touch icon sizes as PNG
+		if (appleTouchIconsConfig) {
+			const appleTouchConfigs = appleTouchSizes.map((w) => {
+				return {
+					...configPairs,
+					w: String(w),
+					format: 'png'
+				};
+			});
+			// console.log('Returning apple-touch-icon configs:', appleTouchConfigs);
+			return appleTouchConfigs;
+		}
 
 		if (!responsiveConfig) {
 			// Directive 'responsive' was not set => return original + thumbnail
@@ -126,6 +177,18 @@ export function generateDefaultDirectives(options) {
 		// > Return metadata if directive 'responsive' is set
 
 		if (params.has('responsive')) {
+			params.set('as', 'metadata');
+		}
+
+		// > Return metadata if directive 'favicons' is set
+
+		if (params.has('favicons')) {
+			params.set('as', 'metadata');
+		}
+
+		// > Return metadata if directive 'apple-touch-icons' is set
+
+		if (params.has('apple-touch-icons')) {
 			params.set('as', 'metadata');
 		}
 

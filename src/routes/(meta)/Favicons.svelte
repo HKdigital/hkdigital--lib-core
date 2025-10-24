@@ -1,21 +1,22 @@
 <script>
-  import { favicons, appleTouchIcons } from './config.js';
+  import faviconImages from './favicon.png?favicons';
+  import appleTouchIcons from './favicon.png?apple-touch-icons';
 </script>
 
 <!-- <link rel="icon" type="image/svg+xml" href="/favicon.svg"> -->
 
 <svelte:head>
   <!-- Basic favicon configuration -->
-  {#each favicons as img}
+  {#each faviconImages as img}
     <link
       rel="icon"
       type="image/png"
-      sizes="{img.size}x{img.size}"
-      href={img.url}
+      sizes="{img.width}x{img.width}"
+      href={img.src}
     />
   {/each}
 
   {#each appleTouchIcons as img}
-    <link rel="apple-touch-icon" sizes="{img.size}x{img.size}" href={img.url} />
+    <link rel="apple-touch-icon" sizes="{img.width}x{img.width}" href={img.src} />
   {/each}
 </svelte:head>

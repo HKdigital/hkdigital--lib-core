@@ -1,32 +1,17 @@
 // @see https://developer.mozilla.org/en-US/docs/
 //        Web/Progressive_web_apps/Manifest/Reference
 
-/* Icon sources */
+import {
+  name,
+  shortName,
+  description,
+  backgroundAndThemeColor,
+  orientation
+} from '../config.js';
 
-// @ts-ignore
-import favicon192 from '../favicon.png?w=192&format=png';
+import faviconImages from '../favicon.png?favicons';
 
-// @ts-ignore
-import favicon512 from '../favicon.png?w=512&format=png';
-
-let sources = [
-  { size: 192, url: favicon192[0].src },
-  { size: 512, url: favicon512[0].src }
-];
-
-/* Config */
-
-const name = 'HKdigital Lib Core Test';
-const shortName = 'HKlib Core';
-
-const description = 'Base library that powers up Sveltekit projects';
-
-const backgroundAndThemeColor = '#082962';
-
-const orientation = 'any';
-//const orientation = "landscape";
-
-/* Gnerate manifest data */
+/* Generate manifest data */
 
 const manifest = {
   name,
@@ -36,10 +21,10 @@ const manifest = {
   start_url: '/',
   scope: '/',
 
-  icons: sources.map((item) => {
+  icons: faviconImages.map((item) => {
     return {
-      src: item.url,
-      sizes: `${item.size}x${item.size}`,
+      src: item.src,
+      sizes: `${item.width}x${item.width}`,
       type: 'image/png'
     };
   }),

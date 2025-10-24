@@ -129,6 +129,7 @@ The `src/app.html` file stays extremely simple:
 <html lang="en">
   <head>
     <meta charset="utf-8" />
+    <title>My initial page title</title>
     %sveltekit.head%
   </head>
   <body data-theme="hkdev" data-sveltekit-preload-data="hover">

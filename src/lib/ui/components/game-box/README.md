@@ -248,6 +248,22 @@ The component includes special handling for mobile PWAs:
 - **Screen Orientation**: Listens for orientation changes and updates layout
 - **No Scroll**: Automatically prevents scrolling when active
 
+### iOS Landscape Height Bug
+
+For games and fullscreen applications, use `viewport-fit=cover` in your
+viewport meta tag to prevent iOS landscape height bugs:
+
+```html
+<meta name="viewport"
+  content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no,
+           width=device-width, height=device-height, viewport-fit=cover" />
+```
+
+This is handled automatically by the `PWA.svelte` component in the `(meta)`
+folder when `disablePageZoom` is enabled. The `viewport-fit=cover` setting
+ensures the viewport extends into safe areas on iOS devices, preventing a
+common bug where landscape mode shows incorrect viewport heights.
+
 ## Development Mode
 
 The component automatically enables development mode when:

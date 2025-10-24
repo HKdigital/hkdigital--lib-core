@@ -73,56 +73,14 @@ declare module '*&preset=blur' {
 
 /* For favicons */
 
-// Classic browser tab icon
-declare module '*?w=16' {
+// Generate all favicon sizes (16, 32, 48, 120, 152, 167, 180, 192, 512)
+declare module '*?favicons' {
   const out: ImageSource;
   export default out;
 }
 
-// High-resolution browser support
-declare module '*?w=32' {
-  const out: ImageSource;
-  export default out;
-}
-
-// Windows desktop shortcuts
-declare module '*?w=48' {
-  const out: ImageSource;
-  export default out;
-}
-
-// iPhone older retina
-declare module '*?w=120' {
-  const out: ImageSource;
-  export default out;
-}
-
-// iPad retina, iOS Safari bookmarks
-declare module '*?w=152' {
-  const out: ImageSource;
-  export default out;
-}
-
-// iPad Pro
-declare module '*?w=167' {
-  const out: ImageSource;
-  export default out;
-}
-
-// iPhone retina, iOS home screen
-declare module '*?w=180' {
-  const out: ImageSource;
-  export default out;
-}
-
-// Android home screen, Chrome PWA
-declare module '*?w=192' {
-  const out: ImageSource;
-  export default out;
-}
-
-// PWA application icon, Android splash
-declare module '*?w=512' {
+// Generate Apple touch icon sizes (120, 152, 167, 180)
+declare module '*?apple-touch-icons' {
   const out: ImageSource;
   export default out;
 }
