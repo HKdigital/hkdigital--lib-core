@@ -4,6 +4,10 @@ This folder contains all PWA (Progressive Web App) and favicon configuration
 for the application. It uses SvelteKit's route grouping with parentheses to
 keep these files organized without affecting the URL structure.
 
+**For New Projects**: Copy this entire folder to your project's
+`src/routes/` directory, customize the favicon and configuration, then
+integrate into your root layout. See the Getting Started section below.
+
 ## How It Works
 
 The `(meta)` folder is a **route group** - the parentheses mean this folder's
@@ -11,39 +15,31 @@ name doesn't appear in URLs. All components are imported into the root
 `+layout.svelte` and rendered in `<svelte:head>` to inject meta tags, links,
 and PWA configuration into every page.
 
-### File Structure
+## Getting Started
 
-```
-(meta)/
-├── config.js          # Central configuration (name, colors, icons)
-├── Favicons.svelte    # Generates favicon and apple-touch-icon links
-├── PWA.svelte         # Generates PWA meta tags (viewport, theme-color)
-├── favicon.png        # Source image (512x512 recommended)
-├── index.js           # Exports components for easy import
-└── manifest.json/     # Dynamic manifest.json endpoint
-    └── +server.js
+### 1. Copy the (meta) Folder to Your Project
+
+Copy the entire `(meta)` folder from the library to your project:
+
+```bash
+# From your project root
+cp -r node_modules/@hkdigital/lib-core/src/routes/\(meta\) src/routes/
 ```
 
-## Usage in Your Project
+Or manually copy the folder using your file explorer.
 
-### 1. Import into Root Layout
+### 2. Customize Your App Configuration
 
-In `src/routes/+layout.svelte`:
+**Replace the favicon image:**
 
-```svelte
-<script>
-  import { Favicons, PWA } from './(meta)/index.js';
-</script>
+Replace `src/routes/(meta)/favicon.png` with your own image:
+- Recommended size: 512×512px or larger
+- Format: PNG with transparency support
+- The imagetools plugin will automatically generate all required sizes
 
-<Favicons />
-<PWA />
+**Edit the configuration:**
 
-{@render children()}
-```
-
-### 2. Configure Your App
-
-Edit `config.js` to customize your app:
+Edit `src/routes/(meta)/config.js` with your app's information:
 
 ```javascript
 // App identity
@@ -54,71 +50,303 @@ export const description = 'Your app description';
 // Colors (PWA theme)
 export const backgroundAndThemeColor = '#082962';
 
-// iOS status bar style: 'default' | 'black' | 'black-translucent'
+// iOS status bar: 'default' | 'black' | 'black-translucent'
 export const statusBarStyle = 'black-translucent';
 
 // Screen orientation: 'any' | 'landscape' | 'portrait'
 export const orientation = 'any';
 
-// Disable pinch-to-zoom (only enable for games/canvas apps)
+// Disable pinch-to-zoom (only for games/canvas apps)
 export const disablePageZoom = false;
+
+// Add your routes (simple format - smart defaults applied)
+export const siteRoutes = [
+  '/',           // Gets priority 1.0, changefreq 'daily'
+  '/about',      // Gets priority 0.8, changefreq 'weekly'
+  '/contact'     // Gets priority 0.8, changefreq 'weekly'
+];
 ```
 
-### 3. Replace the Source Image
+### 3. Integrate into Root Layout
 
-Replace `favicon.png` with your own 512×512px image. The imagetools
-integration will automatically generate all required sizes:
+Import and use the components in `src/routes/+layout.svelte`:
 
-- **Browser icons**: 16, 32, 48
-- **iOS icons**: 120, 152, 167, 180
-- **Android/PWA icons**: 192, 512
+```svelte
+<script>
+  import { Favicons, PWA } from './(meta)/index.js';
 
-Each import like `?w=16` generates:
-- The requested size (16px)
-- A thumbnail version (150px)
+  let { children } = $props();
+</script>
+
+<Favicons />
+<PWA />
+
+{@render children()}
+```
+
+### 4. Verify It Works
+
+Start your development server and check:
+
+1. **Browser tab**: Should show your favicon
+2. **View source**: Should see generated `<link>` tags for favicons and
+   apple-touch-icons
+3. **Visit `/manifest.json`**: Should return your PWA configuration
+4. **Visit `/robots.txt`**: Should return robots.txt content
+5. **Visit `/sitemap.xml`**: Should return your sitemap
+6. **Browser DevTools** → Application → Manifest: Should show your app info
+
+### File Structure
+
+```
+(meta)/
+├── config.js          # Central configuration (name, colors, settings)
+├── Favicons.svelte    # Generates favicon and apple-touch-icon links
+├── PWA.svelte         # Generates PWA meta tags (viewport, theme-color)
+├── favicon.png        # Source image (512x512 recommended)
+├── index.js           # Exports components for easy import
+├── manifest.json/     # Dynamic manifest.json endpoint
+│   └── +server.js
+├── robots.txt/        # Robots.txt endpoint
+│   └── +server.js
+└── sitemap.xml/       # Dynamic sitemap.xml endpoint
+    └── +server.js
+```
+
+## Technical Details
+
+### Imagetools Integration
+
+The favicon.png source image is processed automatically using imagetools query
+parameters:
+
+- **`?favicons`**: Generates browser and PWA icons (16, 32, 192, 512)
+- **`?apple-touch-icons`**: Generates iOS-specific icons
+  (120, 152, 167, 180)
+
+No manual size configuration needed - just replace the source image with your
+own 512×512px or larger PNG file.
+
+### Configuration Options
+
+The `config.js` file provides centralized configuration:
+
+```javascript
+// App identity
+export const name = 'Your App Name';
+export const shortName = 'App';  // max 12 characters
+export const description = 'Your app description';
+
+// Colors (PWA theme)
+export const backgroundAndThemeColor = '#082962';
+export const themeColor = backgroundAndThemeColor;
+export const backgroundColor = backgroundAndThemeColor;
+
+// iOS status bar: 'default' | 'black' | 'black-translucent'
+export const statusBarStyle = 'black-translucent';
+
+// Screen orientation: 'any' | 'landscape' | 'portrait'
+export const orientation = 'any';
+
+// Disable pinch-to-zoom (only for games/canvas apps where zoom breaks
+// functionality)
+export const disablePageZoom = false;
+
+// Site routes configuration
+// Simple format: Just list your routes as strings
+// - Root '/' gets priority 1.0 and changefreq 'daily'
+// - Other routes get priority 0.8 and changefreq 'weekly'
+export const siteRoutes = [
+  '/',
+  '/about',
+  '/contact'
+];
+
+// Advanced format: Override defaults when needed
+// export const siteRoutes = [
+//   '/',
+//   '/about',
+//   { path: '/blog', priority: 0.9, changefreq: 'daily' },
+//   { path: '/legal', priority: 0.3, changefreq: 'yearly' }
+// ];
+```
 
 ## What Gets Generated
 
 ### Favicon Links (Favicons.svelte)
 
-Generates standard favicon links for browsers and apple-touch-icon links for
-iOS devices:
+Uses imagetools query parameters to automatically generate favicon links:
 
-```html
-<link rel="icon" type="image/png" sizes="16x16" href="..." />
-<link rel="icon" type="image/png" sizes="32x32" href="..." />
-<!-- ... more sizes ... -->
-<link rel="apple-touch-icon" sizes="180x180" href="..." />
+```svelte
+<script>
+  import faviconImages from './favicon.png?favicons';
+  import appleTouchIcons from './favicon.png?apple-touch-icons';
+</script>
+
+<svelte:head>
+  {#each faviconImages as img}
+    <link rel="icon" type="image/png"
+          sizes="{img.width}x{img.width}" href={img.src} />
+  {/each}
+
+  {#each appleTouchIcons as img}
+    <link rel="apple-touch-icon"
+          sizes="{img.width}x{img.width}" href={img.src} />
+  {/each}
+</svelte:head>
 ```
 
 ### PWA Meta Tags (PWA.svelte)
 
-Generates Progressive Web App configuration:
+Generates Progressive Web App configuration with dynamic title handling and
+responsive viewport settings:
 
-```html
-<meta name="viewport" content="..." />
-<meta name="theme-color" content="#082962" />
-<link rel="manifest" href="/manifest.json" />
+```svelte
+<script>
+  import { onMount } from 'svelte';
+  import {
+    themeColor,
+    statusBarStyle,
+    name,
+    shortName,
+    disablePageZoom
+  } from './config.js';
 
-<!-- iOS-specific -->
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="..." />
-<meta name="apple-mobile-web-app-title" content="..." />
+  let shouldSetTitle = $state(false);
+
+  onMount(() => {
+    const titleElement = document.querySelector('title');
+    const hasTitle = titleElement && titleElement.textContent.trim() !== '';
+    if (!hasTitle) {
+      shouldSetTitle = true;
+    }
+  });
+</script>
+
+<svelte:head>
+  {#if shouldSetTitle}
+    <title>{name}</title>
+  {/if}
+
+  {#if !disablePageZoom}
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+  {:else}
+    <meta name="viewport"
+         content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no,
+                  width=device-width, viewport-fit=cover" />
+  {/if}
+
+  <meta name="theme-color" content="{themeColor}">
+  <link rel="manifest" href="/manifest.json">
+
+  <!-- iOS-specific -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style"
+        content="{statusBarStyle}">
+  <meta name="apple-mobile-web-app-title" content="{shortName}">
+</svelte:head>
 ```
 
 ### Dynamic Manifest (manifest.json/+server.js)
 
-Serves a dynamic `/manifest.json` endpoint with PWA configuration including
-app name, description, icons, theme colors, display mode, and orientation.
+Serves a dynamic `/manifest.json` endpoint with PWA configuration:
+
+```javascript
+import {
+  name,
+  shortName,
+  description,
+  backgroundAndThemeColor,
+  orientation
+} from '../config.js';
+
+import faviconImages from '../favicon.png?favicons';
+
+const manifest = {
+  name,
+  short_name: shortName,
+  description,
+  start_url: '/',
+  scope: '/',
+  icons: faviconImages.map((item) => ({
+    src: item.src,
+    sizes: `${item.width}x${item.width}`,
+    type: 'image/png'
+  })),
+  theme_color: backgroundAndThemeColor,
+  background_color: backgroundAndThemeColor,
+  display: 'fullscreen',
+  orientation
+};
+
+export const GET = async () => {
+  return new Response(JSON.stringify(manifest));
+};
+```
+
+### Dynamic Sitemap (sitemap.xml/+server.js)
+
+Serves a dynamic `/sitemap.xml` endpoint for search engines:
+
+```javascript
+import { siteRoutes } from '../config.js';
+
+// Normalizes routes: strings get smart defaults, objects can override
+function normalizeRoute(route) {
+  if (typeof route === 'string') {
+    return {
+      path: route,
+      priority: route === '/' ? 1.0 : 0.8,
+      changefreq: route === '/' ? 'daily' : 'weekly'
+    };
+  }
+  return { priority: 0.8, changefreq: 'weekly', ...route };
+}
+
+function generateSitemap(origin) {
+  const urls = siteRoutes
+    .map(normalizeRoute)
+    .map(
+      (route) => `
+  <url>
+    <loc>${origin}${route.path}</loc>
+    <changefreq>${route.changefreq}</changefreq>
+    <priority>${route.priority}</priority>
+  </url>`
+    )
+    .join('');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}
+</urlset>`;
+}
+
+export const GET = async ({ url }) => {
+  const sitemap = generateSitemap(url.origin);
+
+  return new Response(sitemap, {
+    headers: {
+      'Content-Type': 'application/xml',
+      'Cache-Control': 'max-age=0, s-maxage=3600'
+    }
+  });
+};
+```
+
+Configure your routes in `config.js` using the `siteRoutes` array. Just list
+paths as strings for simple configuration with smart defaults, or use objects
+to override priority and change frequency.
 
 ## Why This Approach?
 
 1. **Centralized**: All meta/PWA config in one place
-2. **Type-safe**: JSDoc types for favicon objects
+2. **Automatic**: Imagetools generates all required sizes from one source file
 3. **DRY**: Single source of truth in `config.js`
 4. **Clean URLs**: Route grouping keeps files organized without URL clutter
 5. **Minimal app.html**: Core HTML stays clean, all meta tags injected via
    Svelte components
+6. **Dynamic Title**: Automatically sets page title only if not already
+   defined by individual routes
 
 ### Keeping app.html Minimal
 
@@ -145,27 +373,21 @@ meta configuration dynamic and maintainable through JavaScript/Svelte.
 
 ## Customizing Icon Sizes
 
-If you need additional sizes, add them to:
+The imagetools integration handles all standard sizes automatically via the
+`?favicons` and `?apple-touch-icons` query parameters. These are configured
+in the Vite/SvelteKit imagetools plugin configuration.
 
-1. `config.js` - Import and add to `favicons` array
-2. `src/lib/config/imagetools.d.ts` - Add TypeScript declaration
+If you need custom sizes, you can:
 
-Example:
+1. Modify the imagetools plugin configuration in `vite.config.js`
+2. Or import specific sizes directly:
 
 ```javascript
-// config.js
-import favicon96 from './favicon.png?w=96';
-
-export const favicons = [
-  // ... existing sizes
-  { size: 96, url: favicon96[0].src }, // custom size
-];
+// For a custom size (e.g., 96x96)
+import favicon96 from './favicon.png?w=96&format=png';
 ```
 
-```typescript
-// imagetools.d.ts
-declare module '*?w=96' {
-  const out: ImageSource;
-  export default out;
-}
-```
+The standard configurations already cover all common use cases:
+- **Browsers**: 16×16, 32×32 (favicons)
+- **PWA**: 192×192, 512×512 (favicons)
+- **iOS**: 120×120, 152×152, 167×167, 180×180 (apple-touch-icons)
