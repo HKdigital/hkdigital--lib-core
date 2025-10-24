@@ -5,8 +5,6 @@
  *   Supports wildcards (e.g., '*.example.com')
  * @property {string[]} [disallowedPaths]
  *   Paths to block from indexing (e.g., '/admin', '/api/*')
- * @property {boolean} [includeSitemap]
- *   Include sitemap reference in robots.txt (default: true)
  */
 
 export default {};

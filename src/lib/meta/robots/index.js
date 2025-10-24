@@ -74,8 +74,8 @@ export function generateRobotsTxt(url, config = {}) {
     });
   }
 
-  // Add sitemap reference if enabled and origin is available
-  if (url.origin && config.includeSitemap !== false) {
+  // Always add sitemap reference
+  if (url.origin) {
     content += `\nSitemap: ${url.origin}/sitemap.xml`;
   }
 

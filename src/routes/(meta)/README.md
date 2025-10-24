@@ -92,24 +92,24 @@ Start your development server and check:
 2. **View source**: Should see generated `<link>` tags for favicons and
    apple-touch-icons
 3. **Visit `/manifest.json`**: Should return your PWA configuration
-4. **Visit `/robots.txt`**: Should return robots.txt content
-5. **Visit `/sitemap.xml`**: Should return your sitemap
-6. **Browser DevTools** → Application → Manifest: Should show your app info
+4. **Browser DevTools** → Application → Manifest: Should show your app info
+
+For robots.txt and sitemap.xml configuration, see `$lib/meta/README.md`.
 
 ### File Structure
 
 ```
 (meta)/
-├── config.js          # Central configuration (name, colors, settings)
+├── config.js          # Central configuration (name, colors, routes)
 ├── Favicons.svelte    # Generates favicon and apple-touch-icon links
 ├── PWA.svelte         # Generates PWA meta tags (viewport, theme-color)
 ├── favicon.png        # Source image (512x512 recommended)
 ├── index.js           # Exports components for easy import
 ├── manifest.json/     # Dynamic manifest.json endpoint
 │   └── +server.js
-├── robots.txt/        # Robots.txt endpoint
+├── robots.txt/        # @see @hkdigital/lib-core/meta/README.md
 │   └── +server.js
-└── sitemap.xml/       # Dynamic sitemap.xml endpoint
+└── sitemap.xml/       # @see @hkdigital/lib-core/meta/README.md
     └── +server.js
 ```
 
@@ -148,27 +148,13 @@ export const statusBarStyle = 'black-translucent';
 // Screen orientation: 'any' | 'landscape' | 'portrait'
 export const orientation = 'any';
 
-// Disable pinch-to-zoom (only for games/canvas apps where zoom breaks
-// functionality)
+// Disable pinch-to-zoom (only for games/canvas apps)
 export const disablePageZoom = false;
 
-// Site routes configuration
-// Simple format: Just list your routes as strings
-// - Root '/' gets priority 1.0 and changefreq 'daily'
-// - Other routes get priority 0.8 and changefreq 'weekly'
-export const siteRoutes = [
-  '/',
-  '/about',
-  '/contact'
-];
-
-// Advanced format: Override defaults when needed
-// export const siteRoutes = [
-//   '/',
-//   '/about',
-//   { path: '/blog', priority: 0.9, changefreq: 'daily' },
-//   { path: '/legal', priority: 0.3, changefreq: 'yearly' }
-// ];
+// Site routes and robots.txt configuration
+// @see @hkdigital/lib-core/meta/README.md
+export const siteRoutes = ['/'];
+export const robotsConfig = { allowedHosts: '*', disallowedPaths: [] };
 ```
 
 ## What Gets Generated
@@ -284,58 +270,12 @@ export const GET = async () => {
 };
 ```
 
-### Dynamic Sitemap (sitemap.xml/+server.js)
+### Dynamic Sitemap and Robots.txt
 
-Serves a dynamic `/sitemap.xml` endpoint for search engines:
+The `sitemap.xml/` and `robots.txt/` endpoints generate dynamic SEO content.
 
-```javascript
-import { siteRoutes } from '../config.js';
-
-// Normalizes routes: strings get smart defaults, objects can override
-function normalizeRoute(route) {
-  if (typeof route === 'string') {
-    return {
-      path: route,
-      priority: route === '/' ? 1.0 : 0.8,
-      changefreq: route === '/' ? 'daily' : 'weekly'
-    };
-  }
-  return { priority: 0.8, changefreq: 'weekly', ...route };
-}
-
-function generateSitemap(origin) {
-  const urls = siteRoutes
-    .map(normalizeRoute)
-    .map(
-      (route) => `
-  <url>
-    <loc>${origin}${route.path}</loc>
-    <changefreq>${route.changefreq}</changefreq>
-    <priority>${route.priority}</priority>
-  </url>`
-    )
-    .join('');
-
-  return `<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls}
-</urlset>`;
-}
-
-export const GET = async ({ url }) => {
-  const sitemap = generateSitemap(url.origin);
-
-  return new Response(sitemap, {
-    headers: {
-      'Content-Type': 'application/xml',
-      'Cache-Control': 'max-age=0, s-maxage=3600'
-    }
-  });
-};
-```
-
-Configure your routes in `config.js` using the `siteRoutes` array. Just list
-paths as strings for simple configuration with smart defaults, or use objects
-to override priority and change frequency.
+For detailed configuration and usage, see
+**`@hkdigital/lib-core/meta/README.md`**.
 
 ## Why This Approach?
 
