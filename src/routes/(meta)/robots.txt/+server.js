@@ -15,6 +15,11 @@ function isHostAllowed(hostname, allowedHosts) {
     return true;
   }
 
+  if( typeof allowedHosts === 'string' )
+  {
+    allowedHosts = [allowedHosts];
+  }
+
   // Check if hostname matches any allowed pattern
   return allowedHosts.some((pattern) => {
     // Convert wildcard pattern to regex
