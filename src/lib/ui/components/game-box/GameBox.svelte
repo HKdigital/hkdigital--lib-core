@@ -3,7 +3,11 @@
 
   import {
     getGameWidthOnLandscape,
-    getGameWidthOnPortrait
+    getGameWidthOnPortrait,
+    isIOS,
+    isIpadOS,
+    getOS,
+    getIsMobile
   } from './gamebox.util.js';
 
   import ScaledContainer from './ScaledContainer.svelte';
@@ -127,7 +131,8 @@
     }
   } );
 
-  const isAppleMobile = /iPhone|iPod/.test(navigator.userAgent);
+  // iPad is also considered Apple mobile
+  const isAppleMobile = isIOS();
 
   let os = $state();
   let isIos = $derived(os === 'iOS');
@@ -358,35 +363,6 @@
       html.classList.remove(gameBoxNoScroll);
     }
   });
-
-
-  function getOS() {
-    if (isAppleMobile) {
-      return 'iOS';
-    } else if (/Android/.test(navigator.userAgent)) {
-      return 'Android';
-    } else {
-      return 'unknown';
-    }
-  }
-
-  /**
-   * Returns true if a device is a mobile phone (or similar)
-   */
-  function getIsMobile() {
-    // @ts-ignore
-    if (navigator?.userAgentData?.mobile !== undefined) {
-      // Supports for mobile flag
-      // @ts-ignore
-      return navigator.userAgentData.mobile;
-    } else if (isAppleMobile) {
-      return true;
-    } else if (/Android/.test(navigator.userAgent)) {
-      return true;
-    }
-
-    return false;
-  }
 
   /**
    * Returns true if the window is in full screen
