@@ -263,7 +263,6 @@ export function getTimeBasedNumber30s(timeMs) {
  * - After 5 years: ~4 characters
  * - After 10 years: ~5 characters
  * - After 100 years: ~6 characters
- * - Maximum safe value: ~8-9 characters (~285,616 years)
  *
  * @param {number} [timeMs=sinceMs()]
  *   Custom time value to be used instead of sinceMs()
