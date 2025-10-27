@@ -367,11 +367,16 @@ describe('GameBox', () => {
     });
 
     it('should apply mobile class when on mobile', async () => {
-      // Mock mobile user agent
+      // Mock mobile user agent and platform
       Object.defineProperty(window.navigator, 'userAgent', {
         writable: true,
         configurable: true,
         value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15'
+      });
+      Object.defineProperty(window.navigator, 'platform', {
+        writable: true,
+        configurable: true,
+        value: 'iPhone'
       });
 
       const { container } = render(GameBoxWrapper, {
@@ -457,6 +462,11 @@ describe('GameBox', () => {
         configurable: true,
         value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15'
       });
+      Object.defineProperty(window.navigator, 'platform', {
+        writable: true,
+        configurable: true,
+        value: 'iPhone'
+      });
 
       Object.defineProperty(window, 'matchMedia', {
         writable: true,
@@ -491,11 +501,16 @@ describe('GameBox', () => {
     });
 
     it('should detect iOS user agent', async () => {
-      // Mock iOS user agent
+      // Mock iOS user agent and platform
       Object.defineProperty(window.navigator, 'userAgent', {
         writable: true,
         configurable: true,
         value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15'
+      });
+      Object.defineProperty(window.navigator, 'platform', {
+        writable: true,
+        configurable: true,
+        value: 'iPhone'
       });
 
       const { container } = render(GameBoxWrapper, {
@@ -578,6 +593,11 @@ describe('GameBox', () => {
         configurable: true,
         value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15'
       });
+      Object.defineProperty(window.navigator, 'platform', {
+        writable: true,
+        configurable: true,
+        value: 'iPhone'
+      });
 
       // Mock being in standalone mode (PWA)
       Object.defineProperty(window, 'matchMedia', {
@@ -640,6 +660,11 @@ describe('GameBox', () => {
         writable: true,
         configurable: true,
         value: 'Mozilla/5.0 (iPhone; CPU iPhone OS 14_0 like Mac OS X) AppleWebKit/605.1.15'
+      });
+      Object.defineProperty(window.navigator, 'platform', {
+        writable: true,
+        configurable: true,
+        value: 'iPhone'
       });
 
       Object.defineProperty(window, 'matchMedia', {

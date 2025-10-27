@@ -23,12 +23,15 @@ export function expect_true(value) {
 export { expect_true as true };
 
 /**
- * Expect a positive number
+ * Expect a positive number (greater than zero)
  *
  * @param {any} value
  */
 export function expect_positiveNumber(value) {
-	const schema = v.pipe(v.number(), v.minValue(0));
+	const schema = v.pipe(
+		v.number(),
+		v.custom((val) => val > 0, 'Invalid value: Expected number > 0')
+	);
 	v.parse(schema, value);
 }
 
