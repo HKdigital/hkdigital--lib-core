@@ -3,34 +3,28 @@
 
   import {
     getGameWidthOnLandscape,
-    getGameWidthOnPortrait,
-    isIOS,
-    isIpadOS,
-    getOS,
-    getIsMobile
+    getGameWidthOnPortrait
   } from './gamebox.util.js';
+
+  import {
+    getIsAppleMobile,
+    getIsIpadOS,
+    getIsMobile
+  } from '$lib/browser/info/device.js';
+
+  import {
+    getIsPwa,
+    getIsFullscreen
+  } from '$lib/browser/info/display.js';
 
   import ScaledContainer from './ScaledContainer.svelte';
 
   /**
-   * @typedef {{
-   *   isLandscape: boolean,
-   *   isPortrait: boolean,
-   *   isMobile:boolean,
-   *   isIos:boolean,
-   *   isAndroid:boolean,
-   *   os:'Android'|'iOS',
-   *   isFullscreen:boolean,
-   *   isDevMode:boolean,
-   *   requestDevmode:function,
-   *   requestFullscreen:function,
-   *   gameWidth: number,
-   *   gameHeight: number
-   * }} SnippetParams
+   * @typedef {import('./typedef.js').SnippetParams} SnippetParams
    */
 
   /**
-   * @typedef {import('svelte').Snippet<[SnippetParams]>} GameBoxSnippet
+   * @typedef {import('./typedef.js').GameBoxSnippet} GameBoxSnippet
    */
 
   /**
@@ -97,11 +91,6 @@
   let windowWidth = $state();
   let windowHeight = $state();
 
-  let debouncedWindowWidth = $state();
-  let debouncedWindowHeight = $state();
-
-  let debounceTimer;
-
   let gameWidthOnPortrait = $state();
   let gameHeightOnPortrait = $state();
 
@@ -132,47 +121,19 @@
   } );
 
   // iPad is also considered Apple mobile
-  const isAppleMobile = isIOS();
+  const isAppleMobile = getIsAppleMobile();
 
-  let os = $state();
-  let isIos = $derived(os === 'iOS');
-  let isAndroid = $derived(os === 'Android');
+  let isIos = $state(false);
+  let isAndroid = $state(false);
+  let isIpadOS = $state(false);
 
-  // Debounce window dimensions on iOS to skip intermediate resize events
-  let skipNextResize = false;
-  let resetTimer;
-
-  $effect(() => {
-    if (isAppleMobile && windowWidth && windowHeight) {
-      if (skipNextResize) {
-        skipNextResize = false;
-        return; // Skip first of the two resize events
-      }
-
-      // skipNextResize = true; // disabled to test <<
-
-      debouncedWindowWidth = windowWidth;
-      debouncedWindowHeight = windowHeight;
-
-      // Reset flag after resize events settle
-      clearTimeout(resetTimer);
-      resetTimer = setTimeout(() => {
-        skipNextResize = false;
-      }, 500);
-    } else {
-      // Non-iOS: use dimensions immediately
-      debouncedWindowWidth = windowWidth;
-      debouncedWindowHeight = windowHeight;
-    }
-  });
-
-  // Update iOS dimensions when debounced window size changes
+  // Update iOS dimensions when window size changes
   $effect(() => {
     if (
       isPwa &&
       isAppleMobile &&
-      debouncedWindowWidth &&
-      debouncedWindowHeight
+      windowWidth &&
+      windowHeight
     ) {
       updateIosWidthHeight();
     }
@@ -285,13 +246,13 @@
 
     isMobile = getIsMobile();
 
-    os = getOS();
+    isIos = isAppleMobile;
+    isAndroid = !isAppleMobile && /Android/.test(navigator.userAgent);
+    isIpadOS = getIsIpadOS();
 
     isFullscreen = getIsFullscreen();
 
-    isPwa = window.matchMedia(
-      '(display-mode: fullscreen) or (display-mode: standalone)'
-    ).matches;
+    isPwa = getIsPwa();
 
     updateIosWidthHeight();
 
@@ -363,26 +324,6 @@
       html.classList.remove(gameBoxNoScroll);
     }
   });
-
-  /**
-   * Returns true if the window is in full screen
-   * - Checks if CSS thinks we're in fullscreen mode
-   * - Checks if there is a fullscreen element (for safari)
-   */
-  function getIsFullscreen() {
-    if (
-      window.matchMedia(
-        '(display-mode: fullscreen) or (display-mode: standalone)'
-      ).matches
-    ) {
-      return true;
-    } else if (document.fullscreenElement) {
-      // Safari
-      return true;
-    }
-
-    return false;
-  }
 
   async function requestFullscreen() {
     // console.debug('Request full screen');
@@ -484,7 +425,8 @@
                 isMobile,
                 isIos,
                 isAndroid,
-                os,
+                isIpadOS,
+                isPwa,
                 isFullscreen,
                 isDevMode,
                 requestDevmode,
@@ -508,7 +450,8 @@
                 isMobile,
                 isIos,
                 isAndroid,
-                os,
+                isIpadOS,
+                isPwa,
                 isFullscreen,
                 isDevMode,
                 requestDevmode,
@@ -532,7 +475,8 @@
                 isMobile,
                 isIos,
                 isAndroid,
-                os,
+                isIpadOS,
+                isPwa,
                 isFullscreen,
                 isDevMode,
                 requestDevmode,
@@ -556,7 +500,8 @@
                 isMobile,
                 isIos,
                 isAndroid,
-                os,
+                isIpadOS,
+                isPwa,
                 isFullscreen,
                 isDevMode,
                 requestDevmode,
@@ -581,7 +526,8 @@
                 isMobile,
                 isIos,
                 isAndroid,
-                os,
+                isIpadOS,
+                isPwa,
                 isFullscreen,
                 isDevMode,
                 requestDevmode,
@@ -605,7 +551,8 @@
                 isMobile,
                 isIos,
                 isAndroid,
-                os,
+                isIpadOS,
+                isPwa,
                 isFullscreen,
                 isDevMode,
                 requestDevmode,
