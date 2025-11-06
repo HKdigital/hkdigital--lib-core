@@ -73,8 +73,20 @@ export async function generateViteConfig(options = {}) {
         // Only apply if ensureAlpha directive is present
         if (!config.ensureAlpha) return undefined;
 
-        return (image) => {
-          return image.ensureAlpha();
+        return async (image) => {
+          // Force RGBA output by making one pixel slightly transparent
+          // This prevents Sharp from optimizing back to RGB palette
+          const metadata = await image.metadata();
+
+          return image
+            .ensureAlpha()
+            .composite([{
+              input: Buffer.from([0, 0, 0, 254]), // RGBA: black with 254 alpha (nearly opaque)
+              raw: { width: 1, height: 1, channels: 4 },
+              top: 0,
+              left: 0,
+              blend: 'over'
+            }]);
         };
       };
 
