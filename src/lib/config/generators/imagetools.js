@@ -25,38 +25,45 @@ const DEFAULT_PRESETS = {
 	default: {
 		format: 'avif',
 		quality: '90',
-		as: 'metadata'
+		as: 'metadata',
+		withMetadata: ''
 	},
 	render: {
 		format: 'jpg',
 		quality: '95',
-		as: 'metadata'
+		as: 'metadata',
+		withMetadata: ''
 	},
 	photo: {
 		format: 'jpg',
 		quality: '95',
-		as: 'metadata'
+		as: 'metadata',
+		withMetadata: ''
 	},
 	gradient: {
 		format: 'jpg',
 		quality: '95',
-		as: 'metadata'
+		as: 'metadata',
+		withMetadata: ''
 	},
 	drawing: {
 		format: 'avif',
 		quality: '90',
-		as: 'metadata'
+		as: 'metadata',
+		withMetadata: ''
 	},
 	savedata: {
 		format: 'avif',
 		quality: '85',
-		as: 'metadata'
+		as: 'metadata',
+		withMetadata: ''
 	},
 	blur: {
 		format: 'avif',
 		quality: '50',
 		blur: '75',
-		as: 'metadata'
+		as: 'metadata',
+		withMetadata: ''
 	}
 };
 
