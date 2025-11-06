@@ -116,7 +116,7 @@ export function generateResponseConfigs(options) {
 					...configPairs,
 					w: String(w),
 					format: 'png',
-					toColorspace: 'rgb'
+					toColorspace: 'rgba'
 				};
 			});
 			// console.log('Returning favicon configs:', faviconConfigs);
@@ -130,7 +130,7 @@ export function generateResponseConfigs(options) {
 					...configPairs,
 					w: String(w),
 					format: 'png',
-					toColorspace: 'rgb'
+					toColorspace: 'rgba'
 				};
 			});
 			// console.log('Returning apple-touch-icon configs:', appleTouchConfigs);
