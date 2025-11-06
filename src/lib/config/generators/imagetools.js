@@ -25,45 +25,38 @@ const DEFAULT_PRESETS = {
 	default: {
 		format: 'avif',
 		quality: '90',
-		as: 'metadata',
-		withMetadata: ''
+		as: 'metadata'
 	},
 	render: {
 		format: 'jpg',
 		quality: '95',
-		as: 'metadata',
-		withMetadata: ''
+		as: 'metadata'
 	},
 	photo: {
 		format: 'jpg',
 		quality: '95',
-		as: 'metadata',
-		withMetadata: ''
+		as: 'metadata'
 	},
 	gradient: {
 		format: 'jpg',
 		quality: '95',
-		as: 'metadata',
-		withMetadata: ''
+		as: 'metadata'
 	},
 	drawing: {
 		format: 'avif',
 		quality: '90',
-		as: 'metadata',
-		withMetadata: ''
+		as: 'metadata'
 	},
 	savedata: {
 		format: 'avif',
 		quality: '85',
-		as: 'metadata',
-		withMetadata: ''
+		as: 'metadata'
 	},
 	blur: {
 		format: 'avif',
 		quality: '50',
 		blur: '75',
-		as: 'metadata',
-		withMetadata: ''
+		as: 'metadata'
 	}
 };
 
@@ -123,7 +116,7 @@ export function generateResponseConfigs(options) {
 					...configPairs,
 					w: String(w),
 					format: 'png',
-					withMetadata: ''
+					toColorspace: 'rgb'
 				};
 			});
 			// console.log('Returning favicon configs:', faviconConfigs);
@@ -137,7 +130,7 @@ export function generateResponseConfigs(options) {
 					...configPairs,
 					w: String(w),
 					format: 'png',
-					withMetadata: ''
+					toColorspace: 'rgb'
 				};
 			});
 			// console.log('Returning apple-touch-icon configs:', appleTouchConfigs);
