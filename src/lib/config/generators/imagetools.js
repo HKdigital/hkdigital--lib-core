@@ -115,7 +115,8 @@ export function generateResponseConfigs(options) {
 				return {
 					...configPairs,
 					w: String(w),
-					format: 'png'
+					format: 'png',
+					withMetadata: ''
 				};
 			});
 			// console.log('Returning favicon configs:', faviconConfigs);
@@ -128,7 +129,8 @@ export function generateResponseConfigs(options) {
 				return {
 					...configPairs,
 					w: String(w),
-					format: 'png'
+					format: 'png',
+					withMetadata: ''
 				};
 			});
 			// console.log('Returning apple-touch-icon configs:', appleTouchConfigs);
