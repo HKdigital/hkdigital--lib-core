@@ -68,10 +68,24 @@ export async function generateViteConfig(options = {}) {
         generateResponseConfigs 
       } = await import('./imagetools.js');
 
+      // Custom transform to ensure alpha channel based on directive
+      const ensureAlphaTransform = (config) => {
+        // Only apply if ensureAlpha directive is present
+        if (!config.ensureAlpha) return undefined;
+
+        return (image) => {
+          return image.ensureAlpha();
+        };
+      };
+
       plugins.push(
         imagetools({
           defaultDirectives: generateDefaultDirectives(imagetoolsOptions),
-          resolveConfigs: generateResponseConfigs(imagetoolsOptions)
+          resolveConfigs: generateResponseConfigs(imagetoolsOptions),
+          extendTransforms: (builtins) => [
+            ...builtins,
+            ensureAlphaTransform
+          ]
         })
       );
     } catch (error) {

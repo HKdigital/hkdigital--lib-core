@@ -116,8 +116,7 @@ export function generateResponseConfigs(options) {
 					...configPairs,
 					w: String(w),
 					format: 'png',
-					ensureAlpha: '1',
-					png: JSON.stringify({ palette: false })
+					ensureAlpha: 'true'
 				};
 			});
 			// console.log('Returning favicon configs:', faviconConfigs);
@@ -131,8 +130,7 @@ export function generateResponseConfigs(options) {
 					...configPairs,
 					w: String(w),
 					format: 'png',
-					ensureAlpha: '1',
-					png: JSON.stringify({ palette: false })
+					ensureAlpha: 'true'
 				};
 			});
 			// console.log('Returning apple-touch-icon configs:', appleTouchConfigs);
