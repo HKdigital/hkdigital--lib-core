@@ -68,26 +68,42 @@ export async function generateViteConfig(options = {}) {
         generateResponseConfigs 
       } = await import('./imagetools.js');
 
-      // Custom transform to ensure alpha channel for all PNGs
-      const ensureAlphaTransform = (config) => {
-        // Apply to all PNG images (harmless no-op if alpha exists)
-        if (config.format !== 'png') return undefined;
-
-        return (image) => {
-          return image.ensureAlpha();
-        };
-      };
-
       plugins.push(
         imagetools({
           defaultDirectives: generateDefaultDirectives(imagetoolsOptions),
           resolveConfigs: generateResponseConfigs(imagetoolsOptions),
-          extendTransforms: (builtins) => [
-            ...builtins,
-            ensureAlphaTransform
-          ]
+          cache: {
+            // @note disable caching to test custom transforms
+            enabled: false,
+            // enabled: true,
+            dir: './node_modules/.cache/imagetools',
+            retention: 60 * 60 * 24 * 10  // 10 days
+          },
+          // @see https://www.npmjs.com/package/vite-imagetools?activeTab=readme
+          extendTransforms(builtins) {
+            const ensureAlphaTransform = (config, ctx) => {
+                // Check if 'ensureAlpha' directive is in the URL
+                if (!('ensureAlpha' in config)) {
+                  return undefined // This transform doesn't apply
+                }
+
+                // Mark the parameter as used
+                ctx.useParam('ensureAlpha')
+
+                // Return the actual transformation function
+                return (image) => {
+                  return image.ensureAlpha();
+                }
+              }
+
+              // Return an ARRAY with builtins + your custom transform
+              return [...builtins, ensureAlphaTransform]
+
+          }
         })
       );
+
+    // eslint-disable-next-line no-unused-vars
     } catch (error) {
       const errorMessage = `
 ╭─────────────────────────────────────────────────────────────╮
@@ -114,6 +130,7 @@ export async function generateViteConfig(options = {}) {
   };
 
   if (enableVitest && !enableVitestWorkspace) {
+    // @ts-ignore
     config.test = {
       include: [
         'src/**/*.{test,spec}.{js,ts}',
@@ -127,6 +144,7 @@ export async function generateViteConfig(options = {}) {
     // Workspace mode: separate projects for jsdom and node tests
     // jsdom tests: *.svelte.test.js (component tests with jsdom)
     // node tests: *.test.js, *.spec.js (server-side tests)
+    // @ts-ignore
     config.test = {
       ...vitestOptions,
       projects: [

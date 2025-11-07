@@ -66,7 +66,9 @@ const DEFAULT_PRESETS = {
  *
  * @param {object} [options]
  * @param {number[]} [options.widths=DEFAULT_WIDTHS]
- * @param {number[]} [options.thumbnailWidth=DEFAULT_THUMBNAIL_WIDTH]
+ * @param {number} [options.thumbnailWidth=DEFAULT_THUMBNAIL_WIDTH]
+ * @param {number[]} [options.faviconSizes=FAVICON_SIZES]
+ * @param {number[]} [options.appleTouchSizes=APPLE_TOUCH_SIZES]
  *
  * @returns {(
  *   entries: [string, string[]][]
@@ -91,12 +93,23 @@ export function generateResponseConfigs(options) {
 			configPairs[key] = value;
 		}
 
+		// console.log('entries', entries);
+		// e.g.
+		// entries [
+		//   [ 'apple-touch-icons', [ '' ] ],
+		//   [ 'as', [ 'metadata' ] ],
+		//   [ 'format', [ 'avif' ] ],
+		//   [ 'quality', [ '90' ] ]
+		// ]
+
 		// @ts-ignore
 		const responsiveConfig = entries.find(([key]) => key === 'responsive');
+
 		// @ts-ignore
-		const faviconsConfig = entries.find(([key]) => key === 'favicons');
+		const isFavicon = !!entries.find(([key]) => key === 'favicons');
+
 		// @ts-ignore
-		const appleTouchIconsConfig = entries.find(([key]) => key === 'apple-touch-icons');
+		const isAppleTouchIcon = !!entries.find(([key]) => key === 'apple-touch-icons');
 		// console.log('responsiveConfig found:', !!responsiveConfig);
 
 		const widths = options?.widths ?? DEFAULT_WIDTHS;
@@ -110,7 +123,7 @@ export function generateResponseConfigs(options) {
 		};
 
 		// Handle favicons directive - generate all favicon sizes as PNG
-		if (faviconsConfig) {
+		if (isFavicon) {
 			const faviconConfigs = faviconSizes.map((w) => {
 				return {
 					...configPairs,
@@ -124,7 +137,10 @@ export function generateResponseConfigs(options) {
 		}
 
 		// Handle apple-touch-icons directive - generate Apple touch icon sizes as PNG
-		if (appleTouchIconsConfig) {
+
+		// console.log('**** Check:isAppleTouchIcon', isAppleTouchIcon);
+
+		if (isAppleTouchIcon) {
 			const appleTouchConfigs = appleTouchSizes.map((w) => {
 				return {
 					...configPairs,
@@ -133,7 +149,7 @@ export function generateResponseConfigs(options) {
 					ensureAlpha: 'true'
 				};
 			});
-			// console.log('Returning apple-touch-icon configs:', appleTouchConfigs);
+			// console.log('**** Returning apple-touch-icon configs:', appleTouchConfigs);
 			return appleTouchConfigs;
 		}
 
@@ -177,6 +193,9 @@ export function generateDefaultDirectives(options) {
 		let presetName = params.get('preset');
 
 		// > Return metadata if directive 'responsive' is set
+
+		// @see https://github.com/JonasKruckenberg/
+		//      imagetools/blob/main/docs/directives.md#metadata
 
 		if (params.has('responsive')) {
 			params.set('as', 'metadata');
