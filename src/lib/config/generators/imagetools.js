@@ -146,7 +146,8 @@ export function generateResponseConfigs(options) {
 					...configPairs,
 					w: String(w),
 					format: 'png',
-					ensureAlpha: 'true'
+					ensureAlpha: 'true',
+					density: '300'
 				};
 			});
 			// console.log('**** Returning apple-touch-icon configs:', appleTouchConfigs);
