@@ -66,7 +66,7 @@ export async function generateViteConfig(options = {}) {
       const { generateDefaultDirectives, generateResponseConfigs } =
         await import('./imagetools.js');
 
-      const sharp = (await import('sharp')).default;
+      // const sharp = (await import('sharp')).default;
 
       plugins.push(
         imagetools({
