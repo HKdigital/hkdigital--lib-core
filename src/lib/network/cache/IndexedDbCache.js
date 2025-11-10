@@ -91,7 +91,7 @@ export default class IndexedDbCache {
 
     /**
      * Database connection promise
-     * @type {Promise<IDBDatabase>}
+     * @type {Promise<IDBDatabase>|null}
      * @private
      */
     this.dbPromise = null;

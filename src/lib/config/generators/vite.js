@@ -72,13 +72,13 @@ export async function generateViteConfig(options = {}) {
         imagetools({
           defaultDirectives: generateDefaultDirectives(imagetoolsOptions),
           resolveConfigs: generateResponseConfigs(imagetoolsOptions),
-          cache: {
-            // @note disable caching to test custom transforms
-            enabled: false,
-            // enabled: true,
-            dir: './node_modules/.cache/imagetools',
-            retention: 60 * 60 * 24 * 10 // 10 days
-          },
+          // cache: {
+          //   // @note disable caching to test custom transforms
+          //   enabled: false,
+          //   // enabled: true,
+          //   dir: './node_modules/.cache/imagetools',
+          //   retention: 60 * 60 * 24 * 10 // 10 days
+          // },
           // @see https://www.npmjs.com/package/vite-imagetools?activeTab=readme
           // extendOutputFormats(builtins) {
           //   return {
@@ -89,27 +89,27 @@ export async function generateViteConfig(options = {}) {
           //     })
           //   };
           // },
-          extendTransforms(builtins) {
-            const ensureAlphaTransform = (config, ctx) => {
-              // Check if 'ensureAlpha' directive is in the URL
-              if (!('ensureAlpha' in config)) {
-                return undefined; // This transform doesn't apply
-              }
+          //   extendTransforms(builtins) {
+          //     const ensureAlphaTransform = (config, ctx) => {
+          //       // Check if 'ensureAlpha' directive is in the URL
+          //       if (!('ensureAlpha' in config)) {
+          //         return undefined; // This transform doesn't apply
+          //       }
 
-              // Mark the parameter as used
-              ctx.useParam('ensureAlpha');
+          //       // Mark the parameter as used
+          //       ctx.useParam('ensureAlpha');
 
-              // Return the actual transformation function
-              return (image) => {
-                return image
-                  .ensureAlpha()
-                  .withMetadata({ xmp: '' });
-              };
-            };
+          //       // Return the actual transformation function
+          //       return (image) => {
+          //         return image
+          //           .ensureAlpha()
+          //           .withMetadata({ xmp: '' });
+          //       };
+          //     };
 
-            // Return an ARRAY with builtins + your custom transform
-            return [...builtins, ensureAlphaTransform];
-          }
+          //     // Return an ARRAY with builtins + your custom transform
+          //     return [...builtins, ensureAlphaTransform];
+          //   }
         })
       );
 

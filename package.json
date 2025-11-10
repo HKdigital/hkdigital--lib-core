@@ -38,7 +38,7 @@
 		"check:run": "svelte-check --tsconfig ./jsconfig.json",
 		"check:watch-run": "svelte-check --tsconfig ./jsconfig.json --watch",
 		"git:push": "git push",
-		"imagetools:clean": "rm -rf node_modules/.cache/imagetools",
+		"cache:clear": "rm -rf node_modules/.cache/imagetools",
 		"lint:prettier": "prettier --check .",
 		"lint:eslint": "eslint .",
 		"test:unit": "vitest",

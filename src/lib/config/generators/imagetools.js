@@ -75,6 +75,9 @@ const DEFAULT_PRESETS = {
  * ) => (Record<string, string | string[]>[])}
  */
 export function generateResponseConfigs(options) {
+
+	// console.log("generateResponseConfigs");
+
 	//
 	// @see https://github.com/JonasKruckenberg/imagetools
 	//      /blob/main/docs/core/src/functions/resolveConfigs.md
@@ -92,6 +95,8 @@ export function generateResponseConfigs(options) {
 			// @ts-ignore
 			configPairs[key] = value;
 		}
+
+		// console.log('configPairs', configPairs);
 
 		// console.log('entries', entries);
 		// e.g.
@@ -115,6 +120,10 @@ export function generateResponseConfigs(options) {
 		const widths = options?.widths ?? DEFAULT_WIDTHS;
 		const faviconSizes = options?.faviconSizes ?? FAVICON_SIZES;
 		const appleTouchSizes = options?.appleTouchSizes ?? APPLE_TOUCH_SIZES;
+
+		delete configPairs.responsive;
+		delete configPairs.favicons;
+		delete configPairs['apple-touch-icons'];
 
 		// Always include the main image(s) and a thumbnail version
 		const thumbnailConfig = {
@@ -188,6 +197,8 @@ export function generateDefaultDirectives(options) {
 	 * @param {URL} url
 	 */
 	return function defaultDirectives(url) {
+
+
 		// Check the directive in the URL to determine which preset to use
 		const params = url.searchParams;
 
@@ -197,6 +208,8 @@ export function generateDefaultDirectives(options) {
 
 		// @see https://github.com/JonasKruckenberg/
 		//      imagetools/blob/main/docs/directives.md#metadata
+
+		// as=metadata already set in generateResponseConfigs
 
 		if (params.has('responsive')) {
 			params.set('as', 'metadata');
@@ -236,6 +249,8 @@ export function generateDefaultDirectives(options) {
 		for (const key in preset) {
 			params.set(key, preset[key]);
 		}
+
+		// console.log("generateDefaultDirectives", { href: url.href, params });
 
 		// TODO: process directive 'w''
 		// - generate only allowed widths
