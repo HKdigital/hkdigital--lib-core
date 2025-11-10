@@ -138,20 +138,20 @@
       windowWidth &&
       windowHeight
     ) {
-      updateIosWidthHeight();
+      updateIosWidthHeightAndOrientation();
     }
   });
 
   $effect(() => {
     // Use matchMedia as a trigger for orientation changes
-    // The actual orientation is determined in updateIosWidthHeight()
+    // The actual orientation is determined in updateIosWidthHeightAndOrientation()
     if (typeof window !== 'undefined') {
       const isPortraitMedia =
         window.matchMedia('(orientation: portrait)').matches;
 
       // Trigger iOS dimension update when orientation might have changed
       if (isPwa && isAppleMobile) {
-        updateIosWidthHeight();
+        updateIosWidthHeightAndOrientation();
       } else {
         // For non-iOS, matchMedia is reliable
         isLandscape = !isPortraitMedia;
@@ -238,8 +238,8 @@
 
   let supportsFullscreen = $state(false);
 
-  function updateIosWidthHeight() {
-    if (isPwa && isAppleMobile) {
+  function updateIosWidthHeightAndOrientation() {
+    if (isAppleMobile) {
 
       // unreliable on ios >>
       // const angle = screen.orientation.angle;
@@ -284,7 +284,7 @@
 
       if( debug )
       {
-        console.debug('updateIosWidthHeight', {
+        console.debug('updateIosWidthHeightAndOrientation', {
           'screen.orientation.type': screen.orientation.type,
           isLandscape,
           'window.innerWidth': window.innerWidth,
@@ -309,16 +309,17 @@
 
     isPwa = getIsPwa();
 
-    updateIosWidthHeight();
+    updateIosWidthHeightAndOrientation();
 
     // Listen for orientation changes using matchMedia (works on all iOS)
     const portraitMediaQuery = window.matchMedia('(orientation: portrait)');
     const handleOrientationChange = (e) => {
       // Update iOS dimensions if needed
-      if (isPwa && isAppleMobile) {
-        updateIosWidthHeight();
+      if (isAppleMobile) {
+        updateIosWidthHeightAndOrientation();
       } else {
         // For non-iOS, matchMedia is reliable
+        // as well is window width and height
         isLandscape = !e.matches;
       }
     };
@@ -348,7 +349,7 @@
 
         // Force iOS dimension update when app becomes visible
         if (isPwa && isAppleMobile) {
-          updateIosWidthHeight();
+          updateIosWidthHeightAndOrientation();
         }
       }
     };
@@ -544,7 +545,7 @@
                 gameHeight
               })}
             </ScaledContainer>
-          {:else if isMobile && snippetInstallOnHomeScreen && !isDevMode}
+          {:else if isMobile && snippetInstallOnHomeScreen && !isPwa && !isDevMode}
             <!-- Require install on home screen on mobile -->
             <ScaledContainer
               enableScaling={enableScaling}
