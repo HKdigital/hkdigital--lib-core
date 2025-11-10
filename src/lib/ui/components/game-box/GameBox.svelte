@@ -240,14 +240,17 @@
 
   function updateIosWidthHeight() {
     if (isPwa && isAppleMobile) {
-      // const angle = screen.orientation.angle;
-      if( window.matchMedia('(orientation: portrait)').matches ) {
-        isLandscape = false;
-      }
-      else {
-        isLandscape = true;
-      }
 
+      // unreliable on ios >>
+      // const angle = screen.orientation.angle;
+      // if( window.matchMedia('(orientation: portrait)').matches ) {
+      //   isLandscape = false;
+      // }
+      // else {
+      //   isLandscape = true;
+      // }
+
+      // unreliable on ios >>
       // switch( screen.orientation.type ) {
       //   case "portrait-primary":
       //   case "portrait-secondary":
@@ -270,6 +273,14 @@
 
       iosWindowWidth = window.innerWidth;
       iosWindowHeight = window.innerHeight;
+
+      if( iosWindowHeight > iosWindowWidth )
+      {
+        isLandscape = false;
+      }
+      else {
+        isLandscape = true;
+      }
 
       if( debug )
       {
