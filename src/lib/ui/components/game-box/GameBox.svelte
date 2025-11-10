@@ -53,6 +53,7 @@
    *   snippetPortrait?: GameBoxSnippet,
    *   snippetRequireFullscreen?: GameBoxSnippet,
    *   snippetInstallOnHomeScreen?: GameBoxSnippet,
+   *   debug?: boolean,
    *   [attr: string]: any
    * }}
    */
@@ -84,7 +85,9 @@
     snippetLandscape,
     snippetPortrait,
     snippetRequireFullscreen,
-    snippetInstallOnHomeScreen
+    snippetInstallOnHomeScreen,
+
+    debug = false
   } = $props();
 
   // > Game dimensions and state
@@ -149,9 +152,15 @@
     isLandscape = !isPortraitMedia;
   });
 
-  $inspect('isLandscape', isLandscape);
-  $inspect('windowWidth/Height', windowWidth, windowHeight);
-  $inspect('iosWindowWidth/Height', iosWindowWidth, iosWindowHeight);
+  // Use $effect for conditional debugging instead of $inspect
+  $effect(() => {
+    if (debug) {
+      console.log('[GameBox] isLandscape:', isLandscape);
+      console.log('[GameBox] windowWidth/Height:', windowWidth, windowHeight);
+      console.log('[GameBox] iosWindowWidth/Height:',
+        iosWindowWidth, iosWindowHeight);
+    }
+  });
 
   // Update game dimensions based on window size and orientation
   $effect(() => {
@@ -163,12 +172,15 @@
     const availWidth = width - marginLeft - marginRight;
     const availHeight = height - marginTop - marginBottom;
 
-    console.debug('GameBox margins:', {
-      marginLeft,
-      marginRight,
-      marginTop,
-      marginBottom
-    });
+    if( debug )
+    {
+      console.debug('GameBox margins:', {
+        marginLeft,
+        marginRight,
+        marginTop,
+        marginBottom
+      });
+    }
 
     if (availWidth > availHeight) {
       gameWidthOnLandscape = getGameWidthOnLandscape({
@@ -231,13 +243,17 @@
         iosWindowWidth = window.innerWidth;
         iosWindowHeight = window.innerHeight;
       }
-      console.debug('updateIosWidthHeight', {
-        angle,
-        'window.innerWidth': window.innerWidth,
-        'window.innerHeight': window.innerHeight,
-        iosWindowWidth,
-        iosWindowHeight
-      });
+
+      if( debug )
+      {
+        console.debug('updateIosWidthHeight', {
+          angle,
+          'window.innerWidth': window.innerWidth,
+          'window.innerHeight': window.innerHeight,
+          iosWindowWidth,
+          iosWindowHeight
+        });
+      }
     }
   }
 
@@ -271,21 +287,24 @@
     // App visibility detection for iOS debugging
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        console.log('App became visible:', {
-          'window.innerWidth': window.innerWidth,
-          'window.innerHeight': window.innerHeight,
-          'screen.width': screen.width,
-          'screen.height': screen.height,
-          'screen.orientation.angle': screen.orientation.angle,
-          'screen.orientation.type': screen.orientation.type,
-          'matchMedia portrait':
-            window.matchMedia('(orientation: portrait)').matches,
-          'isLandscape': isLandscape,
-          'gameWidth': gameWidth,
-          'gameHeight': gameHeight,
-          'iosWindowWidth': iosWindowWidth,
-          'iosWindowHeight': iosWindowHeight
-        });
+
+        if( debug ) {
+          console.log('App became visible:', {
+            'window.innerWidth': window.innerWidth,
+            'window.innerHeight': window.innerHeight,
+            'screen.width': screen.width,
+            'screen.height': screen.height,
+            'screen.orientation.angle': screen.orientation.angle,
+            'screen.orientation.type': screen.orientation.type,
+            'matchMedia portrait':
+              window.matchMedia('(orientation: portrait)').matches,
+            'isLandscape': isLandscape,
+            'gameWidth': gameWidth,
+            'gameHeight': gameHeight,
+            'iosWindowWidth': iosWindowWidth,
+            'iosWindowHeight': iosWindowHeight
+          });
+        }
 
         // Force iOS dimension update when app becomes visible
         if (isPwa && isAppleMobile) {
