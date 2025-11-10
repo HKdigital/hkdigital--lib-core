@@ -240,15 +240,23 @@
 
   function updateIosWidthHeight() {
     if (isPwa && isAppleMobile) {
-      const angle = screen.orientation.angle;
+      // const angle = screen.orientation.angle;
+      // if( window.matchMedia('(orientation: portrait)').matches ) {
+      // }
 
-      // Use screen.orientation.angle as the source of truth
-      // angle 90/270 = landscape, angle 0/180 = portrait
-      isLandscape = (angle === 90 || angle === 270);
+      switch( screen.orientation.type ) {
+        case "portrait-primary":
+        case "portrait-secondary":
+          isLandscape = false;
+          break;
+        default:
+          isLandscape = true;
+          break;
+      }
 
       // Use window.inner dimensions instead of screen dimensions
       // because screen.width/height don't rotate on iOS PWA
-      // if (angle === 90 || angle === 270) {
+      // if (isLandscape) {
       //   iosWindowWidth = window.innerHeight;
       //   iosWindowHeight = window.innerWidth;
       // } else {
@@ -262,7 +270,7 @@
       if( debug )
       {
         console.debug('updateIosWidthHeight', {
-          angle,
+          'screen.orientation.type': screen.orientation.type,
           isLandscape,
           'window.innerWidth': window.innerWidth,
           'window.innerHeight': window.innerHeight,
