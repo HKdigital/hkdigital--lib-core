@@ -241,18 +241,22 @@
   function updateIosWidthHeight() {
     if (isPwa && isAppleMobile) {
       // const angle = screen.orientation.angle;
-      // if( window.matchMedia('(orientation: portrait)').matches ) {
-      // }
-
-      switch( screen.orientation.type ) {
-        case "portrait-primary":
-        case "portrait-secondary":
-          isLandscape = false;
-          break;
-        default:
-          isLandscape = true;
-          break;
+      if( window.matchMedia('(orientation: portrait)').matches ) {
+        isLandscape = false;
       }
+      else {
+        isLandscape = true;
+      }
+
+      // switch( screen.orientation.type ) {
+      //   case "portrait-primary":
+      //   case "portrait-secondary":
+      //     isLandscape = false;
+      //     break;
+      //   default:
+      //     isLandscape = true;
+      //     break;
+      // }
 
       // Use window.inner dimensions instead of screen dimensions
       // because screen.width/height don't rotate on iOS PWA
