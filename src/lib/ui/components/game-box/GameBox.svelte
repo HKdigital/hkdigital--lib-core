@@ -143,13 +143,20 @@
   });
 
   $effect(() => {
-    // Use matchMedia for orientation detection (works on all iOS versions)
-    // This is more reliable than screen.orientation.angle
-    const isPortraitMedia =
-      typeof window !== 'undefined' &&
-      window.matchMedia('(orientation: portrait)').matches;
+    // Use matchMedia as a trigger for orientation changes
+    // The actual orientation is determined in updateIosWidthHeight()
+    if (typeof window !== 'undefined') {
+      const isPortraitMedia =
+        window.matchMedia('(orientation: portrait)').matches;
 
-    isLandscape = !isPortraitMedia;
+      // Trigger iOS dimension update when orientation might have changed
+      if (isPwa && isAppleMobile) {
+        updateIosWidthHeight();
+      } else {
+        // For non-iOS, matchMedia is reliable
+        isLandscape = !isPortraitMedia;
+      }
+    }
   });
 
   // Use $effect for conditional debugging instead of $inspect
@@ -182,38 +189,35 @@
       });
     }
 
-    if (availWidth > availHeight) {
-      gameWidthOnLandscape = getGameWidthOnLandscape({
-        windowWidth: availWidth,
-        windowHeight: availHeight,
-        aspectOnLandscape
-      });
+    // Calculate game dimensions for both orientations
+    // Orientation is determined by matchMedia/screen.orientation.angle,
+    // not by dimension comparison
+    gameWidthOnLandscape = getGameWidthOnLandscape({
+      windowWidth: availWidth,
+      windowHeight: availHeight,
+      aspectOnLandscape
+    });
 
-      if( aspectOnLandscape )
-      {
-        gameHeightOnLandscape = gameWidthOnLandscape / aspectOnLandscape;
-      }
-      else {
-        gameHeightOnLandscape = availHeight;
-      }
+    if( aspectOnLandscape )
+    {
+      gameHeightOnLandscape = gameWidthOnLandscape / aspectOnLandscape;
+    }
+    else {
+      gameHeightOnLandscape = availHeight;
+    }
 
-      isLandscape = true;
-    } else {
-      gameWidthOnPortrait = getGameWidthOnPortrait({
-        windowWidth: availWidth,
-        windowHeight: availHeight,
-        aspectOnPortrait
-      });
+    gameWidthOnPortrait = getGameWidthOnPortrait({
+      windowWidth: availWidth,
+      windowHeight: availHeight,
+      aspectOnPortrait
+    });
 
-      if( aspectOnPortrait )
-      {
-        gameHeightOnPortrait = gameWidthOnPortrait / aspectOnPortrait;
-      }
-      else {
-        gameHeightOnPortrait = availHeight;
-      }
-
-      isLandscape = false;
+    if( aspectOnPortrait )
+    {
+      gameHeightOnPortrait = gameWidthOnPortrait / aspectOnPortrait;
+    }
+    else {
+      gameHeightOnPortrait = availHeight;
     }
   });
 
@@ -234,6 +238,10 @@
     if (isPwa && isAppleMobile) {
       const angle = screen.orientation.angle;
 
+      // Use screen.orientation.angle as the source of truth
+      // angle 90/270 = landscape, angle 0/180 = portrait
+      isLandscape = (angle === 90 || angle === 270);
+
       // Use window.inner dimensions instead of screen dimensions
       // because screen.width/height don't rotate on iOS PWA
       if (angle === 90 || angle === 270) {
@@ -248,6 +256,7 @@
       {
         console.debug('updateIosWidthHeight', {
           angle,
+          isLandscape,
           'window.innerWidth': window.innerWidth,
           'window.innerHeight': window.innerHeight,
           iosWindowWidth,
@@ -275,11 +284,12 @@
     // Listen for orientation changes using matchMedia (works on all iOS)
     const portraitMediaQuery = window.matchMedia('(orientation: portrait)');
     const handleOrientationChange = (e) => {
-      isLandscape = !e.matches;
-
       // Update iOS dimensions if needed
       if (isPwa && isAppleMobile) {
         updateIosWidthHeight();
+      } else {
+        // For non-iOS, matchMedia is reliable
+        isLandscape = !e.matches;
       }
     };
     portraitMediaQuery.addEventListener('change', handleOrientationChange);
