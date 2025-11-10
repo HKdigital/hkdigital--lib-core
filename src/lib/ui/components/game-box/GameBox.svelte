@@ -248,13 +248,16 @@
 
       // Use window.inner dimensions instead of screen dimensions
       // because screen.width/height don't rotate on iOS PWA
-      if (angle === 90 || angle === 270) {
-        iosWindowWidth = window.innerHeight;
-        iosWindowHeight = window.innerWidth;
-      } else {
-        iosWindowWidth = window.innerWidth;
-        iosWindowHeight = window.innerHeight;
-      }
+      // if (angle === 90 || angle === 270) {
+      //   iosWindowWidth = window.innerHeight;
+      //   iosWindowHeight = window.innerWidth;
+      // } else {
+      //   iosWindowWidth = window.innerWidth;
+      //   iosWindowHeight = window.innerHeight;
+      // }
+
+      iosWindowWidth = window.innerWidth;
+      iosWindowHeight = window.innerHeight;
 
       if( debug )
       {
