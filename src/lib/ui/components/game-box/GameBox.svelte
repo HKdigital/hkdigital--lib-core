@@ -189,36 +189,40 @@
       });
     }
 
-    // Calculate game dimensions for both orientations
-    // Orientation is determined by matchMedia/screen.orientation.angle,
-    // not by dimension comparison
-    gameWidthOnLandscape = getGameWidthOnLandscape({
-      windowWidth: availWidth,
-      windowHeight: availHeight,
-      aspectOnLandscape
-    });
+    if (availWidth > availHeight) {
+      // Calculate game dimensions for both orientations
+      // Orientation is determined by matchMedia/screen.orientation.angle,
+      // not by dimension comparison
+      gameWidthOnLandscape = getGameWidthOnLandscape({
+        windowWidth: availWidth,
+        windowHeight: availHeight,
+        aspectOnLandscape
+      });
 
-    if( aspectOnLandscape )
-    {
-      gameHeightOnLandscape = gameWidthOnLandscape / aspectOnLandscape;
+      if( aspectOnLandscape )
+      {
+        gameHeightOnLandscape = gameWidthOnLandscape / aspectOnLandscape;
+      }
+      else {
+        gameHeightOnLandscape = availHeight;
+      }
     }
     else {
-      gameHeightOnLandscape = availHeight;
+      gameWidthOnPortrait = getGameWidthOnPortrait({
+        windowWidth: availWidth,
+        windowHeight: availHeight,
+        aspectOnPortrait
+      });
+
+      if( aspectOnPortrait )
+      {
+        gameHeightOnPortrait = gameWidthOnPortrait / aspectOnPortrait;
+      }
+      else {
+        gameHeightOnPortrait = availHeight;
+      }
     }
 
-    gameWidthOnPortrait = getGameWidthOnPortrait({
-      windowWidth: availWidth,
-      windowHeight: availHeight,
-      aspectOnPortrait
-    });
-
-    if( aspectOnPortrait )
-    {
-      gameHeightOnPortrait = gameWidthOnPortrait / aspectOnPortrait;
-    }
-    else {
-      gameHeightOnPortrait = availHeight;
-    }
   });
 
   let show = $state(false);
