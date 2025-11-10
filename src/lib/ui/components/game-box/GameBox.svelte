@@ -149,9 +149,9 @@
     isLandscape = !isPortraitMedia;
   });
 
-  // $inspect('isLandscape', isLandscape);
-  // $inspect('windowWidth/Height', windowWidth, windowHeight);
-  // $inspect('iosWindowWidth/Height', iosWindowWidth, iosWindowHeight);
+  $inspect('isLandscape', isLandscape);
+  $inspect('windowWidth/Height', windowWidth, windowHeight);
+  $inspect('iosWindowWidth/Height', iosWindowWidth, iosWindowHeight);
 
   // Update game dimensions based on window size and orientation
   $effect(() => {
@@ -163,12 +163,12 @@
     const availWidth = width - marginLeft - marginRight;
     const availHeight = height - marginTop - marginBottom;
 
-    // console.debug('GameBox margins:', {
-    //   marginLeft,
-    //   marginRight,
-    //   marginTop,
-    //   marginBottom
-    // });
+    console.debug('GameBox margins:', {
+      marginLeft,
+      marginRight,
+      marginTop,
+      marginBottom
+    });
 
     if (availWidth > availHeight) {
       gameWidthOnLandscape = getGameWidthOnLandscape({
@@ -231,13 +231,13 @@
         iosWindowWidth = window.innerWidth;
         iosWindowHeight = window.innerHeight;
       }
-      // console.debug('updateIosWidthHeight', {
-      //   angle,
-      //   'window.innerWidth': window.innerWidth,
-      //   'window.innerHeight': window.innerHeight,
-      //   iosWindowWidth,
-      //   iosWindowHeight
-      // });
+      console.debug('updateIosWidthHeight', {
+        angle,
+        'window.innerWidth': window.innerWidth,
+        'window.innerHeight': window.innerHeight,
+        iosWindowWidth,
+        iosWindowHeight
+      });
     }
   }
 
@@ -271,21 +271,21 @@
     // App visibility detection for iOS debugging
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible') {
-        // console.log('App became visible:', {
-        //   'window.innerWidth': window.innerWidth,
-        //   'window.innerHeight': window.innerHeight,
-        //   'screen.width': screen.width,
-        //   'screen.height': screen.height,
-        //   'screen.orientation.angle': screen.orientation.angle,
-        //   'screen.orientation.type': screen.orientation.type,
-        //   'matchMedia portrait':
-        //     window.matchMedia('(orientation: portrait)').matches,
-        //   'isLandscape': isLandscape,
-        //   'gameWidth': gameWidth,
-        //   'gameHeight': gameHeight,
-        //   'iosWindowWidth': iosWindowWidth,
-        //   'iosWindowHeight': iosWindowHeight
-        // });
+        console.log('App became visible:', {
+          'window.innerWidth': window.innerWidth,
+          'window.innerHeight': window.innerHeight,
+          'screen.width': screen.width,
+          'screen.height': screen.height,
+          'screen.orientation.angle': screen.orientation.angle,
+          'screen.orientation.type': screen.orientation.type,
+          'matchMedia portrait':
+            window.matchMedia('(orientation: portrait)').matches,
+          'isLandscape': isLandscape,
+          'gameWidth': gameWidth,
+          'gameHeight': gameHeight,
+          'iosWindowWidth': iosWindowWidth,
+          'iosWindowHeight': iosWindowHeight
+        });
 
         // Force iOS dimension update when app becomes visible
         if (isPwa && isAppleMobile) {
