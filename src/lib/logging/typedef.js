@@ -18,4 +18,8 @@
  * eventName - Original event name if log came from an event (optional)
  */
 
+/**
+ * @typedef {import('./internal/logger/Logger.js').default} Logger
+ */
+
 export default {};
