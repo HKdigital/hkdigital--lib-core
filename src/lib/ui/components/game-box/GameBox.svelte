@@ -12,6 +12,7 @@
   /**
    * @typedef {{
    *   isMobile:boolean,
+   *   isIpad:boolean,
    *   os:'Android'|'iOS',
    *   isFullscreen:boolean,
    *   isDevMode:boolean,
@@ -198,6 +199,8 @@
 
   let os = $state();
 
+  let isIpad = $state(false);
+
   let isMobile = $state(false);
 
   let isDevMode = $state(false);
@@ -211,6 +214,8 @@
     supportsFullscreen = document.fullscreenEnabled;
 
     isMobile = getIsMobile();
+
+    isIpad = getIsIpad();
 
     os = getOS();
 
@@ -298,6 +303,11 @@
     } else if (/Android/.test(navigator.userAgent)) {
       return 'Android';
     }
+  }
+
+  function getIsIpad() {
+    const userAgent = navigator.userAgent || '';
+    return /iPad|Tablet/i.test(userAgent);
   }
 
   /**
@@ -427,6 +437,7 @@
             {#if isFullscreen && !isDevMode}
               {@render snippetLandscape({
                 isMobile,
+                isIpad,
                 os,
                 isFullscreen,
                 isDevMode,
@@ -439,6 +450,7 @@
               <!-- Require fullscreen (on landscape) -->
               {@render snippetRequireFullscreen({
                 isMobile,
+                isIpad,
                 os,
                 isFullscreen,
                 isDevMode,
@@ -447,10 +459,11 @@
                 gameWidth,
                 gameHeight
               })}
-            {:else if isMobile && snippetInstallOnHomeScreen && !isDevMode}
+            {:else if (isMobile || isIpad) && snippetInstallOnHomeScreen && !isDevMode}
               <!-- Require install on home screen on mobile -->
               {@render snippetInstallOnHomeScreen({
                 isMobile,
+                isIpad,
                 os,
                 isFullscreen,
                 isDevMode,
@@ -462,6 +475,7 @@
             {:else}
               {@render snippetLandscape({
                 isMobile,
+                isIpad,
                 os,
                 isFullscreen,
                 isDevMode,
@@ -476,6 +490,7 @@
             <!-- *we do not try install home app -->
             {@render snippetLandscape({
               isMobile,
+              isIpad,
               os,
               isFullscreen,
               isDevMode,
@@ -492,6 +507,7 @@
             {#if isFullscreen && !isDevMode}
               {@render snippetPortrait({
                 isMobile,
+                isIpad,
                 os,
                 isFullscreen,
                 isDevMode,
@@ -504,6 +520,7 @@
               <!-- Require fullscreen (on landscape) -->
               {@render snippetRequireFullscreen({
                 isMobile,
+                isIpad,
                 os,
                 isFullscreen,
                 isDevMode,
@@ -512,10 +529,11 @@
                 gameWidth,
                 gameHeight
               })}
-            {:else if isMobile && snippetInstallOnHomeScreen && !isDevMode}
+            {:else if (isMobile || isIpad) && snippetInstallOnHomeScreen && !isDevMode}
               <!-- Require install on home screen on mobile -->
               {@render snippetInstallOnHomeScreen({
                 isMobile,
+                isIpad,
                 os,
                 isFullscreen,
                 isDevMode,
@@ -527,6 +545,7 @@
             {:else}
               {@render snippetPortrait({
                 isMobile,
+                isIpad,
                 os,
                 isFullscreen,
                 isDevMode,
@@ -541,6 +560,7 @@
             <!-- *we do not try install home app -->
             {@render snippetPortrait({
               isMobile,
+              isIpad,
               os,
               isFullscreen,
               isDevMode,
