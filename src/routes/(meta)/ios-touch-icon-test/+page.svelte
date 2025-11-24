@@ -1,6 +1,6 @@
 <script>
   // import faviconImages from '../favicon.png?favicons';
-  import workingTouchIcons from '../favicon-working.png?apple-touch-icons';
+  import workingTouchIcons from '../favicon-hkdigital.png?apple-touch-icons';
   import testTouchIcons from '../favicon.png?apple-touch-icons';
 
   // console.log("***workingTouchIcons", workingTouchIcons);
