@@ -15,6 +15,7 @@
   designPortrait={{ width: 1080, height: 1080 }}
   clamping={designTokens.CLAMPING}
   enableScaling={true}
+  debug={true}
 >
   {#snippet snippetLandscape()}
     <div class="m-20up">

@@ -166,6 +166,8 @@
       console.log('[GameBox] windowWidth/Height:', windowWidth, windowHeight);
       console.log('[GameBox] iosWindowWidth/Height:',
         iosWindowWidth, iosWindowHeight);
+
+      console.log( {isPwa, isAppleMobile, isMobile, isIos, isAndroid, isFullscreen} );
     }
   });
 
