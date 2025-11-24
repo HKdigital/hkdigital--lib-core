@@ -1,22 +1,5 @@
 <script>
-  import { enableContainerScaling } from '$lib/design/index.js';
-
-  /**
-   * @typedef {{
-   *   enableScaling?: boolean,
-   *   design?: {width: number, height: number},
-   *   clamping?: {
-   *     ui: {min: number, max: number},
-   *     textBase: {min: number, max: number},
-   *     textHeading: {min: number, max: number},
-   *     textUi: {min: number, max: number}
-   *   },
-   *   width: number,
-   *   height: number,
-   *   hidden?: boolean,
-   *   children: import('svelte').Snippet
-   * }}
-   */
+  import { clamp, enableContainerScaling } from '$lib/design/index.js';
 
   /**
    * Wrapper component that applies container scaling to its children
@@ -24,7 +7,7 @@
    * @type {{
    *   enableScaling?: boolean,
    *   design?: {width: number, height: number},
-   *   clamping?: {
+   *   clamping: {
    *     ui: {min: number, max: number},
    *     textBase: {min: number, max: number},
    *     textHeading: {min: number, max: number},
@@ -33,17 +16,19 @@
    *   width: number,
    *   height: number,
    *   hidden?: boolean,
-   *   children: import('svelte').Snippet
+   *   snippet?: import('./typedef.js').GameBoxSnippet,
+   *   snippetParams: import('./typedef.js').SnippetParams
    * }}
    */
   let {
     enableScaling = false,
-    design = undefined,
-    clamping = undefined,
+    design,
+    clamping,
     width,
     height,
     hidden = false,
-    children
+    snippet,
+    snippetParams
   } = $props();
 
   let container = $state();
@@ -51,12 +36,13 @@
   // Apply container scaling when enabled and not hidden
   $effect(() => {
     if (
-      !enableScaling ||
       !container ||
+      !enableScaling ||
       !width ||
       !height ||
-      hidden ||
-      !design
+      !design ||
+      !clamping ||
+      hidden
     ) {
       return;
     }
@@ -72,14 +58,16 @@
   });
 </script>
 
-<div
-  bind:this={container}
-  class:hidden
-  style:width="{width}px"
-  style:height="{height}px"
->
-  {@render children()}
-</div>
+{#if snippet && snippetParams}
+  <div
+    bind:this={container}
+    class:hidden
+    style:width="{width}px"
+    style:height="{height}px"
+  >
+    {@render snippet(snippetParams)}
+  </div>
+{/if}
 
 <style>
   .hidden {
