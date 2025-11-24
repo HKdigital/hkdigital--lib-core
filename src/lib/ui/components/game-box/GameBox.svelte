@@ -6,25 +6,25 @@
     getGameWidthOnPortrait
   } from './gamebox.util.js';
 
-  import { enableContainerScaling } from '$lib/design/index.js';
-  // import { enableContainerScaling } from '@hkdigital/lib-core/design/index.js';
+  import {
+    getIsAppleMobile,
+    getIsIpadOS,
+    getIsMobile
+  } from '$lib/browser/info/device.js';
+
+  import {
+    getIsPwa,
+    getIsFullscreen
+  } from '$lib/browser/info/display.js';
+
+  import ScaledContainer from './ScaledContainer.svelte';
 
   /**
-   * @typedef {{
-   *   isMobile:boolean,
-   *   isIpad:boolean,
-   *   os:'Android'|'iOS',
-   *   isFullscreen:boolean,
-   *   isDevMode:boolean,
-   *   requestDevmode:function,
-   *   requestFullscreen:function,
-   *   gameWidth: number,
-   *   gameHeight: number
-   * }} SnippetParams
+   * @typedef {import('./typedef.js').SnippetParams} SnippetParams
    */
 
   /**
-   * @typedef {import('svelte').Snippet<[SnippetParams]>} GameBoxSnippet
+   * @typedef {import('./typedef.js').GameBoxSnippet} GameBoxSnippet
    */
 
   /**
@@ -53,6 +53,7 @@
    *   snippetPortrait?: GameBoxSnippet,
    *   snippetRequireFullscreen?: GameBoxSnippet,
    *   snippetInstallOnHomeScreen?: GameBoxSnippet,
+   *   debug?: boolean,
    *   [attr: string]: any
    * }}
    */
@@ -75,52 +76,98 @@
 
     center,
 
-    // > Scaling options
-    enableScaling = false,
-    designLandscape = { width: 1920, height: 1080 },
-    designPortrait = { width: 1920, height: 1080 },
-    clamping = {
-      ui: { min: 0.3, max: 2 },
-      textBase: { min: 0.75, max: 1.5 },
-      textHeading: { min: 0.75, max: 2.25 },
-      textUi: { min: 0.5, max: 1.25 }
-    },
+    enableScaling,
+    designLandscape,
+    designPortrait,
+    clamping,
 
     // > Snippets
     snippetLandscape,
     snippetPortrait,
     snippetRequireFullscreen,
-    snippetInstallOnHomeScreen
+    snippetInstallOnHomeScreen,
+
+    debug = false
   } = $props();
 
   // > Game dimensions and state
   let windowWidth = $state();
   let windowHeight = $state();
 
-  let gameWidth = $state();
-  let gameHeight = $state();
+  let gameWidthOnPortrait = $state();
+  let gameHeightOnPortrait = $state();
+
+  let gameWidthOnLandscape = $state();
+  let gameHeightOnLandscape = $state();
 
   let iosWindowWidth = $state();
   let iosWindowHeight = $state();
 
-  function getIsLandscape() {
-    if (isPwa && isAppleMobile) {
-      return iosWindowWidth > iosWindowHeight;
-    } else {
-      return windowWidth > windowHeight;
-    }
-  }
-
   let isLandscape = $state();
 
-  // $derived.by(getIsLandscape);
+  let gameWidth = $derived.by( () => {
+    if( isLandscape ) {
+      return gameWidthOnLandscape;
+    }
+    else {
+      return gameWidthOnPortrait;
+    }
+  } );
 
+  let gameHeight = $derived.by( () => {
+    if( isLandscape ) {
+      return gameHeightOnLandscape;
+    }
+    else {
+      return gameHeightOnPortrait;
+    }
+  } );
+
+  // iPad is also considered Apple mobile
+  const isAppleMobile = getIsAppleMobile();
+
+  let isIos = $state(false);
+  let isAndroid = $state(false);
+  let isIpadOS = $state(false);
+
+  // Update iOS dimensions when window size changes
   $effect(() => {
-    isLandscape = getIsLandscape();
+    if (
+      isPwa &&
+      isAppleMobile &&
+      windowWidth &&
+      windowHeight
+    ) {
+      updateIosWidthHeightAndOrientation();
+    }
   });
 
-  // Game container reference
-  let gameContainer = $state();
+  $effect(() => {
+    // Use matchMedia as a trigger for orientation changes
+    // The actual orientation is determined in updateIosWidthHeightAndOrientation()
+    if (typeof window !== 'undefined') {
+      const isPortraitMedia =
+        window.matchMedia('(orientation: portrait)').matches;
+
+      // Trigger iOS dimension update when orientation might have changed
+      if (isPwa && isAppleMobile) {
+        updateIosWidthHeightAndOrientation();
+      } else {
+        // For non-iOS, matchMedia is reliable
+        isLandscape = !isPortraitMedia;
+      }
+    }
+  });
+
+  // Use $effect for conditional debugging instead of $inspect
+  $effect(() => {
+    if (debug) {
+      console.log('[GameBox] isLandscape:', isLandscape);
+      console.log('[GameBox] windowWidth/Height:', windowWidth, windowHeight);
+      console.log('[GameBox] iosWindowWidth/Height:',
+        iosWindowWidth, iosWindowHeight);
+    }
+  });
 
   // Update game dimensions based on window size and orientation
   $effect(() => {
@@ -132,74 +179,57 @@
     const availWidth = width - marginLeft - marginRight;
     const availHeight = height - marginTop - marginBottom;
 
-    // console.debug('GameBox margins:', {
-    //   marginLeft,
-    //   marginRight,
-    //   marginTop,
-    //   marginBottom
-    // });
-
-    let gameAspect;
+    if( debug )
+    {
+      console.debug('GameBox margins:', {
+        marginLeft,
+        marginRight,
+        marginTop,
+        marginBottom
+      });
+    }
 
     if (availWidth > availHeight) {
-      gameWidth = getGameWidthOnLandscape({
+      // Calculate game dimensions for both orientations
+      // Orientation is determined by matchMedia/screen.orientation.angle,
+      // not by dimension comparison
+      gameWidthOnLandscape = getGameWidthOnLandscape({
         windowWidth: availWidth,
         windowHeight: availHeight,
         aspectOnLandscape
       });
-      gameAspect = aspectOnLandscape;
-    } else {
-      gameWidth = getGameWidthOnPortrait({
+
+      if( aspectOnLandscape )
+      {
+        gameHeightOnLandscape = gameWidthOnLandscape / aspectOnLandscape;
+      }
+      else {
+        gameHeightOnLandscape = availHeight;
+      }
+    }
+    else {
+      gameWidthOnPortrait = getGameWidthOnPortrait({
         windowWidth: availWidth,
         windowHeight: availHeight,
         aspectOnPortrait
       });
-      gameAspect = aspectOnPortrait;
+
+      if( aspectOnPortrait )
+      {
+        gameHeightOnPortrait = gameWidthOnPortrait / aspectOnPortrait;
+      }
+      else {
+        gameHeightOnPortrait = availHeight;
+      }
     }
 
-    if (gameAspect) {
-      gameHeight = gameWidth / gameAspect;
-    } else {
-      gameHeight = availHeight;
-    }
-  });
-
-  // Set up scaling if enabled, with orientation awareness
-  $effect(() => {
-    if (!enableScaling || !gameContainer || !gameWidth || !gameHeight) {
-      return () => {}; // No-op cleanup if scaling not enabled or required elements missing
-    }
-
-    // Select the appropriate design based on orientation
-    const activeDesign = isLandscape ? designLandscape : designPortrait;
-
-    // console.debug(
-    //   `GameBox scaling [${isLandscape ? 'landscape' : 'portrait'}]:`,
-    //   `game: ${gameWidth}x${gameHeight}`,
-    //   `design: ${activeDesign.width}x${activeDesign.height}`
-    // );
-
-    // Apply scaling with the current design based on orientation
-    return enableContainerScaling({
-      container: gameContainer,
-      design: activeDesign,
-      clamping,
-      getDimensions: () => ({
-        width: gameWidth,
-        height: gameHeight
-      })
-    });
   });
 
   let show = $state(false);
 
-  const isAppleMobile = /iPhone|iPod/.test(navigator.userAgent);
-
   let isPwa = $state(false);
 
   let os = $state();
-
-  let isIpad = $state(false);
 
   let isMobile = $state(false);
 
@@ -210,6 +240,64 @@
 
   let supportsFullscreen = $state(false);
 
+  function updateIosWidthHeightAndOrientation() {
+    if (isAppleMobile) {
+
+      // unreliable on ios >>
+      // const angle = screen.orientation.angle;
+      // if( window.matchMedia('(orientation: portrait)').matches ) {
+      //   isLandscape = false;
+      // }
+      // else {
+      //   isLandscape = true;
+      // }
+
+      // unreliable on ios >>
+      // switch( screen.orientation.type ) {
+      //   case "portrait-primary":
+      //   case "portrait-secondary":
+      //     isLandscape = false;
+      //     break;
+      //   default:
+      //     isLandscape = true;
+      //     break;
+      // }
+
+      // Use window.inner dimensions instead of screen dimensions
+      // because screen.width/height don't rotate on iOS PWA
+      // if (isLandscape) {
+      //   iosWindowWidth = window.innerHeight;
+      //   iosWindowHeight = window.innerWidth;
+      // } else {
+      //   iosWindowWidth = window.innerWidth;
+      //   iosWindowHeight = window.innerHeight;
+      // }
+
+      iosWindowWidth = window.innerWidth;
+      iosWindowHeight = window.innerHeight;
+
+      if( iosWindowHeight > iosWindowWidth )
+      {
+        isLandscape = false;
+      }
+      else {
+        isLandscape = true;
+      }
+
+      if( debug )
+      {
+        console.debug('updateIosWidthHeightAndOrientation', {
+          'screen.orientation.type': screen.orientation.type,
+          isLandscape,
+          'window.innerWidth': window.innerWidth,
+          'window.innerHeight': window.innerHeight,
+          iosWindowWidth,
+          iosWindowHeight
+        });
+      }
+    }
+  }
+
   onMount(() => {
     supportsFullscreen = document.fullscreenEnabled;
 
@@ -217,74 +305,67 @@
 
     isIpad = getIsIpad();
 
-    os = getOS();
+    isIos = isAppleMobile;
+    isAndroid = !isAppleMobile && /Android/.test(navigator.userAgent);
+    isIpadOS = getIsIpadOS();
 
-    // Run before show
-    isFullscreen = !!document.fullscreenElement;
+    isFullscreen = getIsFullscreen();
 
-    isPwa = window.matchMedia(
-      '(display-mode: fullscreen) or (display-mode: standalone)'
-    ).matches;
+    isPwa = getIsPwa();
 
-    isLandscape = getIsLandscape();
+    updateIosWidthHeightAndOrientation();
+
+    // Listen for orientation changes using matchMedia (works on all iOS)
+    const portraitMediaQuery = window.matchMedia('(orientation: portrait)');
+    const handleOrientationChange = (e) => {
+      // Update iOS dimensions if needed
+      if (isAppleMobile) {
+        updateIosWidthHeightAndOrientation();
+      } else {
+        // For non-iOS, matchMedia is reliable
+        // as well is window width and height
+        isLandscape = !e.matches;
+      }
+    };
+    portraitMediaQuery.addEventListener('change', handleOrientationChange);
+
+    // App visibility detection for iOS debugging
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+
+        if( debug ) {
+          console.log('App became visible:', {
+            'window.innerWidth': window.innerWidth,
+            'window.innerHeight': window.innerHeight,
+            'screen.width': screen.width,
+            'screen.height': screen.height,
+            'screen.orientation.angle': screen.orientation.angle,
+            'screen.orientation.type': screen.orientation.type,
+            'matchMedia portrait':
+              window.matchMedia('(orientation: portrait)').matches,
+            'isLandscape': isLandscape,
+            'gameWidth': gameWidth,
+            'gameHeight': gameHeight,
+            'iosWindowWidth': iosWindowWidth,
+            'iosWindowHeight': iosWindowHeight
+          });
+        }
+
+        // Force iOS dimension update when app becomes visible
+        if (isPwa && isAppleMobile) {
+          updateIosWidthHeightAndOrientation();
+        }
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
 
     show = true;
 
-    function updateIosWidthHeight() {
-      // const isPwa = window.matchMedia(
-      //   '(display-mode: fullscreen) or (display-mode: standalone)'
-      // ).matches;
-
-      if (isPwa && isAppleMobile) {
-        const angle = screen.orientation.angle;
-
-        if (angle === 90 || angle === 270) {
-          iosWindowWidth = screen.height;
-          iosWindowHeight = screen.width;
-        } else {
-          iosWindowWidth = screen.width;
-          iosWindowHeight = screen.height;
-        }
-        // console.debug( { iosWindowWidth, iosWindowHeight } );
-      }
-    }
-
-    updateIosWidthHeight();
-
-    function updateOrientation(event) {
-      // console.debug('updateOrientation');
-      const type = event.target.type;
-      const angle = event.target.angle;
-
-      // isPwa = window.matchMedia(
-      //   '(display-mode: fullscreen) or (display-mode: standalone)'
-      // ).matches;
-
-      updateIosWidthHeight();
-
-      console.debug(
-        `ScreenOrientation change: ${type}, ${angle} degrees.`,
-        isPwa,
-        windowWidth,
-        windowHeight,
-        screen.width,
-        screen.height,
-        iosWindowWidth,
-        iosWindowHeight
-      );
-
-      // if( angle
-    }
-
-    $effect(() => {
-      screen.orientation.addEventListener('change', updateOrientation);
-
-      return () => {
-        screen.orientation.removeEventListener('change', updateOrientation);
-      };
-    });
-
-    //
+    return () => {
+      portraitMediaQuery.removeEventListener('change', handleOrientationChange);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   });
 
   onMount(() => {
@@ -292,9 +373,20 @@
     const html = document.documentElement;
     html.classList.add(gameBoxNoScroll);
 
+    // // Prevent page scroll while allowing child elements to scroll
+    // const preventPageScroll = () => {
+    //   window.scrollTo(0, 0);
+    // };
+
+    // window.addEventListener('scroll', preventPageScroll, { passive: true });
+
+    // return () => {
+    //   html.classList.remove(gameBoxNoScroll);
+    //   window.removeEventListener('scroll', preventPageScroll);
+    // };
     return () => {
       html.classList.remove(gameBoxNoScroll);
-    };
+    }
   });
 
   function getOS() {
@@ -303,11 +395,6 @@
     } else if (/Android/.test(navigator.userAgent)) {
       return 'Android';
     }
-  }
-
-  function getIsIpad() {
-    const userAgent = navigator.userAgent || '';
-    return /iPad|Tablet/i.test(userAgent);
   }
 
   /**
@@ -349,7 +436,7 @@
   }
 
   async function requestFullscreen() {
-    console.debug('Request full screen');
+    // console.debug('Request full screen');
     show = false;
 
     await document.documentElement.requestFullscreen();
@@ -387,11 +474,9 @@
     // console.debug('isFullscreen', isFullscreen);
   });
 
-  isDevMode = false;
-
   function requestDevmode() {
     isDevMode = true;
-    console.debug(isDevMode);
+    // console.debug(isDevMode);
   }
 
   $effect(() => {
@@ -411,46 +496,93 @@
 
 <svelte:window bind:innerWidth={windowWidth} bind:innerHeight={windowHeight} />
 
+<!-- margin: /* top | right | bottom | left */ -->
+
 {#if gameHeight}
-  <div class:center>
+  <div
+    class:center
+    style:height={center ? `${iosWindowHeight ?? windowHeight}px` : undefined}
+  >
     <div
       data-component="game-box"
       data-orientation={isLandscape ? 'landscape' : 'portrait'}
-      bind:this={gameContainer}
       class="{base} {bg} {classes}"
       class:isMobile
       style:width="{gameWidth}px"
       style:height="{gameHeight}px"
       style:--game-width={gameWidth}
       style:--game-height={gameHeight}
-      style:margin-left="{marginLeft}px"
-      style:margin-right="{marginRight}px"
-      style:margin-top="{marginTop}px"
-      style:margin-bottom="{marginBottom}px"
+      style:margin="{marginTop}px {marginRight}px {marginBottom}px {marginLeft}px"
       {style}
     >
       {#if show}
-        {#if isLandscape}
-          <!-- Landscape -->
-          {#if snippetRequireFullscreen}
+        <!-- Render both orientations, toggle visibility to preserve state -->
+        {#if snippetRequireFullscreen}
+          <!-- Require fullscreen -->
+          {#if isFullscreen && !isDevMode}
+            <!-- Landscape content -->
+            <ScaledContainer
+              enableScaling={enableScaling}
+              design={designLandscape}
+              {clamping}
+              width={gameWidthOnLandscape}
+              height={gameHeightOnLandscape}
+              hidden={!isLandscape}
+            >
+              {@render snippetLandscape({
+                isLandscape,
+                isPortrait: !isLandscape,
+                isMobile,
+                isIos,
+                isAndroid,
+                isIpadOS,
+                isPwa,
+                isFullscreen,
+                isDevMode,
+                requestDevmode,
+                requestFullscreen,
+                gameWidth,
+                gameHeight
+              })}
+            </ScaledContainer>
+            <!-- Portrait content -->
+            <ScaledContainer
+              enableScaling={enableScaling}
+              design={designPortrait}
+              {clamping}
+              width={gameWidthOnPortrait}
+              height={gameHeightOnPortrait}
+              hidden={isLandscape}
+            >
+              {@render snippetPortrait({
+                isLandscape,
+                isPortrait: !isLandscape,
+                isMobile,
+                isIos,
+                isAndroid,
+                isIpadOS,
+                isPwa,
+                isFullscreen,
+                isDevMode,
+                requestDevmode,
+                requestFullscreen,
+                gameWidth,
+                gameHeight
+              })}
+            </ScaledContainer>
+          {:else if supportsFullscreen && !isDevMode}
             <!-- Require fullscreen -->
-            {#if isFullscreen && !isDevMode}
-              {@render snippetLandscape({
-                isMobile,
-                isIpad,
-                os,
-                isFullscreen,
-                isDevMode,
-                requestDevmode,
-                requestFullscreen,
-                gameWidth,
-                gameHeight
-              })}
-            {:else if supportsFullscreen && !isDevMode}
-              <!-- Require fullscreen (on landscape) -->
+            <ScaledContainer
+              enableScaling={enableScaling}
+              design={isLandscape ? designLandscape : designPortrait}
+              {clamping}
+              width={gameWidth}
+              height={gameHeight}
+            >
               {@render snippetRequireFullscreen({
+                isLandscape,
+                isPortrait: !isLandscape,
                 isMobile,
-                isIpad,
                 os,
                 isFullscreen,
                 isDevMode,
@@ -459,12 +591,24 @@
                 gameWidth,
                 gameHeight
               })}
-            {:else if (isMobile || isIpad) && snippetInstallOnHomeScreen && !isDevMode}
-              <!-- Require install on home screen on mobile -->
+            </ScaledContainer>
+          {:else if isMobile && snippetInstallOnHomeScreen && !isPwa && !isDevMode}
+            <!-- Require install on home screen on mobile -->
+            <ScaledContainer
+              enableScaling={enableScaling}
+              design={isLandscape ? designLandscape : designPortrait}
+              {clamping}
+              width={gameWidth}
+              height={gameHeight}
+            >
               {@render snippetInstallOnHomeScreen({
+                isLandscape,
+                isPortrait: !isLandscape,
                 isMobile,
-                isIpad,
-                os,
+                isIos,
+                isAndroid,
+                isIpadOS,
+                isPwa,
                 isFullscreen,
                 isDevMode,
                 requestDevmode,
@@ -472,95 +616,76 @@
                 gameWidth,
                 gameHeight
               })}
-            {:else}
-              {@render snippetLandscape({
-                isMobile,
-                isIpad,
-                os,
-                isFullscreen,
-                isDevMode,
-                requestDevmode,
-                requestFullscreen,
-                gameWidth,
-                gameHeight
-              })}
-            {/if}
+            </ScaledContainer>
           {:else}
-            <!-- Do not require fullscreen -->
-            <!-- *we do not try install home app -->
-            {@render snippetLandscape({
-              isMobile,
-              isIpad,
-              os,
-              isFullscreen,
-              isDevMode,
-              requestDevmode,
-              requestFullscreen,
-              gameWidth,
-              gameHeight
-            })}
+            <!-- Landscape content -->
+            <ScaledContainer
+              enableScaling={enableScaling}
+              design={designLandscape}
+              {clamping}
+              width={gameWidthOnLandscape}
+              height={gameHeightOnLandscape}
+              hidden={!isLandscape}
+            >
+              {@render snippetLandscape({
+                isLandscape,
+                isPortrait: !isLandscape,
+                isMobile,
+                isIos,
+                isAndroid,
+                isIpadOS,
+                isPwa,
+                isFullscreen,
+                isDevMode,
+                requestDevmode,
+                requestFullscreen,
+                gameWidth,
+                gameHeight
+              })}
+            </ScaledContainer>
+            <!-- Portrait content -->
+            <ScaledContainer
+              enableScaling={enableScaling}
+              design={designPortrait}
+              {clamping}
+              width={gameWidthOnPortrait}
+              height={gameHeightOnPortrait}
+              hidden={isLandscape}
+            >
+              {@render snippetPortrait({
+                isLandscape,
+                isPortrait: !isLandscape,
+                isMobile,
+                isIos,
+                isAndroid,
+                isIpadOS,
+                isPwa,
+                isFullscreen,
+                isDevMode,
+                requestDevmode,
+                requestFullscreen,
+                gameWidth,
+                gameHeight
+              })}
+            </ScaledContainer>
           {/if}
         {:else}
-          <!-- Portrait -->
-          {#if snippetRequireFullscreen}
-            <!-- Require fullscreen -->
-            {#if isFullscreen && !isDevMode}
-              {@render snippetPortrait({
-                isMobile,
-                isIpad,
-                os,
-                isFullscreen,
-                isDevMode,
-                requestDevmode,
-                requestFullscreen,
-                gameWidth,
-                gameHeight
-              })}
-            {:else if supportsFullscreen && !isDevMode}
-              <!-- Require fullscreen (on landscape) -->
-              {@render snippetRequireFullscreen({
-                isMobile,
-                isIpad,
-                os,
-                isFullscreen,
-                isDevMode,
-                requestDevmode,
-                requestFullscreen,
-                gameWidth,
-                gameHeight
-              })}
-            {:else if (isMobile || isIpad) && snippetInstallOnHomeScreen && !isDevMode}
-              <!-- Require install on home screen on mobile -->
-              {@render snippetInstallOnHomeScreen({
-                isMobile,
-                isIpad,
-                os,
-                isFullscreen,
-                isDevMode,
-                requestDevmode,
-                requestFullscreen,
-                gameWidth,
-                gameHeight
-              })}
-            {:else}
-              {@render snippetPortrait({
-                isMobile,
-                isIpad,
-                os,
-                isFullscreen,
-                isDevMode,
-                requestDevmode,
-                requestFullscreen,
-                gameWidth,
-                gameHeight
-              })}
-            {/if}
-          {:else}
-            <!-- Do not require fullscreen -->
-            <!-- *we do not try install home app -->
-            {@render snippetPortrait({
+          <!-- Do not require fullscreen -->
+          <!-- Landscape content -->
+          <ScaledContainer
+            enableScaling={enableScaling}
+            design={designLandscape}
+            {clamping}
+            width={gameWidthOnLandscape}
+            height={gameHeightOnLandscape}
+            hidden={!isLandscape}
+          >
+            {@render snippetLandscape({
+              isLandscape,
+              isPortrait: !isLandscape,
               isMobile,
-              isIpad,
+              isIos,
+              isAndroid,
               os,
               isFullscreen,
               isDevMode,
@@ -569,7 +694,29 @@
               gameWidth,
               gameHeight
             })}
-          {/if}
+          </ScaledContainer>
+          <!-- Portrait content -->
+          <ScaledContainer
+            enableScaling={enableScaling}
+            design={designPortrait}
+            {clamping}
+            width={gameWidthOnPortrait}
+            height={gameHeightOnPortrait}
+            hidden={isLandscape}
+          >
+            {@render snippetPortrait({
+              isLandscape,
+              isPortrait: !isLandscape,
+              isMobile,
+              os,
+              isFullscreen,
+              isDevMode,
+              requestDevmode,
+              requestFullscreen,
+              gameWidth,
+              gameHeight
+            })}
+          </ScaledContainer>
         {/if}
       {/if}
     </div>
@@ -587,9 +734,13 @@
   }
 
   :global(html.game-box-no-scroll) {
+    /* Prevent all scrolling - clip is stricter than hidden */
     overflow: clip;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE and Edge */
+    /* Prevent bounce/overscroll on iOS */
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto;
   }
   :global(html.game-box-no-scroll::-webkit-scrollbar) {
     display: none;

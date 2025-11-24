@@ -1,5 +1,5 @@
 <script>
-  import { createClientLogger, DEBUG } from '$lib/logging/index.js';
+  import { createClientLogger, DEBUG } from '$lib/logging/client.js';
   import { TextButton } from '$lib/ui/primitives.js';
   import { enhance } from '$app/forms';
   import {

@@ -6,7 +6,7 @@
  *
  * @example
  *
- *   import { generateLocalId } from './unqiue.js';
+ *   import { generateLocalId } from './unique.js';
  *
  *   async function test()
  *   {
@@ -31,6 +31,7 @@ import { sinceMs } from '$lib/util/time';
 /**
  * @type {{
  *   bootTimePrefix?:string,
+ *   instanceId?: string,
  *   lastTimeBasedNumber?: number,
  *   lastTimeBasedValue58?: string,
  *   lastCountBasedNumber?: number
@@ -127,6 +128,55 @@ export function generateClientSessionId() {
 }
 
 /**
+ * Get or generate an id that can be used to identify a client or server instance
+ * - Output format: <length-prefix><base58-time-based><random-chars>
+ * - Length prefix is the base58 encoded length of the time-based component
+ * - Higher entropy than the old serverId for global uniqueness
+ * - The ID is generated only once per session/boot and cached
+ *
+ * @param {number} [randomSize=16] - Number of random base58 characters
+ * @param {boolean} [reset=false] - Reset the previously generated id
+ *
+ * @returns {string} instance id
+ */
+export function generateOrGetInstanceId(randomSize = 16, reset = false) {
+  if (!vars.instanceId || reset) {
+    const timeBasedPart = getTimeBasedNumber30sBase58();
+    const lengthPrefix = base58fromNumber(timeBasedPart.length);
+
+    vars.instanceId =
+      lengthPrefix +
+      timeBasedPart +
+      randomStringBase58(randomSize);
+  }
+
+  return vars.instanceId;
+}
+
+/**
+ * Generates and returns a new unique global id
+ * - The generated id is guaranteed to be globally unique across different
+ *   clients/servers/systems
+ * - Format: <length-prefix><instance-id><local-id>
+ * - Length prefix is the base58 encoded length of the instance ID + local ID
+ * - Optimized for high-frequency generation (thousands per second)
+ * - Instance ID provides ~94 bits of entropy (16 random base58 chars)
+ * - Local ID uses efficient counter mechanism for same-window uniqueness
+ *
+ * @param {number} [timeMs]
+ *   Custom time value to be used instead of Date.now()
+ *
+ * @returns {string} global id
+ */
+export function generateGlobalId(timeMs) {
+  const instanceId = generateOrGetInstanceId();
+  const localId = generateLocalId(timeMs);
+  const lengthPrefix = base58fromNumber(instanceId.length + localId.length);
+
+  return lengthPrefix + instanceId + localId;
+}
+
+/**
  * Generates and returns a new unique local id
  * - The generated id is garanteed to be unique on the currently running
  *   local system
@@ -159,7 +209,7 @@ export function generateLocalId(timeMs) {
     // -- Same time stamp based number -> increment counter
 
     countBasedNumber = vars.lastCountBasedNumber =
-      vars.lastCountBasedNumber + 1;
+      (vars.lastCountBasedNumber ?? 0) + 1;
 
     // -- Use cached lastTimeBasedNumber
 
@@ -176,6 +226,7 @@ export function generateLocalId(timeMs) {
   const id =
     // idFormatPrefix
     bootTimePrefix() +
+    // @ts-ignore
     ALPHABET_BASE_58[timeBasedValue58.length] +
     timeBasedValue58 +
     countBasedValue58;
@@ -200,6 +251,26 @@ export function getTimeBasedNumber30s(timeMs) {
 
   // @note do not use bitwise shift since it only works on 32 bit numbers!
   return Math.floor(timeMs / 30000);
+}
+
+/**
+ * Returns a time based base58 encoded string that changes every 30 seconds
+ *
+ * - Output length grows over time as the number increases
+ * - Starting from TIME_2025_01_01 (January 1, 2025)
+ * - After 1 month: ~3 characters
+ * - After 1 year: ~4 characters
+ * - After 5 years: ~4 characters
+ * - After 10 years: ~5 characters
+ * - After 100 years: ~6 characters
+ *
+ * @param {number} [timeMs=sinceMs()]
+ *   Custom time value to be used instead of sinceMs()
+ *
+ * @returns {string} base58 encoded time based value
+ */
+export function getTimeBasedNumber30sBase58(timeMs) {
+  return base58fromNumber(getTimeBasedNumber30s(timeMs));
 }
 
 /**

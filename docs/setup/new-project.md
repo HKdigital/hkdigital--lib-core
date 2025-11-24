@@ -377,6 +377,68 @@ export default config;
 - Use design system classes and components from hkdigital--lib-core
 - Follow design system patterns for consistent styling
 
+**18. `src/routes/(meta)/` folder (COPY & CONFIGURE)**
+- Copy the complete (meta) folder for PWA/favicon generation
+- Configure for your application
+- Integrate into root layout
+
+**Copy the folder:**
+```bash
+cp -r node_modules/@hkdigital/lib-core/src/routes/\(meta\) src/routes/
+```
+
+**Customize:**
+1. Replace `src/routes/(meta)/favicon.png` with your 512×512px image
+2. Edit `src/routes/(meta)/config.js`:
+   ```javascript
+   export const name = 'Your App Name';
+   export const shortName = 'App';
+   export const description = 'Your app description';
+   export const backgroundAndThemeColor = '#082962';
+
+   // Add your site routes for sitemap
+   export const siteRoutes = ['/', '/about', '/contact'];
+
+   // Configure robots.txt (prevent test sites from being indexed)
+   export const robotsConfig = {
+     allowedHosts: ['mysite.com', 'www.mysite.com'],
+     disallowedPaths: ['/admin/*'],
+     includeSitemap: true
+   };
+   ```
+
+**Integrate into layout:**
+
+Update `src/routes/+layout.svelte`:
+```svelte
+<script>
+  import '../app.css';
+  import { designTokens, designTokensToRootCssVars } from '@hkdigital/lib-core/design/index.js';
+  import { Favicons, PWA } from './(meta)/index.js';
+
+  let { children } = $props();
+</script>
+
+<Favicons />
+<PWA />
+
+<svelte:head>
+  {@html designTokensToRootCssVars(designTokens)}
+</svelte:head>
+
+{@render children()}
+```
+
+**Verify:**
+- Check `/manifest.json` returns PWA configuration
+- Check `/robots.txt` returns robots directives
+- Check `/sitemap.xml` returns sitemap
+- Verify favicon appears in browser tab
+- Check Browser DevTools → Application → Manifest
+
+See [src/routes/(meta)/README.md](../../src/routes/(meta)/README.md) for
+complete documentation.
+
 ## Key Integration Points
 
 ### Design System Integration

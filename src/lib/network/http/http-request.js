@@ -24,6 +24,12 @@ import { getCachedResponse, storeResponseInCache } from './caching.js';
 
 import { isTestEnv } from '$lib/util/env';
 
+
+// Caching options
+// export const CACHE_NO_STORE = 'no-store';
+// export const CACHE_NO_CACHE = 'no-cache';
+// export const CACHE_RELOAD = 'reload';
+
 /**
  * Default configuration for HTTP requests
  *

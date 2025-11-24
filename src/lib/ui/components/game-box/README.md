@@ -54,6 +54,8 @@ support.
 - `marginTop?: number` - Top margin in pixels (default: 0)
 - `marginBottom?: number` - Bottom margin in pixels (default: 0)
 - `center?: boolean` - Center the game box in viewport
+- `preserveOnOrientationChange?: boolean` - Keep components mounted during
+  orientation changes (default: true)
 
 ### Scaling Props
 - `enableScaling?: boolean` - Enable design system scaling (default: false)
@@ -226,6 +228,17 @@ These can be used in your CSS for responsive styling:
 }
 ```
 
+## Orientation Behavior
+
+By default, `preserveOnOrientationChange` is `true`, which means both
+landscape and portrait content are rendered and toggled with CSS visibility.
+This prevents components from being destroyed and recreated during orientation
+changes, preserving state like audio players, game progress, etc.
+
+Set `preserveOnOrientationChange={false}` to use the original behavior where
+components are completely destroyed and recreated on orientation change. This
+can be useful for simpler use cases where state preservation isn't needed.
+
 ## Mobile PWA Considerations
 
 The component includes special handling for mobile PWAs:
@@ -234,6 +247,22 @@ The component includes special handling for mobile PWAs:
 - **Fullscreen Detection**: Properly detects PWA fullscreen mode
 - **Screen Orientation**: Listens for orientation changes and updates layout
 - **No Scroll**: Automatically prevents scrolling when active
+
+### iOS Landscape Height Bug
+
+For games and fullscreen applications, use `viewport-fit=cover` in your
+viewport meta tag to prevent iOS landscape height bugs:
+
+```html
+<meta name="viewport"
+  content="initial-scale=1.0, maximum-scale=1.0, user-scalable=no,
+           width=device-width, height=device-height, viewport-fit=cover" />
+```
+
+This is handled automatically by the `PWA.svelte` component in the `(meta)`
+folder when `disablePageZoom` is enabled. The `viewport-fit=cover` setting
+ensures the viewport extends into safe areas on iOS devices, preventing a
+common bug where landscape mode shows incorrect viewport heights.
 
 ## Development Mode
 

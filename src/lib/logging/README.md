@@ -1,6 +1,7 @@
 # Logging
 
-Universal logging utilities for SvelteKit applications with server/client/universal logger factories.
+Universal logging utilities for SvelteKit applications with
+server/client/universal logger factories.
 
 ## Installation
 
@@ -8,24 +9,67 @@ Universal logging utilities for SvelteKit applications with server/client/univer
 pnpm add -D pino-pretty
 ```
 
+## Module Structure
+
+For optimal tree-shaking, the logging module is split into three entry
+points:
+
+- `logging/server.js` - Server-only code (pino logging)
+- `logging/client.js` - Client-only code (console logging)
+- `logging/common.js` - Shared utilities (log levels, Logger class)
+
+This ensures that server-side pino dependencies don't end up in client
+bundles and vice versa.
+
 ## Usage
 
+### Server-side logging
+
 ```javascript
-import { createServerLogger,
-         createClientLogger,
-         DEBUG } from '@hkdigital/lib-core/logging/index.js';
+import { createServerLogger, DEBUG }
+  from '@hkdigital/lib-core/logging/server.js';
 
 // Server-side logging (uses pino)
-const serverLogger = createServerLogger('app', DEBUG);
+const logger = createServerLogger('app', DEBUG);
+
+logger.debug('Debug info', { data: 'details' });
+logger.info('Info message');
+logger.warn('Warning message');
+logger.error('Error message', {
+  error: new Error('Something went wrong')
+});
+```
+
+### Client-side logging
+
+```javascript
+import { createClientLogger, DEBUG }
+  from '@hkdigital/lib-core/logging/client.js';
 
 // Client-side logging (uses console)
-const clientLogger = createClientLogger('app', DEBUG); 
+const logger = createClientLogger('app', DEBUG);
 
-// Log at different levels
-serverLogger.debug('Debug info', { data: 'details' });
-serverLogger.info('Info message');
-serverLogger.warn('Warning message');
-serverLogger.error('Error message', { error: new Error('Something went wrong') });
+logger.debug('Debug info', { data: 'details' });
+logger.info('Info message');
+logger.warn('Warning message');
+logger.error('Error message', {
+  error: new Error('Something went wrong')
+});
+```
+
+### Shared utilities
+
+```javascript
+import { Logger, DEBUG, INFO, WARN, ERROR }
+  from '@hkdigital/lib-core/logging/common.js';
+
+// Access log levels
+console.log(DEBUG); // 'debug'
+console.log(INFO);  // 'info'
+console.log(WARN);  // 'warn'
+console.log(ERROR); // 'error'
+
+// Access Logger class for advanced usage
 ```
 
 ## SvelteKit Integration
@@ -33,7 +77,8 @@ serverLogger.error('Error message', { error: new Error('Something went wrong') }
 ### Server-side logging (src/hooks.server.js)
 
 ```javascript
-import { createServerLogger, DEBUG } from '@hkdigital/lib-core/logging/index.js';
+import { createServerLogger, DEBUG }
+  from '@hkdigital/lib-core/logging/server.js';
 
 let logger;
 

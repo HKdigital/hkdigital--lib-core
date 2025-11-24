@@ -124,6 +124,7 @@
       !canDropInActiveZone
   });
 
+  // @ts-ignore
   let stateClasses = $derived(toStateClasses(stateObject));
 
   // Update bindable props
@@ -132,6 +133,7 @@
     isDropping = currentState === DROPPING;
     isDragPreview = currentState === DRAG_PREVIEW;
   });
+
 
   // Clean up on component destroy
   onDestroy(() => {
@@ -160,10 +162,20 @@
    * @param {DragEvent} event
    */
   function handleDragStart(event) {
+    console.debug('handleDragStart called', {
+      target: event.target,
+      currentTarget: event.currentTarget,
+      disabled,
+      canDrag: canDrag(item),
+      dataTransfer: !!event.dataTransfer
+    });
+
     if (disabled || !canDrag(item)) {
+      console.debug('Drag prevented: disabled or cannot drag');
       event.preventDefault();
       return;
     }
+
 
     // Handle drag delay
     if (dragDelay > 0) {
@@ -177,6 +189,7 @@
       return;
     }
 
+    console.debug('Starting drag operation');
     currentState = DRAGGING;
     startDrag(event);
   }
@@ -515,5 +528,30 @@
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     user-select: none;
+
+    pointer-events: auto;
   }
+
+  /* Prevent ALL descendant elements from interfering with drag */
+  [data-component='draggable'] :global(*) {
+    -webkit-user-drag: none;
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    user-select: none;
+    /* On windows child components with pointer events might interfere drag */
+    pointer-events: none;
+  }
+
+  /* Provide proper drag cursors */
+  [data-component='draggable']:hover {
+    cursor: grab;
+  }
+
+  [data-component='draggable'].dragging {
+    cursor: grab;
+  }
+
+
+
+
 </style>

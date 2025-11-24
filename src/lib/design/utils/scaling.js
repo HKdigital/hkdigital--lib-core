@@ -38,6 +38,7 @@ export function enableContainerScaling({
     throw new Error('Container element is required for enableContainerScaling');
   }
 
+  /** @type {ResizeObserver} */
   let resizeObserver;
 
   /**

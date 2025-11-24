@@ -7,3 +7,4 @@
  */
 
 export * from './random/bytes.js';
+export * from './random/uuid.js';

@@ -3,7 +3,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { ServiceBase } from './ServiceBase.js';
-import { DEBUG } from '$lib/logging/index.js';
+import { DEBUG } from '$lib/logging/common.js';
 import {
   STATE_CREATED,
   STATE_CONFIGURING,

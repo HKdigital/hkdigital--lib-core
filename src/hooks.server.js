@@ -1,6 +1,6 @@
-import { createServerLogger, DEBUG } from '$lib/logging/index.js';
+import { createServerLogger, DEBUG } from '$lib/logging/server.js';
 
-/** @type {import('$lib/logging/index.js').Logger} */
+/** @type {import('$lib/logging/common.js').Logger} */
 let logger;
 
 // Initialize server logging and services

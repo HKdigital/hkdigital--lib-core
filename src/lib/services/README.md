@@ -397,7 +397,7 @@ Forward all service log events to a centralised logger:
 
 ```javascript
 import { ServiceManager } from '$lib/services/index.js';
-import { createServerLogger, DEBUG } from '$lib/logging/index.js';
+import { createServerLogger, DEBUG } from '$lib/logging/server.js';
 
 const manager = new ServiceManager();
 const logger = createServerLogger('SystemLogger', DEBUG);

@@ -88,7 +88,7 @@
  * @property {ServiceState} state - Current state
  * @property {boolean} healthy - Health status
  * @property {Error|null} error - Last error
- * @property {import('$lib/logging/index.js').Logger} logger - Service logger
+ * @property {import('$lib/logging/common.js').Logger} logger - Service logger
  * @property {(config?: *) => Promise<boolean>} configure
  * @property {() => Promise<boolean>} start
  * @property {(options?: StopOptions) => Promise<boolean>} stop

@@ -1,7 +1,7 @@
 export * from './components/button-group/index.js';
 export * from './components/compare-left-right/index.js';
 export * from './components/drag-drop/index.js';
-export * from './components/game-box/index.js';
+export { default as GameBox } from './components/game-box/GameBox.svelte';
 export * from './components/grid-layers/index.js';
 export * from './components/hk-app-layout/index.js';
 export * from './components/image-box/index.js';

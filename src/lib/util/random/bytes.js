@@ -27,6 +27,7 @@ export function randomBytes(length) {
     try {
       const { randomBytes: nodeRandomBytes } = require('crypto');
       return new Uint8Array(nodeRandomBytes(length));
+      // eslint-disable-next-line no-unused-vars
     } catch (error) {
       throw new Error('No secure random generator available');
     }
@@ -66,7 +67,9 @@ export function randomBytesBase64(length) {
  */
 export function randomBytesHex(length) {
   const bytes = randomBytes(length);
-  
+
   // Convert to hex string
-  return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
+  return Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join(
+    ''
+  );
 }
