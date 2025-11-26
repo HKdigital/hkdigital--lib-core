@@ -162,13 +162,13 @@
    * @param {DragEvent} event
    */
   function handleDragStart(event) {
-    console.debug('handleDragStart called', {
-      target: event.target,
-      currentTarget: event.currentTarget,
-      disabled,
-      canDrag: canDrag(item),
-      dataTransfer: !!event.dataTransfer
-    });
+    // console.debug('handleDragStart called', {
+    //   target: event.target,
+    //   currentTarget: event.currentTarget,
+    //   disabled,
+    //   canDrag: canDrag(item),
+    //   dataTransfer: !!event.dataTransfer
+    // });
 
     if (disabled || !canDrag(item)) {
       console.debug('Drag prevented: disabled or cannot drag');
@@ -189,7 +189,7 @@
       return;
     }
 
-    console.debug('Starting drag operation');
+    // console.debug('Starting drag operation');
     currentState = DRAGGING;
     startDrag(event);
   }

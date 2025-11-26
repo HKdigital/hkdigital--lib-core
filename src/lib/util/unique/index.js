@@ -141,8 +141,8 @@ export function generateClientSessionId() {
  */
 export function generateOrGetInstanceId(randomSize = 16, reset = false) {
   if (!vars.instanceId || reset) {
-    const timeBasedPart = getTimeBasedNumber30sBase58();
-    const lengthPrefix = base58fromNumber(timeBasedPart.length);
+    const timeBasedPart = getTimeBasedNumber30sBase58(); // max 6 chars
+    const lengthPrefix = base58fromNumber(timeBasedPart.length); // 1 char
 
     vars.instanceId =
       lengthPrefix +
@@ -166,25 +166,35 @@ export function generateOrGetInstanceId(randomSize = 16, reset = false) {
  * @param {number} [timeMs]
  *   Custom time value to be used instead of Date.now()
  *
- * @returns {string} global id
+ * @returns {string}
+ *   Global id (max 39 chars: 1 length prefix + 23 instance + 15 local)
  */
 export function generateGlobalId(timeMs) {
-  const instanceId = generateOrGetInstanceId();
-  const localId = generateLocalId(timeMs);
+  const instanceId = generateOrGetInstanceId();  // max 1 + 6 + 16 = 23 chars
+  const localId = generateLocalId(timeMs);       // max 15 chars
+
+  // Max 1 char (23 + 15 = 38)
   const lengthPrefix = base58fromNumber(instanceId.length + localId.length);
 
+  // Max 39 chars (1 + 23 + 15 = 39)
   return lengthPrefix + instanceId + localId;
 }
 
 /**
  * Generates and returns a new unique local id
- * - The generated id is garanteed to be unique on the currently running
+ * - The generated id is guaranteed to be unique on the currently running
  *   local system
+ * - Format: <boot-prefix><length-indicator><time-based><count-based>
+ * - Boot prefix provides uniqueness across process restarts
+ * - Time-based component changes every 30 seconds
+ * - Counter resets every 30 seconds (656M IDs per 30s window = 5 chars)
+ * - Optimized for high-frequency generation (thousands per second)
  *
  * @param {number} [timeMs]
  *   Custom time value to be used instead of Date.now()
  *
- * @returns {string} local id
+ * @returns {string}
+ *   Local id (max 15 chars: 3 boot prefix + 1 length + 6 time + 5 count)
  */
 export function generateLocalId(timeMs) {
   const timeBasedNumber = getTimeBasedNumber30s(timeMs);
@@ -222,6 +232,15 @@ export function generateLocalId(timeMs) {
   //
   // @note ALPHABET_BASE_58 is used because it is faster than
   //       base58fromNumber for single character encoding
+
+  //
+  // bootTimePrefix => 3 chars
+  // ALPHABET_BASE_58[timeBasedValue58.length] => 1 char
+  // timeBasedValue58 => max 6 chars
+  // countBasedValue58 => max 5 chars
+  // (resets every 30 seconds => 58^5 = 656.356.768)
+  //
+  // Realistic max length: 3 + 1 + 6 + 5 = 15 chars
   //
   const id =
     // idFormatPrefix
