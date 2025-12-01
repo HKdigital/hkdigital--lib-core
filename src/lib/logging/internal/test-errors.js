@@ -1,7 +1,7 @@
 import * as expect from '$lib/util/expect.js';
 import { rethrow } from '$lib/util/exceptions.js';
 import { HkPromise } from '$lib/generic/promises.js';
-import { httpGet } from '$lib/network/http/index.js';
+import { httpGet } from '$lib/network/http.js';
 import { v } from '$lib/valibot/valibot.js';
 import { error } from '@sveltejs/kit';
 
