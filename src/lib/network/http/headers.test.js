@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { setRequestHeaders } from './index.js';
+import { setRequestHeaders } from './headers.js';
 
 import { CONTENT_TYPE } from '$lib/constants/http/headers.js';
 import { APPLICATION_JSON } from '$lib/constants/mime/application.js';

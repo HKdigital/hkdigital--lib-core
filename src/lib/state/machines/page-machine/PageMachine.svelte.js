@@ -9,10 +9,17 @@
  * - State-to-route mapping and sync
  * - Data properties for business/domain state
  * - Visited states tracking
+ * - onEnter hooks with abort/complete handlers for animations
  *
  * Basic usage:
  * ```javascript
- * const machine = cityState.getOrCreatePageMachine('intro', IntroPageMachine);
+ * const machine = new PageMachine({
+ *   initialState: STATE_START,
+ *   routeMap: {
+ *     [STATE_START]: '/intro/start',
+ *     [STATE_PROFILE]: '/intro/profile'
+ *   }
+ * });
  *
  * // Sync machine state with URL changes
  * $effect(() => {
@@ -20,28 +27,32 @@
  * });
  * ```
  *
- * With data properties (for business logic):
+ * With onEnter hooks (for animations):
  * ```javascript
- * // Initialize with server data
- * const initialData = {
- *   HAS_STRONG_PROFILE: false,
- *   PROFILE_COMPLETED: false,
- *   MATCHED_SECTOR: null
- * };
- * const machine = new CircuitPageMachine(initialState, routeMap, initialData);
+ * const machine = new PageMachine({
+ *   initialState: STATE_ANIMATE,
+ *   routeMap: {
+ *     [STATE_ANIMATE]: '/game/animate',
+ *     [STATE_PLAY]: '/game/play'
+ *   },
+ *   onEnterHooks: {
+ *     [STATE_ANIMATE]: (done) => {
+ *       const animation = playAnimation(1000);
+ *       animation.finished.then(() => done(STATE_PLAY));
  *
- * // Read data
- * if (machine.getData('HAS_STRONG_PROFILE')) {
- *   // Show advanced content
- * }
+ *       return {
+ *         abort: () => animation.cancel(),
+ *         complete: () => animation.finish()
+ *       };
+ *     }
+ *   }
+ * });
  *
- * // Update data (triggers reactivity)
- * machine.setData('HAS_STRONG_PROFILE', true);
+ * // Fast-forward animation
+ * machine.completeTransitions();
  *
- * // Check visited states
- * if (machine.hasVisited(STATE_PROFILE)) {
- *   // User has seen profile page before
- * }
+ * // Cancel animation
+ * machine.abortTransitions();
  * ```
  */
 export default class PageMachine {
@@ -86,31 +97,70 @@ export default class PageMachine {
 	#revision = $state(0);
 
 	/**
+	 * Map of state names to onEnter hook configurations
+	 * @type {Record<string, {onEnter: Function}>}
+	 */
+	#onEnterHooks = {};
+
+	/**
+	 * Current state's onEnter handler (abort/complete functions)
+	 * @type {{abort?: Function, complete?: Function} | null}
+	 */
+	#currentOnEnterHandler = null;
+
+	/**
+	 * Current state's done callback
+	 * @type {Function | null}
+	 */
+	#currentOnEnterDone = null;
+
+	/**
+	 * Flag to prevent concurrent state transitions
+	 * @type {boolean}
+	 */
+	#isTransitioning = false;
+
+	/**
 	 * Constructor
 	 *
-	 * @param {string} initialState - Initial state name
-	 * @param {Record<string, string>} routeMap - Map of states to route paths
-	 * @param {Record<string, any>} [initialData={}] - Initial data properties (from server)
+	 * @param {Object} config - Configuration object
+	 * @param {string} config.initialState - Initial state name
+	 * @param {Record<string, string>} [config.routeMap={}] - Map of states to route paths
+	 * @param {Record<string, any>} [config.initialData={}] - Initial data properties (from server)
+	 * @param {Record<string, Function>} [config.onEnterHooks={}] - Map of states to onEnter hook functions
 	 *
 	 * @example
 	 * ```javascript
-	 * const routeMap = {
-	 *   [STATE_MATCH]: '/city/intro/match',
-	 *   [STATE_CIRCUIT]: '/city/intro/racecircuit'
-	 * };
-	 *
-	 * const initialData = {
-	 *   INTRO_COMPLETED: false,
-	 *   PROFILE_SCORE: 0
-	 * };
-	 *
-	 * const machine = new CityIntroPageMachine(STATE_START, routeMap, initialData);
+	 * const machine = new PageMachine({
+	 *   initialState: STATE_START,
+	 *   routeMap: {
+	 *     [STATE_START]: '/intro/start',
+	 *     [STATE_ANIMATE]: '/intro/animate'
+	 *   },
+	 *   initialData: {
+	 *     INTRO_COMPLETED: false
+	 *   },
+	 *   onEnterHooks: {
+	 *     [STATE_ANIMATE]: (done) => {
+	 *       setTimeout(() => done(STATE_START), 1000);
+	 *       return {
+	 *         abort: () => clearTimeout(...),
+	 *         complete: () => done(STATE_START)
+	 *       };
+	 *     }
+	 *   }
+	 * });
 	 * ```
 	 */
-	constructor(initialState, routeMap = {}, initialData = {}) {
+	constructor({ initialState, routeMap = {}, initialData = {}, onEnterHooks = {} }) {
+		if (!initialState) {
+			throw new Error('PageMachine requires initialState parameter');
+		}
+
 		this.#current = initialState;
 		this.#routeMap = routeMap;
 		this.#data = initialData;
+		this.#onEnterHooks = this.#normalizeOnEnterHooks(onEnterHooks);
 
 		// Build reverse map (path -> state)
 		for (const [state, path] of Object.entries(routeMap)) {
@@ -119,6 +169,29 @@ export default class PageMachine {
 
 		// Mark initial state as visited
 		this.#visitedStates.add(initialState);
+	}
+
+	/**
+	 * Normalize onEnterHooks to ensure consistent format
+	 * Converts function to {onEnter: function} object
+	 *
+	 * @param {Record<string, Function|Object>} hooks - Raw hooks configuration
+	 * @returns {Record<string, {onEnter: Function}>} Normalized hooks
+	 */
+	#normalizeOnEnterHooks(hooks) {
+		const normalized = {};
+
+		for (const [state, hook] of Object.entries(hooks)) {
+			if (typeof hook === 'function') {
+				// Simple function -> wrap in object
+				normalized[state] = { onEnter: hook };
+			} else if (hook && typeof hook === 'object' && hook.onEnter) {
+				// Already an object with onEnter
+				normalized[state] = hook;
+			}
+		}
+
+		return normalized;
 	}
 
 	/**
@@ -146,13 +219,66 @@ export default class PageMachine {
 
 	/**
 	 * Set the current state directly
+	 * Handles onEnter hooks and auto-transitions
 	 *
 	 * @param {string} newState - Target state
 	 */
-	setState(newState) {
-		if (newState !== this.#current) {
-			this.#current = newState;
+	async setState(newState) {
+		if (newState === this.#current || this.#isTransitioning) {
+			return;
 		}
+
+		// Abort previous state's onEnter handler
+		if (this.#currentOnEnterHandler?.abort) {
+			this.#currentOnEnterHandler.abort();
+		}
+		this.#currentOnEnterHandler = null;
+		this.#currentOnEnterDone = null;
+
+		this.#isTransitioning = true;
+		this.#current = newState;
+		this.#visitedStates.add(newState);
+
+		// Check if this state has an onEnter hook
+		const hookConfig = this.#onEnterHooks[newState];
+		if (hookConfig?.onEnter) {
+			// Create done callback for auto-transition
+			let doneCalled = false;
+			const done = (nextState) => {
+				if (!doneCalled && nextState && nextState !== newState) {
+					doneCalled = true;
+					this.#isTransitioning = false;
+					this.setState(nextState);
+				}
+			};
+
+			this.#currentOnEnterDone = done;
+
+			// Call the onEnter hook
+			try {
+				const handler = hookConfig.onEnter(done);
+
+				// Store abort/complete handlers if provided
+				if (handler && typeof handler === 'object') {
+					if (handler.abort || handler.complete) {
+						this.#currentOnEnterHandler = {
+							abort: handler.abort,
+							complete: handler.complete
+						};
+					}
+				}
+
+				// If hook returned a promise, await it
+				if (handler?.then) {
+					await handler;
+				}
+			} catch (error) {
+				console.error(`Error in onEnter hook for state ${newState}:`, error);
+			}
+		}
+
+		this.#isTransitioning = false;
+		this.#revision++;
 	}
 
 	/**
@@ -333,5 +459,79 @@ export default class PageMachine {
 		this.#visitedStates.clear();
 		this.#visitedStates.add(this.#current);
 		this.#revision++;
+	}
+
+	/* ===== Transition Control Methods ===== */
+
+	/**
+	 * Abort current state's transitions
+	 * Cancels animations/operations immediately (incomplete state)
+	 *
+	 * @example
+	 * ```javascript
+	 * // User clicks "Cancel" button
+	 * machine.abortTransitions();
+	 * ```
+	 */
+	abortTransitions() {
+		if (this.#currentOnEnterHandler?.abort) {
+			this.#currentOnEnterHandler.abort();
+			this.#currentOnEnterHandler = null;
+			this.#currentOnEnterDone = null;
+			this.#revision++;
+		}
+	}
+
+	/**
+	 * Complete current state's transitions immediately
+	 * Fast-forwards animations/operations to completion (complete state)
+	 *
+	 * @example
+	 * ```javascript
+	 * // User clicks "Skip" or "Next" button
+	 * machine.completeTransitions();
+	 * ```
+	 */
+	completeTransitions() {
+		if (this.#currentOnEnterHandler?.complete) {
+			this.#currentOnEnterHandler.complete();
+			this.#currentOnEnterHandler = null;
+			this.#currentOnEnterDone = null;
+			this.#revision++;
+		}
+	}
+
+	/**
+	 * Check if current state has transitions that can be completed
+	 *
+	 * @returns {boolean} True if completeTransitions() can be called
+	 *
+	 * @example
+	 * ```svelte
+	 * {#if machine.canCompleteTransitions}
+	 *   <button onclick={() => machine.completeTransitions()}>Skip</button>
+	 * {/if}
+	 * ```
+	 */
+	get canCompleteTransitions() {
+		this.#revision; // Ensure reactivity
+		return !!this.#currentOnEnterHandler?.complete;
+	}
+
+	/**
+	 * Check if current state has transitions that can be aborted
+	 *
+	 * @returns {boolean} True if abortTransitions() can be called
+	 *
+	 * @example
+	 * ```svelte
+	 * {#if machine.canAbortTransitions}
+	 *   <button onclick={() => machine.abortTransitions()}>Cancel</button>
+	 * {/if}
+	 * ```
+	 */
+	get canAbortTransitions() {
+		this.#revision; // Ensure reactivity
+		return !!this.#currentOnEnterHandler?.abort;
 	}
 }

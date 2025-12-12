@@ -1,5 +1,5 @@
 <script>
-  import { clamp, enableContainerScaling } from '$lib/design/index.js';
+  import { enableContainerScaling } from '$lib/design/index.js';
 
   /**
    * Wrapper component that applies container scaling to its children

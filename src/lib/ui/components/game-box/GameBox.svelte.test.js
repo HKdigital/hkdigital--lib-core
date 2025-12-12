@@ -26,6 +26,14 @@ function render(Component, options = {}) {
   };
 }
 
+// Default clamping configuration required by GameBox
+const defaultClamping = {
+  ui: { min: 0.5, max: 2 },
+  textBase: { min: 0.5, max: 2 },
+  textHeading: { min: 0.5, max: 2 },
+  textUi: { min: 0.5, max: 2 }
+};
+
 describe('GameBox', () => {
   beforeEach(() => {
     // Clean up DOM completely
@@ -62,16 +70,30 @@ describe('GameBox', () => {
     Object.defineProperty(window, 'matchMedia', {
       writable: true,
       configurable: true,
-      value: vi.fn().mockImplementation(query => ({
-        matches: query.includes('standalone') || query.includes('fullscreen'),
-        media: query,
-        onchange: null,
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(),
-      }))
+      value: vi.fn().mockImplementation(query => {
+        // Determine orientation based on window dimensions
+        const isPortrait = window.innerHeight > window.innerWidth;
+
+        let matches = false;
+        if (query.includes('orientation: portrait')) {
+          matches = isPortrait;
+        } else if (query.includes('orientation: landscape')) {
+          matches = !isPortrait;
+        } else if (query.includes('standalone') || query.includes('fullscreen')) {
+          matches = true;
+        }
+
+        return {
+          matches,
+          media: query,
+          onchange: null,
+          addListener: vi.fn(),
+          removeListener: vi.fn(),
+          addEventListener: vi.fn(),
+          removeEventListener: vi.fn(),
+          dispatchEvent: vi.fn(),
+        };
+      })
     });
 
     // Mock document.fullscreenElement
@@ -98,7 +120,8 @@ describe('GameBox', () => {
     it('should render the game box container', async () => {
       const { container } = render(GameBoxWrapper, {
         props: {
-          aspectOnPortrait: 9 / 16
+          aspectOnPortrait: 9 / 16,
+          clamping: defaultClamping
         }
       });
 
@@ -111,7 +134,8 @@ describe('GameBox', () => {
     it('should set portrait orientation data attribute in portrait mode', async () => {
       const { container } = render(GameBoxWrapper, {
         props: {
-          aspectOnPortrait: 9 / 16
+          aspectOnPortrait: 9 / 16,
+          clamping: defaultClamping
         }
       });
 
@@ -124,7 +148,8 @@ describe('GameBox', () => {
     it('should render portrait content in portrait mode', async () => {
       const { container } = render(GameBoxWrapper, {
         props: {
-          aspectOnPortrait: 9 / 16
+          aspectOnPortrait: 9 / 16,
+          clamping: defaultClamping
         }
       });
 
@@ -140,7 +165,8 @@ describe('GameBox', () => {
 
       const { container } = render(GameBoxWrapper, {
         props: {
-          aspectOnLandscape: 16 / 9
+          aspectOnLandscape: 16 / 9,
+          clamping: defaultClamping
         }
       });
 
@@ -156,7 +182,8 @@ describe('GameBox', () => {
 
       const { container } = render(GameBoxWrapper, {
         props: {
-          aspectOnLandscape: 16 / 9
+          aspectOnLandscape: 16 / 9,
+          clamping: defaultClamping
         }
       });
 
@@ -171,7 +198,8 @@ describe('GameBox', () => {
     it('should calculate dimensions based on aspect ratio for portrait', async () => {
       const { container } = render(GameBoxWrapper, {
         props: {
-          aspectOnPortrait: 9 / 16
+          aspectOnPortrait: 9 / 16,
+          clamping: defaultClamping
         }
       });
 
@@ -192,7 +220,8 @@ describe('GameBox', () => {
 
       const { container } = render(GameBoxWrapper, {
         props: {
-          aspectOnLandscape: 16 / 9
+          aspectOnLandscape: 16 / 9,
+          clamping: defaultClamping
         }
       });
 
@@ -210,7 +239,8 @@ describe('GameBox', () => {
     it('should pass correct parameters to snippets', async () => {
       const { container } = render(GameBoxWrapper, {
         props: {
-          aspectOnPortrait: 9 / 16
+          aspectOnPortrait: 9 / 16,
+          clamping: defaultClamping
         }
       });
 
@@ -245,7 +275,8 @@ describe('GameBox', () => {
         const { container } = render(GameBoxWrapper, {
           props: {
             aspectOnPortrait: 9 / 16,
-            aspectOnLandscape: 16 / 9
+            aspectOnLandscape: 16 / 9,
+            clamping: defaultClamping
           }
         });
 
@@ -272,7 +303,8 @@ describe('GameBox', () => {
           marginLeft: 10,
           marginRight: 15,
           marginTop: 20,
-          marginBottom: 25
+          marginBottom: 25,
+          clamping: defaultClamping
         }
       });
 
@@ -299,7 +331,8 @@ describe('GameBox', () => {
           marginLeft: 10,
           marginRight: 10,
           marginTop: 20,
-          marginBottom: 20
+          marginBottom: 20,
+          clamping: defaultClamping
         }
       });
 
@@ -319,7 +352,8 @@ describe('GameBox', () => {
       const { container } = render(GameBoxWrapper, {
         props: {
           center: true,
-          aspectOnPortrait: 9 / 16
+          aspectOnPortrait: 9 / 16,
+          clamping: defaultClamping
         }
       });
 
@@ -333,7 +367,8 @@ describe('GameBox', () => {
       const { container } = render(GameBoxWrapper, {
         props: {
           center: false,
-          aspectOnPortrait: 9 / 16
+          aspectOnPortrait: 9 / 16,
+          clamping: defaultClamping
         }
       });
 
@@ -354,7 +389,8 @@ describe('GameBox', () => {
           base: 'custom-base',
           bg: 'custom-bg',
           classes: 'custom-class',
-          aspectOnPortrait: 9 / 16
+          aspectOnPortrait: 9 / 16,
+          clamping: defaultClamping
         }
       });
 
@@ -381,7 +417,8 @@ describe('GameBox', () => {
 
       const { container } = render(GameBoxWrapper, {
         props: {
-          aspectOnPortrait: 9 / 16
+          aspectOnPortrait: 9 / 16,
+          clamping: defaultClamping
         }
       });
 
@@ -396,7 +433,8 @@ describe('GameBox', () => {
     it('should set CSS variables for game width and height', async () => {
       const { container } = render(GameBoxWrapper, {
         props: {
-          aspectOnPortrait: 9 / 16
+          aspectOnPortrait: 9 / 16,
+          clamping: defaultClamping
         }
       });
 
@@ -441,7 +479,8 @@ describe('GameBox', () => {
       const { container } = render(GameBoxWrapper, {
         props: {
           aspectOnPortrait: 9 / 16,
-          requireFullscreen: true
+          requireFullscreen: true,
+          clamping: defaultClamping
         }
       });
 
@@ -486,7 +525,8 @@ describe('GameBox', () => {
       const { container } = render(GameBoxWrapper, {
         props: {
           aspectOnPortrait: 9 / 16,
-          requireInstallOnHomeScreen: true
+          requireInstallOnHomeScreen: true,
+          clamping: defaultClamping
         }
       });
 
@@ -515,7 +555,8 @@ describe('GameBox', () => {
 
       const { container } = render(GameBoxWrapper, {
         props: {
-          aspectOnPortrait: 9 / 16
+          aspectOnPortrait: 9 / 16,
+          clamping: defaultClamping
         }
       });
 
@@ -536,7 +577,8 @@ describe('GameBox', () => {
 
       const { container } = render(GameBoxWrapper, {
         props: {
-          aspectOnPortrait: 9 / 16
+          aspectOnPortrait: 9 / 16,
+          clamping: defaultClamping
         }
       });
 
@@ -573,7 +615,8 @@ describe('GameBox', () => {
       const { container } = render(GameBoxWrapper, {
         props: {
           aspectOnPortrait: 9 / 16,
-          requireFullscreen: true
+          requireFullscreen: true,
+          clamping: defaultClamping
         }
       });
 
@@ -618,7 +661,8 @@ describe('GameBox', () => {
       const { container } = render(GameBoxWrapper, {
         props: {
           aspectOnPortrait: 9 / 16,
-          requireInstallOnHomeScreen: true
+          requireInstallOnHomeScreen: true,
+          clamping: defaultClamping
         }
       });
 
@@ -641,7 +685,8 @@ describe('GameBox', () => {
       const { container } = render(GameBoxWrapper, {
         props: {
           aspectOnPortrait: 9 / 16,
-          requireFullscreen: false
+          requireFullscreen: false,
+          clamping: defaultClamping
         }
       });
 
@@ -685,7 +730,8 @@ describe('GameBox', () => {
       const { container } = render(GameBoxWrapper, {
         props: {
           aspectOnPortrait: 9 / 16,
-          requireInstallOnHomeScreen: false
+          requireInstallOnHomeScreen: false,
+          clamping: defaultClamping
         }
       });
 

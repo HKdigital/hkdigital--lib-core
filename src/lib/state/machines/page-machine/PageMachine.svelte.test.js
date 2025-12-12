@@ -1,33 +1,46 @@
 // @vitest-environment jsdom
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 
 import PageMachine from './PageMachine.svelte.js';
 
 describe('PageMachine - Basic Tests', () => {
-  it('should initialize with initial state', () => {
+  it('should initialize with initial state (object params)', () => {
+    const machine = new PageMachine({
+      initialState: 'intro',
+      routeMap: {
+        intro: '/puzzle/intro',
+        level1: '/puzzle/level1',
+        level2: '/puzzle/level2'
+      }
+    });
+
+    expect(machine.current).toBe('intro');
+  });
+
+  it('should initialize with initial state (legacy params)', () => {
     const routeMap = {
       intro: '/puzzle/intro',
       level1: '/puzzle/level1',
       level2: '/puzzle/level2'
     };
 
-    const machine = new PageMachine('intro', routeMap);
+    const machine = new PageMachine({ initialState: 'intro', routeMap });
 
     expect(machine.current).toBe('intro');
   });
 
   it('should initialize with initial data', () => {
-    const routeMap = {
-      intro: '/puzzle/intro'
-    };
-
-    const initialData = {
-      SCORE: 0,
-      LEVEL_COMPLETED: false
-    };
-
-    const machine = new PageMachine('intro', routeMap, initialData);
+    const machine = new PageMachine({
+      initialState: 'intro',
+      routeMap: {
+        intro: '/puzzle/intro'
+      },
+      initialData: {
+        SCORE: 0,
+        LEVEL_COMPLETED: false
+      }
+    });
 
     expect(machine.getData('SCORE')).toBe(0);
     expect(machine.getData('LEVEL_COMPLETED')).toBe(false);
@@ -39,7 +52,7 @@ describe('PageMachine - Basic Tests', () => {
       level1: '/puzzle/level1'
     };
 
-    const machine = new PageMachine('intro', routeMap);
+    const machine = new PageMachine({ initialState: 'intro', routeMap });
 
     expect(machine.getPathForState('intro')).toBe('/puzzle/intro');
     expect(machine.getPathForState('level1')).toBe('/puzzle/level1');
@@ -52,7 +65,7 @@ describe('PageMachine - Basic Tests', () => {
       level1: '/puzzle/level1'
     };
 
-    const machine = new PageMachine('intro', routeMap);
+    const machine = new PageMachine({ initialState: 'intro', routeMap });
 
     expect(machine.getCurrentPath()).toBe('/puzzle/intro');
   });
@@ -63,7 +76,7 @@ describe('PageMachine - Basic Tests', () => {
       level1: '/puzzle/level1'
     };
 
-    const machine = new PageMachine('intro', routeMap);
+    const machine = new PageMachine({ initialState: 'intro', routeMap });
     const map = machine.routeMap;
 
     expect(map).toEqual(routeMap);
@@ -79,7 +92,7 @@ describe('PageMachine - State Synchronization', () => {
       level2: '/puzzle/level2'
     };
 
-    const machine = new PageMachine('intro', routeMap);
+    const machine = new PageMachine({ initialState: 'intro', routeMap });
 
     expect(machine.current).toBe('intro');
 
@@ -94,7 +107,7 @@ describe('PageMachine - State Synchronization', () => {
       level1: '/puzzle/level1'
     };
 
-    const machine = new PageMachine('intro', routeMap);
+    const machine = new PageMachine({ initialState: 'intro', routeMap });
 
     // Path with query params or trailing content
     const changed = machine.syncFromPath('/puzzle/level1?some=param');
@@ -108,7 +121,7 @@ describe('PageMachine - State Synchronization', () => {
       level1: '/puzzle/level1'
     };
 
-    const machine = new PageMachine('intro', routeMap);
+    const machine = new PageMachine({ initialState: 'intro', routeMap });
 
     const changed = machine.syncFromPath('/other/path');
     expect(changed).toBe(false);
@@ -121,7 +134,7 @@ describe('PageMachine - State Synchronization', () => {
       level1: '/puzzle/level1'
     };
 
-    const machine = new PageMachine('intro', routeMap);
+    const machine = new PageMachine({ initialState: 'intro', routeMap });
 
     const changed = machine.syncFromPath('/puzzle/intro');
     expect(changed).toBe(false);
@@ -134,7 +147,7 @@ describe('PageMachine - State Synchronization', () => {
       level1: '/puzzle/level1'
     };
 
-    const machine = new PageMachine('intro', routeMap);
+    const machine = new PageMachine({ initialState: 'intro', routeMap });
 
     machine.setState('level1');
     expect(machine.current).toBe('level1');
@@ -144,7 +157,7 @@ describe('PageMachine - State Synchronization', () => {
 describe('PageMachine - Data Properties', () => {
   it('should set and get data properties', () => {
     const routeMap = { intro: '/puzzle/intro' };
-    const machine = new PageMachine('intro', routeMap);
+    const machine = new PageMachine({ initialState: 'intro', routeMap });
 
     machine.setData('SCORE', 100);
     expect(machine.getData('SCORE')).toBe(100);
@@ -155,7 +168,7 @@ describe('PageMachine - Data Properties', () => {
 
   it('should update multiple data properties', () => {
     const routeMap = { intro: '/puzzle/intro' };
-    const machine = new PageMachine('intro', routeMap);
+    const machine = new PageMachine({ initialState: 'intro', routeMap });
 
     machine.updateData({
       SCORE: 100,
@@ -175,7 +188,11 @@ describe('PageMachine - Data Properties', () => {
       LEVEL: 1
     };
 
-    const machine = new PageMachine('intro', routeMap, initialData);
+    const machine = new PageMachine({
+      initialState: 'intro',
+      routeMap,
+      initialData
+    });
 
     machine.setData('COMPLETED', false);
 
@@ -189,7 +206,7 @@ describe('PageMachine - Data Properties', () => {
 
   it('should return undefined for nonexistent data properties', () => {
     const routeMap = { intro: '/puzzle/intro' };
-    const machine = new PageMachine('intro', routeMap);
+    const machine = new PageMachine({ initialState: 'intro', routeMap });
 
     expect(machine.getData('NONEXISTENT')).toBe(undefined);
   });
@@ -202,7 +219,7 @@ describe('PageMachine - Visited States', () => {
       level1: '/puzzle/level1'
     };
 
-    const machine = new PageMachine('intro', routeMap);
+    const machine = new PageMachine({ initialState: 'intro', routeMap });
 
     expect(machine.hasVisited('intro')).toBe(true);
     expect(machine.hasVisited('level1')).toBe(false);
@@ -215,7 +232,7 @@ describe('PageMachine - Visited States', () => {
       level2: '/puzzle/level2'
     };
 
-    const machine = new PageMachine('intro', routeMap);
+    const machine = new PageMachine({ initialState: 'intro', routeMap });
 
     expect(machine.hasVisited('intro')).toBe(true);
     expect(machine.hasVisited('level1')).toBe(false);
@@ -234,7 +251,7 @@ describe('PageMachine - Visited States', () => {
       level2: '/puzzle/level2'
     };
 
-    const machine = new PageMachine('intro', routeMap);
+    const machine = new PageMachine({ initialState: 'intro', routeMap });
 
     machine.syncFromPath('/puzzle/level1');
     machine.syncFromPath('/puzzle/level2');
@@ -253,7 +270,7 @@ describe('PageMachine - Visited States', () => {
       level2: '/puzzle/level2'
     };
 
-    const machine = new PageMachine('intro', routeMap);
+    const machine = new PageMachine({ initialState: 'intro', routeMap });
 
     machine.syncFromPath('/puzzle/level1');
     machine.syncFromPath('/puzzle/level2');
@@ -287,7 +304,11 @@ describe('PageMachine - Extended Example', () => {
       LEVELS_COMPLETED: []
     };
 
-    const machine = new PageMachine('welcome', routeMap, initialData);
+    const machine = new PageMachine({
+      initialState: 'welcome',
+      routeMap,
+      initialData
+    });
 
     // User starts at welcome
     expect(machine.current).toBe('welcome');
@@ -328,5 +349,301 @@ describe('PageMachine - Extended Example', () => {
     expect(machine.hasVisited('level1')).toBe(true);
     expect(machine.hasVisited('level2')).toBe(true);
     expect(machine.hasVisited('complete')).toBe(false);
+  });
+});
+
+describe('PageMachine - onEnter Hooks', () => {
+  it('should call onEnter hook when entering state', async () => {
+    const onEnterMock = vi.fn();
+
+    const machine = new PageMachine({
+      initialState: 'start',
+      routeMap: {
+        start: '/game/start',
+        animate: '/game/animate'
+      },
+      onEnterHooks: {
+        animate: onEnterMock
+      }
+    });
+
+    await machine.setState('animate');
+
+    expect(onEnterMock).toHaveBeenCalled();
+  });
+
+  it('should provide done callback to onEnter hook', async () => {
+    let receivedDone = null;
+
+    const machine = new PageMachine({
+      initialState: 'start',
+      routeMap: {
+        start: '/game/start',
+        animate: '/game/animate'
+      },
+      onEnterHooks: {
+        animate: (done) => {
+          receivedDone = done;
+        }
+      }
+    });
+
+    await machine.setState('animate');
+
+    expect(receivedDone).toBeInstanceOf(Function);
+  });
+
+  it('should auto-transition when done is called', async () => {
+    const machine = new PageMachine({
+      initialState: 'start',
+      routeMap: {
+        start: '/game/start',
+        animate: '/game/animate',
+        play: '/game/play'
+      },
+      onEnterHooks: {
+        animate: (done) => {
+          setTimeout(() => done('play'), 10);
+        }
+      }
+    });
+
+    await machine.setState('animate');
+    expect(machine.current).toBe('animate');
+
+    // Wait for done to be called
+    await new Promise(resolve => setTimeout(resolve, 20));
+
+    expect(machine.current).toBe('play');
+  });
+
+  it('should store abort/complete handlers from onEnter return', async () => {
+    const abortMock = vi.fn();
+    const completeMock = vi.fn();
+
+    const machine = new PageMachine({
+      initialState: 'start',
+      routeMap: {
+        start: '/game/start',
+        animate: '/game/animate'
+      },
+      onEnterHooks: {
+        animate: (done) => {
+          return {
+            abort: abortMock,
+            complete: completeMock
+          };
+        }
+      }
+    });
+
+    await machine.setState('animate');
+
+    expect(machine.canAbortTransitions).toBe(true);
+    expect(machine.canCompleteTransitions).toBe(true);
+
+    machine.abortTransitions();
+    expect(abortMock).toHaveBeenCalled();
+  });
+
+  it('should call abort handler when state changes', async () => {
+    const abortMock = vi.fn();
+
+    const machine = new PageMachine({
+      initialState: 'start',
+      routeMap: {
+        start: '/game/start',
+        animate: '/game/animate',
+        play: '/game/play'
+      },
+      onEnterHooks: {
+        animate: (done) => {
+          return {
+            abort: abortMock
+          };
+        }
+      }
+    });
+
+    await machine.setState('animate');
+    expect(abortMock).not.toHaveBeenCalled();
+
+    await machine.setState('play');
+    expect(abortMock).toHaveBeenCalled();
+  });
+
+  it('should support animation scenario with timeout', async () => {
+    let timeoutId;
+    const machine = new PageMachine({
+      initialState: 'start',
+      routeMap: {
+        start: '/game/start',
+        animate: '/game/animate',
+        play: '/game/play'
+      },
+      onEnterHooks: {
+        animate: (done) => {
+          timeoutId = setTimeout(() => done('play'), 100);
+
+          return {
+            abort: () => clearTimeout(timeoutId),
+            complete: () => {
+              clearTimeout(timeoutId);
+              done('play');
+            }
+          };
+        }
+      }
+    });
+
+    await machine.setState('animate');
+    expect(machine.current).toBe('animate');
+
+    // Fast-forward by calling complete
+    machine.completeTransitions();
+
+    // Wait a bit for done to be processed
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    expect(machine.current).toBe('play');
+  });
+
+  it('should handle Web Animation API pattern', async () => {
+    // Mock animation
+    const mockAnimation = {
+      finished: null,
+      cancel: vi.fn(),
+      finish: vi.fn()
+    };
+
+    mockAnimation.finished = new Promise(resolve => {
+      setTimeout(resolve, 100);
+    });
+
+    const machine = new PageMachine({
+      initialState: 'start',
+      routeMap: {
+        start: '/game/start',
+        animate: '/game/animate',
+        play: '/game/play'
+      },
+      onEnterHooks: {
+        animate: (done) => {
+          mockAnimation.finished.then(() => done('play'));
+
+          return {
+            abort: () => mockAnimation.cancel(),
+            complete: () => mockAnimation.finish()
+          };
+        }
+      }
+    });
+
+    await machine.setState('animate');
+    expect(machine.current).toBe('animate');
+
+    // Call abort
+    machine.abortTransitions();
+    expect(mockAnimation.cancel).toHaveBeenCalled();
+  });
+});
+
+describe('PageMachine - Transition Control', () => {
+  it('should expose canAbortTransitions getter', async () => {
+    const machine = new PageMachine({
+      initialState: 'start',
+      routeMap: {
+        start: '/game/start',
+        animate: '/game/animate'
+      },
+      onEnterHooks: {
+        animate: (done) => {
+          return {
+            abort: () => {}
+          };
+        }
+      }
+    });
+
+    expect(machine.canAbortTransitions).toBe(false);
+
+    await machine.setState('animate');
+
+    expect(machine.canAbortTransitions).toBe(true);
+  });
+
+  it('should expose canCompleteTransitions getter', async () => {
+    const machine = new PageMachine({
+      initialState: 'start',
+      routeMap: {
+        start: '/game/start',
+        animate: '/game/animate'
+      },
+      onEnterHooks: {
+        animate: (done) => {
+          return {
+            complete: () => {}
+          };
+        }
+      }
+    });
+
+    expect(machine.canCompleteTransitions).toBe(false);
+
+    await machine.setState('animate');
+
+    expect(machine.canCompleteTransitions).toBe(true);
+  });
+
+  it('should clear handlers after abort', async () => {
+    const machine = new PageMachine({
+      initialState: 'start',
+      routeMap: {
+        start: '/game/start',
+        animate: '/game/animate'
+      },
+      onEnterHooks: {
+        animate: (done) => {
+          return {
+            abort: () => {},
+            complete: () => {}
+          };
+        }
+      }
+    });
+
+    await machine.setState('animate');
+    expect(machine.canAbortTransitions).toBe(true);
+
+    machine.abortTransitions();
+
+    expect(machine.canAbortTransitions).toBe(false);
+    expect(machine.canCompleteTransitions).toBe(false);
+  });
+
+  it('should clear handlers after complete', async () => {
+    const machine = new PageMachine({
+      initialState: 'start',
+      routeMap: {
+        start: '/game/start',
+        animate: '/game/animate'
+      },
+      onEnterHooks: {
+        animate: (done) => {
+          return {
+            abort: () => {},
+            complete: () => {}
+          };
+        }
+      }
+    });
+
+    await machine.setState('animate');
+    expect(machine.canCompleteTransitions).toBe(true);
+
+    machine.completeTransitions();
+
+    expect(machine.canAbortTransitions).toBe(false);
+    expect(machine.canCompleteTransitions).toBe(false);
   });
 });

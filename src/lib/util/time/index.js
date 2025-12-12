@@ -185,12 +185,16 @@ export function getWeekNumber(dateOrTimestamp) {
 	//
 	// Create a copy of this date object
 	//
-	const target = new Date(date.valueOf());
+	const target = new Date(Date.UTC(
+		date.getUTCFullYear(),
+		date.getUTCMonth(),
+		date.getUTCDate()
+	));
 
 	//
 	// ISO week date weeks start on Monday, so correct the day number
 	//
-	const dayNumber = (date.getDay() + 6) % 7;
+	const dayNumber = (date.getUTCDay() + 6) % 7;
 
 	//
 	// ISO 8601 states that week 1 is the week with the first Thursday
@@ -198,22 +202,29 @@ export function getWeekNumber(dateOrTimestamp) {
 	//
 	// Set the target date to the Thursday in the target week
 	//
-	target.setDate(target.getDate() - dayNumber + 3);
+	target.setUTCDate(target.getUTCDate() - dayNumber + 3);
 
 	//
 	// Store the millisecond value of the target date
 	//
 	const firstThursday = target.valueOf();
 
-	// Set the target to the first Thursday of the year
-	// First, set the target to January 1st
-	target.setMonth(0, 1);
+	//
+	// Get the year of the Thursday in the target week
+	// (This is important for dates near year boundaries)
+	//
+	const yearOfThursday = target.getUTCFullYear();
+
+	// Set the target to the first Thursday of that year
+	// First, set the target to January 1st of that year
+	target.setUTCFullYear(yearOfThursday);
+	target.setUTCMonth(0, 1);
 
 	//
 	// Not a Thursday? Correct the date to the next Thursday
 	//
-	if (target.getDay() !== 4) {
-		target.setMonth(0, 1 + ((4 - target.getDay() + 7) % 7));
+	if (target.getUTCDay() !== 4) {
+		target.setUTCMonth(0, 1 + ((4 - target.getUTCDay() + 7) % 7));
 	}
 
 	//

@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import { toURL, hasProtocol, href } from './index.js';
+import { toURL, hasProtocol, href } from './url.js';
 
 // > Mocks
 
