@@ -1,3 +1,5 @@
+import { Logger, INFO } from '$lib/logging/common.js';
+
 /**
  * Base class for page state machines with URL route mapping
  *
@@ -57,6 +59,11 @@
  * ```
  */
 export default class PageMachine {
+	/**
+	 * Logger instance for state machine
+	 * @type {Logger}
+	 */
+	logger;
 	/**
 	 * Current state
 	 * @type {string}
@@ -145,6 +152,10 @@ export default class PageMachine {
 	 *   Initial data properties (from server)
 	 * @param {Record<string, Function>} [config.onEnterHooks={}]
 	 *   Map of states to onEnter hook functions
+	 * @param {string} [config.name='PageMachine']
+	 *   Name for logger identification
+	 * @param {import('$lib/logging/typedef.js').LogLevel} [config.logLevel]
+	 *   Log level (defaults to INFO for state transitions)
 	 *
 	 * @example
 	 * ```javascript
@@ -169,11 +180,19 @@ export default class PageMachine {
 	 * });
 	 * ```
 	 */
-	constructor({ startPath, routeMap = {}, initialData = {}, onEnterHooks = {} }) {
+	constructor({
+		startPath,
+		routeMap = {},
+		initialData = {},
+		onEnterHooks = {},
+		name = 'PageMachine',
+		logLevel = INFO
+	}) {
 		if (!startPath) {
 			throw new Error('PageMachine requires startPath parameter');
 		}
 
+		this.logger = new Logger(name, logLevel);
 		this.#startPath = startPath;
 		this.#routeMap = routeMap;
 		this.#data = initialData;
@@ -263,9 +282,13 @@ export default class PageMachine {
 		this.#currentOnEnterHandler = null;
 		this.#currentOnEnterDone = null;
 
+		const oldState = this.#current;
 		this.#isTransitioning = true;
 		this.#current = newState;
 		this.#visitedStates.add(newState);
+
+		// Log state transition
+		this.logger.debug(`${oldState} → ${newState}`);
 
 		// Check if this state has an onEnter hook
 		const hookConfig = this.#onEnterHooks[newState];
