@@ -60,6 +60,7 @@
 
 {#if snippet && snippetParams}
   <div
+    data-component="scaled-container"
     bind:this={container}
     class:hidden
     style:width="{width}px"

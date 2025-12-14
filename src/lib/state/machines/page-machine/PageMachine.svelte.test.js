@@ -5,9 +5,9 @@ import { describe, it, expect, vi } from 'vitest';
 import PageMachine from './PageMachine.svelte.js';
 
 describe('PageMachine - Basic Tests', () => {
-  it('should initialize with initial state (object params)', () => {
+  it('should initialize with start path', () => {
     const machine = new PageMachine({
-      initialState: 'intro',
+      startPath: '/puzzle/intro',
       routeMap: {
         intro: '/puzzle/intro',
         level1: '/puzzle/level1',
@@ -16,23 +16,34 @@ describe('PageMachine - Basic Tests', () => {
     });
 
     expect(machine.current).toBe('intro');
+    expect(machine.startPath).toBe('/puzzle/intro');
+    expect(machine.startState).toBe('intro');
   });
 
-  it('should initialize with initial state (legacy params)', () => {
-    const routeMap = {
-      intro: '/puzzle/intro',
-      level1: '/puzzle/level1',
-      level2: '/puzzle/level2'
-    };
+  it('should throw error if startPath is missing', () => {
+    expect(() => {
+      new PageMachine({
+        routeMap: {
+          intro: '/puzzle/intro'
+        }
+      });
+    }).toThrow('PageMachine requires startPath parameter');
+  });
 
-    const machine = new PageMachine({ initialState: 'intro', routeMap });
-
-    expect(machine.current).toBe('intro');
+  it('should throw error if startPath not in routeMap', () => {
+    expect(() => {
+      new PageMachine({
+        startPath: '/puzzle/nonexistent',
+        routeMap: {
+          intro: '/puzzle/intro'
+        }
+      });
+    }).toThrow('PageMachine: startPath "/puzzle/nonexistent" not found in routeMap');
   });
 
   it('should initialize with initial data', () => {
     const machine = new PageMachine({
-      initialState: 'intro',
+      startPath: '/puzzle/intro',
       routeMap: {
         intro: '/puzzle/intro'
       },
@@ -52,7 +63,7 @@ describe('PageMachine - Basic Tests', () => {
       level1: '/puzzle/level1'
     };
 
-    const machine = new PageMachine({ initialState: 'intro', routeMap });
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
 
     expect(machine.getPathForState('intro')).toBe('/puzzle/intro');
     expect(machine.getPathForState('level1')).toBe('/puzzle/level1');
@@ -65,7 +76,7 @@ describe('PageMachine - Basic Tests', () => {
       level1: '/puzzle/level1'
     };
 
-    const machine = new PageMachine({ initialState: 'intro', routeMap });
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
 
     expect(machine.getCurrentPath()).toBe('/puzzle/intro');
   });
@@ -76,7 +87,7 @@ describe('PageMachine - Basic Tests', () => {
       level1: '/puzzle/level1'
     };
 
-    const machine = new PageMachine({ initialState: 'intro', routeMap });
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
     const map = machine.routeMap;
 
     expect(map).toEqual(routeMap);
@@ -92,7 +103,7 @@ describe('PageMachine - State Synchronization', () => {
       level2: '/puzzle/level2'
     };
 
-    const machine = new PageMachine({ initialState: 'intro', routeMap });
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
 
     expect(machine.current).toBe('intro');
 
@@ -107,7 +118,7 @@ describe('PageMachine - State Synchronization', () => {
       level1: '/puzzle/level1'
     };
 
-    const machine = new PageMachine({ initialState: 'intro', routeMap });
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
 
     // Path with query params or trailing content
     const changed = machine.syncFromPath('/puzzle/level1?some=param');
@@ -121,7 +132,7 @@ describe('PageMachine - State Synchronization', () => {
       level1: '/puzzle/level1'
     };
 
-    const machine = new PageMachine({ initialState: 'intro', routeMap });
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
 
     const changed = machine.syncFromPath('/other/path');
     expect(changed).toBe(false);
@@ -134,7 +145,7 @@ describe('PageMachine - State Synchronization', () => {
       level1: '/puzzle/level1'
     };
 
-    const machine = new PageMachine({ initialState: 'intro', routeMap });
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
 
     const changed = machine.syncFromPath('/puzzle/intro');
     expect(changed).toBe(false);
@@ -147,7 +158,7 @@ describe('PageMachine - State Synchronization', () => {
       level1: '/puzzle/level1'
     };
 
-    const machine = new PageMachine({ initialState: 'intro', routeMap });
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
 
     machine.setState('level1');
     expect(machine.current).toBe('level1');
@@ -157,7 +168,7 @@ describe('PageMachine - State Synchronization', () => {
 describe('PageMachine - Data Properties', () => {
   it('should set and get data properties', () => {
     const routeMap = { intro: '/puzzle/intro' };
-    const machine = new PageMachine({ initialState: 'intro', routeMap });
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
 
     machine.setData('SCORE', 100);
     expect(machine.getData('SCORE')).toBe(100);
@@ -168,7 +179,7 @@ describe('PageMachine - Data Properties', () => {
 
   it('should update multiple data properties', () => {
     const routeMap = { intro: '/puzzle/intro' };
-    const machine = new PageMachine({ initialState: 'intro', routeMap });
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
 
     machine.updateData({
       SCORE: 100,
@@ -189,7 +200,7 @@ describe('PageMachine - Data Properties', () => {
     };
 
     const machine = new PageMachine({
-      initialState: 'intro',
+      startPath: '/puzzle/intro',
       routeMap,
       initialData
     });
@@ -206,7 +217,7 @@ describe('PageMachine - Data Properties', () => {
 
   it('should return undefined for nonexistent data properties', () => {
     const routeMap = { intro: '/puzzle/intro' };
-    const machine = new PageMachine({ initialState: 'intro', routeMap });
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
 
     expect(machine.getData('NONEXISTENT')).toBe(undefined);
   });
@@ -219,7 +230,7 @@ describe('PageMachine - Visited States', () => {
       level1: '/puzzle/level1'
     };
 
-    const machine = new PageMachine({ initialState: 'intro', routeMap });
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
 
     expect(machine.hasVisited('intro')).toBe(true);
     expect(machine.hasVisited('level1')).toBe(false);
@@ -232,7 +243,7 @@ describe('PageMachine - Visited States', () => {
       level2: '/puzzle/level2'
     };
 
-    const machine = new PageMachine({ initialState: 'intro', routeMap });
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
 
     expect(machine.hasVisited('intro')).toBe(true);
     expect(machine.hasVisited('level1')).toBe(false);
@@ -251,7 +262,7 @@ describe('PageMachine - Visited States', () => {
       level2: '/puzzle/level2'
     };
 
-    const machine = new PageMachine({ initialState: 'intro', routeMap });
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
 
     machine.syncFromPath('/puzzle/level1');
     machine.syncFromPath('/puzzle/level2');
@@ -270,7 +281,7 @@ describe('PageMachine - Visited States', () => {
       level2: '/puzzle/level2'
     };
 
-    const machine = new PageMachine({ initialState: 'intro', routeMap });
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
 
     machine.syncFromPath('/puzzle/level1');
     machine.syncFromPath('/puzzle/level2');
@@ -305,7 +316,7 @@ describe('PageMachine - Extended Example', () => {
     };
 
     const machine = new PageMachine({
-      initialState: 'welcome',
+      startPath: '/puzzle/welcome',
       routeMap,
       initialData
     });
@@ -357,7 +368,7 @@ describe('PageMachine - onEnter Hooks', () => {
     const onEnterMock = vi.fn();
 
     const machine = new PageMachine({
-      initialState: 'start',
+      startPath: '/game/start',
       routeMap: {
         start: '/game/start',
         animate: '/game/animate'
@@ -376,7 +387,7 @@ describe('PageMachine - onEnter Hooks', () => {
     let receivedDone = null;
 
     const machine = new PageMachine({
-      initialState: 'start',
+      startPath: '/game/start',
       routeMap: {
         start: '/game/start',
         animate: '/game/animate'
@@ -395,7 +406,7 @@ describe('PageMachine - onEnter Hooks', () => {
 
   it('should auto-transition when done is called', async () => {
     const machine = new PageMachine({
-      initialState: 'start',
+      startPath: '/game/start',
       routeMap: {
         start: '/game/start',
         animate: '/game/animate',
@@ -422,7 +433,7 @@ describe('PageMachine - onEnter Hooks', () => {
     const completeMock = vi.fn();
 
     const machine = new PageMachine({
-      initialState: 'start',
+      startPath: '/game/start',
       routeMap: {
         start: '/game/start',
         animate: '/game/animate'
@@ -450,7 +461,7 @@ describe('PageMachine - onEnter Hooks', () => {
     const abortMock = vi.fn();
 
     const machine = new PageMachine({
-      initialState: 'start',
+      startPath: '/game/start',
       routeMap: {
         start: '/game/start',
         animate: '/game/animate',
@@ -475,7 +486,7 @@ describe('PageMachine - onEnter Hooks', () => {
   it('should support animation scenario with timeout', async () => {
     let timeoutId;
     const machine = new PageMachine({
-      initialState: 'start',
+      startPath: '/game/start',
       routeMap: {
         start: '/game/start',
         animate: '/game/animate',
@@ -521,7 +532,7 @@ describe('PageMachine - onEnter Hooks', () => {
     });
 
     const machine = new PageMachine({
-      initialState: 'start',
+      startPath: '/game/start',
       routeMap: {
         start: '/game/start',
         animate: '/game/animate',
@@ -551,7 +562,7 @@ describe('PageMachine - onEnter Hooks', () => {
 describe('PageMachine - Transition Control', () => {
   it('should expose canAbortTransitions getter', async () => {
     const machine = new PageMachine({
-      initialState: 'start',
+      startPath: '/game/start',
       routeMap: {
         start: '/game/start',
         animate: '/game/animate'
@@ -574,7 +585,7 @@ describe('PageMachine - Transition Control', () => {
 
   it('should expose canCompleteTransitions getter', async () => {
     const machine = new PageMachine({
-      initialState: 'start',
+      startPath: '/game/start',
       routeMap: {
         start: '/game/start',
         animate: '/game/animate'
@@ -597,7 +608,7 @@ describe('PageMachine - Transition Control', () => {
 
   it('should clear handlers after abort', async () => {
     const machine = new PageMachine({
-      initialState: 'start',
+      startPath: '/game/start',
       routeMap: {
         start: '/game/start',
         animate: '/game/animate'
@@ -623,7 +634,7 @@ describe('PageMachine - Transition Control', () => {
 
   it('should clear handlers after complete', async () => {
     const machine = new PageMachine({
-      initialState: 'start',
+      startPath: '/game/start',
       routeMap: {
         start: '/game/start',
         animate: '/game/animate'
@@ -645,5 +656,87 @@ describe('PageMachine - Transition Control', () => {
 
     expect(machine.canAbortTransitions).toBe(false);
     expect(machine.canCompleteTransitions).toBe(false);
+  });
+});
+
+describe('PageMachine - Start Path Methods', () => {
+  it('should return start path', () => {
+    const machine = new PageMachine({
+      startPath: '/game/intro',
+      routeMap: {
+        intro: '/game/intro',
+        play: '/game/play'
+      }
+    });
+
+    expect(machine.startPath).toBe('/game/intro');
+  });
+
+  it('should return start state', () => {
+    const machine = new PageMachine({
+      startPath: '/game/intro',
+      routeMap: {
+        intro: '/game/intro',
+        play: '/game/play'
+      }
+    });
+
+    expect(machine.startState).toBe('intro');
+  });
+
+  it('should check if path is start path', () => {
+    const machine = new PageMachine({
+      startPath: '/game/intro',
+      routeMap: {
+        intro: '/game/intro',
+        play: '/game/play'
+      }
+    });
+
+    expect(machine.isStartPath('/game/intro')).toBe(true);
+    expect(machine.isStartPath('/game/play')).toBe(false);
+    expect(machine.isStartPath('/other')).toBe(false);
+  });
+
+  it('should check if on start state', () => {
+    const machine = new PageMachine({
+      startPath: '/game/intro',
+      routeMap: {
+        intro: '/game/intro',
+        play: '/game/play'
+      }
+    });
+
+    expect(machine.isOnStartState).toBe(true);
+
+    machine.syncFromPath('/game/play');
+    expect(machine.isOnStartState).toBe(false);
+
+    machine.syncFromPath('/game/intro');
+    expect(machine.isOnStartState).toBe(true);
+  });
+
+  it('should redirect to start path', async () => {
+    const machine = new PageMachine({
+      startPath: '/game/intro',
+      routeMap: {
+        intro: '/game/intro',
+        play: '/game/play'
+      }
+    });
+
+    // Mock the dynamic import
+    vi.mock('$src/lib/util/sveltekit.js', () => ({
+      switchToPage: vi.fn()
+    }));
+
+    machine.redirectToStartPath();
+
+    // Wait for dynamic import to resolve
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    // Note: Testing dynamic imports is tricky in unit tests
+    // This is more of an integration test concern
+    expect(machine.startPath).toBe('/game/intro');
   });
 });

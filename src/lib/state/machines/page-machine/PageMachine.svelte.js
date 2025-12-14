@@ -7,6 +7,7 @@
  *
  * Features:
  * - State-to-route mapping and sync
+ * - Start path management
  * - Data properties for business/domain state
  * - Visited states tracking
  * - onEnter hooks with abort/complete handlers for animations
@@ -14,7 +15,7 @@
  * Basic usage:
  * ```javascript
  * const machine = new PageMachine({
- *   initialState: STATE_START,
+ *   startPath: '/intro/start',
  *   routeMap: {
  *     [STATE_START]: '/intro/start',
  *     [STATE_PROFILE]: '/intro/profile'
@@ -30,7 +31,7 @@
  * With onEnter hooks (for animations):
  * ```javascript
  * const machine = new PageMachine({
- *   initialState: STATE_ANIMATE,
+ *   startPath: '/game/animate',
  *   routeMap: {
  *     [STATE_ANIMATE]: '/game/animate',
  *     [STATE_PLAY]: '/game/play'
@@ -62,6 +63,18 @@ export default class PageMachine {
 	 */
 	// @ts-ignore
 	#current = $state();
+
+	/**
+	 * Start path for this page machine
+	 * @type {string}
+	 */
+	#startPath = '';
+
+	/**
+	 * Initial/start state (derived from startPath)
+	 * @type {string}
+	 */
+	#startState = '';
 
 	/**
 	 * Map of states to route paths
@@ -124,15 +137,19 @@ export default class PageMachine {
 	 * Constructor
 	 *
 	 * @param {Object} config - Configuration object
-	 * @param {string} config.initialState - Initial state name
-	 * @param {Record<string, string>} [config.routeMap={}] - Map of states to route paths
-	 * @param {Record<string, any>} [config.initialData={}] - Initial data properties (from server)
-	 * @param {Record<string, Function>} [config.onEnterHooks={}] - Map of states to onEnter hook functions
+	 * @param {string} config.startPath
+	 *   Start path for this route group (e.g., '/game/play')
+	 * @param {Record<string, string>} [config.routeMap={}]
+	 *   Map of states to route paths
+	 * @param {Record<string, any>} [config.initialData={}]
+	 *   Initial data properties (from server)
+	 * @param {Record<string, Function>} [config.onEnterHooks={}]
+	 *   Map of states to onEnter hook functions
 	 *
 	 * @example
 	 * ```javascript
 	 * const machine = new PageMachine({
-	 *   initialState: STATE_START,
+	 *   startPath: '/intro/start',
 	 *   routeMap: {
 	 *     [STATE_START]: '/intro/start',
 	 *     [STATE_ANIMATE]: '/intro/animate'
@@ -152,12 +169,12 @@ export default class PageMachine {
 	 * });
 	 * ```
 	 */
-	constructor({ initialState, routeMap = {}, initialData = {}, onEnterHooks = {} }) {
-		if (!initialState) {
-			throw new Error('PageMachine requires initialState parameter');
+	constructor({ startPath, routeMap = {}, initialData = {}, onEnterHooks = {} }) {
+		if (!startPath) {
+			throw new Error('PageMachine requires startPath parameter');
 		}
 
-		this.#current = initialState;
+		this.#startPath = startPath;
 		this.#routeMap = routeMap;
 		this.#data = initialData;
 		this.#onEnterHooks = this.#normalizeOnEnterHooks(onEnterHooks);
@@ -166,6 +183,17 @@ export default class PageMachine {
 		for (const [state, path] of Object.entries(routeMap)) {
 			this.#pathToStateMap[path] = state;
 		}
+
+		// Derive initial state from startPath
+		const initialState = this.#pathToStateMap[startPath];
+		if (!initialState) {
+			throw new Error(
+				`PageMachine: startPath "${startPath}" not found in routeMap`
+			);
+		}
+
+		this.#startState = initialState;
+		this.#current = initialState;
 
 		// Mark initial state as visited
 		this.#visitedStates.add(initialState);
@@ -459,6 +487,76 @@ export default class PageMachine {
 		this.#visitedStates.clear();
 		this.#visitedStates.add(this.#current);
 		this.#revision++;
+	}
+
+	/* ===== Start Path Methods ===== */
+
+	/**
+	 * Get the start path
+	 *
+	 * @returns {string} Start path
+	 */
+	get startPath() {
+		return this.#startPath;
+	}
+
+	/**
+	 * Get the start state
+	 *
+	 * @returns {string} Start state name
+	 */
+	get startState() {
+		return this.#startState;
+	}
+
+	/**
+	 * Check if the supplied path matches the start path
+	 *
+	 * @param {string} path - Path to check
+	 *
+	 * @returns {boolean} True if path matches start path
+	 *
+	 * @example
+	 * ```javascript
+	 * if (machine.isStartPath('/game/play')) {
+	 *   // User is on the start page
+	 * }
+	 * ```
+	 */
+	isStartPath(path) {
+		return path === this.#startPath;
+	}
+
+	/**
+	 * Check if currently on the start state
+	 *
+	 * @returns {boolean} True if current state is the start state
+	 *
+	 * @example
+	 * ```javascript
+	 * if (machine.isOnStartState) {
+	 *   // Show onboarding
+	 * }
+	 * ```
+	 */
+	get isOnStartState() {
+		return this.#current === this.#startState;
+	}
+
+	/**
+	 * Navigate to the start path
+	 *
+	 * @example
+	 * ```javascript
+	 * // Redirect user to start
+	 * machine.redirectToStartPath();
+	 * ```
+	 */
+	redirectToStartPath() {
+		// Import dynamically to avoid circular dependencies
+		import('$src/lib/util/sveltekit.js').then(({ switchToPage }) => {
+			switchToPage(this.#startPath);
+		});
 	}
 
 	/* ===== Transition Control Methods ===== */

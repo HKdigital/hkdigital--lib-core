@@ -461,6 +461,7 @@
 
 {#if gameHeight}
   <div
+    data-about="game-box-centering"
     class:center
     style:height={center ? `${iosWindowHeight ?? windowHeight}px` : undefined}
   >

@@ -1,68 +1,72 @@
-# RouteStateContext
+# State Context Utilities
 
-Base class for route-level state containers.
+Helper functions for managing Svelte context in route-level state containers.
 
-## How it connects
+## defineStateContext
 
-```
-┌─────────────────────────────────────────────────────────┐
-│ PuzzleState (extends RouteStateContext)                 │
-│ - Container for route-level concerns                    │
-│ - Contains PageMachine instance                         │
-│ - Optional: services, preload, reset, etc.              │
-└────────────────┬────────────────────────────────────────┘
-                 │
-                 │ Provided via Svelte context
-                 │
-┌────────────────▼────────────────────────────────────────┐
-│ +layout.svelte                                          │
-│ - Creates state with createOrGetPuzzleState()           │
-│ - IMPORTANT: Syncs URL with pageMachine.syncFromPath()  │
-│ - Optional: Calls validateAndRedirect() for protection  │
-└────────────────┬────────────────────────────────────────┘
-                 │
-                 │ Context available to children
-                 │
-        ┌────────┴─────────┬────────────────┐
-        ▼                  ▼                ▼
-  ┌──────────┐      ┌──────────┐    ┌──────────┐
-  │ +page    │      │ +page    │    │ Component│
-  │ .svelte  │      │ .svelte  │    │          │
-  └──────────┘      └──────────┘    └──────────┘
-  Gets state via getPuzzleState()
+Creates context helper functions for a state container class.
+
+```javascript
+import { defineStateContext } from '@hkdigital/lib-core/state/context.js';
+
+class PuzzleState {
+  #pageMachine;
+
+  constructor() {
+    this.#pageMachine = new PuzzlePageMachine();
+  }
+
+  get pageMachine() {
+    return this.#pageMachine;
+  }
+}
+
+// Export helper functions
+export const [createOrGetPuzzleState, createPuzzleState, getPuzzleState] =
+  defineStateContext(PuzzleState);
 ```
 
-## Main Purposes
+## Helper Functions
 
-1. **State container** - Hold route-level concerns in one place
-2. **Apply enforceStartPath** - Control navigation flow (users must visit
-   start path before accessing subroutes)
-3. **Provide validateAndRedirect** - Route protection via layout
+The `defineStateContext` helper creates three functions:
 
-## Key Features
+### createOrGetPuzzleState()
 
-- Share state between layout and pages without prop drilling
-- Persist state across navigation within the same route group
-- Lifecycle methods for setup/teardown (preload, reset)
+Get existing instance or create new one. Use in `+layout.svelte`.
 
-## Basic Usage
+```javascript
+// routes/puzzle/+layout.svelte
+const state = createOrGetPuzzleState();
+```
 
-### 1. Create state container class
+### createPuzzleState()
+
+Force create new instance (discards existing).
+
+```javascript
+const state = createPuzzleState();
+```
+
+### getPuzzleState()
+
+Get existing instance. Throws error if not found. Use in pages/components.
+
+```javascript
+// routes/puzzle/level1/+page.svelte
+const state = getPuzzleState();
+```
+
+## Complete Example
 
 ```javascript
 // routes/puzzle/puzzle.state.svelte.js
 import { defineStateContext } from '@hkdigital/lib-core/state/context.js';
-import { RouteStateContext } from '$lib/state/context.js';
 import PuzzlePageMachine from './puzzle.machine.svelte.js';
 
-export class PuzzleState extends RouteStateContext {
+export class PuzzleState {
   #pageMachine;
 
   constructor() {
-    super({
-      startPath: '/puzzle',
-      enforceStartPath: true  // Optional: enforce route protection
-    });
     this.#pageMachine = new PuzzlePageMachine();
   }
 
@@ -81,16 +85,13 @@ export class PuzzleState extends RouteStateContext {
   }
 
   reset() {
-    // Reset state when needed
+    this.#pageMachine = new PuzzlePageMachine();
   }
 }
 
-// Export helper functions
 export const [createOrGetPuzzleState, createPuzzleState, getPuzzleState] =
   defineStateContext(PuzzleState);
 ```
-
-### 2. Provide context in layout
 
 ```svelte
 <!-- routes/puzzle/+layout.svelte -->
@@ -98,17 +99,12 @@ export const [createOrGetPuzzleState, createPuzzleState, getPuzzleState] =
   import { page } from '$app/stores';
   import { createOrGetPuzzleState } from './puzzle.state.svelte.js';
 
-  // Create or get existing state container
   const puzzleState = createOrGetPuzzleState();
+  const pageMachine = puzzleState.pageMachine;
 
   // IMPORTANT: Sync URL with PageMachine state
   $effect(() => {
-    puzzleState.pageMachine.syncFromPath($page.url.pathname);
-  });
-
-  // Optional: Enforce start path (redirect if user skips intro)
-  $effect(() => {
-    puzzleState.validateAndRedirect($page.url.pathname);
+    pageMachine.syncFromPath($page.url.pathname);
   });
 
   // Optional: Preload assets
@@ -119,8 +115,6 @@ export const [createOrGetPuzzleState, createPuzzleState, getPuzzleState] =
 
 <slot />
 ```
-
-### 3. Consume context in pages
 
 ```svelte
 <!-- routes/puzzle/level1/+page.svelte -->
@@ -134,81 +128,12 @@ export const [createOrGetPuzzleState, createPuzzleState, getPuzzleState] =
 <div>Current state: {pageMachine.current}</div>
 ```
 
-## Context Helpers
+## Key Features
 
-The `defineStateContext` helper creates three functions:
-
-```javascript
-// Get existing or create new (use in layout)
-const state = createOrGetPuzzleState();
-
-// Force create new instance
-const state = createPuzzleState();
-
-// Get existing (throws if not found, use in pages/components)
-const state = getPuzzleState();
-```
-
-## Constructor Options
-
-```javascript
-constructor({ startPath, enforceStartPath })
-```
-
-- `startPath` **(required)** - The start path for this route
-  (e.g., `/puzzle`)
-- `enforceStartPath` **(optional, default: false)** - If true, users must
-  visit the start path before accessing subroutes
-
-## validateAndRedirect Method
-
-Automatically redirects users if they try to access subroutes before visiting
-the start path.
-
-**How it works:**
-- If `enforceStartPath: true` is set in constructor
-- User tries to access a subroute (e.g., `/puzzle/level2`)
-- But hasn't visited the start path yet (`/puzzle`)
-- → Automatically redirects to start path
-
-**Example use case:** Puzzle game where users must see the intro before
-accessing puzzle levels.
-
-```javascript
-// In state constructor
-export class PuzzleState extends RouteStateContext {
-  constructor() {
-    super({
-      startPath: '/puzzle',
-      enforceStartPath: true
-    });
-  }
-}
-```
-
-```svelte
-<!-- In +layout.svelte -->
-<script>
-  import { page } from '$app/stores';
-
-  const puzzleState = createOrGetPuzzleState();
-
-  // Enforce route protection
-  $effect(() => {
-    puzzleState.validateAndRedirect($page.url.pathname);
-  });
-</script>
-```
-
-**Result:** If user navigates directly to `/puzzle/level2`, they'll be
-redirected to `/puzzle` first. After visiting `/puzzle`, they can freely
-navigate to any subroute.
-
-**Custom redirect URL:**
-```javascript
-// Redirect to a different URL instead of startPath
-puzzleState.validateAndRedirect($page.url.pathname, '/puzzle/welcome');
-```
+- Share state between layout and pages without prop drilling
+- Persist state across navigation within the same route group
+- Lifecycle methods for setup/teardown (preload, reset)
+- PageMachine integration for route/state management
 
 ## Separation of Concerns
 
@@ -222,5 +147,6 @@ puzzleState.validateAndRedirect($page.url.pathname, '/puzzle/welcome');
 **PageMachine** = Page/view state ONLY (SINGLE responsibility)
 - Current page state
 - Route mapping
+- Start path management
 - Visited states
 - Computed properties for state checks
