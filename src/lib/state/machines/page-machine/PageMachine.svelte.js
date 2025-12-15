@@ -1,6 +1,3 @@
-import { INFO } from '$lib/logging/common.js';
-import { createClientLogger } from '$lib/logging/client.js';
-
 /**
  * Base class for page state machines with URL route mapping
  *
@@ -220,17 +217,18 @@ export default class PageMachine {
 	 * Normalize onEnterHooks to ensure consistent format
 	 * Converts function to {onEnter: function} object
 	 *
-	 * @param {Record<string, Function|Object>} hooks - Raw hooks configuration
+	 * @param {Record<string, Function|{onEnter: Function}>} hooks - Raw hooks configuration
 	 * @returns {Record<string, {onEnter: Function}>} Normalized hooks
 	 */
 	#normalizeOnEnterHooks(hooks) {
+		/** @type {Record<string, {onEnter: Function} */
 		const normalized = {};
 
 		for (const [state, hook] of Object.entries(hooks)) {
 			if (typeof hook === 'function') {
 				// Simple function -> wrap in object
 				normalized[state] = { onEnter: hook };
-			} else if (hook && typeof hook === 'object' && hook.onEnter) {
+			} else if (hook?.onEnter) {
 				// Already an object with onEnter
 				normalized[state] = hook;
 			}
@@ -253,9 +251,14 @@ export default class PageMachine {
 		const targetState = this.#getStateFromPath(currentPath);
 
 		if (targetState && targetState !== this.#current) {
+			const oldState = this.#current;
 			this.#current = targetState;
 			this.#visitedStates.add(targetState);
 			this.#revision++;
+
+			// Log state transition from URL sync
+			this.logger?.debug(`syncFromPath (url): ${oldState} → ${targetState}`);
+
 			return true;
 		}
 
@@ -286,14 +289,15 @@ export default class PageMachine {
 		this.#visitedStates.add(newState);
 
 		// Log state transition
-		this.logger?.debug(`${oldState} → ${newState}`);
+		this.logger?.debug(`setState: ${oldState} → ${newState}`);
 
 		// Check if this state has an onEnter hook
 		const hookConfig = this.#onEnterHooks[newState];
 		if (hookConfig?.onEnter) {
 			// Create done callback for auto-transition
 			let doneCalled = false;
-			const done = (nextState) => {
+
+			const done = ( /** @type {string} */ nextState) => {
 				if (!doneCalled && nextState && nextState !== newState) {
 					doneCalled = true;
 					this.#isTransitioning = false;
@@ -322,7 +326,8 @@ export default class PageMachine {
 					await handler;
 				}
 			} catch (error) {
-				console.error(`Error in onEnter hook for state ${newState}:`, error);
+				const logger = this.logger ?? console;
+				logger.error(`Error in onEnter hook for state ${newState}:`, error);
 			}
 		}
 
