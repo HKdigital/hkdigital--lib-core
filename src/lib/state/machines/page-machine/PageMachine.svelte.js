@@ -56,6 +56,8 @@
  * machine.abortTransitions();
  * ```
  */
+import { switchToPage } from '$lib/util/sveltekit.js';
+
 export default class PageMachine {
 	/**
 	 * Logger instance for state machine
@@ -252,7 +254,9 @@ export default class PageMachine {
 
 		if (targetState && targetState !== this.#current) {
 			// Log state transition from URL sync
-			this.logger?.debug(`syncFromPath: ${currentPath} → targetState: ${targetState}`);
+			this.logger?.debug(
+				`syncFromPath: ${currentPath} → targetState: ${targetState}`
+			);
 
 			// Use #setState to handle onEnter hooks
 			this.#setState(targetState);
@@ -299,7 +303,7 @@ export default class PageMachine {
 			// Create done callback for auto-transition
 			let doneCalled = false;
 
-			const done = ( /** @type {string} */ nextState) => {
+			const done = (/** @type {string} */ nextState) => {
 				if (!doneCalled && nextState && nextState !== newState) {
 					doneCalled = true;
 					this.#isTransitioning = false;
@@ -365,10 +369,26 @@ export default class PageMachine {
 	 *
 	 * @param {string} state - State name
 	 *
-	 * @returns {string|null} Route path or null if no mapping
+	 * @returns {string} Route path or null if no mapping
 	 */
 	getPathForState(state) {
-		return this.#routeMap[state] || null;
+		const path = this.#routeMap[state];
+
+		if (!path) {
+			throw new Error(`No path found for state [${state}]`);
+		}
+
+		return path;
+	}
+
+	/**
+	 * Navigate to the route path for a given state
+	 *
+	 * @param {string} state - State name
+	 */
+	navigateToState(state) {
+		const path = this.getPathForState(state);
+		switchToPage(path);
 	}
 
 	/**
