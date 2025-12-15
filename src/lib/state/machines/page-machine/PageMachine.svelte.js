@@ -241,7 +241,7 @@ export default class PageMachine {
 	 * Synchronize machine state with URL path
 	 *
 	 * Call this in a $effect that watches $page.url.pathname
-	 * Automatically tracks visited states
+	 * Automatically tracks visited states and triggers onEnter hooks
 	 *
 	 * @param {string} currentPath - Current URL pathname
 	 *
@@ -251,13 +251,11 @@ export default class PageMachine {
 		const targetState = this.#getStateFromPath(currentPath);
 
 		if (targetState && targetState !== this.#current) {
-			// const oldState = this.#current;
-			this.#current = targetState;
-			this.#visitedStates.add(targetState);
-			this.#revision++;
-
 			// Log state transition from URL sync
 			this.logger?.debug(`syncFromPath: ${currentPath} → targetState: ${targetState}`);
+
+			// Use #setState to handle onEnter hooks
+			this.#setState(targetState);
 
 			return true;
 		}
@@ -266,12 +264,16 @@ export default class PageMachine {
 	}
 
 	/**
-	 * Set the current state directly
+	 * Set the current state directly (internal use only)
 	 * Handles onEnter hooks and auto-transitions
+	 *
+	 * Note: This is private to enforce URL-first navigation.
+	 * To change state, navigate to the URL using switchToPage()
+	 * and let syncFromPath() update the state.
 	 *
 	 * @param {string} newState - Target state
 	 */
-	async setState(newState) {
+	async #setState(newState) {
 		if (newState === this.#current || this.#isTransitioning) {
 			return;
 		}
@@ -301,7 +303,7 @@ export default class PageMachine {
 				if (!doneCalled && nextState && nextState !== newState) {
 					doneCalled = true;
 					this.#isTransitioning = false;
-					this.setState(nextState);
+					this.#setState(nextState);
 				}
 			};
 

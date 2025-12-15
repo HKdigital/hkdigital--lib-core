@@ -152,7 +152,7 @@ describe('PageMachine - State Synchronization', () => {
     expect(machine.current).toBe('intro');
   });
 
-  it('should set state directly', () => {
+  it('should sync state via URL path (setState is private)', () => {
     const routeMap = {
       intro: '/puzzle/intro',
       level1: '/puzzle/level1'
@@ -160,7 +160,8 @@ describe('PageMachine - State Synchronization', () => {
 
     const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
 
-    machine.setState('level1');
+    // setState is now private - use syncFromPath instead
+    machine.syncFromPath('/puzzle/level1');
     expect(machine.current).toBe('level1');
   });
 });
@@ -378,7 +379,9 @@ describe('PageMachine - onEnter Hooks', () => {
       }
     });
 
-    await machine.setState('animate');
+    machine.syncFromPath('/game/animate');
+    // Wait for async setState
+    await new Promise(resolve => setTimeout(resolve, 10));
 
     expect(onEnterMock).toHaveBeenCalled();
   });
@@ -399,7 +402,9 @@ describe('PageMachine - onEnter Hooks', () => {
       }
     });
 
-    await machine.setState('animate');
+    machine.syncFromPath('/game/animate');
+    // Wait for async setState
+    await new Promise(resolve => setTimeout(resolve, 10));
 
     expect(receivedDone).toBeInstanceOf(Function);
   });
@@ -414,16 +419,18 @@ describe('PageMachine - onEnter Hooks', () => {
       },
       onEnterHooks: {
         animate: (done) => {
-          setTimeout(() => done('play'), 10);
+          setTimeout(() => done('play'), 20);
         }
       }
     });
 
-    await machine.setState('animate');
+    machine.syncFromPath('/game/animate');
+    // Wait for async setState (just a bit to ensure we catch it before done)
+    await new Promise(resolve => setTimeout(resolve, 5));
     expect(machine.current).toBe('animate');
 
-    // Wait for done to be called
-    await new Promise(resolve => setTimeout(resolve, 20));
+    // Wait for done to be called (20ms for callback + 5ms buffer)
+    await new Promise(resolve => setTimeout(resolve, 25));
 
     expect(machine.current).toBe('play');
   });
@@ -448,7 +455,9 @@ describe('PageMachine - onEnter Hooks', () => {
       }
     });
 
-    await machine.setState('animate');
+    machine.syncFromPath('/game/animate');
+    // Wait for async setState
+    await new Promise(resolve => setTimeout(resolve, 10));
 
     expect(machine.canAbortTransitions).toBe(true);
     expect(machine.canCompleteTransitions).toBe(true);
@@ -476,10 +485,14 @@ describe('PageMachine - onEnter Hooks', () => {
       }
     });
 
-    await machine.setState('animate');
+    machine.syncFromPath('/game/animate');
+    // Wait for async setState
+    await new Promise(resolve => setTimeout(resolve, 10));
     expect(abortMock).not.toHaveBeenCalled();
 
-    await machine.setState('play');
+    machine.syncFromPath('/game/play');
+    // Wait for async setState
+    await new Promise(resolve => setTimeout(resolve, 10));
     expect(abortMock).toHaveBeenCalled();
   });
 
@@ -507,7 +520,9 @@ describe('PageMachine - onEnter Hooks', () => {
       }
     });
 
-    await machine.setState('animate');
+    machine.syncFromPath('/game/animate');
+    // Wait for async setState
+    await new Promise(resolve => setTimeout(resolve, 10));
     expect(machine.current).toBe('animate');
 
     // Fast-forward by calling complete
@@ -550,7 +565,9 @@ describe('PageMachine - onEnter Hooks', () => {
       }
     });
 
-    await machine.setState('animate');
+    machine.syncFromPath('/game/animate');
+    // Wait for async setState
+    await new Promise(resolve => setTimeout(resolve, 10));
     expect(machine.current).toBe('animate');
 
     // Call abort
@@ -578,7 +595,9 @@ describe('PageMachine - Transition Control', () => {
 
     expect(machine.canAbortTransitions).toBe(false);
 
-    await machine.setState('animate');
+    machine.syncFromPath('/game/animate');
+    // Wait for async setState
+    await new Promise(resolve => setTimeout(resolve, 10));
 
     expect(machine.canAbortTransitions).toBe(true);
   });
@@ -601,7 +620,9 @@ describe('PageMachine - Transition Control', () => {
 
     expect(machine.canCompleteTransitions).toBe(false);
 
-    await machine.setState('animate');
+    machine.syncFromPath('/game/animate');
+    // Wait for async setState
+    await new Promise(resolve => setTimeout(resolve, 10));
 
     expect(machine.canCompleteTransitions).toBe(true);
   });
@@ -623,7 +644,9 @@ describe('PageMachine - Transition Control', () => {
       }
     });
 
-    await machine.setState('animate');
+    machine.syncFromPath('/game/animate');
+    // Wait for async setState
+    await new Promise(resolve => setTimeout(resolve, 10));
     expect(machine.canAbortTransitions).toBe(true);
 
     machine.abortTransitions();
@@ -649,7 +672,9 @@ describe('PageMachine - Transition Control', () => {
       }
     });
 
-    await machine.setState('animate');
+    machine.syncFromPath('/game/animate');
+    // Wait for async setState
+    await new Promise(resolve => setTimeout(resolve, 10));
     expect(machine.canCompleteTransitions).toBe(true);
 
     machine.completeTransitions();
