@@ -158,6 +158,8 @@
 {/snippet} -->
 
 <fieldset
+  data-component="text-input"
+  data-type="text"
   data-input="text-input"
   class="{base} {borderShape} {classes} {stateClasses}"
 >
