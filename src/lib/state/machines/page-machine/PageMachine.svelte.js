@@ -251,13 +251,13 @@ export default class PageMachine {
 		const targetState = this.#getStateFromPath(currentPath);
 
 		if (targetState && targetState !== this.#current) {
-			const oldState = this.#current;
+			// const oldState = this.#current;
 			this.#current = targetState;
 			this.#visitedStates.add(targetState);
 			this.#revision++;
 
 			// Log state transition from URL sync
-			this.logger?.debug(`syncFromPath (url): ${oldState} → ${targetState}`);
+			this.logger?.debug(`syncFromPath: ${currentPath} → targetState: ${targetState}`);
 
 			return true;
 		}

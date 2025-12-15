@@ -32,8 +32,6 @@
  * logger.setLevel(DEBUG); // Now debug messages will also be logged
  */
 
-/** @typedef {import('$lib/generic/typedef.js').ErrorDetails} ErrorDetails */
-
 import * as expect from '$lib/util/expect.js';
 
 import { EventEmitter } from '$lib/generic/events.js';
@@ -60,6 +58,11 @@ import { exportNotNullish } from '$lib/util/object.js';
 
 import * as is from '$lib/util/is.js';
 import { HttpError } from '$lib/network/errors.js';
+
+/** @typedef {import('$lib/generic/typedef.js').ErrorDetails} ErrorDetails */
+
+/** @typedef {import('$lib/logging/typedef.js').LogEvent} LogEvent */
+/** @typedef {import('$lib/logging/typedef.js').LogEventData} LogEventData */
 
 /** @typedef {import('$lib/logging/typedef.js').LogLevel} LogLevel */
 
@@ -220,7 +223,7 @@ export default class Logger extends EventEmitter {
   }
 
   /**
-   * Create a child logger with additional context
+   * New logger with same name, namespaced context, no event forwarding
    *
    * @param {string} namespace
    *   Namespace of the context (needed for chaining contexts)
@@ -242,12 +245,45 @@ export default class Logger extends EventEmitter {
   }
 
   /**
+   * Create a child logger that emits events on the current logger
+   *
+   * @param {string} name
+   *   Child logger name (will be appended to parent name)
+   *
+   * @param {object} [options]
+   * @param {LogLevel} [options.level] - Child logger log level
+   *
+   * @returns {Logger} New child logger instance
+   */
+  child(name, { level } = {}) {
+    if (typeof name !== 'string') {
+      throw new Error('Invalid child logger name');
+    }
+
+    const context = {
+      ...this.#defaultContext
+    };
+
+    const childName = `${this.name}:${name}`;
+
+    const child = new Logger(childName, level ?? this.level, context);
+
+    // Forward all log events from child to parent
+    child.on(LOG, ( /** @type {LogEvent} */ logEvent) => {
+      this.emit(logEvent.level, logEvent);
+      this.emit(LOG, logEvent);
+    });
+
+    return child;
+  }
+
+  /**
    * Log an LogEvent emitted by an event emitter
    *
    * E.g. an event that was created by another Logger instance and should be
    * forwarded to this logger.
    *
-   * @param {import('$lib/logging/typedef.js').LogEventData} eventData
+   * @param {LogEventData} eventData
    */
   logFromEvent(eventData) {
     expect.object(eventData);
@@ -295,9 +331,9 @@ export default class Logger extends EventEmitter {
   }
 
   /**
-   * Internal event loggin method
+   * Internal event logging method
    *
-   * @param {import('$lib/logging/typedef.js').LogEvent} logEvent
+   * @param {LogEvent} logEvent
    */
   #logEvent(logEvent) {
     // Emit as both specific level event and generic 'log' event
@@ -344,6 +380,7 @@ export default class Logger extends EventEmitter {
         'colno'
       ]);
 
+      // @ts-ignore
       errorEventDetails.type = 'ErrorEvent';
 
       let cause = errorEvent.error;

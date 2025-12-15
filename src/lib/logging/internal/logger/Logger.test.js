@@ -149,6 +149,120 @@ describe('Logger', () => {
       logger.context(123, { data: 'test' });
     }).toThrow('Invalid namespace');
   });
+
+  it('should create a child logger that forwards events to parent', () => {
+    const parentLogHandler = vi.fn();
+    const parentInfoHandler = vi.fn();
+
+    logger.on(LOG, parentLogHandler);
+    logger.on(INFO, parentInfoHandler);
+
+    const childLogger = logger.child('database');
+
+    // Verify child logger properties
+    expect(childLogger).toBeInstanceOf(Logger);
+    expect(childLogger.name).toBe('testService:database');
+    expect(childLogger.level).toBe(INFO);
+
+    // Log from child
+    childLogger.info('Query executed');
+
+    // Parent handlers should receive the child's log
+    expect(parentLogHandler).toHaveBeenCalledTimes(1);
+    expect(parentInfoHandler).toHaveBeenCalledTimes(1);
+
+    const logEvent = parentLogHandler.mock.calls[0][0];
+    expect(logEvent.source).toBe('testService:database');
+    expect(logEvent.message).toBe('Query executed');
+  });
+
+  it('should allow child logger to have different log level', () => {
+    const parentLogHandler = vi.fn();
+
+    logger.on(LOG, parentLogHandler);
+    logger.setLevel(WARN); // Parent at WARN level
+
+    const childLogger = logger.child('debugger', { level: DEBUG });
+
+    expect(childLogger.level).toBe(DEBUG);
+
+    // Child can log at DEBUG level
+    childLogger.debug('Debug message');
+
+    // Parent should receive it (forwarding happens regardless of parent level)
+    expect(parentLogHandler).toHaveBeenCalledTimes(1);
+
+    const logEvent = parentLogHandler.mock.calls[0][0];
+    expect(logEvent.level).toBe(DEBUG);
+  });
+
+  it('should inherit parent context', () => {
+    const parentWithContext = new Logger('api', INFO, {
+      environment: 'production'
+    });
+    const parentLogHandler = vi.fn();
+
+    parentWithContext.on(LOG, parentLogHandler);
+
+    const childLogger = parentWithContext.child('auth');
+
+    childLogger.info('User logged in');
+
+    expect(parentLogHandler).toHaveBeenCalledTimes(1);
+    const logEvent = parentLogHandler.mock.calls[0][0];
+
+    expect(logEvent.context).toEqual({
+      environment: 'production'
+    });
+  });
+
+  it('should throw error for invalid child logger name', () => {
+    expect(() => {
+      logger.child(123);
+    }).toThrow('Invalid child logger name');
+
+    expect(() => {
+      logger.child(null);
+    }).toThrow('Invalid child logger name');
+  });
+
+  it('should support multiple child loggers from same parent', () => {
+    const parentLogHandler = vi.fn();
+    logger.on(LOG, parentLogHandler);
+
+    const dbLogger = logger.child('database');
+    const cacheLogger = logger.child('cache');
+
+    dbLogger.info('Database connected');
+    cacheLogger.warn('Cache miss');
+
+    expect(parentLogHandler).toHaveBeenCalledTimes(2);
+
+    const firstLog = parentLogHandler.mock.calls[0][0];
+    const secondLog = parentLogHandler.mock.calls[1][0];
+
+    expect(firstLog.source).toBe('testService:database');
+    expect(firstLog.level).toBe(INFO);
+
+    expect(secondLog.source).toBe('testService:cache');
+    expect(secondLog.level).toBe(WARN);
+  });
+
+  it('should support nested child loggers', () => {
+    const rootLogHandler = vi.fn();
+    logger.on(LOG, rootLogHandler);
+
+    const childLogger = logger.child('module');
+    const grandchildLogger = childLogger.child('submodule');
+
+    grandchildLogger.info('Nested log message');
+
+    // Both child and root should receive the log
+    expect(rootLogHandler).toHaveBeenCalledTimes(1);
+
+    const logEvent = rootLogHandler.mock.calls[0][0];
+    expect(logEvent.source).toBe('testService:module:submodule');
+  });
 });
 
 /**
