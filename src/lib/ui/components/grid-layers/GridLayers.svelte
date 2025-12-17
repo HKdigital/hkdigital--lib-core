@@ -59,5 +59,6 @@
   /* All direct children occupy the same grid area */
   div > :global(*) {
     grid-area: 1 / 1;
+    position: relative;
   }
 </style>
