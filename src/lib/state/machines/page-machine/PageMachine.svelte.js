@@ -517,6 +517,22 @@ export default class PageMachine {
 	}
 
 	/**
+	 * Check if the start state has been visited
+	 *
+	 * @returns {boolean} True if the start state has been visited
+	 *
+	 * @example
+	 * ```javascript
+	 * if (machine.hasVisitedStart) {
+	 *   // User has been to the start page
+	 * }
+	 * ```
+	 */
+	get hasVisitedStart() {
+		return this.hasVisited(this.#startState);
+	}
+
+	/**
 	 * Get all visited states
 	 *
 	 * @returns {string[]} Array of visited state names

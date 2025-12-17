@@ -331,6 +331,32 @@ describe('PageMachine - Visited States', () => {
     expect(machine.hasVisited('level1')).toBe(false);
     expect(machine.hasVisited('intro')).toBe(false);
   });
+
+  it('should check if start state has been visited', () => {
+    const routeMap = {
+      intro: '/puzzle/intro',
+      level1: '/puzzle/level1',
+      level2: '/puzzle/level2'
+    };
+
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routeMap });
+
+    // Start state is always visited initially
+    expect(machine.hasVisitedStart).toBe(true);
+
+    // Navigate away from start
+    machine.syncFromPath('/puzzle/level1');
+    expect(machine.hasVisitedStart).toBe(true);
+
+    // Reset and navigate away without returning to start
+    machine.resetVisitedStates();
+    expect(machine.current).toBe('level1');
+    expect(machine.hasVisitedStart).toBe(false);
+
+    // Navigate back to start
+    machine.syncFromPath('/puzzle/intro');
+    expect(machine.hasVisitedStart).toBe(true);
+  });
 });
 
 describe('PageMachine - Extended Example', () => {
