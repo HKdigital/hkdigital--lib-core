@@ -195,8 +195,17 @@ export default class PageMachine {
 		this.#data = initialData;
 		this.#onEnterHooks = this.#normalizeOnEnterHooks(onEnterHooks);
 
-		// Build reverse map (path -> state)
+		// Build reverse map (path -> state) and validate no duplicates
 		for (const [state, path] of Object.entries(routeMap)) {
+			// Check if this path is already mapped to a different state
+			const existingState = this.#pathToStateMap[path];
+			if (existingState && existingState !== state) {
+				throw new Error(
+					`PageMachine: Duplicate route mapping detected. ` +
+					`Path "${path}" is mapped to both "${existingState}" and "${state}". ` +
+					`Each route path must map to exactly one state.`
+				);
+			}
 			this.#pathToStateMap[path] = state;
 		}
 

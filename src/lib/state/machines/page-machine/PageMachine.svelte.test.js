@@ -41,6 +41,23 @@ describe('PageMachine - Basic Tests', () => {
     }).toThrow('PageMachine: startPath "/puzzle/nonexistent" not found in routeMap');
   });
 
+  it('should throw error if multiple states share same route', () => {
+    expect(() => {
+      new PageMachine({
+        startPath: '/puzzle/intro',
+        routeMap: {
+          intro: '/puzzle/intro',
+          start: '/puzzle/intro',
+          level1: '/puzzle/level1'
+        }
+      });
+    }).toThrow(
+      'PageMachine: Duplicate route mapping detected. ' +
+      'Path "/puzzle/intro" is mapped to both "intro" and "start". ' +
+      'Each route path must map to exactly one state.'
+    );
+  });
+
   it('should initialize with initial data', () => {
     const machine = new PageMachine({
       startPath: '/puzzle/intro',
