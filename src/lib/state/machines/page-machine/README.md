@@ -91,7 +91,12 @@ export class PuzzleState extends PageMachine {
         ROUTE_LEVEL1,
         ROUTE_LEVEL2,
         ROUTE_COMPLETE
-      ]
+      ],
+      initialData: {
+        [KEY_TUTORIAL_SEEN]: false,
+        [KEY_HIGHEST_LEVEL]: 1,
+        [KEY_DIFFICULTY]: 'normal'
+      }
     });
 
     this.#gameLogic = new PuzzleGameLogic();
@@ -293,15 +298,26 @@ Use PageMachine's data properties for **persistent settings and progress**:
 - ✅ Settings that survive page navigation
 - ✅ Data that might be saved to server
 
+**IMPORTANT**: Use KEY_ constants for data keys to get:
+- ✅ Autocomplete support
+- ✅ Typo prevention
+- ✅ Easy refactoring
+- ✅ Self-documenting code
+
 ```javascript
+// Define constants (at top of file)
 const KEY_TUTORIAL_SEEN = 'tutorial-seen';
 const KEY_DIFFICULTY = 'difficulty';
 const KEY_HIGHEST_LEVEL = 'highest-level';
 
-// Persistent data
-pageMachine.setData(KEY_TUTORIAL_SEEN, true);
-pageMachine.setData(KEY_DIFFICULTY, 'hard');
-pageMachine.setData(KEY_HIGHEST_LEVEL, 5);
+// Use constants (not strings!)
+pageMachine.setData(KEY_TUTORIAL_SEEN, true);       // ✅ Good
+pageMachine.setData(KEY_DIFFICULTY, 'hard');        // ✅ Good
+pageMachine.setData(KEY_HIGHEST_LEVEL, 5);          // ✅ Good
+
+// DON'T use magic strings
+pageMachine.setData('tutorial-seen', true);         // ❌ Avoid
+pageMachine.setData('TUTORIAL_SEEN', true);         // ❌ Avoid
 ```
 
 ### When to use GameLogic with `$state`

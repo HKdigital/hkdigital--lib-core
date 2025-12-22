@@ -7,14 +7,28 @@
  * Features:
  * - Current route tracking and synchronization
  * - Start path management
- * - Data properties for business/domain state
- * - Visited routes tracking
+ * - Data properties for business/domain state (using SvelteMap)
+ * - Visited routes tracking (using SvelteSet)
+ * - Fine-grained reactivity without manual revision tracking
+ *
+ * Best practices:
+ * - Use constants for routes: `const ROUTE_INTRO = '/intro/start'`
+ * - Use KEY_ constants for data: `const KEY_SCORE = 'score'`
  *
  * Basic usage:
  * ```javascript
+ * // Define constants
+ * const ROUTE_INTRO = '/intro/start';
+ * const KEY_SCORE = 'score';
+ * const KEY_TUTORIAL_SEEN = 'tutorial-seen';
+ *
  * const machine = new PageMachine({
- *   startPath: '/intro/start',
- *   routes: ['/intro/start', '/intro/profile', '/intro/complete']
+ *   startPath: ROUTE_INTRO,
+ *   routes: [ROUTE_INTRO, '/intro/profile', '/intro/complete'],
+ *   initialData: {
+ *     [KEY_SCORE]: 0,
+ *     [KEY_TUTORIAL_SEEN]: false
+ *   }
  * });
  *
  * // Sync machine with URL changes
@@ -22,10 +36,18 @@
  *   machine.syncFromPath($page.url.pathname);
  * });
  *
- * // Check current route
- * if (machine.current === '/intro/profile') {
- *   // Do something
- * }
+ * // Check current route (reactive)
+ * $effect(() => {
+ *   if (machine.current === ROUTE_INTRO) {
+ *     console.log('On intro page');
+ *   }
+ * });
+ *
+ * // Access data (reactive, fine-grained)
+ * $effect(() => {
+ *   const score = machine.getData(KEY_SCORE);
+ *   console.log('Score changed:', score);
+ * });
  * ```
  *
  * Animations and page-specific logic should use $effect in pages:
@@ -40,6 +62,8 @@
  * });
  * ```
  */
+import { SvelteMap, SvelteSet } from 'svelte/reactivity';
+
 export default class PageMachine {
 	/**
 	 * Logger instance
@@ -67,25 +91,18 @@ export default class PageMachine {
 	#routes = [];
 
 	/**
-	 * Data properties for business/domain state
-	 * Can be initialized from server and synced back
-	 * @type {Record<string, any>}
+	 * Reactive map for business/domain data
+	 * Uses SvelteMap for fine-grained reactivity
+	 * @type {SvelteMap<string, any>}
 	 */
-	#data = $state({});
+	#data;
 
 	/**
-	 * Track which routes have been visited during this session
-	 * Useful for showing first-time hints/tips
-	 * @type {Set<string>}
+	 * Reactive set for visited routes
+	 * Uses SvelteSet for automatic reactivity
+	 * @type {SvelteSet<string>}
 	 */
-	// eslint-disable-next-line svelte/prefer-svelte-reactivity
-	#visitedRoutes = new Set();
-
-	/**
-	 * Revision counter for triggering reactivity
-	 * @type {number}
-	 */
-	#revision = $state(0);
+	#visitedRoutes;
 
 	/**
 	 * Constructor
@@ -96,17 +113,22 @@ export default class PageMachine {
 	 * @param {string[]} [config.routes=[]]
 	 *   Optional list of valid routes (for validation/dev tools)
 	 * @param {Record<string, any>} [config.initialData={}]
-	 *   Initial data properties (from server)
+	 *   Initial data properties (use KEY_ constants for keys)
 	 * @param {import('$lib/logging/client.js').Logger} [config.logger]
 	 *   Logger instance (optional)
 	 *
 	 * @example
 	 * ```javascript
+	 * const ROUTE_INTRO = '/intro/start';
+	 * const KEY_INTRO_COMPLETED = 'intro-completed';
+	 * const KEY_SCORE = 'score';
+	 *
 	 * const machine = new PageMachine({
-	 *   startPath: '/intro/start',
-	 *   routes: ['/intro/start', '/intro/profile'],
+	 *   startPath: ROUTE_INTRO,
+	 *   routes: [ROUTE_INTRO, '/intro/profile'],
 	 *   initialData: {
-	 *     INTRO_COMPLETED: false
+	 *     [KEY_INTRO_COMPLETED]: false,
+	 *     [KEY_SCORE]: 0
 	 *   }
 	 * });
 	 * ```
@@ -119,8 +141,16 @@ export default class PageMachine {
 		this.logger = logger;
 		this.#startPath = startPath;
 		this.#routes = routes;
-		this.#data = initialData;
 		this.#current = startPath;
+
+		// Initialize reactive data structures
+		this.#data = new SvelteMap();
+		this.#visitedRoutes = new SvelteSet();
+
+		// Populate initial data
+		for (const [key, value] of Object.entries(initialData)) {
+			this.#data.set(key, value);
+		}
 
 		// Mark start path as visited
 		this.#visitedRoutes.add(startPath);
@@ -146,7 +176,6 @@ export default class PageMachine {
 			const oldRoute = this.#current;
 			this.#current = matchedRoute;
 			this.#visitedRoutes.add(matchedRoute);
-			this.#revision++;
 
 			this.logger?.debug(`Route changed: ${oldRoute} → ${matchedRoute}`);
 
@@ -208,43 +237,59 @@ export default class PageMachine {
 	/**
 	 * Set a data property value
 	 *
-	 * @param {string} key - Property key
+	 * Automatically reactive - effects watching this key will re-run.
+	 * Uses fine-grained reactivity, so only effects watching this specific
+	 * key will be triggered.
+	 *
+	 * @param {string} key - Property key (use KEY_ constant)
 	 * @param {any} value - Property value
 	 *
 	 * @example
 	 * ```javascript
-	 * machine.setData('HAS_STRONG_PROFILE', true);
-	 * machine.setData('PROFILE_SCORE', 85);
+	 * const KEY_HAS_STRONG_PROFILE = 'has-strong-profile';
+	 * const KEY_PROFILE_SCORE = 'profile-score';
+	 *
+	 * machine.setData(KEY_HAS_STRONG_PROFILE, true);
+	 * machine.setData(KEY_PROFILE_SCORE, 85);
 	 * ```
 	 */
 	setData(key, value) {
-		this.#data[key] = value;
-		this.#revision++;
+		this.#data.set(key, value);
 	}
 
 	/**
 	 * Get a data property value
 	 *
-	 * @param {string} key - Property key
+	 * Automatically reactive - creates a dependency on this specific key.
+	 * The effect will only re-run when THIS key changes, not when other
+	 * keys change.
+	 *
+	 * @param {string} key - Property key (use KEY_ constant)
 	 *
 	 * @returns {any} Property value or undefined
 	 *
 	 * @example
 	 * ```javascript
-	 * const hasProfile = machine.getData('HAS_STRONG_PROFILE');
-	 * const score = machine.getData('PROFILE_SCORE');
+	 * const KEY_SCORE = 'score';
+	 *
+	 * // Reactive - re-runs only when KEY_SCORE changes
+	 * $effect(() => {
+	 *   const score = machine.getData(KEY_SCORE);
+	 *   console.log('Score:', score);
+	 * });
 	 * ```
 	 */
 	getData(key) {
-		// Access revision to ensure reactivity
-		this.#revision;
-		return this.#data[key];
+		return this.#data.get(key);
 	}
 
 	/**
-	 * Get all data properties
+	 * Get all data properties as plain object
 	 *
-	 * @returns {Record<string, any>} Copy of all data
+	 * Note: This returns a snapshot (plain object), not a reactive map.
+	 * Use this for serialization or server sync, not for reactive tracking.
+	 *
+	 * @returns {Record<string, any>} Plain object with all data
 	 *
 	 * @example
 	 * ```javascript
@@ -253,31 +298,93 @@ export default class PageMachine {
 	 * ```
 	 */
 	getAllData() {
-		// Access revision to ensure reactivity
-		this.#revision;
-		return { ...this.#data };
+		return Object.fromEntries(this.#data);
 	}
 
 	/**
 	 * Update multiple data properties at once
 	 *
+	 * Each property update triggers fine-grained reactivity.
+	 *
 	 * @param {Record<string, any>} dataUpdates
-	 *   Object with key-value pairs
+	 *   Object with key-value pairs (use KEY_ constants for keys)
 	 *
 	 * @example
 	 * ```javascript
+	 * const KEY_HAS_STRONG_PROFILE = 'has-strong-profile';
+	 * const KEY_PROFILE_SCORE = 'profile-score';
+	 * const KEY_MATCHED_SECTOR = 'matched-sector';
+	 *
 	 * machine.updateData({
-	 *   HAS_STRONG_PROFILE: true,
-	 *   PROFILE_SCORE: 85,
-	 *   MATCHED_SECTOR: 'technology'
+	 *   [KEY_HAS_STRONG_PROFILE]: true,
+	 *   [KEY_PROFILE_SCORE]: 85,
+	 *   [KEY_MATCHED_SECTOR]: 'technology'
 	 * });
 	 * ```
 	 */
 	updateData(dataUpdates) {
 		for (const [key, value] of Object.entries(dataUpdates)) {
-			this.#data[key] = value;
+			this.#data.set(key, value);
 		}
-		this.#revision++;
+	}
+
+	/**
+	 * Delete a data property
+	 *
+	 * @param {string} key - Property key to delete (use KEY_ constant)
+	 *
+	 * @returns {boolean} True if the key existed and was deleted
+	 *
+	 * @example
+	 * ```javascript
+	 * const KEY_TEMPORARY_FLAG = 'temporary-flag';
+	 *
+	 * machine.deleteData(KEY_TEMPORARY_FLAG);
+	 * ```
+	 */
+	deleteData(key) {
+		return this.#data.delete(key);
+	}
+
+	/**
+	 * Check if data property exists
+	 *
+	 * @param {string} key - Property key to check (use KEY_ constant)
+	 *
+	 * @returns {boolean} True if the key exists
+	 *
+	 * @example
+	 * ```javascript
+	 * const KEY_TUTORIAL_SEEN = 'tutorial-seen';
+	 *
+	 * if (machine.hasData(KEY_TUTORIAL_SEEN)) {
+	 *   // Skip tutorial
+	 * }
+	 * ```
+	 */
+	hasData(key) {
+		return this.#data.has(key);
+	}
+
+	/**
+	 * Clear all data properties
+	 *
+	 * @example
+	 * ```javascript
+	 * machine.clearData();  // Reset all game data
+	 * ```
+	 */
+	clearData() {
+		this.#data.clear();
+	}
+
+	/**
+	 * Get number of data properties
+	 *
+	 * @returns {number} Number of data entries
+	 */
+	get dataSize() {
+		return this.#data.size;
 	}
 
 	/* ===== Visited Routes Tracking ===== */
@@ -285,20 +392,23 @@ export default class PageMachine {
 	/**
 	 * Check if a route has been visited
 	 *
+	 * Automatically reactive - creates a dependency on the visited routes set.
+	 *
 	 * @param {string} route - Route path to check
 	 *
 	 * @returns {boolean} True if the route has been visited
 	 *
 	 * @example
 	 * ```javascript
-	 * if (machine.hasVisited('/intro/profile')) {
-	 *   // User has seen profile page, skip intro
-	 * }
+	 * // Reactive - re-runs when visited routes change
+	 * $effect(() => {
+	 *   if (machine.hasVisited('/intro/profile')) {
+	 *     console.log('User has seen profile page');
+	 *   }
+	 * });
 	 * ```
 	 */
 	hasVisited(route) {
-		// Access revision to ensure reactivity
-		this.#revision;
 		return this.#visitedRoutes.has(route);
 	}
 
@@ -319,24 +429,38 @@ export default class PageMachine {
 	}
 
 	/**
-	 * Get all visited routes
+	 * Get all visited routes as array
+	 *
+	 * Note: Returns a snapshot (plain array), not reactive.
 	 *
 	 * @returns {string[]} Array of visited route paths
 	 */
 	getVisitedRoutes() {
-		// Access revision to ensure reactivity
-		this.#revision;
 		return Array.from(this.#visitedRoutes);
 	}
 
 	/**
 	 * Reset visited routes tracking
-	 * Useful for testing or resetting experience
+	 *
+	 * Clears all visited routes and marks only the current route as visited.
+	 *
+	 * @example
+	 * ```javascript
+	 * machine.resetVisitedRoutes();  // Reset progress tracking
+	 * ```
 	 */
 	resetVisitedRoutes() {
 		this.#visitedRoutes.clear();
 		this.#visitedRoutes.add(this.#current);
-		this.#revision++;
+	}
+
+	/**
+	 * Get number of visited routes
+	 *
+	 * @returns {number} Number of routes visited
+	 */
+	get visitedRoutesCount() {
+		return this.#visitedRoutes.size;
 	}
 
 	/* ===== Start Path Methods ===== */

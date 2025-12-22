@@ -1,8 +1,19 @@
 // @vitest-environment jsdom
 
 import { describe, it, expect } from 'vitest';
+import { flushSync } from 'svelte';
 
 import PageMachine from './PageMachine.svelte.js';
+
+// Data key constants (best practice - use KEY_ prefix)
+const KEY_SCORE = 'score';
+const KEY_LEVEL = 'level';
+const KEY_COMPLETED = 'completed';
+const KEY_PLAYER_NAME = 'player-name';
+const KEY_TUTORIAL_SEEN = 'tutorial-seen';
+const KEY_LEVELS_COMPLETED = 'levels-completed';
+const KEY_TEMP = 'temp';
+const KEY_OTHER_DATA = 'other-data';
 
 describe('PageMachine - Basic Tests', () => {
   it('should initialize with start path', () => {
@@ -37,13 +48,13 @@ describe('PageMachine - Basic Tests', () => {
       startPath: '/puzzle/intro',
       routes: ['/puzzle/intro'],
       initialData: {
-        SCORE: 0,
-        LEVEL_COMPLETED: false
+        [KEY_SCORE]: 0,
+        [KEY_COMPLETED]: false
       }
     });
 
-    expect(machine.getData('SCORE')).toBe(0);
-    expect(machine.getData('LEVEL_COMPLETED')).toBe(false);
+    expect(machine.getData(KEY_SCORE)).toBe(0);
+    expect(machine.getData(KEY_COMPLETED)).toBe(false);
   });
 
   it('should provide routes list', () => {
@@ -109,51 +120,108 @@ describe('PageMachine - Data Properties', () => {
   it('should set and get data properties', () => {
     const machine = new PageMachine({ startPath: '/puzzle/intro' });
 
-    machine.setData('SCORE', 100);
-    expect(machine.getData('SCORE')).toBe(100);
+    machine.setData(KEY_SCORE, 100);
+    expect(machine.getData(KEY_SCORE)).toBe(100);
 
-    machine.setData('PLAYER_NAME', 'Alice');
-    expect(machine.getData('PLAYER_NAME')).toBe('Alice');
+    machine.setData(KEY_PLAYER_NAME, 'Alice');
+    expect(machine.getData(KEY_PLAYER_NAME)).toBe('Alice');
   });
 
   it('should update multiple data properties', () => {
     const machine = new PageMachine({ startPath: '/puzzle/intro' });
 
     machine.updateData({
-      SCORE: 100,
-      LEVEL: 5,
-      COMPLETED: true
+      [KEY_SCORE]: 100,
+      [KEY_LEVEL]: 5,
+      [KEY_COMPLETED]: true
     });
 
-    expect(machine.getData('SCORE')).toBe(100);
-    expect(machine.getData('LEVEL')).toBe(5);
-    expect(machine.getData('COMPLETED')).toBe(true);
+    expect(machine.getData(KEY_SCORE)).toBe(100);
+    expect(machine.getData(KEY_LEVEL)).toBe(5);
+    expect(machine.getData(KEY_COMPLETED)).toBe(true);
   });
 
   it('should get all data properties', () => {
-    const initialData = {
-      SCORE: 0,
-      LEVEL: 1
-    };
-
     const machine = new PageMachine({
       startPath: '/puzzle/intro',
-      initialData
+      initialData: {
+        [KEY_SCORE]: 0,
+        [KEY_LEVEL]: 1
+      }
     });
 
-    machine.setData('COMPLETED', false);
+    machine.setData(KEY_COMPLETED, false);
 
     const allData = machine.getAllData();
     expect(allData).toEqual({
-      SCORE: 0,
-      LEVEL: 1,
-      COMPLETED: false
+      [KEY_SCORE]: 0,
+      [KEY_LEVEL]: 1,
+      [KEY_COMPLETED]: false
     });
   });
 
   it('should return undefined for nonexistent data properties', () => {
     const machine = new PageMachine({ startPath: '/puzzle/intro' });
-    expect(machine.getData('NONEXISTENT')).toBe(undefined);
+    const KEY_NONEXISTENT = 'nonexistent';
+    expect(machine.getData(KEY_NONEXISTENT)).toBe(undefined);
+  });
+
+  it('should delete data properties', () => {
+    const machine = new PageMachine({ startPath: '/puzzle/intro' });
+
+    machine.setData(KEY_TEMP, 'value');
+    expect(machine.hasData(KEY_TEMP)).toBe(true);
+
+    const deleted = machine.deleteData(KEY_TEMP);
+    expect(deleted).toBe(true);
+    expect(machine.hasData(KEY_TEMP)).toBe(false);
+  });
+
+  it('should check if data properties exist', () => {
+    const machine = new PageMachine({ startPath: '/puzzle/intro' });
+
+    expect(machine.hasData(KEY_SCORE)).toBe(false);
+
+    machine.setData(KEY_SCORE, 100);
+    expect(machine.hasData(KEY_SCORE)).toBe(true);
+  });
+
+  it('should clear all data properties', () => {
+    const KEY_A = 'a';
+    const KEY_B = 'b';
+    const KEY_C = 'c';
+
+    const machine = new PageMachine({
+      startPath: '/puzzle/intro',
+      initialData: {
+        [KEY_A]: 1,
+        [KEY_B]: 2,
+        [KEY_C]: 3
+      }
+    });
+
+    expect(machine.dataSize).toBe(3);
+
+    machine.clearData();
+    expect(machine.dataSize).toBe(0);
+    expect(machine.hasData(KEY_A)).toBe(false);
+  });
+
+  it('should track data size', () => {
+    const KEY_A = 'a';
+    const KEY_B = 'b';
+    const machine = new PageMachine({ startPath: '/puzzle/intro' });
+
+    expect(machine.dataSize).toBe(0);
+
+    machine.setData(KEY_A, 1);
+    expect(machine.dataSize).toBe(1);
+
+    machine.setData(KEY_B, 2);
+    expect(machine.dataSize).toBe(2);
+
+    machine.deleteData(KEY_A);
+    expect(machine.dataSize).toBe(1);
   });
 });
 
@@ -233,6 +301,193 @@ describe('PageMachine - Visited Routes', () => {
     machine.syncFromPath('/puzzle/intro');
     expect(machine.hasVisitedStart).toBe(true);
   });
+
+  it('should track visited routes count', () => {
+    const routes = ['/puzzle/intro', '/puzzle/level1', '/puzzle/level2'];
+    const machine = new PageMachine({ startPath: '/puzzle/intro', routes });
+
+    expect(machine.visitedRoutesCount).toBe(1);
+
+    machine.syncFromPath('/puzzle/level1');
+    expect(machine.visitedRoutesCount).toBe(2);
+
+    machine.syncFromPath('/puzzle/level2');
+    expect(machine.visitedRoutesCount).toBe(3);
+  });
+});
+
+describe('PageMachine - Reactivity Tests', () => {
+  it('should trigger effect when data changes (fine-grained)', () => {
+    const machine = new PageMachine({ startPath: '/test' });
+    let effectRunCount = 0;
+    let lastScoreValue = null;
+
+    // Create effect watching SCORE
+    const cleanup = $effect.root(() => {
+      $effect(() => {
+        lastScoreValue = machine.getData(KEY_SCORE);
+        effectRunCount++;
+      });
+    });
+
+    flushSync();
+    const initialCount = effectRunCount;
+
+    // Change SCORE - should trigger effect
+    machine.setData(KEY_SCORE, 100);
+    flushSync();
+
+    expect(effectRunCount).toBe(initialCount + 1);
+    expect(lastScoreValue).toBe(100);
+
+    // Change SCORE again - should trigger effect again
+    machine.setData(KEY_SCORE, 200);
+    flushSync();
+
+    expect(effectRunCount).toBe(initialCount + 2);
+    expect(lastScoreValue).toBe(200);
+
+    cleanup();
+  });
+
+  it('should NOT trigger effect when unrelated data changes', () => {
+    const machine = new PageMachine({
+      startPath: '/test',
+      initialData: { [KEY_SCORE]: 0 }  // Initialize SCORE
+    });
+    let effectRunCount = 0;
+
+    // Create effect watching only SCORE
+    const cleanup = $effect.root(() => {
+      $effect(() => {
+        machine.getData(KEY_SCORE);
+        effectRunCount++;
+      });
+    });
+
+    flushSync();
+    const initialCount = effectRunCount;
+
+    // Change OTHER_DATA - should NOT trigger effect
+    machine.setData(KEY_OTHER_DATA, 'value');
+    flushSync();
+
+    expect(effectRunCount).toBe(initialCount);
+
+    cleanup();
+  });
+
+  it('should trigger effect when route changes', () => {
+    const routes = ['/test/a', '/test/b', '/test/c'];
+    const machine = new PageMachine({ startPath: '/test/a', routes });
+    let effectRunCount = 0;
+    let lastRoute = null;
+
+    const cleanup = $effect.root(() => {
+      $effect(() => {
+        lastRoute = machine.current;
+        effectRunCount++;
+      });
+    });
+
+    flushSync();
+    const initialCount = effectRunCount;
+
+    // Change route - should trigger effect
+    machine.syncFromPath('/test/b');
+    flushSync();
+
+    expect(effectRunCount).toBe(initialCount + 1);
+    expect(lastRoute).toBe('/test/b');
+
+    cleanup();
+  });
+
+  it('should trigger effect when visited routes change', () => {
+    const routes = ['/test/a', '/test/b'];
+    const machine = new PageMachine({ startPath: '/test/a', routes });
+    let effectRunCount = 0;
+    let lastHasVisited = null;
+
+    const cleanup = $effect.root(() => {
+      $effect(() => {
+        lastHasVisited = machine.hasVisited('/test/b');
+        effectRunCount++;
+      });
+    });
+
+    flushSync();
+    const initialCount = effectRunCount;
+    expect(lastHasVisited).toBe(false);
+
+    // Navigate to /test/b - should trigger effect
+    machine.syncFromPath('/test/b');
+    flushSync();
+
+    expect(effectRunCount).toBe(initialCount + 1);
+    expect(lastHasVisited).toBe(true);
+
+    cleanup();
+  });
+
+  it('should NOT trigger data effects when routes change', () => {
+    const routes = ['/test/a', '/test/b'];
+    const machine = new PageMachine({
+      startPath: '/test/a',
+      routes,
+      initialData: { [KEY_SCORE]: 0 }
+    });
+    let dataEffectRunCount = 0;
+
+    // Effect watching data only
+    const cleanup = $effect.root(() => {
+      $effect(() => {
+        machine.getData(KEY_SCORE);
+        dataEffectRunCount++;
+      });
+    });
+
+    flushSync();
+    const initialCount = dataEffectRunCount;
+
+    // Change route - should NOT trigger data effect
+    machine.syncFromPath('/test/b');
+    flushSync();
+
+    expect(dataEffectRunCount).toBe(initialCount);
+
+    // Change data - SHOULD trigger effect
+    machine.setData(KEY_SCORE, 100);
+    flushSync();
+
+    expect(dataEffectRunCount).toBe(initialCount + 1);
+
+    cleanup();
+  });
+
+  it('should NOT trigger route effects when data changes', () => {
+    const machine = new PageMachine({ startPath: '/test' });
+    let routeEffectRunCount = 0;
+
+    // Effect watching route only
+    const cleanup = $effect.root(() => {
+      $effect(() => {
+        machine.hasVisited('/test');
+        routeEffectRunCount++;
+      });
+    });
+
+    flushSync();
+    const initialCount = routeEffectRunCount;
+
+    // Change data - should NOT trigger route effect
+    machine.setData(KEY_SCORE, 100);
+    flushSync();
+
+    expect(routeEffectRunCount).toBe(initialCount);
+
+    cleanup();
+  });
 });
 
 describe('PageMachine - Extended Example', () => {
@@ -246,9 +501,9 @@ describe('PageMachine - Extended Example', () => {
     ];
 
     const initialData = {
-      SCORE: 0,
-      TUTORIAL_SEEN: false,
-      LEVELS_COMPLETED: []
+      [KEY_SCORE]: 0,
+      [KEY_TUTORIAL_SEEN]: false,
+      [KEY_LEVELS_COMPLETED]: []
     };
 
     const machine = new PageMachine({
@@ -264,28 +519,28 @@ describe('PageMachine - Extended Example', () => {
     // User goes to tutorial
     machine.syncFromPath('/puzzle/tutorial');
     expect(machine.current).toBe('/puzzle/tutorial');
-    machine.setData('TUTORIAL_SEEN', true);
+    machine.setData(KEY_TUTORIAL_SEEN, true);
 
     // User completes level 1
     machine.syncFromPath('/puzzle/level1');
     expect(machine.current).toBe('/puzzle/level1');
-    machine.setData('SCORE', 100);
+    machine.setData(KEY_SCORE, 100);
     machine.updateData({
-      LEVELS_COMPLETED: ['level1']
+      [KEY_LEVELS_COMPLETED]: ['level1']
     });
 
     // User completes level 2
     machine.syncFromPath('/puzzle/level2');
     machine.updateData({
-      SCORE: 250,
-      LEVELS_COMPLETED: ['level1', 'level2']
+      [KEY_SCORE]: 250,
+      [KEY_LEVELS_COMPLETED]: ['level1', 'level2']
     });
 
     // Check final state
     expect(machine.current).toBe('/puzzle/level2');
-    expect(machine.getData('SCORE')).toBe(250);
-    expect(machine.getData('TUTORIAL_SEEN')).toBe(true);
-    expect(machine.getData('LEVELS_COMPLETED')).toEqual([
+    expect(machine.getData(KEY_SCORE)).toBe(250);
+    expect(machine.getData(KEY_TUTORIAL_SEEN)).toBe(true);
+    expect(machine.getData(KEY_LEVELS_COMPLETED)).toEqual([
       'level1',
       'level2'
     ]);
