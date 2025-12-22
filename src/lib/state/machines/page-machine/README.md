@@ -1,16 +1,17 @@
 # PageMachine
 
-State machine for managing page view states with URL route mapping.
+Route-aware data manager for tracking navigation and managing business data
+within a route group.
 
 ## How it connects
 
 ```
 ┌─────────────────────────────────────────────────────────┐
 │ PuzzleState (extends PageMachine)                       │
-│ - Maps states to URL routes                             │
-│ - Tracks current state and visited states               │
-│ - Manages start path and navigation                     │
-│ - Provides computed properties (inIntro, inLevel1, etc.)│
+│ - Tracks current route within a route group             │
+│ - Manages business/domain data                          │
+│ - Tracks visited routes                                 │
+│ - Provides computed properties (isOnIntro, etc.)        │
 │ - Contains GameLogic for reactive game state            │
 │ - Optional: services, preload, reset, etc.              │
 └────────────────┬────────────────────────────────────────┘
@@ -19,7 +20,7 @@ State machine for managing page view states with URL route mapping.
                  │
 ┌────────────────▼────────────────────────────────────────┐
 │ +layout.svelte                                          │
-│ IMPORTANT: Must sync URL with state:                    │
+│ IMPORTANT: Must sync URL with machine:                  │
 │   $effect(() => {                                       │
 │     puzzleState.syncFromPath($page.url.pathname);       │
 │   });                                                   │
@@ -33,28 +34,28 @@ State machine for managing page view states with URL route mapping.
   │ +page    │      │ +page    │    │ Component│
   │          │      │          │    │          │
   └──────────┘      └──────────┘    └──────────┘
-  Access via: puzzleState.current, puzzleState.inIntro, etc.
+  Access via: puzzleState.current, puzzleState.isOnIntro, etc.
 ```
 
 ## Main Purposes
 
-1. **Track current view/step** - Which page is active
-2. **Map states to URL paths** - Connect state names to routes
-3. **Manage start path** - Define and navigate to the entry point
-4. **Sync with browser navigation** - Keep state in sync with URL
-5. **Track visited states** - Know which pages user has seen
+1. **Track current route** - Which page is active
+2. **Sync with browser navigation** - Keep state in sync with URL
+3. **Manage business data** - Persistent settings and progress
+4. **Track visited routes** - Know which pages user has seen
+5. **Manage start path** - Define and navigate to the entry point
 
 ## Basic Usage
 
-### 1. Define state constants
+### 1. Define route constants
 
 ```javascript
-// puzzle.constants.js
-export const STATE_INTRO = 'intro';
-export const STATE_TUTORIAL = 'tutorial';
-export const STATE_LEVEL1 = 'level1';
-export const STATE_LEVEL2 = 'level2';
-export const STATE_COMPLETE = 'complete';
+// puzzle.routes.js
+export const ROUTE_INTRO = '/puzzle/intro';
+export const ROUTE_TUTORIAL = '/puzzle/tutorial';
+export const ROUTE_LEVEL1 = '/puzzle/level1';
+export const ROUTE_LEVEL2 = '/puzzle/level2';
+export const ROUTE_COMPLETE = '/puzzle/complete';
 ```
 
 ### 2. Create state class (extends PageMachine)
@@ -65,12 +66,12 @@ import { defineStateContext } from '@hkdigital/lib-core/state/context.js';
 import PageMachine from '$lib/state/machines/PageMachine.svelte.js';
 import PuzzleGameLogic from './puzzle.game-logic.svelte.js';
 import {
-  STATE_INTRO,
-  STATE_TUTORIAL,
-  STATE_LEVEL1,
-  STATE_LEVEL2,
-  STATE_COMPLETE
-} from './puzzle.constants.js';
+  ROUTE_INTRO,
+  ROUTE_TUTORIAL,
+  ROUTE_LEVEL1,
+  ROUTE_LEVEL2,
+  ROUTE_COMPLETE
+} from './puzzle.routes.js';
 
 // Data keys for persistent data
 const KEY_TUTORIAL_SEEN = 'tutorial-seen';
@@ -83,14 +84,14 @@ export class PuzzleState extends PageMachine {
   constructor() {
     // Call PageMachine constructor with route config
     super({
-      startPath: '/puzzle/intro',
-      routeMap: {
-        [STATE_INTRO]: '/puzzle/intro',
-        [STATE_TUTORIAL]: '/puzzle/tutorial',
-        [STATE_LEVEL1]: '/puzzle/level1',
-        [STATE_LEVEL2]: '/puzzle/level2',
-        [STATE_COMPLETE]: '/puzzle/complete'
-      }
+      startPath: ROUTE_INTRO,
+      routes: [
+        ROUTE_INTRO,
+        ROUTE_TUTORIAL,
+        ROUTE_LEVEL1,
+        ROUTE_LEVEL2,
+        ROUTE_COMPLETE
+      ]
     });
 
     this.#gameLogic = new PuzzleGameLogic();
@@ -101,24 +102,24 @@ export class PuzzleState extends PageMachine {
   }
 
   // Computed properties for convenience
-  get inIntro() {
-    return this.current === STATE_INTRO;
+  get isOnIntro() {
+    return this.current === ROUTE_INTRO;
   }
 
-  get inTutorial() {
-    return this.current === STATE_TUTORIAL;
+  get isOnTutorial() {
+    return this.current === ROUTE_TUTORIAL;
   }
 
-  get inLevel1() {
-    return this.current === STATE_LEVEL1;
+  get isOnLevel1() {
+    return this.current === ROUTE_LEVEL1;
   }
 
-  get inLevel2() {
-    return this.current === STATE_LEVEL2;
+  get isOnLevel2() {
+    return this.current === ROUTE_LEVEL2;
   }
 
   get isComplete() {
-    return this.current === STATE_COMPLETE;
+    return this.current === ROUTE_COMPLETE;
   }
 
   // Persistent settings/progress (use getData/setData)
@@ -166,12 +167,13 @@ export const [createOrGetPuzzleState, createPuzzleState, getPuzzleState] =
 
 ### 3. Sync with route in +layout.svelte component
 
-**This is IMPORTANT for url path to be connected to the page machine**
+**This is IMPORTANT for URL path to be connected to the page machine**
 
 ```svelte
 <script>
   import { page } from '$app/stores';
   import { createOrGetPuzzleState } from '../puzzle.state.svelte.js';
+  import { ROUTE_INTRO } from '../puzzle.routes.js';
 
   const puzzleState = createOrGetPuzzleState();
 
@@ -186,7 +188,7 @@ export const [createOrGetPuzzleState, createPuzzleState, getPuzzleState] =
 
     if (!puzzleState.isStartPath(currentPath) &&
         currentPath.startsWith('/puzzle') &&
-        !puzzleState.hasVisited('intro')) {
+        !puzzleState.hasVisited(ROUTE_INTRO)) {
       puzzleState.redirectToStartPath();
     }
   });
@@ -197,13 +199,13 @@ export const [createOrGetPuzzleState, createPuzzleState, getPuzzleState] =
   });
 </script>
 
-{#if puzzleState.inIntro}
+{#if puzzleState.isOnIntro}
   <IntroView onComplete={() => puzzleState.markTutorialComplete()} />
-{:else if puzzleState.inTutorial}
+{:else if puzzleState.isOnTutorial}
   <TutorialView />
-{:else if puzzleState.inLevel1}
+{:else if puzzleState.isOnLevel1}
   <Level1View gameLogic={puzzleState.gameLogic} />
-{:else if puzzleState.inLevel2}
+{:else if puzzleState.isOnLevel2}
   <Level2View gameLogic={puzzleState.gameLogic} />
 {:else if puzzleState.isComplete}
   <CompleteView
@@ -211,6 +213,35 @@ export const [createOrGetPuzzleState, createPuzzleState, getPuzzleState] =
     highestLevel={puzzleState.highestLevel} />
 {/if}
 ```
+
+## Animations and Page-Specific Logic
+
+For page-specific animations or initialization, use `$effect` in your
+`+page.svelte` files rather than centralized hooks:
+
+```javascript
+// +page.svelte
+<script>
+  import { PageAnimations } from './animations.svelte.js';
+
+  const animations = new PageAnimations();
+
+  // Trigger animations when conditions are met
+  $effect(() => {
+    if (someCondition) {
+      animations.start();
+    }
+  });
+
+  // Or use onMount for one-time initialization
+  onMount(() => {
+    animations.initialize();
+  });
+</script>
+```
+
+This approach keeps animation logic co-located with the components that
+render them, making it easier to understand and maintain.
 
 ## Key Methods
 
@@ -220,30 +251,33 @@ All PageMachine methods are directly available on your state class:
 // Sync with URL path
 puzzleState.syncFromPath(currentPath)
 
-// Get current state
-puzzleState.current
+// Get current route
+puzzleState.current  // e.g., '/puzzle/level1'
 
 // Start path management
 puzzleState.startPath                 // Get start path
-puzzleState.startState                // Get start state
 puzzleState.isStartPath(path)         // Check if path is start path
-puzzleState.isOnStartState            // Check if on start state
+puzzleState.isOnStartPath             // Check if on start path
 puzzleState.redirectToStartPath()     // Navigate to start path
-
-// Get route for state
-puzzleState.getPathForState(stateName)
 
 // Persistent data properties
 puzzleState.setData(KEY_NAME, value)
 puzzleState.getData(KEY_NAME)
+puzzleState.getAllData()
+puzzleState.updateData({ KEY1: val1, KEY2: val2 })
 
-// Visited states tracking
-puzzleState.hasVisited(stateName)
-puzzleState.getVisitedStates()
+// Visited routes tracking
+puzzleState.hasVisited(route)         // e.g., hasVisited('/puzzle/intro')
+puzzleState.hasVisitedStart           // Has visited start path
+puzzleState.getVisitedRoutes()
+puzzleState.resetVisitedRoutes()
+
+// Get routes list
+puzzleState.routes                    // Array of all routes
 
 // Custom computed properties (from your class)
-puzzleState.inIntro
-puzzleState.inLevel1
+puzzleState.isOnIntro
+puzzleState.isOnLevel1
 puzzleState.hasSeenTutorial
 ```
 
@@ -272,7 +306,8 @@ pageMachine.setData(KEY_HIGHEST_LEVEL, 5);
 
 ### When to use GameLogic with `$state`
 
-Use a separate GameLogic class with `$state` fields for **reactive game state**:
+Use a separate GameLogic class with `$state` fields for
+**reactive game state**:
 
 - ✅ Live scores, lives, health
 - ✅ Current player, selected items
@@ -295,9 +330,10 @@ export class PuzzleGameLogic {
 
 ## Important Notes
 
-- Not a finite state machine - allows free navigation
-- States map 1:1 with routes
-- Use state constants instead of magic strings
+- Does not enforce transitions - allows free navigation via browser
+- Routes are the source of truth (no state abstraction layer)
+- Use route constants for clarity and maintainability
 - Always sync in `$effect` watching `$page.url.pathname`
-- Use constants for data keys (e.g., `KEY_TUTORIAL_SEEN = 'tutorial-seen'`)
-- Separate persistent data (PageMachine) from reactive game state (GameLogic)
+- Use constants for data keys (e.g., `KEY_TUTORIAL_SEEN`)
+- Separate persistent data (PageMachine) from reactive state (GameLogic)
+- Handle animations in pages using `$effect` or `onMount`

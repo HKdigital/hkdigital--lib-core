@@ -1,99 +1,70 @@
 /**
- * Base class for page state machines with URL route mapping
+ * Route-aware data manager for page groups
  *
- * Simple state tracker that maps states to URL routes.
- * Does NOT enforce FSM transitions - allows free navigation
- * (because users can navigate to any URL via browser).
+ * Tracks navigation within a route group and manages business/domain data.
+ * Does NOT enforce transitions - allows free navigation via browser.
  *
  * Features:
- * - State-to-route mapping and sync
+ * - Current route tracking and synchronization
  * - Start path management
  * - Data properties for business/domain state
- * - Visited states tracking
- * - onEnter hooks with abort/complete handlers for animations
+ * - Visited routes tracking
  *
  * Basic usage:
  * ```javascript
  * const machine = new PageMachine({
  *   startPath: '/intro/start',
- *   routeMap: {
- *     [STATE_START]: '/intro/start',
- *     [STATE_PROFILE]: '/intro/profile'
- *   }
+ *   routes: ['/intro/start', '/intro/profile', '/intro/complete']
  * });
  *
- * // Sync machine state with URL changes
+ * // Sync machine with URL changes
  * $effect(() => {
  *   machine.syncFromPath($page.url.pathname);
  * });
+ *
+ * // Check current route
+ * if (machine.current === '/intro/profile') {
+ *   // Do something
+ * }
  * ```
  *
- * With onEnter hooks (for animations):
+ * Animations and page-specific logic should use $effect in pages:
  * ```javascript
- * const machine = new PageMachine({
- *   startPath: '/game/animate',
- *   routeMap: {
- *     [STATE_ANIMATE]: '/game/animate',
- *     [STATE_PLAY]: '/game/play'
- *   },
- *   onEnterHooks: {
- *     [STATE_ANIMATE]: (done) => {
- *       const animation = playAnimation(1000);
- *       animation.finished.then(() => done(STATE_PLAY));
+ * // In +page.svelte
+ * const animations = new PageAnimations();
  *
- *       return {
- *         abort: () => animation.cancel(),
- *         complete: () => animation.finish()
- *       };
- *     }
+ * $effect(() => {
+ *   if (someCondition) {
+ *     animations.start();
  *   }
  * });
- *
- * // Fast-forward animation
- * machine.completeTransitions();
- *
- * // Cancel animation
- * machine.abortTransitions();
  * ```
  */
-import { switchToPage } from '$lib/util/sveltekit.js';
-
 export default class PageMachine {
 	/**
-	 * Logger instance for state machine
+	 * Logger instance
 	 * @type {import('$lib/logging/client.js').Logger}
 	 */
 	logger;
+
 	/**
-	 * Current state
+	 * Current route path
 	 * @type {string}
 	 */
 	// @ts-ignore
 	#current = $state();
 
 	/**
-	 * Start path for this page machine
+	 * Start path for this route group
 	 * @type {string}
 	 */
 	#startPath = '';
 
 	/**
-	 * Initial/start state (derived from startPath)
-	 * @type {string}
+	 * Optional list of valid routes for this group
+	 * @type {string[]}
 	 */
-	#startState = '';
-
-	/**
-	 * Map of states to route paths
-	 * @type {Record<string, string>}
-	 */
-	#routeMap = {};
-
-	/**
-	 * Reverse map of route paths to states
-	 * @type {Record<string, string>}
-	 */
-	#pathToStateMap = {};
+	#routes = [];
 
 	/**
 	 * Data properties for business/domain state
@@ -103,12 +74,12 @@ export default class PageMachine {
 	#data = $state({});
 
 	/**
-	 * Track which states have been visited during this session
+	 * Track which routes have been visited during this session
 	 * Useful for showing first-time hints/tips
 	 * @type {Set<string>}
 	 */
 	// eslint-disable-next-line svelte/prefer-svelte-reactivity
-	#visitedStates = new Set();
+	#visitedRoutes = new Set();
 
 	/**
 	 * Revision counter for triggering reactivity
@@ -117,158 +88,67 @@ export default class PageMachine {
 	#revision = $state(0);
 
 	/**
-	 * Map of state names to onEnter hook configurations
-	 * @type {Record<string, {onEnter: Function}>}
-	 */
-	#onEnterHooks = {};
-
-	/**
-	 * Current state's onEnter handler (abort/complete functions)
-	 * @type {{abort?: Function, complete?: Function} | null}
-	 */
-	#currentOnEnterHandler = null;
-
-	/**
-	 * Current state's done callback
-	 * @type {Function | null}
-	 */
-	#currentOnEnterDone = null;
-
-	/**
-	 * Flag to prevent concurrent state transitions
-	 * @type {boolean}
-	 */
-	#isTransitioning = false;
-
-	/**
 	 * Constructor
 	 *
 	 * @param {Object} config - Configuration object
 	 * @param {string} config.startPath
 	 *   Start path for this route group (e.g., '/game/play')
-	 * @param {Record<string, string>} [config.routeMap={}]
-	 *   Map of states to route paths
+	 * @param {string[]} [config.routes=[]]
+	 *   Optional list of valid routes (for validation/dev tools)
 	 * @param {Record<string, any>} [config.initialData={}]
 	 *   Initial data properties (from server)
-	 * @param {Record<string, Function>} [config.onEnterHooks={}]
-	 *   Map of states to onEnter hook functions
 	 * @param {import('$lib/logging/client.js').Logger} [config.logger]
-	 *   Logger instance (optional, if not provided no logging occurs)
+	 *   Logger instance (optional)
 	 *
 	 * @example
 	 * ```javascript
 	 * const machine = new PageMachine({
 	 *   startPath: '/intro/start',
-	 *   routeMap: {
-	 *     [STATE_START]: '/intro/start',
-	 *     [STATE_ANIMATE]: '/intro/animate'
-	 *   },
+	 *   routes: ['/intro/start', '/intro/profile'],
 	 *   initialData: {
 	 *     INTRO_COMPLETED: false
-	 *   },
-	 *   onEnterHooks: {
-	 *     [STATE_ANIMATE]: (done) => {
-	 *       setTimeout(() => done(STATE_START), 1000);
-	 *       return {
-	 *         abort: () => clearTimeout(...),
-	 *         complete: () => done(STATE_START)
-	 *       };
-	 *     }
 	 *   }
 	 * });
 	 * ```
 	 */
-	constructor({
-		startPath,
-		routeMap = {},
-		initialData = {},
-		onEnterHooks = {},
-		logger = null
-	}) {
+	constructor({ startPath, routes = [], initialData = {}, logger = null }) {
 		if (!startPath) {
 			throw new Error('PageMachine requires startPath parameter');
 		}
 
 		this.logger = logger;
 		this.#startPath = startPath;
-		this.#routeMap = routeMap;
+		this.#routes = routes;
 		this.#data = initialData;
-		this.#onEnterHooks = this.#normalizeOnEnterHooks(onEnterHooks);
+		this.#current = startPath;
 
-		// Build reverse map (path -> state) and validate no duplicates
-		for (const [state, path] of Object.entries(routeMap)) {
-			// Check if this path is already mapped to a different state
-			const existingState = this.#pathToStateMap[path];
-			if (existingState && existingState !== state) {
-				throw new Error(
-					`PageMachine: Duplicate route mapping detected. ` +
-					`Path "${path}" is mapped to both "${existingState}" and "${state}". ` +
-					`Each route path must map to exactly one state.`
-				);
-			}
-			this.#pathToStateMap[path] = state;
-		}
-
-		// Derive initial state from startPath
-		const initialState = this.#pathToStateMap[startPath];
-		if (!initialState) {
-			throw new Error(
-				`PageMachine: startPath "${startPath}" not found in routeMap`
-			);
-		}
-
-		this.#startState = initialState;
-		this.#current = initialState;
-
-		// Mark initial state as visited
-		this.#visitedStates.add(initialState);
+		// Mark start path as visited
+		this.#visitedRoutes.add(startPath);
 	}
 
 	/**
-	 * Normalize onEnterHooks to ensure consistent format
-	 * Converts function to {onEnter: function} object
+	 * Synchronize machine with URL path
 	 *
-	 * @param {Record<string, Function|{onEnter: Function}>} hooks - Raw hooks configuration
-	 * @returns {Record<string, {onEnter: Function}>} Normalized hooks
-	 */
-	#normalizeOnEnterHooks(hooks) {
-		/** @type {Record<string, {onEnter: Function} */
-		const normalized = {};
-
-		for (const [state, hook] of Object.entries(hooks)) {
-			if (typeof hook === 'function') {
-				// Simple function -> wrap in object
-				normalized[state] = { onEnter: hook };
-			} else if (hook?.onEnter) {
-				// Already an object with onEnter
-				normalized[state] = hook;
-			}
-		}
-
-		return normalized;
-	}
-
-	/**
-	 * Synchronize machine state with URL path
-	 *
-	 * Call this in a $effect that watches $page.url.pathname
-	 * Automatically tracks visited states and triggers onEnter hooks
+	 * Call this in a $effect that watches $page.url.pathname.
+	 * Automatically tracks visited routes.
 	 *
 	 * @param {string} currentPath - Current URL pathname
 	 *
-	 * @returns {boolean} True if state was changed
+	 * @returns {boolean} True if route was changed
 	 */
 	syncFromPath(currentPath) {
-		const targetState = this.#getStateFromPath(currentPath);
+		// Find matching route
+		const matchedRoute = this.#findMatchingRoute(currentPath);
 
-		if (targetState && targetState !== this.#current) {
-			// Log state transition from URL sync
-			this.logger?.debug(
-				`syncFromPath: ${currentPath} → targetState: ${targetState}`
-			);
+		if (matchedRoute && matchedRoute !== this.#current) {
+			this.logger?.debug(`syncFromPath: ${currentPath} → ${matchedRoute}`);
 
-			// Use #setState to handle onEnter hooks
-			this.#setState(targetState);
+			const oldRoute = this.#current;
+			this.#current = matchedRoute;
+			this.#visitedRoutes.add(matchedRoute);
+			this.#revision++;
+
+			this.logger?.debug(`Route changed: ${oldRoute} → ${matchedRoute}`);
 
 			return true;
 		}
@@ -277,154 +157,50 @@ export default class PageMachine {
 	}
 
 	/**
-	 * Set the current state directly (internal use only)
-	 * Handles onEnter hooks and auto-transitions
-	 *
-	 * Note: This is private to enforce URL-first navigation.
-	 * To change state, navigate to the URL using switchToPage()
-	 * and let syncFromPath() update the state.
-	 *
-	 * @param {string} newState - Target state
-	 */
-	async #setState(newState) {
-		if (newState === this.#current || this.#isTransitioning) {
-			return;
-		}
-
-		// Abort previous state's onEnter handler
-		if (this.#currentOnEnterHandler?.abort) {
-			this.#currentOnEnterHandler.abort();
-		}
-		this.#currentOnEnterHandler = null;
-		this.#currentOnEnterDone = null;
-
-		const oldState = this.#current;
-		this.#isTransitioning = true;
-		this.#current = newState;
-		this.#visitedStates.add(newState);
-
-		// Log state transition
-		this.logger?.debug(`setState: ${oldState} → ${newState}`);
-
-		// Check if this state has an onEnter hook
-		const hookConfig = this.#onEnterHooks[newState];
-		if (hookConfig?.onEnter) {
-			// Create done callback for auto-transition
-			let doneCalled = false;
-
-			const done = (/** @type {string} */ nextState) => {
-				if (!doneCalled && nextState && nextState !== newState) {
-					doneCalled = true;
-					this.#isTransitioning = false;
-					this.#setState(nextState);
-				}
-			};
-
-			this.#currentOnEnterDone = done;
-
-			// Call the onEnter hook
-			try {
-				const handler = hookConfig.onEnter(done);
-
-				// Store abort/complete handlers if provided
-				if (handler && typeof handler === 'object') {
-					if (handler.abort || handler.complete) {
-						this.#currentOnEnterHandler = {
-							abort: handler.abort,
-							complete: handler.complete
-						};
-					}
-				}
-
-				// If hook returned a promise, await it
-				if (handler?.then) {
-					await handler;
-				}
-			} catch (error) {
-				const logger = this.logger ?? console;
-				logger.error(`Error in onEnter hook for state ${newState}:`, error);
-			}
-		}
-
-		this.#isTransitioning = false;
-		this.#revision++;
-	}
-
-	/**
-	 * Get state name from URL path
+	 * Find matching route from path
 	 *
 	 * @param {string} path - URL pathname
 	 *
-	 * @returns {string|null} State name or null
+	 * @returns {string|null} Matched route or null
 	 */
-	#getStateFromPath(path) {
-		// Try exact match first
-		if (this.#pathToStateMap[path]) {
-			return this.#pathToStateMap[path];
-		}
-
-		// Try partial match (path includes route)
-		for (const [routePath, state] of Object.entries(this.#pathToStateMap)) {
-			if (path.includes(routePath)) {
-				return state;
+	#findMatchingRoute(path) {
+		// If routes list provided, try to match against it
+		if (this.#routes.length > 0) {
+			// Try exact match first
+			if (this.#routes.includes(path)) {
+				return path;
 			}
+
+			// Try partial match (path starts with route)
+			for (const route of this.#routes) {
+				if (path.startsWith(route)) {
+					return route;
+				}
+			}
+
+			return null;
 		}
 
-		return null;
-	}
-
-	/**
-	 * Get route path for a given state
-	 *
-	 * @param {string} state - State name
-	 *
-	 * @returns {string} Route path or null if no mapping
-	 */
-	getPathForState(state) {
-		const path = this.#routeMap[state];
-
-		if (!path) {
-			throw new Error(`No path found for state [${state}]`);
-		}
-
+		// No routes list - accept any path
 		return path;
 	}
 
 	/**
-	 * Navigate to the route path for a given state
+	 * Get current route
 	 *
-	 * @param {string} state - State name
-	 */
-	navigateToState(state) {
-		const path = this.getPathForState(state);
-		switchToPage(path);
-	}
-
-	/**
-	 * Get route path for current state
-	 *
-	 * @returns {string|null} Route path or null if no mapping
-	 */
-	getCurrentPath() {
-		return this.getPathForState(this.#current);
-	}
-
-	/**
-	 * Get current state
-	 *
-	 * @returns {string} Current state name
+	 * @returns {string} Current route path
 	 */
 	get current() {
 		return this.#current;
 	}
 
 	/**
-	 * Get the route map
+	 * Get the routes list
 	 *
-	 * @returns {Record<string, string>} Copy of route map
+	 * @returns {string[]} Copy of routes list
 	 */
-	get routeMap() {
-		return { ...this.#routeMap };
+	get routes() {
+		return [...this.#routes];
 	}
 
 	/* ===== Data Properties (Business/Domain State) ===== */
@@ -485,7 +261,8 @@ export default class PageMachine {
 	/**
 	 * Update multiple data properties at once
 	 *
-	 * @param {Record<string, any>} dataUpdates - Object with key-value pairs
+	 * @param {Record<string, any>} dataUpdates
+	 *   Object with key-value pairs
 	 *
 	 * @example
 	 * ```javascript
@@ -503,32 +280,32 @@ export default class PageMachine {
 		this.#revision++;
 	}
 
-	/* ===== Visited States Tracking ===== */
+	/* ===== Visited Routes Tracking ===== */
 
 	/**
-	 * Check if a state has been visited
+	 * Check if a route has been visited
 	 *
-	 * @param {string} state - State name to check
+	 * @param {string} route - Route path to check
 	 *
-	 * @returns {boolean} True if the state has been visited
+	 * @returns {boolean} True if the route has been visited
 	 *
 	 * @example
 	 * ```javascript
-	 * if (machine.hasVisited(STATE_PROFILE)) {
+	 * if (machine.hasVisited('/intro/profile')) {
 	 *   // User has seen profile page, skip intro
 	 * }
 	 * ```
 	 */
-	hasVisited(state) {
+	hasVisited(route) {
 		// Access revision to ensure reactivity
 		this.#revision;
-		return this.#visitedStates.has(state);
+		return this.#visitedRoutes.has(route);
 	}
 
 	/**
-	 * Check if the start state has been visited
+	 * Check if the start route has been visited
 	 *
-	 * @returns {boolean} True if the start state has been visited
+	 * @returns {boolean} True if the start route has been visited
 	 *
 	 * @example
 	 * ```javascript
@@ -538,27 +315,27 @@ export default class PageMachine {
 	 * ```
 	 */
 	get hasVisitedStart() {
-		return this.hasVisited(this.#startState);
+		return this.hasVisited(this.#startPath);
 	}
 
 	/**
-	 * Get all visited states
+	 * Get all visited routes
 	 *
-	 * @returns {string[]} Array of visited state names
+	 * @returns {string[]} Array of visited route paths
 	 */
-	getVisitedStates() {
+	getVisitedRoutes() {
 		// Access revision to ensure reactivity
 		this.#revision;
-		return Array.from(this.#visitedStates);
+		return Array.from(this.#visitedRoutes);
 	}
 
 	/**
-	 * Reset visited states tracking
+	 * Reset visited routes tracking
 	 * Useful for testing or resetting experience
 	 */
-	resetVisitedStates() {
-		this.#visitedStates.clear();
-		this.#visitedStates.add(this.#current);
+	resetVisitedRoutes() {
+		this.#visitedRoutes.clear();
+		this.#visitedRoutes.add(this.#current);
 		this.#revision++;
 	}
 
@@ -571,15 +348,6 @@ export default class PageMachine {
 	 */
 	get startPath() {
 		return this.#startPath;
-	}
-
-	/**
-	 * Get the start state
-	 *
-	 * @returns {string} Start state name
-	 */
-	get startState() {
-		return this.#startState;
 	}
 
 	/**
@@ -601,19 +369,19 @@ export default class PageMachine {
 	}
 
 	/**
-	 * Check if currently on the start state
+	 * Check if currently on the start path
 	 *
-	 * @returns {boolean} True if current state is the start state
+	 * @returns {boolean} True if current route is the start path
 	 *
 	 * @example
 	 * ```javascript
-	 * if (machine.isOnStartState) {
+	 * if (machine.isOnStartPath) {
 	 *   // Show onboarding
 	 * }
 	 * ```
 	 */
-	get isOnStartState() {
-		return this.#current === this.#startState;
+	get isOnStartPath() {
+		return this.#current === this.#startPath;
 	}
 
 	/**
@@ -627,82 +395,8 @@ export default class PageMachine {
 	 */
 	redirectToStartPath() {
 		// Import dynamically to avoid circular dependencies
-		import('$src/lib/util/sveltekit.js').then(({ switchToPage }) => {
+		import('$lib/util/sveltekit.js').then(({ switchToPage }) => {
 			switchToPage(this.#startPath);
 		});
-	}
-
-	/* ===== Transition Control Methods ===== */
-
-	/**
-	 * Abort current state's transitions
-	 * Cancels animations/operations immediately (incomplete state)
-	 *
-	 * @example
-	 * ```javascript
-	 * // User clicks "Cancel" button
-	 * machine.abortTransitions();
-	 * ```
-	 */
-	abortTransitions() {
-		if (this.#currentOnEnterHandler?.abort) {
-			this.#currentOnEnterHandler.abort();
-			this.#currentOnEnterHandler = null;
-			this.#currentOnEnterDone = null;
-			this.#revision++;
-		}
-	}
-
-	/**
-	 * Complete current state's transitions immediately
-	 * Fast-forwards animations/operations to completion (complete state)
-	 *
-	 * @example
-	 * ```javascript
-	 * // User clicks "Skip" or "Next" button
-	 * machine.completeTransitions();
-	 * ```
-	 */
-	completeTransitions() {
-		if (this.#currentOnEnterHandler?.complete) {
-			this.#currentOnEnterHandler.complete();
-			this.#currentOnEnterHandler = null;
-			this.#currentOnEnterDone = null;
-			this.#revision++;
-		}
-	}
-
-	/**
-	 * Check if current state has transitions that can be completed
-	 *
-	 * @returns {boolean} True if completeTransitions() can be called
-	 *
-	 * @example
-	 * ```svelte
-	 * {#if machine.canCompleteTransitions}
-	 *   <button onclick={() => machine.completeTransitions()}>Skip</button>
-	 * {/if}
-	 * ```
-	 */
-	get canCompleteTransitions() {
-		this.#revision; // Ensure reactivity
-		return !!this.#currentOnEnterHandler?.complete;
-	}
-
-	/**
-	 * Check if current state has transitions that can be aborted
-	 *
-	 * @returns {boolean} True if abortTransitions() can be called
-	 *
-	 * @example
-	 * ```svelte
-	 * {#if machine.canAbortTransitions}
-	 *   <button onclick={() => machine.abortTransitions()}>Cancel</button>
-	 * {/if}
-	 * ```
-	 */
-	get canAbortTransitions() {
-		this.#revision; // Ensure reactivity
-		return !!this.#currentOnEnterHandler?.abort;
 	}
 }

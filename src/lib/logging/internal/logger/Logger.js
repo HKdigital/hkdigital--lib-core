@@ -264,7 +264,7 @@ export default class Logger extends EventEmitter {
       ...this.#defaultContext
     };
 
-    const childName = `${this.name}>${name}`;
+    const childName = `${this.name}:${name}`;
 
     const child = new Logger(childName, level ?? this.level, context);
 
