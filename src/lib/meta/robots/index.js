@@ -1,6 +1,59 @@
 /** @typedef {import('./typedef.js').RobotsConfig} RobotsConfig */
 
 /**
+ * AI training bots (scrape content for model training)
+ */
+const AI_TRAINING_BOTS = [
+  'GPTBot',              // OpenAI training
+  'Google-Extended',     // Google AI training
+  'CCBot',               // Common Crawl
+  'anthropic-ai',        // Anthropic training
+  'Omgilibot',           // Omgili
+  'FacebookBot',         // Meta AI training
+  'Diffbot',             // Diffbot
+  'Bytespider',          // ByteDance
+  'ImagesiftBot',        // ImageSift
+  'PerplexityBot',       // Perplexity AI training
+  'YouBot',              // You.com training
+  'Applebot-Extended'    // Apple AI training
+];
+
+/**
+ * AI reading bots (retrieve content for user queries)
+ */
+const AI_READING_BOTS = [
+  'ChatGPT-User',        // ChatGPT browsing
+  'Claude-Web',          // Claude browsing
+  'cohere-ai'            // Cohere browsing
+];
+
+/**
+ * Generate user-agent blocks for AI bots
+ *
+ * @param {boolean} allowAiTraining - Allow AI training bots
+ * @param {boolean} allowAiReading - Allow AI reading bots
+ *
+ * @returns {string} User-agent blocks
+ */
+function generateAiBotBlocks(allowAiTraining, allowAiReading) {
+  let blocks = '';
+
+  if (allowAiTraining === false) {
+    blocks += AI_TRAINING_BOTS.map(bot =>
+      `\n\nUser-agent: ${bot}\nDisallow: /`
+    ).join('');
+  }
+
+  if (allowAiReading === false) {
+    blocks += AI_READING_BOTS.map(bot =>
+      `\n\nUser-agent: ${bot}\nDisallow: /`
+    ).join('');
+  }
+
+  return blocks;
+}
+
+/**
  * Check if hostname matches allowed hosts pattern
  *
  * @param {string} hostname - Hostname to check (e.g., test.mysite.com)
@@ -74,10 +127,15 @@ export function generateRobotsTxt(url, config = {}) {
     });
   }
 
-  // Always add sitemap reference
+  // Add sitemap reference
   if (url.origin) {
     content += `\nSitemap: ${url.origin}/sitemap.xml`;
   }
+
+  // Add AI bot blocks (defaults to allowing both if not specified)
+  const allowAiTraining = config.allowAiTraining !== false;
+  const allowAiReading = config.allowAiReading !== false;
+  content += generateAiBotBlocks(allowAiTraining, allowAiReading);
 
   return content;
 }
