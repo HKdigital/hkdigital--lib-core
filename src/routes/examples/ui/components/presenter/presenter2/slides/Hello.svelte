@@ -1,5 +1,5 @@
 <script>
-  import ElectricBlue from '$examples/assets/images/electric-blue.jpg?preset=gradient&responsive';
+  import { ArmyGreen } from '$examples/assets/images.js';
 
   import { GridLayers } from '$lib/ui/components.js';
 
@@ -54,7 +54,7 @@
 
 <div class="justify-self-stretch self-stretch grid">
   <ImageBox
-    imageSource={ElectricBlue}
+    imageSource={ArmyGreen}
     fit="cover"
     position="center center"
     onProgress={progressListener}

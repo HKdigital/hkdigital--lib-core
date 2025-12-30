@@ -288,18 +288,26 @@ export class PresenterState {
       throw new Error('Not configured yet');
     }
 
-    if (slide.name === this.currentSlideName) {
-      //throw new Error(`gotoSlide cannot transition to current slide`);
-      console.error(`gotoSlide cannot transition to current slide`);
+    // Can't transition if we're already transitioning to this slide
+    if (slide.name === this.nextSlideName) {
+      console.debug(`gotoSlide already transitioning to slide [${slide.name}]`);
       return;
     }
 
-    this.nextSlideName = slide.name;
+    // Can't transition if we're idle and already on this slide
+    if (slide.name === this.currentSlideName && !this.busy) {
+      console.debug(`gotoSlide cannot transition to current slide [${slide.name}]`);
+      return;
+    }
 
+    // If busy, queue this slide for later without modifying nextSlideName
     if (this.busy) {
       this.pendingSlideName = slide.name;
       return;
     }
+
+    // Now we're actually starting a new transition
+    this.nextSlideName = slide.name;
 
     this.#callOnBeforeListeners();
 
@@ -412,8 +420,6 @@ export class PresenterState {
     // Check if there's a pending slide transition
     if (this.pendingSlideName) {
       const pendingName = this.pendingSlideName;
-
-      this.nextSlideName = pendingName;
       this.pendingSlideName = null;
 
       untrack(() => {
