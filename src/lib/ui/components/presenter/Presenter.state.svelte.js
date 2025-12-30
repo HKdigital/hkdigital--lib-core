@@ -291,6 +291,8 @@ export class PresenterState {
     // Can't transition if we're already transitioning to this slide
     if (slide.name === this.nextSlideName) {
       console.debug(`gotoSlide already transitioning to slide [${slide.name}]`);
+      // Clear any pending slide since we're already going where the user wants
+      this.pendingSlideName = null;
       return;
     }
 
