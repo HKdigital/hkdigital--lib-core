@@ -2,7 +2,7 @@ import * as expect from '$lib/util/expect.js';
 
 import { toArrayPath } from '$lib/util/array/index.js';
 
-import { objectGet, PATH_SEPARATOR } from '../object/index.js';
+import { objectGet, PATH_SEPARATOR } from '../object.js';
 
 export const RE_JS_EXPRESSION = /\$\{([^${}]*)\}/g;
 export const RE_MUSTACHE = /\{\{([^{}]*)\}\}/g;

@@ -3,7 +3,7 @@
 
   import { GridLayers } from '$lib/ui/components.js';
 
-  import { ImageBox } from '$lib/ui/components/index.js';
+  import { ImageBox } from '$lib/ui/components.js';
 
   import { TextButton } from '$lib/ui/primitives/buttons/index.js';
 

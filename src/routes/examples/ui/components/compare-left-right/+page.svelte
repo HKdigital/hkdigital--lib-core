@@ -14,7 +14,7 @@
 
   import ElectricBlue from '$examples/assets/images/electric-blue.jpg?preset=gradient';
 
-  import { ImageBox } from '$lib/ui/components/index.js';
+  import { ImageBox } from '$lib/ui/components.js';
 </script>
 
 <CompareLeftRight width="w-[90vw]">

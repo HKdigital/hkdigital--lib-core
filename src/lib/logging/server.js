@@ -2,6 +2,6 @@
 export { createServerLogger } from './internal/factories/server.js';
 
 // Logger (for advanced usage)
-export { Logger } from './internal/logger/index.js';
+export { default as Logger } from './internal/logger/Logger.js';
 
 export * from './levels.js';

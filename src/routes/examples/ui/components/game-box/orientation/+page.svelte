@@ -1,6 +1,6 @@
 <script>
   import { designTokens } from '$lib/design/index.js';
-  import { GameBox } from '$lib/ui/components/index.js';
+  import { GameBox } from '$lib/ui/components.js';
 </script>
 
 <GameBox

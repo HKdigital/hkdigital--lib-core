@@ -1,6 +1,6 @@
 import { onMount } from 'svelte';
 
-import { lazySingleton } from '$lib/util/singleton/index.js';
+import { lazySingleton } from '$lib/util/singleton.js';
 
 import { beforeNavigate, onNavigate, afterNavigate } from '$app/navigation';
 

@@ -3,7 +3,7 @@
 
   import ElectricBlue from '$examples/assets/images/electric-blue.jpg?preset=gradient&responsive';
 
-  import { ImageBox } from '$lib/ui/components/index.js';
+  import { ImageBox } from '$lib/ui/components.js';
 
   import { TextButton } from '$lib/ui/primitives/buttons/index.js';
 

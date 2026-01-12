@@ -1,5 +1,5 @@
 <script>
-  import { ImageBox } from '$lib/ui/components/index.js';
+  import { ImageBox } from '$lib/ui/components.js';
 
   /**
    * @type {{

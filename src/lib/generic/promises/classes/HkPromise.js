@@ -36,7 +36,7 @@
 
 import * as expect from '$lib/util/expect.js';
 
-import { noop } from '$lib/util/function/index.js';
+import { noop } from '$lib/util/function.js';
 
 import { PromiseError } from '$lib/generic/errors.js';
 

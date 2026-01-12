@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import * as is from '../is/index.js';
+import * as is from '../is.js';
 
 /** Compound validators - combinations and unions of basic validators */
 

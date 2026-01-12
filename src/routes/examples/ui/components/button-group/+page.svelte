@@ -1,5 +1,5 @@
 <script>
-  import { ButtonGroup } from '$lib/ui/components/index.js';
+  import { ButtonGroup } from '$lib/ui/components.js';
 
   import { TextButton } from '$lib/ui/primitives/buttons/index.js';
 

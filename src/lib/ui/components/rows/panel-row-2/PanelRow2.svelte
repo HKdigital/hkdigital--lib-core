@@ -1,5 +1,5 @@
 <script>
-  import { PanelGridRow } from '../index.js';
+  import PanelGridRow from '../panel-grid-row/PanelGridRow.svelte';
 
   /**
    * @example

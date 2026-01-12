@@ -2,6 +2,7 @@
  * @fileoverview Comprehensive tests for Logger.error() method
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
+
 import Logger from './Logger.js';
 import { ERROR } from '$lib/logging/levels.js';
 

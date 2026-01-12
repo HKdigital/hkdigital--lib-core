@@ -2,15 +2,15 @@
 
 import * as expect from '../expect.js';
 
-import { equals } from '../compare/index.js';
+import { equals } from '../compare.js';
 
-import { toArrayPath } from '../array/index.js';
+import { toArrayPath } from '../array.js';
 
 import { toStringPath } from '../string.js';
 
-import * as is from '../is/index.js';
+import * as is from '../is.js';
 
-import { iterateObjectPaths, iterateObjectEntries } from '../iterate/index.js';
+import { iterateObjectPaths, iterateObjectEntries } from '../iterate.js';
 
 // ------------------------------------------------------------------- Internals
 

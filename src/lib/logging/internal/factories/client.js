@@ -1,4 +1,4 @@
-import { Logger } from '$lib/logging/internal/logger/index.js';
+import { Logger } from '$lib/logging/internal/logger.js';
 import { ConsoleAdapter } from '$lib/logging/internal/adapters/console.js';
 import { DEBUG, LOG, LEVELS } from '$lib/logging/levels.js';
 

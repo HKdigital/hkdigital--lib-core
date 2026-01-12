@@ -1,7 +1,7 @@
 <script>
   import { goto } from '$app/navigation';
   import { page } from '$app/stores';
-  import { TopBar, Explorer } from '../components/index.js';
+  import { TopBar, Explorer } from '../components.js';
 
   /** @type {{ data: { navigationData: Object, scalingEnabled: boolean, currentPath: string, FOLDER_NAME: string } }} */
   let { data } = $props();

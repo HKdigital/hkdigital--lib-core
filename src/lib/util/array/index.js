@@ -2,9 +2,9 @@
 
 import * as expect from '../expect.js';
 
-import { smallestFirst, largestFirst } from '../compare/index.js';
+import { smallestFirst, largestFirst } from '../compare.js';
 
-import { objectGet, PATH_SEPARATOR } from '../object/index.js';
+import { objectGet, PATH_SEPARATOR } from '../object.js';
 
 import { Selector } from '$lib/generic/data.js';
 

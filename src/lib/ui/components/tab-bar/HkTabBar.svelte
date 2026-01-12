@@ -6,7 +6,7 @@
 	 * @see https://next.skeleton.dev/docs/resources/contribute/components
 	 */
 
-	import { createOrGetState } from './HkTabBar.state.svelte';
+	import { createOrGetState } from './HkTabBar.state.svelte.js';
 
 	import { HkGridArea } from '$lib/ui/primitives.js';
 

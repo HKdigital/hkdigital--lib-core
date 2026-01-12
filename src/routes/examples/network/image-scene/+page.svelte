@@ -3,7 +3,7 @@
 
   import { ArmyGreen, ElectricBlue } from '$examples/assets/images.js';
 
-  import { ImageBox } from '$lib/ui/components/index.js';
+  import { ImageBox } from '$lib/ui/components.js';
 
   import { ImageScene } from '$lib/network/loaders.js';
 

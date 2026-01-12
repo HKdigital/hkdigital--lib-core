@@ -2,7 +2,7 @@
 
 import * as expect from '$lib/util/expect.js';
 
-import { PATH_SEPARATOR } from '$lib/util/object/index.js';
+import { PATH_SEPARATOR } from '$lib/util/object.js';
 
 /* ------------------------------------------------------------------ Typedef */
 

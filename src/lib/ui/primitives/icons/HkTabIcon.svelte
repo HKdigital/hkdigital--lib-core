@@ -10,7 +10,7 @@
 
 	import { onMount } from 'svelte';
 
-	import { HkGridArea } from '../area';
+	import { HkGridArea } from '../area.js';
 
 	import HkIcon from './HkIcon.svelte';
 

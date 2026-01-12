@@ -1,0 +1,60 @@
+src/lib/ui/components/rows/panel-row-2/PanelRow2.svelte:2 - Parent index.js import (use $lib/ or import specific file)
+  import { PanelGridRow } from '../index.js';
+  import { PanelGridRow } from '../index.js'; // TODO: Import specific file or refactor
+
+src/lib/ui/components/tab-bar/HkTabBar.svelte:9 - Missing non-standard extension (use './HkTabBar.state.svelte.js')
+	import { createOrGetState } from './HkTabBar.state.svelte';
+	import { createOrGetState } from './HkTabBar.state.svelte.js';
+
+src/lib/ui/primitives/icons/HkTabIcon.svelte:13 - Directory import (write explicitly: '../area/index.js')
+	import { HkGridArea } from '../area';
+	import { HkGridArea } from '../area/index.js';
+
+src/lib/util/array/index.js:5 - Parent index.js import (use $lib/ or import specific file)
+import { smallestFirst, largestFirst } from '../compare/index.js';
+import { smallestFirst, largestFirst } from '../compare.js';
+
+src/lib/util/array/index.js:7 - Parent index.js import (use $lib/ or import specific file)
+import { objectGet, PATH_SEPARATOR } from '../object/index.js';
+import { objectGet, PATH_SEPARATOR } from '../object.js';
+
+src/lib/util/compare/index.js:3 - Parent index.js import (use $lib/ or import specific file)
+import { objectGet } from '../object/index.js';
+import { objectGet } from '../object.js';
+
+src/lib/util/expect/compounds.js:2 - Parent index.js import (use $lib/ or import specific file)
+import * as is from '../is/index.js';
+import * as is from '../is.js';
+
+src/lib/util/expect/objects.js:2 - Parent index.js import (use $lib/ or import specific file)
+import * as is from '../is/index.js';
+import * as is from '../is.js';
+
+src/lib/util/iterate/index.js:4 - Parent index.js import (use $lib/ or import specific file)
+import { smallestFirst, largestFirst } from '../compare/index.js';
+import { smallestFirst, largestFirst } from '../compare.js';
+
+src/lib/util/object/index.js:5 - Parent index.js import (use $lib/ or import specific file)
+import { equals } from '../compare/index.js';
+import { equals } from '../compare.js';
+
+src/lib/util/object/index.js:7 - Parent index.js import (use $lib/ or import specific file)
+import { toArrayPath } from '../array/index.js';
+import { toArrayPath } from '../array.js';
+
+src/lib/util/object/index.js:11 - Parent index.js import (use $lib/ or import specific file)
+import * as is from '../is/index.js';
+import * as is from '../is.js';
+
+src/lib/util/object/index.js:13 - Parent index.js import (use $lib/ or import specific file)
+import { iterateObjectPaths, iterateObjectEntries } from '../iterate/index.js';
+import { iterateObjectPaths, iterateObjectEntries } from '../iterate.js';
+
+src/lib/util/string/interpolate.js:5 - Parent index.js import (use $lib/ or import specific file)
+import { objectGet, PATH_SEPARATOR } from '../object/index.js';
+import { objectGet, PATH_SEPARATOR } from '../object.js';
+
+src/routes/explorer/[...path]/+page.svelte:4 - Parent index.js import (use $lib/ or import specific file)
+  import { TopBar, Explorer } from '../components/index.js';
+  import { TopBar, Explorer } from '../components.js';
+

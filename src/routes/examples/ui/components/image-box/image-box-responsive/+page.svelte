@@ -1,6 +1,6 @@
 <script>
   import ArmyGreenResponsive from '$examples/assets/images/army-green.jpg?preset=gradient&responsive';
-  import { ImageBox } from '$lib/ui/components/index.js';
+  import { ImageBox } from '$lib/ui/components.js';
 
   /** @type {import('$lib/network/typedef.js').LoadingProgress} */
   let progress = $state({ bytesLoaded: 0, size: 0, loaded: false });
