@@ -240,38 +240,74 @@ async function findExternalBarrelExport(importPath, targetName) {
 
   if (!shouldCheck) return null;
 
+  // Read package.json to check for exports mapping
+  let exportsMapping = null;
+  try {
+    const pkgJsonPath = join(nodeModulesPath, 'package.json');
+    const pkgJsonContent = await readFile(pkgJsonPath, 'utf-8');
+    const pkgJson = JSON.parse(pkgJsonContent);
+
+    // Check if there's a "./*" export mapping
+    if (pkgJson.exports && pkgJson.exports['./*']) {
+      const mapping = pkgJson.exports['./*'];
+      const mappingStr = typeof mapping === 'string' ?
+        mapping : mapping.default;
+
+      // Extract prefix from mapping like "./dist/*" -> "dist/"
+      if (mappingStr && mappingStr.includes('*')) {
+        exportsMapping = mappingStr.replace(/\/?\*$/, '');
+        if (exportsMapping.startsWith('./')) {
+          exportsMapping = exportsMapping.slice(2);
+        }
+        if (exportsMapping && !exportsMapping.endsWith('/')) {
+          exportsMapping += '/';
+        }
+      }
+    }
+  } catch {
+    // Could not read package.json, continue without mapping
+  }
+
   // Try progressively higher-level barrel files
   for (let i = 1; i < pathInPackage.length; i++) {
     const barrelPath = pathInPackage.slice(0, i).join('/') + '.js';
-    const fsBarrelPath = join(nodeModulesPath, barrelPath);
 
-    try {
-      const stats = await stat(fsBarrelPath);
-      if (stats.isFile()) {
-        const content = await readFile(fsBarrelPath, 'utf-8');
+    // Try both with and without exports mapping
+    const pathsToTry = [
+      join(nodeModulesPath, barrelPath),
+      exportsMapping ?
+        join(nodeModulesPath, exportsMapping + barrelPath) : null
+    ].filter(Boolean);
 
-        // Check if this barrel exports our target
-        // Patterns to match:
-        // export { TextButton } from './path';
-        // export * from './path';
-        const exportPatterns = [
-          // Named export with exact name
-          new RegExp(
-            `export\\s+\\{[^}]*\\b${targetName}\\b[^}]*\\}`,
-            'm'
-          ),
-          // Re-export all
-          /export\s+\*\s+from/,
-          // Default export
-          new RegExp(`export\\s+default\\s+${targetName}\\b`, 'm')
-        ];
+    for (const fsBarrelPath of pathsToTry) {
+      try {
+        const stats = await stat(fsBarrelPath);
+        if (stats.isFile()) {
+          const content = await readFile(fsBarrelPath, 'utf-8');
 
-        if (exportPatterns.some(pattern => pattern.test(content))) {
-          return `${pkgName}/${barrelPath}`;
+          // Check if this barrel exports our target
+          // Patterns to match:
+          // export { TextButton } from './path';
+          // export * from './path';
+          const exportPatterns = [
+            // Named export with exact name
+            new RegExp(
+              `export\\s+\\{[^}]*\\b${targetName}\\b[^}]*\\}`,
+              'm'
+            ),
+            // Re-export all
+            /export\s+\*\s+from/,
+            // Default export
+            new RegExp(`export\\s+default\\s+${targetName}\\b`, 'm')
+          ];
+
+          if (exportPatterns.some(pattern => pattern.test(content))) {
+            return `${pkgName}/${barrelPath}`;
+          }
         }
+      } catch {
+        // File doesn't exist, continue
       }
-    } catch {
-      // File doesn't exist, continue
     }
   }
 
