@@ -2,10 +2,8 @@
 
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { join, relative, resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
 
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
-const PROJECT_ROOT = join(__dirname, '..');
+const PROJECT_ROOT = process.cwd();
 const SRC_DIR = join(PROJECT_ROOT, 'src');
 
 /**
