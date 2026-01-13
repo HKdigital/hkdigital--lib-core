@@ -1,6 +1,6 @@
 import { defineStateContext } from '$lib/state/context.js';
 
-import { useResizeObserver } from '$lib/util/svelte/observe/index.js';
+import { useResizeObserver } from '$lib/util/svelte.js';
 
 /* ------------------------------------------------------- Define state class */
 

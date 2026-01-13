@@ -289,11 +289,32 @@ node node_modules/@hkdigital/lib-core/scripts/validate-imports.mjs
 **Validation rules (enforced for `src/lib/` files only):**
 
 1. **Cross-domain imports** - Use `$lib/` instead of `../../../`
-2. **Parent index.js imports** - Use `$lib/` or import specific files
-3. **Non-standard extensions** - Include full extension (e.g.,
+2. **Prefer barrel exports** - Use higher-level export files when available
+3. **Parent index.js imports** - Use `$lib/` or import specific files
+4. **Non-standard extensions** - Include full extension (e.g.,
    `.svelte.js`)
-4. **Directory imports** - Write explicitly (e.g., `./path/index.js`)
-5. **File existence** - All import paths must resolve to existing files
+5. **Directory imports** - Write explicitly or create barrel export file
+6. **File existence** - All import paths must resolve to existing files
+
+**Barrel export preference:**
+
+The validator suggests using the highest-level barrel export file that
+exports your target. This encourages shorter imports that can be
+combined:
+
+```js
+// Instead of deep imports:
+import ProfileBlocks from '$lib/ui/components/profile-blocks/ProfileBlocks.svelte';
+import Button from '$lib/ui/primitives/buttons/Button.svelte';
+
+// Use barrel exports:
+import { ProfileBlocks } from '$lib/ui/components.js';
+import { Button } from '$lib/ui/primitives.js';
+```
+
+The validator checks from highest to lowest level (`$lib/ui.js` →
+`$lib/ui/components.js` → `$lib/ui/components/profile-blocks.js`) and
+suggests the highest-level file that exports your target.
 
 **Routes are exempt from strict rules:**
 
@@ -305,9 +326,13 @@ files.
 **Example output:**
 
 ```
-src/lib/ui/components/Button.svelte:7
-  from '$lib/ui/primitives/buttons'
-  => from '$lib/ui/primitives/buttons/index.js'
+src/lib/ui/panels/Panel.svelte:6
+  from '../../../components/profile-blocks/ProfileBlocks.svelte'
+  => from '$lib/ui/components.js' (use barrel export)
+
+src/lib/ui/pages/Profile.svelte:8
+  from '$lib/ui/components/profile-blocks/ProfileBlocks.svelte'
+  => from '$lib/ui/components.js' (use barrel export for shorter imports)
 
 src/routes/explorer/[...path]/+page.svelte:4
   from '../components/index.js'

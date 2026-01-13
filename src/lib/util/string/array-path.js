@@ -1,4 +1,4 @@
-import { PATH_SEPARATOR } from '$lib/util/object/index.js';
+import { PATH_SEPARATOR } from '$lib/util/object.js';
 
 /**
  * Convert a path string to an array path

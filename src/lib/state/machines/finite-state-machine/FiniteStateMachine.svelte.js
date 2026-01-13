@@ -5,7 +5,7 @@
  */
 
 import { isTestEnv } from '$lib/util/env.js';
-import EventEmitter from '$lib/generic/events/classes/EventEmitter.js';
+import { EventEmitter } from '$lib/generic/events.js';
 import { ENTER, EXIT } from './constants.js';
 
 /** @typedef {import('./typedef.js').TransitionData} TransitionData */

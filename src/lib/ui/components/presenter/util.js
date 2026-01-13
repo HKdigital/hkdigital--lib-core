@@ -2,7 +2,7 @@ import { tick } from 'svelte';
 
 import * as expect from '$lib/util/expect.js';
 
-import { pushNotEmpty } from '$lib/util/array/index.js';
+import { pushNotEmpty } from '$lib/util/array.js';
 
 import { TRANSITION_CSS, FADE_IN, FADE_OUT } from './constants.js';
 

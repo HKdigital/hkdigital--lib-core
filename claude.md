@@ -112,17 +112,23 @@ This is a modern SvelteKit library built with Svelte 5 and Skeleton.dev v3 compo
 - Use `$lib/domain/...` imports for cross-domain references (e.g., `$lib/media/image.js`, `$lib/network/http.js`)
 - Use relative imports (`./` or `../`) when staying within the same main folder under `$lib`
 - **Always include file extensions** (`.js`, `.svelte`) in import statements
+- **Prefer barrel exports** - Use higher-level export files when available (e.g., `$lib/ui/components.js` instead of `$lib/ui/components/profile/ProfileBlocks.svelte`)
 - **For cross-domain imports, use specific export files** (e.g., `parsers.js`, `valibot.js`) rather than directory-only paths - this ensures compatibility outside the library
 - **For local imports within the same domain**, import specific files directly (e.g., `./ClassName.js`) rather than using local index files
 - Examples:
+  - ✅ `import { ProfileBlocks } from '$lib/ui/components.js'` (barrel export - preferred)
+  - ✅ `import { Button } from '$lib/ui/primitives.js'` (barrel export - preferred)
   - ✅ `import { ImageLoader } from '$lib/media/image.js'` (cross-domain import)
   - ✅ `import ImageLoader from './ImageLoader.svelte.js'` (local import within same domain)
   - ✅ `import IterableTree from './IterableTree.js'` (local import within same domain)
   - ✅ `import { v } from '$lib/valibot/valibot.js'` (cross-domain with specific export file)
   - ✅ `import { HumanUrl, Email } from '$lib/valibot/parsers.js'` (cross-domain with specific export file)
+  - ❌ `import ProfileBlocks from '$lib/ui/components/profile/ProfileBlocks.svelte'` (deep import when barrel exists)
   - ❌ `import { v, HumanUrl } from '$lib/valibot'` (missing specific export file)
   - ❌ `import { IterableTree } from './index.js'` (local index when specific file should be used)
   - ❌ `import something from '../../media/image.js'` (cross-domain relative import)
+
+**Import validation:** Run `node scripts/validate-imports.mjs` to validate import patterns. The validator checks for barrel export files at each level and suggests the highest-level file that exports your target. These rules are enforced for `src/lib/` files only. Files in `src/routes/` can use relative imports freely. See README.md "Import Validation" section for usage in other projects.
 
 ## Class Export Conventions
 - **All classes should be default exports**: `export default class ClassName`

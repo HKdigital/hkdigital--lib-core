@@ -1,7 +1,7 @@
 <script>
   import Button from '../button/Button.svelte';
 
-  import { SteezeIcon } from '$lib/ui/primitives/icons/index.js';
+  import { SteezeIcon } from '$lib/ui/primitives.js';
 
   /**
    * @type {{

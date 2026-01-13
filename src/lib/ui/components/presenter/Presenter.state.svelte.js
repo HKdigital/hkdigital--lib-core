@@ -1,8 +1,6 @@
-import { tick } from 'svelte';
+import { tick, untrack } from 'svelte';
 
-import { findFirst } from '$lib/util/array/index.js';
-
-import { untrack } from 'svelte';
+import { findFirst } from '$lib/util/array.js';
 
 import { HkPromise } from '$lib/generic/promises.js';
 

@@ -6,7 +6,7 @@
    */
 
   import { onMount } from 'svelte';
-  import { findFirst } from '$lib/util/array/index.js';
+  import { findFirst } from '$lib/util/array.js';
 
   /**
    * @type {{

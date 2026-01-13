@@ -32,6 +32,66 @@ async function findFiles(dir) {
 }
 
 /**
+ * Find highest-level barrel export file that exports the target
+ *
+ * For a path like $lib/ui/components/profile-blocks/ProfileBlocks.svelte:
+ * - Check $lib/ui.js
+ * - Check $lib/ui/components.js
+ * - Check $lib/ui/components/profile-blocks.js
+ *
+ * @param {string} importPath - Import path (e.g., $lib/ui/components/...)
+ * @param {string} filePath - Source file making the import
+ *
+ * @returns {Promise<string|null>} Barrel file path or null
+ */
+async function findBarrelExportFile(importPath, filePath) {
+  if (!importPath.startsWith('$lib/')) return null;
+
+  // Remove $lib/ prefix and extract path segments
+  const pathWithoutLib = importPath.replace('$lib/', '');
+  const parts = pathWithoutLib.split('/');
+
+  // Extract the target filename (last part, possibly with extension)
+  const targetFile = parts[parts.length - 1];
+  const targetBase = targetFile.replace(/\.(js|svelte)$/, '');
+
+  // Check from highest level down (but skip the filename itself)
+  for (let i = 1; i < parts.length; i++) {
+    const barrelPath = '$lib/' + parts.slice(0, i).join('/') + '.js';
+    const fsBarrelPath = join(
+      PROJECT_ROOT,
+      barrelPath.replace('$lib/', 'src/lib/')
+    );
+
+    try {
+      const stats = await stat(fsBarrelPath);
+      if (stats.isFile()) {
+        // Check if this barrel file exports our target
+        const content = await readFile(fsBarrelPath, 'utf-8');
+
+        // Look for exports that match the target file
+        // Patterns:
+        // export { ProfileBlocks } from './path/ProfileBlocks.svelte';
+        // export * from './path/ProfileBlocks.svelte';
+        // More flexible pattern to catch various export styles
+        const exportPattern = new RegExp(
+          `export\\s+(?:\\*|\\{[^}]*\\})\\s+from\\s+['"](?:.*/)?(${targetBase}(?:\\.(?:js|svelte))?)['"]`,
+          'gm'
+        );
+
+        if (exportPattern.test(content)) {
+          return barrelPath;
+        }
+      }
+    } catch {
+      // File doesn't exist or can't be read, continue
+    }
+  }
+
+  return null;
+}
+
+/**
  * Check if import path resolves to directory with index.js
  *
  * Follows Node.js/Vite resolution order:
@@ -129,11 +189,29 @@ async function validateFile(filePath) {
     // Check 1: Cross-domain relative imports (3+ levels up)
     // Only enforce for lib files
     if (isInLib && importPath.match(/^\.\.\/\.\.\/\.\.\//)) {
-      errors.push(
-        `${relativePath}:${lineNum}\n` +
-        `  from '${importPath}'\n` +
-        `  => Use $lib/ for cross-domain imports`
+      // Convert relative path to $lib/ path
+      const fsPath = resolve(dirname(filePath), importPath);
+      const libPath = fsPath.replace(
+        join(PROJECT_ROOT, 'src/lib/'),
+        '$lib/'
       );
+
+      // Check for barrel export files
+      const barrelFile = await findBarrelExportFile(libPath, filePath);
+
+      if (barrelFile) {
+        errors.push(
+          `${relativePath}:${lineNum}\n` +
+          `  from '${importPath}'\n` +
+          `  => from '${barrelFile}' (use barrel export)`
+        );
+      } else {
+        errors.push(
+          `${relativePath}:${lineNum}\n` +
+          `  from '${importPath}'\n` +
+          `  => from '${libPath}'`
+        );
+      }
       continue;
     }
 
@@ -323,7 +401,52 @@ async function validateFile(filePath) {
       }
     }
 
-    // Check 5: File existence (after all other checks)
+    // Check 5: Suggest barrel exports for deep $lib/ imports
+    // Only for specific cases, not for named export files
+    if (isInLib && importPath.startsWith('$lib/')) {
+      const pathWithoutLib = importPath.replace('$lib/', '');
+      const segments = pathWithoutLib.split('/');
+
+      // Only suggest barrel exports for:
+      // 1. Directory imports (no extension, resolves to index.js)
+      // 2. Explicit index.js imports
+      // 3. Deep component/class files (.svelte or capitalized .js files)
+      let shouldCheckBarrel = false;
+
+      if (segments.length >= 3) {
+        const lastSegment = segments[segments.length - 1];
+
+        // Case 1: Explicit index.js import
+        if (lastSegment === 'index.js') {
+          shouldCheckBarrel = true;
+        }
+        // Case 2: Directory import (will be caught by Check 4)
+        // Case 3: Component or class file (.svelte or capitalized)
+        else if (lastSegment.endsWith('.svelte')) {
+          shouldCheckBarrel = true;
+        } else if (lastSegment.match(/^[A-Z][^/]*\.js$/)) {
+          // Capitalized .js file (likely a class)
+          shouldCheckBarrel = true;
+        }
+        // Skip named export files like methods.js, http.js, etc.
+        // These are lowercase and ARE the public API
+      }
+
+      if (shouldCheckBarrel) {
+        const barrelFile = await findBarrelExportFile(importPath, filePath);
+
+        if (barrelFile) {
+          errors.push(
+            `${relativePath}:${lineNum}\n` +
+            `  from '${importPath}'\n` +
+            `  => from '${barrelFile}' (use barrel export for shorter imports)`
+          );
+          continue;
+        }
+      }
+    }
+
+    // Check 6: File existence (after all other checks)
     // Verify that the import path resolves to an existing file
     // Follow Node.js/Vite resolution order
     let fileExists = false;

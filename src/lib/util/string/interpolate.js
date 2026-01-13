@@ -1,6 +1,6 @@
 import * as expect from '$lib/util/expect.js';
 
-import { toArrayPath } from '$lib/util/array/index.js';
+import { toArrayPath } from '$lib/util/array.js';
 
 import { objectGet, PATH_SEPARATOR } from '../object.js';
 

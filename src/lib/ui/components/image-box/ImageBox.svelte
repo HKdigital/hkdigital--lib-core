@@ -1,7 +1,6 @@
 <script>
-	import { ImageLoader } from '$lib/network/loaders.js';
-	import { ImageVariantsLoader } from '$lib/network/loaders.js';
-	import { toSingleImageMeta } from '$lib/network/loaders/image/utils/index.js';
+	import { ImageLoader, ImageVariantsLoader } from '$lib/network/loaders.js';
+	import { toSingleImageMeta } from '$lib/network/loaders/image.js';
 
 	/**
 	 * @type {{

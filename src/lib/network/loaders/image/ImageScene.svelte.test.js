@@ -2,7 +2,7 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 
-import { waitForState } from '$lib/util/svelte/wait/index.js';
+import { waitForState } from '$lib/util/svelte.js';
 
 import {
   STATE_INITIAL,
