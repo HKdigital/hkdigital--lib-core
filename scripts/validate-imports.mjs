@@ -13,6 +13,55 @@ const SRC_DIR = join(PROJECT_ROOT, 'src');
 const EXTERNAL_SCOPES_TO_VALIDATE = ['@hkdigital'];
 
 /**
+ * Project aliases from svelte.config.js
+ * Loaded dynamically at startup
+ *
+ * @type {Record<string, string>}
+ */
+let PROJECT_ALIASES = {};
+
+/**
+ * Load aliases from svelte.config.js
+ *
+ * @returns {Promise<Record<string, string>>} Alias mappings
+ */
+async function loadAliases() {
+  try {
+    const configPath = join(PROJECT_ROOT, 'svelte.config.js');
+
+    // Use dynamic import to load ES module
+    const config = await import(`file://${configPath}`);
+    const svelteConfig = config.default;
+
+    if (svelteConfig?.kit?.alias) {
+      return svelteConfig.kit.alias;
+    }
+  } catch (error) {
+    // Config file doesn't exist or can't be loaded
+    // This is OK - not all projects will have aliases
+  }
+
+  return {};
+}
+
+/**
+ * Resolve an alias path to its filesystem location
+ *
+ * @param {string} aliasPath - Import path using alias (e.g., $hklib-core/...)
+ *
+ * @returns {string|null} Resolved filesystem path or null
+ */
+function resolveAliasPath(aliasPath) {
+  for (const [alias, target] of Object.entries(PROJECT_ALIASES)) {
+    if (aliasPath === alias || aliasPath.startsWith(alias + '/')) {
+      const pathAfterAlias = aliasPath.slice(alias.length);
+      return join(PROJECT_ROOT, target, pathAfterAlias);
+    }
+  }
+  return null;
+}
+
+/**
  * Find all JS and Svelte files recursively
  *
  * @param {string} dir - Directory to search
@@ -315,6 +364,105 @@ async function findExternalBarrelExport(importPath, targetName) {
 }
 
 /**
+ * Find highest-level barrel export in alias path
+ *
+ * For $hklib-core/ui/primitives/buttons/index.js:
+ * - Check $hklib-core/ui/primitives.js
+ * - Check $hklib-core/ui.js
+ *
+ * @param {string} importPath - Alias import path
+ * @param {string} targetName - Name of export to find
+ *
+ * @returns {Promise<string|null>} Suggested barrel path or null
+ */
+async function findAliasBarrelExport(importPath, targetName) {
+  // Find the matching alias
+  let matchedAlias = null;
+  let pathAfterAlias = null;
+
+  for (const alias of Object.keys(PROJECT_ALIASES)) {
+    if (importPath === alias || importPath.startsWith(alias + '/')) {
+      matchedAlias = alias;
+      pathAfterAlias = importPath.slice(alias.length);
+      if (pathAfterAlias.startsWith('/')) {
+        pathAfterAlias = pathAfterAlias.slice(1);
+      }
+      break;
+    }
+  }
+
+  if (!matchedAlias || !pathAfterAlias) {
+    return null;
+  }
+
+  const pathInAlias = pathAfterAlias.split('/');
+
+  // If no path in alias, nothing to suggest
+  if (pathInAlias.length === 0 || pathInAlias[0] === '') {
+    return null;
+  }
+
+  const aliasRootPath = resolveAliasPath(matchedAlias);
+
+  // Extract target to find (last part without extension)
+  const lastPart = pathInAlias[pathInAlias.length - 1];
+  const targetBase = lastPart.replace(/\.(js|svelte)$/, '');
+
+  // Only check for specific import types (matches internal logic)
+  // 1. Explicit index.js imports
+  // 2. Component files (.svelte)
+  // 3. Class files (capitalized .js)
+  let shouldCheck = false;
+
+  if (lastPart === 'index.js') {
+    shouldCheck = true;
+  } else if (lastPart.endsWith('.svelte')) {
+    shouldCheck = true;
+  } else if (lastPart.match(/^[A-Z][^/]*\.js$/)) {
+    shouldCheck = true;
+  }
+
+  if (!shouldCheck) return null;
+
+  // Try progressively higher-level barrel files
+  for (let i = 1; i < pathInAlias.length; i++) {
+    const barrelPath = pathInAlias.slice(0, i).join('/') + '.js';
+    const fsBarrelPath = join(aliasRootPath, barrelPath);
+
+    try {
+      const stats = await stat(fsBarrelPath);
+      if (stats.isFile()) {
+        const content = await readFile(fsBarrelPath, 'utf-8');
+
+        // Check if this barrel exports our target
+        // Patterns to match:
+        // export { TextButton } from './path';
+        // export * from './path';
+        const exportPatterns = [
+          // Named export with exact name
+          new RegExp(
+            `export\\s+\\{[^}]*\\b${targetName}\\b[^}]*\\}`,
+            'm'
+          ),
+          // Re-export all
+          /export\s+\*\s+from/,
+          // Default export
+          new RegExp(`export\\s+default\\s+${targetName}\\b`, 'm')
+        ];
+
+        if (exportPatterns.some(pattern => pattern.test(content))) {
+          return `${matchedAlias}/${barrelPath}`;
+        }
+      }
+    } catch {
+      // File doesn't exist, continue
+    }
+  }
+
+  return null;
+}
+
+/**
  * Validate import paths in a file
  *
  * @param {string} filePath - Path to the file
@@ -351,6 +499,36 @@ async function validateFile(filePath) {
 
     // Strip query parameters (Vite asset imports like ?preset=render)
     const importPath = importPathRaw.split('?')[0];
+
+    // Check if import uses a project alias
+    const isAliasImport = Object.keys(PROJECT_ALIASES).some(
+      alias => importPath === alias || importPath.startsWith(alias + '/')
+    );
+
+    if (isAliasImport) {
+      // Extract imported names from the import statement
+      const importedNames = extractImportNames(line);
+
+      // Check each imported name for barrel exports
+      for (const importedName of importedNames) {
+        const barrelPath = await findAliasBarrelExport(
+          importPath,
+          importedName
+        );
+
+        if (barrelPath) {
+          errors.push(
+            `${relativePath}:${lineNum}\n` +
+            `  from '${importPath}'\n` +
+            `  => from '${barrelPath}' (use barrel export)`
+          );
+          break; // Only report once per line
+        }
+      }
+
+      // Skip further validation for alias imports
+      continue;
+    }
 
     // Check external packages from configured scopes
     const isExternalPackage = !importPath.startsWith('./') &&
@@ -697,6 +875,17 @@ async function validateFile(filePath) {
  */
 async function main() {
   console.log('Validating import paths...\n');
+
+  // Load project aliases from svelte.config.js
+  PROJECT_ALIASES = await loadAliases();
+
+  if (Object.keys(PROJECT_ALIASES).length > 0) {
+    console.log('Found project aliases:');
+    for (const [alias, target] of Object.entries(PROJECT_ALIASES)) {
+      console.log(`  ${alias} → ${target}`);
+    }
+    console.log();
+  }
 
   const files = await findFiles(SRC_DIR);
   const allErrors = [];
