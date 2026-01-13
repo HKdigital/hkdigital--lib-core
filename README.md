@@ -303,17 +303,27 @@ pnpm run lint:imports
 node node_modules/@hkdigital/lib-core/scripts/validate-imports.mjs
 ```
 
+**Alias support:**
+
+The validator automatically reads path aliases from your
+`svelte.config.js` and applies the same barrel export validation rules
+to alias imports. This ensures consistent import patterns across:
+- Internal `$lib/` imports
+- Project aliases like `$hklib-core`, `$hklib-pro`, etc.
+- External `@hkdigital/*` package imports
+
 **Validation rules (enforced for `src/lib/` files only):**
 
-1. **Cross-domain imports** - Use `$lib/` instead of `../../../`
-2. **Prefer barrel exports** - Use higher-level export files when available
-3. **Parent index.js imports** - Use `$lib/` or import specific files
-4. **Non-standard extensions** - Include full extension (e.g.,
+1. **Alias optimization** - Use `$lib` instead of `$src/lib` (built-in
+   SvelteKit alias)
+2. **Cross-domain imports** - Use `$lib/` instead of `../../../`
+3. **Prefer barrel exports** - Use higher-level export files when
+   available (applies to `$lib/`, aliases, and `@hkdigital/*` packages)
+4. **Parent index.js imports** - Use `$lib/` or import specific files
+5. **Non-standard extensions** - Include full extension (e.g.,
    `.svelte.js`)
-5. **Directory imports** - Write explicitly or create barrel export file
-6. **File existence** - All import paths must resolve to existing files
-7. **External package optimization** - Suggests barrel exports for
-   `@hkdigital/*` packages
+6. **Directory imports** - Write explicitly or create barrel export file
+7. **File existence** - All import paths must resolve to existing files
 
 **Barrel export preference:**
 
@@ -322,6 +332,10 @@ exports your target. This encourages shorter imports that can be
 combined:
 
 ```js
+// Optimize built-in aliases:
+import { MyComponent } from '$src/lib/ui/components.js';
+// → Use: import { MyComponent } from '$lib/ui/components.js';
+
 // Internal imports - instead of deep imports:
 import ProfileBlocks from '$lib/ui/components/profile-blocks/ProfileBlocks.svelte';
 import Button from '$lib/ui/primitives/buttons/Button.svelte';
@@ -329,6 +343,14 @@ import Button from '$lib/ui/primitives/buttons/Button.svelte';
 // Use barrel exports:
 import { ProfileBlocks } from '$lib/ui/components.js';
 import { Button } from '$lib/ui/primitives.js';
+
+// Project aliases - instead of deep imports:
+import { Logger } from '$hklib-core/logging/logger/Logger.js';
+import { HttpClient } from '$hklib-core/network/http/HttpClient.js';
+
+// Use barrel exports:
+import { Logger } from '$hklib-core/logging.js';
+import { HttpClient } from '$hklib-core/network/http.js';
 
 // External imports - instead of deep imports:
 import { TextButton } from '@hkdigital/lib-core/ui/primitives/buttons/index.js';
@@ -341,7 +363,7 @@ import { TextButton, TextInput } from '@hkdigital/lib-core/ui/primitives.js';
 The validator checks from highest to lowest level (`$lib/ui.js` →
 `$lib/ui/components.js` → `$lib/ui/components/profile-blocks.js`) and
 suggests the highest-level file that exports your target. The same
-logic applies to external `@hkdigital/*` packages.
+logic applies to project aliases and external `@hkdigital/*` packages.
 
 **Routes are exempt from strict rules:**
 
@@ -353,6 +375,17 @@ files.
 **Example output:**
 
 ```
+Validating import paths...
+
+Found project aliases:
+  $src → src
+  $examples → src/routes/examples
+  $hklib-core → src/lib
+
+src/lib/ui/panels/Panel.svelte:3
+  from '$src/lib/ui/components.js'
+  => from '$lib/ui/components.js' (use built-in $lib alias)
+
 src/lib/ui/panels/Panel.svelte:6
   from '../../../components/profile-blocks/ProfileBlocks.svelte'
   => from '$lib/ui/components.js' (use barrel export)
@@ -362,6 +395,10 @@ src/lib/ui/pages/Profile.svelte:8
   => from '$lib/ui/components.js' (use barrel export for shorter imports)
 
 src/lib/forms/LoginForm.svelte:4
+  from '$hklib-core/logging/logger/Logger.js'
+  => from '$hklib-core/logging.js' (use barrel export)
+
+src/lib/forms/LoginForm.svelte:6
   from '@hkdigital/lib-core/ui/primitives/buttons/index.js'
   => from '@hkdigital/lib-core/ui/primitives.js' (use barrel export)
 
@@ -370,15 +407,30 @@ src/routes/explorer/[...path]/+page.svelte:4
   ✅ Allowed in routes
 ```
 
-**What gets checked for external packages:**
+**What gets checked for barrel export suggestions:**
 
-The validator only suggests barrel exports for:
+The validator only suggests barrel exports (for `$lib/`, project aliases,
+and external `@hkdigital/*` packages) for:
 - Explicit `index.js` imports
 - Component files (`.svelte`)
 - Class files (capitalized `.js` files)
 
 Intentional imports like `helpers.js`, `config.js`, or other lowercase
 utility files are assumed to be the public API and won't be flagged.
+
+**Alias configuration:**
+
+The validator automatically detects aliases in your `svelte.config.js`.
+For example, if your config has:
+```js
+alias: {
+  $src: 'src',
+  $hklib-core: 'node_modules/@hkdigital/lib-core/dist'
+}
+```
+
+The validator will apply the same barrel export rules to these aliases
+as it does to `$lib/` and `@hkdigital/*` imports.
 
 ### Import Patterns and Export Structure
 

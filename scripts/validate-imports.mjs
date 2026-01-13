@@ -498,7 +498,22 @@ async function validateFile(filePath) {
     const importPathRaw = importMatch[1];
 
     // Strip query parameters (Vite asset imports like ?preset=render)
-    const importPath = importPathRaw.split('?')[0];
+    let importPath = importPathRaw.split('?')[0];
+
+    // Check if using $src/lib when $lib is available (built-in SvelteKit)
+    // Report the issue and normalize the path for further validation
+    let hasSrcLibIssue = false;
+    if (importPath.startsWith('$src/lib/') || importPath === '$src/lib') {
+      hasSrcLibIssue = true;
+      const optimizedPath = importPath.replace('$src/lib', '$lib');
+      errors.push(
+        `${relativePath}:${lineNum}\n` +
+        `  from '${importPath}'\n` +
+        `  => from '${optimizedPath}' (use built-in $lib alias)`
+      );
+      // Normalize for further validation
+      importPath = optimizedPath;
+    }
 
     // Check if import uses a project alias
     const isAliasImport = Object.keys(PROJECT_ALIASES).some(
