@@ -280,9 +280,26 @@ pnpm run publish:npm # Version bump and publish to npm
 ### Import Validation
 
 The library includes a validation script to enforce consistent import
-patterns. Run it in your project:
+patterns across both your project files and external `@hkdigital/*`
+package imports.
+
+**Add to your project's package.json:**
+
+```json
+{
+  "scripts": {
+    "lint:imports": "node node_modules/@hkdigital/lib-core/scripts/validate-imports.mjs"
+  }
+}
+```
+
+**Run validation:**
 
 ```bash
+# Using npm script (recommended)
+pnpm run lint:imports
+
+# Or directly
 node node_modules/@hkdigital/lib-core/scripts/validate-imports.mjs
 ```
 
@@ -295,6 +312,8 @@ node node_modules/@hkdigital/lib-core/scripts/validate-imports.mjs
    `.svelte.js`)
 5. **Directory imports** - Write explicitly or create barrel export file
 6. **File existence** - All import paths must resolve to existing files
+7. **External package optimization** - Suggests barrel exports for
+   `@hkdigital/*` packages
 
 **Barrel export preference:**
 
@@ -303,18 +322,26 @@ exports your target. This encourages shorter imports that can be
 combined:
 
 ```js
-// Instead of deep imports:
+// Internal imports - instead of deep imports:
 import ProfileBlocks from '$lib/ui/components/profile-blocks/ProfileBlocks.svelte';
 import Button from '$lib/ui/primitives/buttons/Button.svelte';
 
 // Use barrel exports:
 import { ProfileBlocks } from '$lib/ui/components.js';
 import { Button } from '$lib/ui/primitives.js';
+
+// External imports - instead of deep imports:
+import { TextButton } from '@hkdigital/lib-core/ui/primitives/buttons/index.js';
+import { TextInput } from '@hkdigital/lib-core/ui/primitives/inputs/index.js';
+
+// Use barrel exports:
+import { TextButton, TextInput } from '@hkdigital/lib-core/ui/primitives.js';
 ```
 
 The validator checks from highest to lowest level (`$lib/ui.js` →
 `$lib/ui/components.js` → `$lib/ui/components/profile-blocks.js`) and
-suggests the highest-level file that exports your target.
+suggests the highest-level file that exports your target. The same
+logic applies to external `@hkdigital/*` packages.
 
 **Routes are exempt from strict rules:**
 
@@ -334,10 +361,24 @@ src/lib/ui/pages/Profile.svelte:8
   from '$lib/ui/components/profile-blocks/ProfileBlocks.svelte'
   => from '$lib/ui/components.js' (use barrel export for shorter imports)
 
+src/lib/forms/LoginForm.svelte:4
+  from '@hkdigital/lib-core/ui/primitives/buttons/index.js'
+  => from '@hkdigital/lib-core/ui/primitives.js' (use barrel export)
+
 src/routes/explorer/[...path]/+page.svelte:4
   from '../components/index.js'
   ✅ Allowed in routes
 ```
+
+**What gets checked for external packages:**
+
+The validator only suggests barrel exports for:
+- Explicit `index.js` imports
+- Component files (`.svelte`)
+- Class files (capitalized `.js` files)
+
+Intentional imports like `helpers.js`, `config.js`, or other lowercase
+utility files are assumed to be the public API and won't be flagged.
 
 ### Import Patterns and Export Structure
 

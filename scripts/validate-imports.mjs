@@ -7,6 +7,12 @@ const PROJECT_ROOT = process.cwd();
 const SRC_DIR = join(PROJECT_ROOT, 'src');
 
 /**
+ * Scopes to validate for barrel exports
+ * Any package under these scopes will be checked
+ */
+const EXTERNAL_SCOPES_TO_VALIDATE = ['@hkdigital'];
+
+/**
  * Find all JS and Svelte files recursively
  *
  * @param {string} dir - Directory to search
@@ -142,6 +148,137 @@ async function isDirectoryWithIndex(fsPath) {
 }
 
 /**
+ * Extract imported names from import statement
+ *
+ * @param {string} line - Import statement line
+ *
+ * @returns {string[]} Array of imported names
+ */
+function extractImportNames(line) {
+  const names = [];
+
+  // Default import: import Foo from '...'
+  const defaultMatch = line.match(/import\s+(\w+)\s+from/);
+  if (defaultMatch) {
+    names.push(defaultMatch[1]);
+  }
+
+  // Named imports: import { Foo, Bar } from '...'
+  const namedMatch = line.match(/import\s+\{([^}]+)\}\s+from/);
+  if (namedMatch) {
+    const namedImports = namedMatch[1]
+      .split(',')
+      .map(name => {
+        // Handle 'as' aliases: { Foo as Bar } → extract 'Foo'
+        const parts = name.trim().split(/\s+as\s+/);
+        return parts[0].trim();
+      })
+      .filter(name => name && name !== '*');
+    names.push(...namedImports);
+  }
+
+  return names;
+}
+
+/**
+ * Find highest-level barrel export in external package
+ *
+ * For @hkdigital/lib-core/ui/primitives/buttons/index.js:
+ * - Check @hkdigital/lib-core/ui/primitives.js
+ * - Check @hkdigital/lib-core/ui.js
+ *
+ * @param {string} importPath - External import path
+ * @param {string} targetName - Name of export to find
+ *
+ * @returns {Promise<string|null>} Suggested barrel path or null
+ */
+async function findExternalBarrelExport(importPath, targetName) {
+  // Extract package name (handle scoped packages)
+  const parts = importPath.split('/');
+  let pkgName;
+  let pathInPackage;
+
+  if (importPath.startsWith('@')) {
+    // Scoped package: @scope/package/path/to/file
+    pkgName = `${parts[0]}/${parts[1]}`;
+    pathInPackage = parts.slice(2);
+  } else {
+    // Regular package: package/path/to/file
+    pkgName = parts[0];
+    pathInPackage = parts.slice(1);
+  }
+
+  // Check if this scope should be validated
+  const scope = pkgName.startsWith('@') ?
+    pkgName.split('/')[0] : null;
+  if (scope && !EXTERNAL_SCOPES_TO_VALIDATE.includes(scope)) {
+    return null;
+  }
+
+  // If no path in package, nothing to suggest
+  if (pathInPackage.length === 0) return null;
+
+  const nodeModulesPath = join(PROJECT_ROOT, 'node_modules', pkgName);
+
+  // Extract target to find (last part without extension)
+  const lastPart = pathInPackage[pathInPackage.length - 1];
+  const targetBase = lastPart.replace(/\.(js|svelte)$/, '');
+
+  // Only check for specific import types (matches internal logic)
+  // 1. Explicit index.js imports
+  // 2. Component files (.svelte)
+  // 3. Class files (capitalized .js)
+  let shouldCheck = false;
+
+  if (lastPart === 'index.js') {
+    shouldCheck = true;
+  } else if (lastPart.endsWith('.svelte')) {
+    shouldCheck = true;
+  } else if (lastPart.match(/^[A-Z][^/]*\.js$/)) {
+    shouldCheck = true;
+  }
+
+  if (!shouldCheck) return null;
+
+  // Try progressively higher-level barrel files
+  for (let i = 1; i < pathInPackage.length; i++) {
+    const barrelPath = pathInPackage.slice(0, i).join('/') + '.js';
+    const fsBarrelPath = join(nodeModulesPath, barrelPath);
+
+    try {
+      const stats = await stat(fsBarrelPath);
+      if (stats.isFile()) {
+        const content = await readFile(fsBarrelPath, 'utf-8');
+
+        // Check if this barrel exports our target
+        // Patterns to match:
+        // export { TextButton } from './path';
+        // export * from './path';
+        const exportPatterns = [
+          // Named export with exact name
+          new RegExp(
+            `export\\s+\\{[^}]*\\b${targetName}\\b[^}]*\\}`,
+            'm'
+          ),
+          // Re-export all
+          /export\s+\*\s+from/,
+          // Default export
+          new RegExp(`export\\s+default\\s+${targetName}\\b`, 'm')
+        ];
+
+        if (exportPatterns.some(pattern => pattern.test(content))) {
+          return `${pkgName}/${barrelPath}`;
+        }
+      }
+    } catch {
+      // File doesn't exist, continue
+    }
+  }
+
+  return null;
+}
+
+/**
  * Validate import paths in a file
  *
  * @param {string} filePath - Path to the file
@@ -179,10 +316,40 @@ async function validateFile(filePath) {
     // Strip query parameters (Vite asset imports like ?preset=render)
     const importPath = importPathRaw.split('?')[0];
 
-    // Skip external packages (no ./ or $lib prefix)
-    if (!importPath.startsWith('./') &&
-        !importPath.startsWith('../') &&
-        !importPath.startsWith('$lib/')) {
+    // Check external packages from configured scopes
+    const isExternalPackage = !importPath.startsWith('./') &&
+      !importPath.startsWith('../') &&
+      !importPath.startsWith('$lib/');
+
+    if (isExternalPackage) {
+      // Extract package name/scope
+      const parts = importPath.split('/');
+      const scope = importPath.startsWith('@') ? parts[0] : null;
+
+      // Check if this scope should be validated
+      if (scope && EXTERNAL_SCOPES_TO_VALIDATE.includes(scope)) {
+        // Extract imported names from the import statement
+        const importedNames = extractImportNames(line);
+
+        // Check each imported name for barrel exports
+        for (const importedName of importedNames) {
+          const barrelPath = await findExternalBarrelExport(
+            importPath,
+            importedName
+          );
+
+          if (barrelPath) {
+            errors.push(
+              `${relativePath}:${lineNum}\n` +
+              `  from '${importPath}'\n` +
+              `  => from '${barrelPath}' (use barrel export)`
+            );
+            break; // Only report once per line
+          }
+        }
+      }
+
+      // Skip further validation for external packages
       continue;
     }
 
