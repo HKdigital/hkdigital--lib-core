@@ -277,6 +277,43 @@ pnpm run upgrade:all # Update all packages
 pnpm run publish:npm # Version bump and publish to npm
 ```
 
+### Import Validation
+
+The library includes a validation script to enforce consistent import
+patterns. Run it in your project:
+
+```bash
+node node_modules/@hkdigital/lib-core/scripts/validate-imports.mjs
+```
+
+**Validation rules (enforced for `src/lib/` files only):**
+
+1. **Cross-domain imports** - Use `$lib/` instead of `../../../`
+2. **Parent index.js imports** - Use `$lib/` or import specific files
+3. **Non-standard extensions** - Include full extension (e.g.,
+   `.svelte.js`)
+4. **Directory imports** - Write explicitly (e.g., `./path/index.js`)
+5. **File existence** - All import paths must resolve to existing files
+
+**Routes are exempt from strict rules:**
+
+Files in `src/routes/` can use relative imports freely, including parent
+navigation and index.js imports. Since SvelteKit doesn't provide a
+`$routes` alias, relative imports are the standard pattern for route
+files.
+
+**Example output:**
+
+```
+src/lib/ui/components/Button.svelte:7
+  from '$lib/ui/primitives/buttons'
+  => from '$lib/ui/primitives/buttons/index.js'
+
+src/routes/explorer/[...path]/+page.svelte:4
+  from '../components/index.js'
+  ✅ Allowed in routes
+```
+
 ### Import Patterns and Export Structure
 
 **Public exports use domain-specific files matching folder names:**

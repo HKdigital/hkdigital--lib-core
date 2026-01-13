@@ -94,6 +94,8 @@ async function validateFile(filePath) {
   const relativePath = relative(PROJECT_ROOT, filePath);
   const isTestFile = filePath.endsWith('.test.js') ||
     filePath.endsWith('.spec.js');
+  const isInLib = filePath.includes('/src/lib/');
+  const isInRoutes = filePath.includes('/src/routes/');
 
   // Check each line for import statements
   const lines = content.split('\n');
@@ -125,17 +127,20 @@ async function validateFile(filePath) {
     }
 
     // Check 1: Cross-domain relative imports (3+ levels up)
-    if (importPath.match(/^\.\.\/\.\.\/\.\.\//)) {
+    // Only enforce for lib files
+    if (isInLib && importPath.match(/^\.\.\/\.\.\/\.\.\//)) {
       errors.push(
-        `${relativePath}:${lineNum} - Cross-domain relative import ` +
-        `(use $lib/ instead)`
+        `${relativePath}:${lineNum}\n` +
+        `  from '${importPath}'\n` +
+        `  => Use $lib/ for cross-domain imports`
       );
       continue;
     }
 
-    // Check 2: Local index.js imports (skip for test files)
+    // Check 2: Local index.js imports (skip for test files and routes)
     // Allow ./index.js and ./subfolder/index.js but flag parent navigation
-    if (!isTestFile && importPath.match(/\/index\.js$/)) {
+    // Only enforce for lib files
+    if (isInLib && !isTestFile && importPath.match(/\/index\.js$/)) {
       // Allow same-directory and child directory imports
       // Examples: ./index.js, ./subfolder/index.js, ./(meta)/index.js
       // Flag parent navigation: ../index.js, ../../index.js
@@ -143,8 +148,9 @@ async function validateFile(filePath) {
 
       if (isParentNavigation) {
         errors.push(
-          `${relativePath}:${lineNum} - Parent index.js import ` +
-          `(use $lib/ or import specific file)`
+          `${relativePath}:${lineNum}\n` +
+          `  from '${importPath}'\n` +
+          `  => Use $lib/ or import specific file instead`
         );
         continue;
       }
@@ -254,8 +260,9 @@ async function validateFile(filePath) {
             if (stats.isFile()) {
               const correctImport = baseImportPath + ext;
               errors.push(
-                `${relativePath}:${lineNum} - Missing non-standard ` +
-                `extension (use '${correctImport}')`
+                `${relativePath}:${lineNum}\n` +
+                `  from '${importPath}'\n` +
+                `  => from '${correctImport}'`
               );
               foundNonStandard = true;
               break;
@@ -286,9 +293,10 @@ async function validateFile(filePath) {
 
         if (wouldBeParentNavigation) {
           errors.push(
-            `${relativePath}:${lineNum} - Directory import requires ` +
-            `parent navigation (create export file like '${importPath}.js' ` +
-            `or import specific file)`
+            `${relativePath}:${lineNum}\n` +
+            `  from '${importPath}'\n` +
+            `  => Create export file like '${importPath}.js' or ` +
+            `import specific file`
           );
           continue;
         }
@@ -296,8 +304,9 @@ async function validateFile(filePath) {
         const suggestion = importPath.endsWith('/') ?
           `${importPath}index.js` : `${importPath}/index.js`;
         errors.push(
-          `${relativePath}:${lineNum} - Directory import ` +
-          `(write explicitly: '${suggestion}')`
+          `${relativePath}:${lineNum}\n` +
+          `  from '${importPath}'\n` +
+          `  => from '${suggestion}'`
         );
         continue;
       }
@@ -336,8 +345,9 @@ async function validateFile(filePath) {
 
     if (!fileExists) {
       errors.push(
-        `${relativePath}:${lineNum} - Import path does not exist: ` +
-        `'${importPath}'`
+        `${relativePath}:${lineNum}\n` +
+        `  from '${importPath}'\n` +
+        `  => Import path does not exist`
       );
     }
   }
@@ -361,8 +371,8 @@ async function main() {
 
   if (allErrors.length > 0) {
     console.error('❌ Found import path violations:\n');
-    allErrors.forEach(error => console.error(`  ${error}`));
-    console.error(`\n${allErrors.length} error(s) found.`);
+    allErrors.forEach(error => console.error(`${error}\n`));
+    console.error(`${allErrors.length} error(s) found.`);
     process.exit(1);
   }
 
