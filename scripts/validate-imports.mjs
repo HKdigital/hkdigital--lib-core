@@ -287,20 +287,31 @@ async function validateFile(filePath) {
     if (!hasAnyExtension) {
       // Check if it's a directory with index.js
       if (await isDirectoryWithIndex(fsPath)) {
-        // Don't suggest ../path/index.js (parent navigation)
-        // Suggest creating export file instead
-        const wouldBeParentNavigation = importPath.match(/^\.\.\//);
+        // For $lib/ imports, suggest creating a barrel export file
+        // following the library pattern: folder → matching .js file
+        if (importPath.startsWith('$lib/')) {
+          errors.push(
+            `${relativePath}:${lineNum}\n` +
+            `  from '${importPath}'\n` +
+            `  => Create export file: ${importPath}.js (remove index.js)`
+          );
+          continue;
+        }
 
+        // For relative imports with parent navigation,
+        // suggest creating export file
+        const wouldBeParentNavigation = importPath.match(/^\.\.\//);
         if (wouldBeParentNavigation) {
           errors.push(
             `${relativePath}:${lineNum}\n` +
             `  from '${importPath}'\n` +
-            `  => Create export file like '${importPath}.js' or ` +
+            `  => Create export file: ${importPath}.js or ` +
             `import specific file`
           );
           continue;
         }
 
+        // For local relative imports (./path), suggest index.js
         const suggestion = importPath.endsWith('/') ?
           `${importPath}index.js` : `${importPath}/index.js`;
         errors.push(
