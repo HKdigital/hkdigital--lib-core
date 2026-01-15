@@ -35,9 +35,8 @@ node scripts/validate-imports.mjs
    etc. must be explicit
 5. **Import paths must exist** - All imports must resolve to actual
    files
-6. **No node_modules aliases in library code** - Library code
-   (`src/lib/`) must not use aliases pointing to `node_modules` (apps
-   only)
+6. **Aliases must resolve inside project** - Library code (`src/lib/`)
+   can only use aliases that resolve to paths inside the project folder
 
 ## Import Rules
 
@@ -183,27 +182,33 @@ import { current } from './existing-file.js';
 them at build time or runtime. Helps prevent errors when refactoring
 or moving files.
 
-### Rule 6: No node_modules aliases in library code
+### Rule 6: Aliases must resolve inside the project
 
-**Library code must not use aliases pointing to node_modules**
+**Library code must only use aliases that resolve to paths inside the
+project folder**
 
-When building a library with `@sveltejs/package`, aliases that point
-to `node_modules` get resolved to relative paths that become invalid
-in the published package. This breaks consuming projects.
+Aliases are designed for internal project structure, not external
+packages. Due to Vite/SvelteKit limitations, aliases that point
+outside the project folder or to package names cannot work correctly in
+library code.
 
-❌ Bad (in `src/lib/` with alias pointing to node_modules):
+❌ Bad (aliases that don't work in `src/lib/`):
 ```javascript
 // svelte.config.js
 alias: {
-  '$ext-lib': 'node_modules/@some/library/dist'
+  // Points to node_modules (outside project)
+  '$ext-lib': 'node_modules/@some/library/dist',
+
+  // Package name (Vite treats as relative path, doesn't resolve)
+  '$pkg': '@some/library',
+
+  // Absolute path outside project
+  '$external': '/usr/local/lib/something'
 }
 
 // In src/lib/ui/MyComponent.svelte
 import { Button } from '$ext-lib/ui/primitives.js';
-
-// After build in dist/**, this becomes:
-import { Button } from '../../../../../node_modules/@some/library/dist/ui/primitives.js';
-// ^ Broken when installed in another project!
+// ^ Breaks when building library!
 ```
 
 ✅ Good (use direct package imports):
@@ -212,22 +217,33 @@ import { Button } from '../../../../../node_modules/@some/library/dist/ui/primit
 import { Button } from '@some/library/ui/primitives.js';
 ```
 
+✅ Good (local aliases work everywhere):
+```javascript
+// svelte.config.js
+alias: {
+  '$lib': 'src/lib',              // ✅ Inside project
+  '$examples': 'src/routes/examples'  // ✅ Inside project
+}
+
+// In src/lib/ui/MyComponent.svelte
+import { helper } from '$lib/util/helpers.js';  // ✅ Works!
+```
+
 ✅ Also good (aliases work fine in app code):
 ```javascript
 // In src/routes/+page.svelte (not built/published)
 import { Button } from '$ext-lib/ui/primitives.js';
+// ✅ OK - app code isn't published
 ```
 
 **Scope:**
 - **Enforced in**: `src/lib/**` (library code that gets built)
 - **Allowed in**: `src/routes/**` (app code, not published)
-- **Local aliases OK**: Aliases pointing to local directories (like
-  `$lib` → `src/lib`) work everywhere
 
-**Why:** Build tools resolve aliases during compilation. For
-node_modules aliases, they generate relative paths that only work from
-the original project structure, not when the package is installed
-elsewhere.
+**Why:** Vite/SvelteKit aliases are designed for internal project
+structure. Build tools (`@sveltejs/package`, Vite) cannot properly
+handle aliases pointing outside the project folder or to package names.
+For external dependencies, use direct imports.
 
 ## How Module Resolution Works
 

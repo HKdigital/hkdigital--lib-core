@@ -24,10 +24,10 @@ const EXTERNAL_SCOPES_TO_VALIDATE = ['@hkdigital'];
 let PROJECT_ALIASES = {};
 
 /**
- * Unsafe aliases that point to node_modules
+ * Unsafe aliases that don't resolve inside the project folder
  * These break when building libraries with @sveltejs/package
  *
- * Maps alias name to package name for suggestions
+ * Maps alias name to suggested fix (package name or explanation)
  * @type {Map<string, string>}
  */
 const UNSAFE_ALIASES = new Map();
@@ -73,22 +73,40 @@ function extractPackageNameFromPath(path) {
 }
 
 /**
- * Detect unsafe aliases that point to node_modules
+ * Detect unsafe aliases that don't resolve inside the project
  * Populates the UNSAFE_ALIASES map
  */
 function detectUnsafeAliases() {
   UNSAFE_ALIASES.clear();
 
   for (const [alias, target] of Object.entries(PROJECT_ALIASES)) {
+    let suggestion = null;
+
     // Resolve to absolute path
     const resolvedPath = isAbsolute(target) ?
       target : join(PROJECT_ROOT, target);
 
-    // Check if path contains /node_modules/
-    if (resolvedPath.includes('/node_modules/')) {
-      const packageName = extractPackageNameFromPath(resolvedPath);
-      if (packageName) {
-        UNSAFE_ALIASES.set(alias, packageName);
+    // Normalize both paths for comparison (resolve symlinks, etc.)
+    const normalizedResolved = resolve(resolvedPath);
+    const normalizedRoot = resolve(PROJECT_ROOT);
+
+    // Check if resolved path is inside the project folder
+    const isInsideProject = normalizedResolved.startsWith(normalizedRoot);
+
+    if (!isInsideProject) {
+      // Path is outside project - check if it's in node_modules
+      if (resolvedPath.includes('/node_modules/')) {
+        const packageName = extractPackageNameFromPath(resolvedPath);
+        if (packageName) {
+          suggestion = packageName;
+        }
+      } else {
+        // Outside project but not node_modules
+        suggestion = '(path outside project - use direct imports)';
+      }
+
+      if (suggestion) {
+        UNSAFE_ALIASES.set(alias, suggestion);
       }
     }
   }
@@ -596,18 +614,26 @@ async function validateFile(filePath) {
 
       // Check for unsafe alias usage in library code
       if (isInLib && matchedAlias && UNSAFE_ALIASES.has(matchedAlias)) {
-        const packageName = UNSAFE_ALIASES.get(matchedAlias);
+        const suggestion = UNSAFE_ALIASES.get(matchedAlias);
         const pathAfterAlias = importPath.slice(matchedAlias.length);
 
-        // Construct suggested import using package name
-        const suggestedImport = packageName + pathAfterAlias;
+        // Construct suggested import if it's a package name
+        let errorMsg;
+        if (suggestion.startsWith('(')) {
+          // Generic message (not a package name)
+          errorMsg = `${relativePath}:${lineNum}\n` +
+            `  from '${importPath}'\n` +
+            `  => ${suggestion}`;
+        } else {
+          // Package name - construct full import path
+          const suggestedImport = suggestion + pathAfterAlias;
+          errorMsg = `${relativePath}:${lineNum}\n` +
+            `  from '${importPath}'\n` +
+            `  => from '${suggestedImport}' ` +
+            `(alias resolves outside project)`;
+        }
 
-        errors.push(
-          `${relativePath}:${lineNum}\n` +
-          `  from '${importPath}'\n` +
-          `  => from '${suggestedImport}' ` +
-          `(node_modules aliases break in libraries)`
-        );
+        errors.push(errorMsg);
 
         // Skip further validation for this import
         continue;
@@ -1056,14 +1082,16 @@ async function main() {
     console.log();
   }
 
-  // Detect unsafe aliases (pointing to node_modules)
+  // Detect unsafe aliases (outside project folder)
   detectUnsafeAliases();
 
   if (UNSAFE_ALIASES.size > 0) {
-    console.log('⚠️  Unsafe aliases detected (point to node_modules):');
-    for (const [alias, packageName] of UNSAFE_ALIASES.entries()) {
+    console.log(
+      '⚠️  Unsafe aliases detected (resolve outside project folder):'
+    );
+    for (const [alias, suggestion] of UNSAFE_ALIASES.entries()) {
       console.log(
-        `  ${alias} → ${packageName} ` +
+        `  ${alias} → ${suggestion} ` +
         `(breaks in src/lib/, OK in src/routes/)`
       );
     }

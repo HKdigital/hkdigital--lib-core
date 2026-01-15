@@ -132,19 +132,22 @@ This is a modern SvelteKit library built with Svelte 5 and Skeleton.dev v3 compo
 
 ### Critical: Aliases in Libraries vs Apps
 
-**IMPORTANT**: Aliases that point to `node_modules` work in apps but
-**break in libraries**. When building a library with `@sveltejs/package`,
-aliases get resolved to relative paths that become invalid in the
-published package.
+**IMPORTANT**: Due to Vite/SvelteKit limitations, aliases in library
+code (`src/lib/**`) must resolve to paths **inside the project folder**.
+Aliases to external packages or paths outside the project break when
+building libraries.
 
 **The problem:**
 ```javascript
-// ❌ In src/lib/** with alias: $hklib-core → node_modules/@hkdigital/lib-core/dist
-import { Button } from '$hklib-core/ui/primitives.js';
+// ❌ These aliases don't work in src/lib/** files:
+// svelte.config.js
+alias: {
+  '$ext': 'node_modules/@hkdigital/lib-core/dist',  // Outside project
+  '$pkg': '@hkdigital/lib-core'  // Package name (doesn't resolve)
+}
 
-// After build in dist/**, this becomes:
-import { Button } from '../../../../../../node_modules/@hkdigital/lib-core/dist/ui/primitives.js';
-// ^ Broken! This path is meaningless when installed in another project
+// In src/lib/** - BREAKS during build!
+import { Button } from '$ext/ui/primitives.js';
 ```
 
 **The solution:**
@@ -156,12 +159,21 @@ import { Button } from '../../../../../../node_modules/@hkdigital/lib-core/dist/
 import { Button } from '@hkdigital/lib-core/ui/primitives.js';
 
 // ✅ App code - aliases OK (not built/published)
-import { Button } from '$hklib-core/ui/primitives.js';
+import { Button } from '$ext/ui/primitives.js';
 ```
 
-**Note**: Aliases pointing to **local** directories (like `$lib` or
-`$hklib-core` → `src/lib`) work fine everywhere. This issue only
-affects aliases pointing to `node_modules`.
+**Local aliases work everywhere:**
+```javascript
+// svelte.config.js
+alias: {
+  '$lib': 'src/lib',  // ✅ Inside project - works everywhere
+  '$examples': 'src/routes/examples'  // ✅ Inside project
+}
+```
+
+**Why**: Vite/SvelteKit aliases are designed for internal project
+structure. Build tools cannot properly handle aliases pointing outside
+the project or to package names.
 
 ## Class Export Conventions
 - **All classes should be default exports**: `export default class ClassName`
