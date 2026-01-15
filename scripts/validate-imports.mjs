@@ -2,9 +2,12 @@
 
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { join, relative, resolve, dirname, isAbsolute } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const PROJECT_ROOT = process.cwd();
 const SRC_DIR = join(PROJECT_ROOT, 'src');
+const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
+const LIB_ROOT = dirname(SCRIPT_DIR);
 
 /**
  * Scopes to validate for barrel exports
@@ -895,14 +898,13 @@ async function validateFile(filePath) {
  * Main validation function
  */
 async function main() {
-  // Load package version
-  const pkgJsonPath = join(PROJECT_ROOT, 'package.json');
+  // Load package version from lib-core's package.json
+  const pkgJsonPath = join(LIB_ROOT, 'package.json');
   const pkgJsonContent = await readFile(pkgJsonPath, 'utf-8');
   const pkgJson = JSON.parse(pkgJsonContent);
-  console.log(
-    `@hkdigital/lib-core v${pkgJson.version} - ` +
-    `Validating import paths...\n`
-  );
+
+  console.log(`Using script from @hkdigital/lib-core v${pkgJson.version}`);
+  console.log(`Validating import paths...`);
 
   // Load project aliases from svelte.config.js
   PROJECT_ALIASES = await loadAliases();
