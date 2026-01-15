@@ -1,4 +1,4 @@
-import { generateSitemap } from '$hklib-core/meta/sitemap.js';
+import { generateSitemap } from '@hkdigital/lib-core/meta/sitemap.js';
 import { siteRoutes } from '../config.js';
 
 /** @type {import('@sveltejs/kit').RequestHandler} */

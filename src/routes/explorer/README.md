@@ -36,12 +36,6 @@ To use this explorer in another library:
 
 1. Copy the entire `explorer` folder to your `src/routes/` directory
 2. Update the folder path to explore in `config.js`
-3. Add the `$hklib-core` alias to your `svelte.config.js`:
-   ```javascript
-   alias: {
-     '$hklib-core': '@hkdigital/lib-core'
-   }
-   ```
 
 ### Styling
 

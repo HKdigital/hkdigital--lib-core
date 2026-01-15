@@ -15,7 +15,9 @@ const config = {
 		alias: {
 			$src: 'src',
 			$examples: 'src/routes/examples',
-			'$hklib-core': 'src/lib'
+			// Maps package name to local src during development
+    	// Allows routes to be copied to other projects without modification
+			'@hkdigital/lib-core': 'src/lib'
 		}
 	}
 };

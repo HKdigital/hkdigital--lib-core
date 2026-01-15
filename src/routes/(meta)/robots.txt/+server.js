@@ -1,5 +1,5 @@
 import { text } from '@sveltejs/kit';
-import { generateRobotsTxt } from '$hklib-core/meta/robots.js';
+import { generateRobotsTxt } from '@hkdigital/lib-core/meta/robots.js';
 import { robotsConfig } from '../config.js';
 
 /** @type {import('@sveltejs/kit').RequestHandler} */

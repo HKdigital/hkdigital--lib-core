@@ -188,7 +188,7 @@ When integrating with a service management system, you can set up global
 error handling and forward service logs to the main logger:
 
 ```javascript
-import { ServiceManager } from '$hklib-core/services/index.js';
+import { ServiceManager } from '@hkdigital/lib-core/services/index.js';
 import { initClientLogger } from '$lib/logging/client.js';
 
 /** @type {ServiceManager} */

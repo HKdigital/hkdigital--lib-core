@@ -1,5 +1,5 @@
 import { error, redirect } from '@sveltejs/kit';
-import { scanRouteFolders } from '$hklib-core/util/sveltekit/route-folders.js';
+import { scanRouteFolders } from '@hkdigital/lib-core/util/sveltekit/route-folders.js';
 
 /**
  * Handles form actions for persistent scaling toggle

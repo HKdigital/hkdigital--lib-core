@@ -43,7 +43,7 @@ src/
 import { createServerLogger, DEBUG }
   from '@hkdigital/lib-core/logging/server.js';
 
-/** @typedef {import('$hklib-core/logging/common.js').Logger} Logger */
+/** @typedef {import('@hkdigital/lib-core/logging/common.js').Logger} Logger */
 
 /** @type {Logger} */
 let logger;
@@ -80,7 +80,7 @@ export function getServerLogger() {
 import { createClientLogger, DEBUG }
   from '@hkdigital/lib-core/logging/client.js';
 
-/** @typedef {import('$hklib-core/logging/common.js').Logger} Logger */
+/** @typedef {import('@hkdigital/lib-core/logging/common.js').Logger} Logger */
 
 /** @type {Logger} */
 let logger;
@@ -139,8 +139,7 @@ import { initServerServices, getSessionService, SERVICE_SESSION } from '$lib/ser
 ### Server Service Manager (`src/lib/services/server/manager.js`)
 
 ```javascript
-import { ServiceManager } from '$hklib-core/services';
-import { SERVICE_LOG } from '@hkdigital/lib-core/services/index.js';
+import { ServiceManager, SERVICE_LOG } from '@hkdigital/lib-core/services/index.js';
 
 import { initServerLogger } from '$lib/logging/server.js';
 
@@ -197,7 +196,7 @@ export function getSessionService() {
 ### Client Service Manager (`src/lib/services/client/manager.js`)
 
 ```javascript
-import { ServiceManager } from '$hklib-core/services/index.js';
+import { ServiceManager } from '@hkdigital/lib-core/services/index.js';
 
 import { initClientLogger } from '$lib/logging/client.js';
 

@@ -163,7 +163,7 @@ Manages multiple services with dependency resolution and coordinated lifecycle o
 ### Usage
 
 ```javascript
-import { ServiceManager } from '$hklib-core/services/index.js';
+import { ServiceManager } from '@hkdigital/lib-core/services/index.js';
 
 import DatabaseService from './services/DatabaseService.js';
 import AuthService from './services/AuthService.js';
@@ -211,7 +211,7 @@ class AuthService extends ServiceBase {
   /** @type {(<T>(serviceName: string) => T)} */
   #getService;
 
-  /** @type {() => import('$hklib-core/services/index.js').ServiceManager} */
+  /** @type {() => import('@hkdigital/lib-core/services/index.js').ServiceManager} */
   #getManager;
 
   constructor(serviceName, options) {
@@ -257,7 +257,7 @@ export default class PlayerService extends ServiceBase {
 
   /**
    * @param {string} serviceName
-   * @param {import('$hklib-core/services/typedef.js').ServiceOptions} [options]
+   * @param {import('@hkdigital/lib-core/services/typedef.js').ServiceOptions} [options]
    */
   constructor(serviceName, options) {
     super(serviceName, options);

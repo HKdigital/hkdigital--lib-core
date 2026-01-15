@@ -115,7 +115,7 @@ function detectUnsafeAliases() {
 /**
  * Resolve an alias path to its filesystem location
  *
- * @param {string} aliasPath - Import path using alias (e.g., $hklib-core/...)
+ * @param {string} aliasPath - Import path using alias (e.g., $examples/...)
  *
  * @returns {string|null} Resolved filesystem path or null
  */
@@ -444,9 +444,9 @@ async function findExternalBarrelExport(importPath, targetName) {
 /**
  * Find highest-level barrel export in alias path
  *
- * For $hklib-core/ui/primitives/buttons/index.js:
- * - Check $hklib-core/ui/primitives.js
- * - Check $hklib-core/ui.js
+ * For $components/ui/primitives/buttons/index.js:
+ * - Check $components/ui/primitives.js
+ * - Check $components/ui.js
  *
  * @param {string} importPath - Alias import path
  * @param {string} targetName - Name of export to find

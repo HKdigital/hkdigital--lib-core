@@ -222,14 +222,11 @@ export default {
 - **NOTE**: No Skeleton plugin needed - Skeleton is imported via CSS in app.css (Tailwind 4 architecture)
 
 **12. `svelte.config.js` (UPDATE)**
-- Add alias for hkdigital--lib-core: `'$hklib-core': resolve('node_modules/@hkdigital/lib-core/dist')`
-- Required for explorer functionality and convenient imports
 - **IMPORTANT**: Add `sveltePreprocess({})` for proper preprocessing
 - Configure adapter and other settings
 
-**Example svelte.config.js with alias:**
+**Example svelte.config.js:**
 ```js
-import { resolve } from 'path';
 import adapter from '@sveltejs/adapter-auto';
 import { sveltePreprocess } from 'svelte-preprocess';
 
@@ -238,7 +235,6 @@ const config = {
   kit: {
     adapter: adapter(),
     alias: {
-      '$hklib-core': resolve('node_modules/@hkdigital/lib-core/dist'),
       $src: 'src',
       $examples: 'src/routes/examples'
     }
@@ -403,11 +399,6 @@ pnpm run build
 pnpm add -D --save-peer [missing-package]
 ```
 
-**Path resolution issues with $hklib-core alias:**
-- Verify `svelte.config.js` has the correct alias configuration
-- Check that `node_modules/@hkdigital/lib-core/dist` exists
-- Restart the development server after adding the alias
-
 **Design tokens not loading:**
 - Verify `src/routes/+layout.svelte` includes the design tokens import
 - Check that `tailwind.config.js` imports from `@hkdigital/lib-core/design/index.js`
@@ -432,8 +423,7 @@ pnpm add -D --save-peer [missing-package]
 - **SOLUTION**: Add `data-theme="hkdev"` to your `<body>` element in `src/app.html`
 
 **Explorer not working:**
-- Verify the `$hklib-core` alias is properly configured in `svelte.config.js`
 - Check that the explorer directory was copied completely
-- Restart development server after adding the alias
+- Restart development server
 
 This setup ensures your new library integrates seamlessly with the existing hkdigital ecosystem while maintaining consistent development practices and design system integration.
