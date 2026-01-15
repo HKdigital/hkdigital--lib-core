@@ -286,6 +286,7 @@ async function findExternalBarrelExport(importPath, targetName) {
   // 1. Explicit index.js imports
   // 2. Component files (.svelte)
   // 3. Class files (capitalized .js)
+  // 4. Imports without extension (missing extension or directory)
   let shouldCheck = false;
 
   if (lastPart === 'index.js') {
@@ -293,6 +294,9 @@ async function findExternalBarrelExport(importPath, targetName) {
   } else if (lastPart.endsWith('.svelte')) {
     shouldCheck = true;
   } else if (lastPart.match(/^[A-Z][^/]*\.js$/)) {
+    shouldCheck = true;
+  } else if (!lastPart.includes('.')) {
+    // No extension - could be missing or directory import
     shouldCheck = true;
   }
 
@@ -421,6 +425,7 @@ async function findAliasBarrelExport(importPath, targetName) {
   // 1. Explicit index.js imports
   // 2. Component files (.svelte)
   // 3. Class files (capitalized .js)
+  // 4. Imports without extension (missing extension or directory)
   let shouldCheck = false;
 
   if (lastPart === 'index.js') {
@@ -428,6 +433,9 @@ async function findAliasBarrelExport(importPath, targetName) {
   } else if (lastPart.endsWith('.svelte')) {
     shouldCheck = true;
   } else if (lastPart.match(/^[A-Z][^/]*\.js$/)) {
+    shouldCheck = true;
+  } else if (!lastPart.includes('.')) {
+    // No extension - could be missing or directory import
     shouldCheck = true;
   }
 
