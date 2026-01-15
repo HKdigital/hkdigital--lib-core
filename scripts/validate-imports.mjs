@@ -550,6 +550,34 @@ async function validateFile(filePath) {
         }
       }
 
+      // Check if alias import is missing file extension
+      // Allow any extension (not just .js/.svelte) to support assets
+      const hasExtension = importPath.match(/\.[^/]+$/);
+
+      if (!hasExtension) {
+        // Extract path after alias to check if it's not just the alias
+        let pathAfterAlias = null;
+        for (const alias of Object.keys(PROJECT_ALIASES)) {
+          if (importPath === alias || importPath.startsWith(alias + '/')) {
+            pathAfterAlias = importPath.slice(alias.length);
+            if (pathAfterAlias.startsWith('/')) {
+              pathAfterAlias = pathAfterAlias.slice(1);
+            }
+            break;
+          }
+        }
+
+        // Only error if there's a path after the alias
+        if (pathAfterAlias && pathAfterAlias.length > 0) {
+          errors.push(
+            `${relativePath}:${lineNum}\n` +
+            `  from '${importPath}'\n` +
+            `  => Missing file extension (add .js, .svelte, ` +
+            `or .svelte.js)`
+          );
+        }
+      }
+
       // Skip further validation for alias imports
       continue;
     }
@@ -583,6 +611,27 @@ async function validateFile(filePath) {
               `  => from '${barrelPath}' (use barrel export)`
             );
             break; // Only report once per line
+          }
+        }
+
+        // Check if external import is missing file extension
+        // Allow any extension (not just .js/.svelte) to support assets
+        const hasExtension = importPath.match(/\.[^/]+$/);
+
+        if (!hasExtension) {
+          // Extract package name and check if there's a path
+          const pkgName = importPath.startsWith('@') ?
+            `${parts[0]}/${parts[1]}` : parts[0];
+          const pathInPackage = importPath.slice(pkgName.length);
+
+          // Only error if there's a path in the package (not just pkg name)
+          if (pathInPackage && pathInPackage.length > 1) {
+            errors.push(
+              `${relativePath}:${lineNum}\n` +
+              `  from '${importPath}'\n` +
+              `  => Missing file extension (add .js, .svelte, ` +
+              `or .svelte.js)`
+            );
           }
         }
       }
