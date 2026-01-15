@@ -35,6 +35,9 @@ node scripts/validate-imports.mjs
    etc. must be explicit
 5. **Import paths must exist** - All imports must resolve to actual
    files
+6. **No node_modules aliases in library code** - Library code
+   (`src/lib/`) must not use aliases pointing to `node_modules` (apps
+   only)
 
 ## Import Rules
 
@@ -179,6 +182,52 @@ import { current } from './existing-file.js';
 **Why:** Catches broken imports immediately instead of discovering
 them at build time or runtime. Helps prevent errors when refactoring
 or moving files.
+
+### Rule 6: No node_modules aliases in library code
+
+**Library code must not use aliases pointing to node_modules**
+
+When building a library with `@sveltejs/package`, aliases that point
+to `node_modules` get resolved to relative paths that become invalid
+in the published package. This breaks consuming projects.
+
+❌ Bad (in `src/lib/` with alias pointing to node_modules):
+```javascript
+// svelte.config.js
+alias: {
+  '$ext-lib': 'node_modules/@some/library/dist'
+}
+
+// In src/lib/ui/MyComponent.svelte
+import { Button } from '$ext-lib/ui/primitives.js';
+
+// After build in dist/**, this becomes:
+import { Button } from '../../../../../node_modules/@some/library/dist/ui/primitives.js';
+// ^ Broken when installed in another project!
+```
+
+✅ Good (use direct package imports):
+```javascript
+// In src/lib/ui/MyComponent.svelte
+import { Button } from '@some/library/ui/primitives.js';
+```
+
+✅ Also good (aliases work fine in app code):
+```javascript
+// In src/routes/+page.svelte (not built/published)
+import { Button } from '$ext-lib/ui/primitives.js';
+```
+
+**Scope:**
+- **Enforced in**: `src/lib/**` (library code that gets built)
+- **Allowed in**: `src/routes/**` (app code, not published)
+- **Local aliases OK**: Aliases pointing to local directories (like
+  `$lib` → `src/lib`) work everywhere
+
+**Why:** Build tools resolve aliases during compilation. For
+node_modules aliases, they generate relative paths that only work from
+the original project structure, not when the package is installed
+elsewhere.
 
 ## How Module Resolution Works
 

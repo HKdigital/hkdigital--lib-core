@@ -130,6 +130,39 @@ This is a modern SvelteKit library built with Svelte 5 and Skeleton.dev v3 compo
 
 **Import validation:** Run `node scripts/validate-imports.mjs` to validate import patterns. The validator checks for barrel export files at each level and suggests the highest-level file that exports your target. These rules are enforced for `src/lib/` files only. Files in `src/routes/` can use relative imports freely. See README.md "Import Validation" section for usage in other projects.
 
+### Critical: Aliases in Libraries vs Apps
+
+**IMPORTANT**: Aliases that point to `node_modules` work in apps but
+**break in libraries**. When building a library with `@sveltejs/package`,
+aliases get resolved to relative paths that become invalid in the
+published package.
+
+**The problem:**
+```javascript
+// ❌ In src/lib/** with alias: $hklib-core → node_modules/@hkdigital/lib-core/dist
+import { Button } from '$hklib-core/ui/primitives.js';
+
+// After build in dist/**, this becomes:
+import { Button } from '../../../../../../node_modules/@hkdigital/lib-core/dist/ui/primitives.js';
+// ^ Broken! This path is meaningless when installed in another project
+```
+
+**The solution:**
+- **In library code (`src/lib/**`)**: Use direct package imports
+- **In app code (`src/routes/**`)**: Aliases work fine
+
+```javascript
+// ✅ Library code - use direct imports
+import { Button } from '@hkdigital/lib-core/ui/primitives.js';
+
+// ✅ App code - aliases OK (not built/published)
+import { Button } from '$hklib-core/ui/primitives.js';
+```
+
+**Note**: Aliases pointing to **local** directories (like `$lib` or
+`$hklib-core` → `src/lib`) work fine everywhere. This issue only
+affects aliases pointing to `node_modules`.
+
 ## Class Export Conventions
 - **All classes should be default exports**: `export default class ClassName`
 - **Import classes without destructuring**: `import ClassName from './ClassName.js'`

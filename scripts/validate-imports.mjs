@@ -24,6 +24,15 @@ const EXTERNAL_SCOPES_TO_VALIDATE = ['@hkdigital'];
 let PROJECT_ALIASES = {};
 
 /**
+ * Unsafe aliases that point to node_modules
+ * These break when building libraries with @sveltejs/package
+ *
+ * Maps alias name to package name for suggestions
+ * @type {Map<string, string>}
+ */
+const UNSAFE_ALIASES = new Map();
+
+/**
  * Load aliases from svelte.config.js
  *
  * @returns {Promise<Record<string, string>>} Alias mappings
@@ -45,6 +54,44 @@ async function loadAliases() {
   }
 
   return {};
+}
+
+/**
+ * Extract package name from node_modules path
+ *
+ * @param {string} path - Path containing node_modules
+ *
+ * @returns {string|null} Package name or null
+ */
+function extractPackageNameFromPath(path) {
+  // Find node_modules in the path
+  const match = path.match(/node_modules\/(@[^/]+\/[^/]+|[^/]+)/);
+  if (match) {
+    return match[1]; // Returns @scope/package or package
+  }
+  return null;
+}
+
+/**
+ * Detect unsafe aliases that point to node_modules
+ * Populates the UNSAFE_ALIASES map
+ */
+function detectUnsafeAliases() {
+  UNSAFE_ALIASES.clear();
+
+  for (const [alias, target] of Object.entries(PROJECT_ALIASES)) {
+    // Resolve to absolute path
+    const resolvedPath = isAbsolute(target) ?
+      target : join(PROJECT_ROOT, target);
+
+    // Check if path contains /node_modules/
+    if (resolvedPath.includes('/node_modules/')) {
+      const packageName = extractPackageNameFromPath(resolvedPath);
+      if (packageName) {
+        UNSAFE_ALIASES.set(alias, packageName);
+      }
+    }
+  }
 }
 
 /**
@@ -538,6 +585,34 @@ async function validateFile(filePath) {
     );
 
     if (isAliasImport) {
+      // Find which alias is being used
+      let matchedAlias = null;
+      for (const alias of Object.keys(PROJECT_ALIASES)) {
+        if (importPath === alias || importPath.startsWith(alias + '/')) {
+          matchedAlias = alias;
+          break;
+        }
+      }
+
+      // Check for unsafe alias usage in library code
+      if (isInLib && matchedAlias && UNSAFE_ALIASES.has(matchedAlias)) {
+        const packageName = UNSAFE_ALIASES.get(matchedAlias);
+        const pathAfterAlias = importPath.slice(matchedAlias.length);
+
+        // Construct suggested import using package name
+        const suggestedImport = packageName + pathAfterAlias;
+
+        errors.push(
+          `${relativePath}:${lineNum}\n` +
+          `  from '${importPath}'\n` +
+          `  => from '${suggestedImport}' ` +
+          `(node_modules aliases break in libraries)`
+        );
+
+        // Skip further validation for this import
+        continue;
+      }
+
       // Extract imported names from the import statement
       const importedNames = extractImportNames(line);
 
@@ -977,6 +1052,20 @@ async function main() {
     console.log('Found project aliases:');
     for (const [alias, target] of Object.entries(PROJECT_ALIASES)) {
       console.log(`  ${alias} → ${target}`);
+    }
+    console.log();
+  }
+
+  // Detect unsafe aliases (pointing to node_modules)
+  detectUnsafeAliases();
+
+  if (UNSAFE_ALIASES.size > 0) {
+    console.log('⚠️  Unsafe aliases detected (point to node_modules):');
+    for (const [alias, packageName] of UNSAFE_ALIASES.entries()) {
+      console.log(
+        `  ${alias} → ${packageName} ` +
+        `(breaks in src/lib/, OK in src/routes/)`
+      );
     }
     console.log();
   }
