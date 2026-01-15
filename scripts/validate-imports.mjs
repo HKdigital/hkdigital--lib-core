@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { readdir, readFile, stat } from 'node:fs/promises';
-import { join, relative, resolve, dirname } from 'node:path';
+import { join, relative, resolve, dirname, isAbsolute } from 'node:path';
 
 const PROJECT_ROOT = process.cwd();
 const SRC_DIR = join(PROJECT_ROOT, 'src');
@@ -55,6 +55,12 @@ function resolveAliasPath(aliasPath) {
   for (const [alias, target] of Object.entries(PROJECT_ALIASES)) {
     if (aliasPath === alias || aliasPath.startsWith(alias + '/')) {
       const pathAfterAlias = aliasPath.slice(alias.length);
+
+      // If target is already absolute, use it directly
+      if (isAbsolute(target)) {
+        return join(target, pathAfterAlias);
+      }
+
       return join(PROJECT_ROOT, target, pathAfterAlias);
     }
   }
@@ -889,7 +895,14 @@ async function validateFile(filePath) {
  * Main validation function
  */
 async function main() {
-  console.log('Validating import paths...\n');
+  // Load package version
+  const pkgJsonPath = join(PROJECT_ROOT, 'package.json');
+  const pkgJsonContent = await readFile(pkgJsonPath, 'utf-8');
+  const pkgJson = JSON.parse(pkgJsonContent);
+  console.log(
+    `@hkdigital/lib-core v${pkgJson.version} - ` +
+    `Validating import paths...\n`
+  );
 
   // Load project aliases from svelte.config.js
   PROJECT_ALIASES = await loadAliases();
@@ -917,7 +930,7 @@ async function main() {
     process.exit(1);
   }
 
-  console.log('✅ All import paths are valid!');
+  console.log('\x1b[32m✔ All import paths are valid!\x1b[0m');
 }
 
 main().catch(error => {

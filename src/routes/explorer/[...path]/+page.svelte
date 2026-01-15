@@ -7,7 +7,12 @@
   let { data } = $props();
 
   /** @type {boolean} */
-  let scalingEnabled = $state(data.scalingEnabled);
+  let scalingEnabled = $state(false);
+
+  // Sync with prop changes
+  $effect(() => {
+    scalingEnabled = data.scalingEnabled;
+  });
 
   /** @type {string[]} */
   let activeSegments = $state([]);

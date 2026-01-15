@@ -144,6 +144,7 @@
   }
 
   // Expose the navigate function to parent
+  // svelte-ignore state_referenced_locally
   if (getNavigateToLevelFunction) {
     getNavigateToLevelFunction(navigateToLevel);
   }

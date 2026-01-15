@@ -84,6 +84,7 @@
     ...attrs
   } = $props();
 
+  // svelte-ignore state_referenced_locally
   const dragState = createOrGetDragState(contextKey);
   const dropZoneId = generateLocalId();
 

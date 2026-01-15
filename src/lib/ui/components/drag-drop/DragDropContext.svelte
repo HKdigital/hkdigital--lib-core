@@ -16,6 +16,7 @@
 
   // Create the state context at this level to ensure all children
   // have access to the same state instance
+  // svelte-ignore state_referenced_locally
   const dragState = createOrGetDragState(contextKey);
 
   /**

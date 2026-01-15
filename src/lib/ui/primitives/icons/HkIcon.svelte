@@ -45,23 +45,24 @@
     icon = src?.[theme] ?? src?.['default'] ?? Object.values(src)?.[0];
   });
 
-  if (size !== '100%') {
-    if (size.slice(-1) !== '%') {
+  let normalizedSize = $derived.by(() => {
+    if (size !== '100%' && size.slice(-1) !== '%') {
       try {
-        size = parseInt(size, 10) + 'px';
+        return parseInt(size, 10) + 'px';
       } catch (error) {
-        size = '100%';
+        return '100%';
       }
     }
-  }
+    return size;
+  });
 </script>
 
 <svg
   data-hk-icon
   {...icon?.a}
   xmlns="http://www.w3.org/2000/svg"
-  width={size}
-  height={size}
+  width={normalizedSize}
+  height={normalizedSize}
   class="{base} {classes}"
   {...attrs}
 >

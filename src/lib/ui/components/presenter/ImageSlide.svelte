@@ -26,6 +26,7 @@
 
   let show = $state(false);
 
+  // svelte-ignore state_referenced_locally
   let controller = getLoadingController();
 
   async function progressListener(progress, id) {

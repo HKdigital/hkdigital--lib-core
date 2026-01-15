@@ -54,6 +54,7 @@
 		...attrs
 	} = $props();
 
+	// svelte-ignore state_referenced_locally
 	createOrGetState(contextKey);
 
 	//grid-cols-[repeat({cols},minmax(0,auto))]

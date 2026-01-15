@@ -33,6 +33,7 @@
     contextKey
   } = $props();
 
+  // svelte-ignore state_referenced_locally
   const selectorState = createOrGetState(contextKey);
 </script>
 
