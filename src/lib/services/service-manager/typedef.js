@@ -8,8 +8,8 @@
  * // When using ServiceManager
  * import { ServiceManager } from './ServiceManager.js';
  *
- * // @ typedef {import('./typedef-service-manager.js').ServiceManagerConfig} ServiceManagerConfig
- * // @ typedef {import('./typedef-service-manager.js').ServiceRegistrationOptions} ServiceRegistrationOptions
+ * // @ typedef {import('@hkdigital/lib-core/services/typedef.js').ServiceManagerConfig} ServiceManagerConfig
+ * // @ typedef {import('@hkdigital/lib-core/services/typedef.js').ServiceRegistrationOptions} ServiceRegistrationOptions
  *
  * const config = {
  *   environment: 'development',

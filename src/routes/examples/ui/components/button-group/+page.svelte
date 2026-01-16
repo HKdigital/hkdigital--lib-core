@@ -3,14 +3,14 @@
 
   import { TextButton } from '$lib/ui/primitives/buttons/index.js';
 
-  /** @type {import('$lib/ui/components/index.js').ButtonDef} */
+  /** @type {import('$lib/ui/typedef.js').ButtonDef} */
   let selected = $state(null);
 
   /* @type {( label:string ) => void } */
   let select = $state();
 
   // Button definitions
-  /** @type {import('$lib/ui/components/index.js').ButtonDef[]} */
+  /** @type {import('$lib/ui/typedef.js').ButtonDef[]} */
   const buttons = $state([
     {
       text: 'One',

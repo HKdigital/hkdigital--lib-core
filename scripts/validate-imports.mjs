@@ -16,6 +16,17 @@ const LIB_ROOT = dirname(SCRIPT_DIR);
 const EXTERNAL_SCOPES_TO_VALIDATE = ['@hkdigital'];
 
 /**
+ * Built-in SvelteKit aliases
+ * These are provided by SvelteKit and don't need to be in svelte.config.js
+ */
+const SVELTEKIT_BUILT_IN_ALIASES = [
+  '$lib',
+  '$app',
+  '$env',
+  '$service-worker'
+];
+
+/**
  * Project aliases from svelte.config.js
  * Loaded dynamically at startup
  *
@@ -634,13 +645,15 @@ async function validateFile(filePath) {
 
       // Check for unknown aliases in JSDoc imports
       if (importPath.startsWith('$')) {
-        const isKnownAlias = importPath.startsWith('$lib/') ||
-          Object.keys(PROJECT_ALIASES).some(
-            alias => importPath === alias || importPath.startsWith(alias + '/')
-          );
+        const aliasName = importPath.split('/')[0];
+        const isBuiltInAlias = SVELTEKIT_BUILT_IN_ALIASES.some(
+          builtIn => importPath === builtIn || importPath.startsWith(builtIn + '/')
+        );
+        const isConfiguredAlias = Object.keys(PROJECT_ALIASES).some(
+          alias => importPath === alias || importPath.startsWith(alias + '/')
+        );
 
-        if (!isKnownAlias) {
-          const aliasName = importPath.split('/')[0];
+        if (!isBuiltInAlias && !isConfiguredAlias) {
           errors.push(
             `${relativePath}:${lineNum}\n` +
             `  JSDoc import('${importPath}')\n` +
@@ -709,14 +722,15 @@ async function validateFile(filePath) {
 
     // Check for unknown aliases (starts with $ but not configured)
     if (importPath.startsWith('$')) {
-      const isKnownAlias = importPath.startsWith('$lib/') ||
-        Object.keys(PROJECT_ALIASES).some(
-          alias => importPath === alias || importPath.startsWith(alias + '/')
-        );
+      const aliasName = importPath.split('/')[0];
+      const isBuiltInAlias = SVELTEKIT_BUILT_IN_ALIASES.some(
+        builtIn => importPath === builtIn || importPath.startsWith(builtIn + '/')
+      );
+      const isConfiguredAlias = Object.keys(PROJECT_ALIASES).some(
+        alias => importPath === alias || importPath.startsWith(alias + '/')
+      );
 
-      if (!isKnownAlias) {
-        // Extract alias name (everything before first / or entire string)
-        const aliasName = importPath.split('/')[0];
+      if (!isBuiltInAlias && !isConfiguredAlias) {
         errors.push(
           `${relativePath}:${lineNum}\n` +
           `  from '${importPath}'\n` +

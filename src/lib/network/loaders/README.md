@@ -213,7 +213,7 @@ All loaders implement consistent loading state management:
 
 ```svelte
 <script>
-  import { ImageBox } from '$lib/ui/components/index.js';
+  import { ImageBox } from '$lib/ui/typedef.js';
   
   // ImageBox uses ImageVariantsLoader internally
   const imageSource = [
