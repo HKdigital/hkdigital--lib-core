@@ -559,27 +559,80 @@ async function validateFile(filePath) {
   const isInLib = filePath.includes('/src/lib/');
   const isInRoutes = filePath.includes('/src/routes/');
 
-  // Check each line for import statements
+  // Check each line for import statements and JSDoc type imports
   const lines = content.split('\n');
   for (let index = 0; index < lines.length; index++) {
     const line = lines[index];
     const lineNum = index + 1;
 
-    // Skip if not an import line
-    if (!line.trim().startsWith('import ')) {
-      continue;
+    let importPathRaw = null;
+    let isJSDocImport = false;
+
+    // Check for regular import statements
+    if (line.trim().startsWith('import ')) {
+      const importMatch = line.match(/from ['"]([^'"]+)['"]/);
+      if (importMatch) {
+        importPathRaw = importMatch[1];
+      }
+    }
+    // Check for JSDoc type imports: import('path')
+    else if (line.includes('import(')) {
+      // Match import('...') or import("...")
+      const jsdocMatch = line.match(/import\(['"]([^'"]+)['"]\)/);
+      if (jsdocMatch) {
+        importPathRaw = jsdocMatch[1];
+        isJSDocImport = true;
+      }
     }
 
-    // Extract import path from line
-    const importMatch = line.match(/from ['"]([^'"]+)['"]/);
-    if (!importMatch) {
+    // Skip if no import found
+    if (!importPathRaw) {
       continue;
     }
-
-    const importPathRaw = importMatch[1];
 
     // Strip query parameters (Vite asset imports like ?preset=render)
     let importPath = importPathRaw.split('?')[0];
+
+    // For JSDoc imports: only check unsafe aliases, skip other validations
+    if (isJSDocImport) {
+      // Check if using an unsafe alias
+      const isAliasImport = Object.keys(PROJECT_ALIASES).some(
+        alias => importPath === alias || importPath.startsWith(alias + '/')
+      );
+
+      if (isAliasImport && isInLib) {
+        let matchedAlias = null;
+        for (const alias of Object.keys(PROJECT_ALIASES)) {
+          if (importPath === alias || importPath.startsWith(alias + '/')) {
+            matchedAlias = alias;
+            break;
+          }
+        }
+
+        if (matchedAlias && UNSAFE_ALIASES.has(matchedAlias)) {
+          const suggestion = UNSAFE_ALIASES.get(matchedAlias);
+          const pathAfterAlias = importPath.slice(matchedAlias.length);
+
+          let errorMsg;
+          if (suggestion.startsWith('(')) {
+            errorMsg = `${relativePath}:${lineNum}\n` +
+              `  JSDoc import('${importPath}')\n` +
+              `  => ${suggestion}`;
+          } else {
+            const suggestedImport = suggestion + pathAfterAlias;
+            errorMsg = `${relativePath}:${lineNum}\n` +
+              `  JSDoc import('${importPath}')\n` +
+              `  => import('${suggestedImport}') ` +
+              `(alias resolves outside project)`;
+          }
+
+          errors.push(errorMsg);
+        }
+      }
+
+      // Skip all other validations for JSDoc imports
+      continue;
+    }
 
     // Check if using $src/lib when $lib is available (built-in SvelteKit)
     // Report the issue and normalize the path for further validation
