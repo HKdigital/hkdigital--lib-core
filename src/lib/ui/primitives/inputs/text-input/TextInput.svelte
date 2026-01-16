@@ -4,6 +4,9 @@
 
   import { Star, ExclamationTriangle, CheckCircle } from '@steeze-ui/heroicons';
 
+  //
+  // @fixme use SteezeIcon instead
+  //
   import { HkIcon } from '$lib/ui/primitives.js';
 
   import {

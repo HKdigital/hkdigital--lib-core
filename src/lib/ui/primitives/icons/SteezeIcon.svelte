@@ -50,50 +50,48 @@
     ...attrs
   } = $props();
 
-  /** @type {any} */
-  let icon = $state();
+  /** @type {import('./typedef.js').IconThemeSource|null} */
+  let icon = $state(null);
 
   $effect(() => {
-    icon = src?.[theme] ?? src?.['default'] ?? Object.values(src)?.[0];
+    if( src )
+    {
+      icon = src[theme] ?? src?.['default'] ?? Object.values(src)?.[0];
+    }
+    else {
+      throw new Error('Missing property [src]');
+    }
   });
-
-  // if (size !== '100%') {
-  //   if (size.slice(-1) !== '%') {
-  //     try {
-  //       size = parseInt(size, 10) + 'px';
-  //     } catch (error) {
-  //       size = '100%';
-  //     }
-  //   }
-  // }
 </script>
 
-<svg
-  data-component="icon"
-  data-type="steeze"
-  data-size={size}
-  data-variant={variant}
-  {...icon?.a}
-  xmlns="http://www.w3.org/2000/svg"
-  class="{base} {classes}"
-  {...attrs}
->
-  {#each icon?.path ?? [] as a}
-    <path {...a} />
-  {/each}
-  {#each icon?.rect ?? [] as a}
-    <rect {...a} />
-  {/each}
-  {#each icon?.circle ?? [] as a}
-    <circle {...a} />
-  {/each}
-  {#each icon?.polygon ?? [] as a}
-    <polygon {...a} />
-  {/each}
-  {#each icon?.polyline ?? [] as a}
-    <polyline {...a} />
-  {/each}
-  {#each icon?.line ?? [] as a}
-    <line {...a} />
-  {/each}
-</svg>
+{#if icon}
+  <svg
+    data-component="icon"
+    data-type="steeze"
+    data-size={size}
+    data-variant={variant}
+    {...icon.a}
+    xmlns="http://www.w3.org/2000/svg"
+    class="{base} {classes}"
+    {...attrs}
+  >
+    {#each icon.path ?? [] as a}
+      <path {...a} />
+    {/each}
+    {#each icon.rect ?? [] as a}
+      <rect {...a} />
+    {/each}
+    {#each icon.circle ?? [] as a}
+      <circle {...a} />
+    {/each}
+    {#each icon.polygon ?? [] as a}
+      <polygon {...a} />
+    {/each}
+    {#each icon.polyline ?? [] as a}
+      <polyline {...a} />
+    {/each}
+    {#each icon.line ?? [] as a}
+      <line {...a} />
+    {/each}
+  </svg>
+{/if}

@@ -40,10 +40,10 @@ Compound or complex components that are:
 
 ```javascript
 // Import primitives for building blocks
-import { Button, TextInput, HkIcon } from '$lib/ui/primitives.js';
+import { Button, TextInput, SteezeIcon } from '$lib/ui/primitives.js';
 
 // Import components for complete solutions
-import { Presenter, ImageBox, HkAppLayout } from '$lib/ui/components.js';
+import { Presenter, ImageBox } from '$lib/ui/components.js';
 ```
 
 The distinction helps library users understand the intended use and complexity of each component.
