@@ -670,7 +670,11 @@ async function validateFile(filePath) {
         !importPath.startsWith('$lib/') &&
         !importPath.startsWith('$');
 
-      if (!isExternalPackage) {
+      // Skip file existence check for $types imports (virtual module)
+      // Examples: ./$types, ../$types, ../../$types
+      const isTypesImport = importPath.match(/^\.\.?(?:\/\.\.)*\/\$types$/);
+
+      if (!isExternalPackage && !isTypesImport) {
         // Resolve to filesystem path
         let jsdocFsPath;
         if (importPath.startsWith('$lib/')) {
