@@ -593,7 +593,7 @@ async function validateFile(filePath) {
     // Strip query parameters (Vite asset imports like ?preset=render)
     let importPath = importPathRaw.split('?')[0];
 
-    // For JSDoc imports: only check unsafe aliases, skip other validations
+    // For JSDoc imports: only check unsafe aliases and file existence
     if (isJSDocImport) {
       // Check if using an unsafe alias
       const isAliasImport = Object.keys(PROJECT_ALIASES).some(
@@ -627,11 +627,103 @@ async function validateFile(filePath) {
           }
 
           errors.push(errorMsg);
+          // Skip file existence check if unsafe alias (already error)
+          continue;
+        }
+      }
+
+      // Check for unknown aliases in JSDoc imports
+      if (importPath.startsWith('$')) {
+        const isKnownAlias = importPath.startsWith('$lib/') ||
+          Object.keys(PROJECT_ALIASES).some(
+            alias => importPath === alias || importPath.startsWith(alias + '/')
+          );
+
+        if (!isKnownAlias) {
+          const aliasName = importPath.split('/')[0];
+          errors.push(
+            `${relativePath}:${lineNum}\n` +
+            `  JSDoc import('${importPath}')\n` +
+            `  => Unknown alias '${aliasName}' (not configured in svelte.config.js)`
+          );
+          continue;
+        }
+      }
+
+      // Check file existence for JSDoc imports (skip external packages)
+      const isExternalPackage = !importPath.startsWith('./') &&
+        !importPath.startsWith('../') &&
+        !importPath.startsWith('$lib/') &&
+        !importPath.startsWith('$');
+
+      if (!isExternalPackage) {
+        // Resolve to filesystem path
+        let jsdocFsPath;
+        if (importPath.startsWith('$lib/')) {
+          jsdocFsPath = join(
+            PROJECT_ROOT,
+            importPath.replace('$lib/', 'src/lib/')
+          );
+        } else {
+          jsdocFsPath = resolve(dirname(filePath), importPath);
+        }
+
+        // Check if file exists
+        const possiblePaths = [];
+        if (importPath.match(/\.(js|svelte|svelte\.js|test\.js|spec\.js)$/)) {
+          possiblePaths.push(jsdocFsPath);
+        } else {
+          possiblePaths.push(jsdocFsPath);
+          possiblePaths.push(jsdocFsPath + '.js');
+          possiblePaths.push(jsdocFsPath + '.svelte');
+          possiblePaths.push(jsdocFsPath + '.svelte.js');
+          possiblePaths.push(jsdocFsPath + '/index.js');
+          possiblePaths.push(jsdocFsPath + '/index.svelte');
+        }
+
+        let fileExists = false;
+        for (const testPath of possiblePaths) {
+          try {
+            const stats = await stat(testPath);
+            if (stats.isFile()) {
+              fileExists = true;
+              break;
+            }
+          } catch {
+            // File doesn't exist, continue checking
+          }
+        }
+
+        if (!fileExists) {
+          errors.push(
+            `${relativePath}:${lineNum}\n` +
+            `  JSDoc import('${importPath}')\n` +
+            `  => Import path does not exist`
+          );
         }
       }
 
       // Skip all other validations for JSDoc imports
       continue;
+    }
+
+    // Check for unknown aliases (starts with $ but not configured)
+    if (importPath.startsWith('$')) {
+      const isKnownAlias = importPath.startsWith('$lib/') ||
+        Object.keys(PROJECT_ALIASES).some(
+          alias => importPath === alias || importPath.startsWith(alias + '/')
+        );
+
+      if (!isKnownAlias) {
+        // Extract alias name (everything before first / or entire string)
+        const aliasName = importPath.split('/')[0];
+        errors.push(
+          `${relativePath}:${lineNum}\n` +
+          `  from '${importPath}'\n` +
+          `  => Unknown alias '${aliasName}' (not configured in svelte.config.js)`
+        );
+        continue;
+      }
     }
 
     // Check if using $src/lib when $lib is available (built-in SvelteKit)
