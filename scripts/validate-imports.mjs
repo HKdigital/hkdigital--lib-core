@@ -23,7 +23,8 @@ const SVELTEKIT_BUILT_IN_ALIASES = [
   '$lib',
   '$app',
   '$env',
-  '$service-worker'
+  '$service-worker',
+  '$types'
 ];
 
 /**
