@@ -86,28 +86,27 @@ function detectUnsafeAliases() {
     const resolvedPath = isAbsolute(target) ?
       target : join(PROJECT_ROOT, target);
 
-    // Normalize both paths for comparison (resolve symlinks, etc.)
-    const normalizedResolved = resolve(resolvedPath);
-    const normalizedRoot = resolve(PROJECT_ROOT);
+    // Check if path points to node_modules (breaks in libraries)
+    if (resolvedPath.includes('/node_modules/')) {
+      const packageName = extractPackageNameFromPath(resolvedPath);
+      if (packageName) {
+        suggestion = packageName;
+      }
+    } else {
+      // Not node_modules - check if it's outside the project
+      const normalizedResolved = resolve(resolvedPath);
+      const normalizedRoot = resolve(PROJECT_ROOT);
 
-    // Check if resolved path is inside the project folder
-    const isInsideProject = normalizedResolved.startsWith(normalizedRoot);
+      const isInsideProject = normalizedResolved.startsWith(normalizedRoot);
 
-    if (!isInsideProject) {
-      // Path is outside project - check if it's in node_modules
-      if (resolvedPath.includes('/node_modules/')) {
-        const packageName = extractPackageNameFromPath(resolvedPath);
-        if (packageName) {
-          suggestion = packageName;
-        }
-      } else {
-        // Outside project but not node_modules
+      if (!isInsideProject) {
+        // Outside project and not node_modules
         suggestion = '(path outside project - use direct imports)';
       }
+    }
 
-      if (suggestion) {
-        UNSAFE_ALIASES.set(alias, suggestion);
-      }
+    if (suggestion) {
+      UNSAFE_ALIASES.set(alias, suggestion);
     }
   }
 }
