@@ -112,7 +112,7 @@ export function exportNotNullish(obj, onlyKeys) {
  * - This method can e.g. be used to export a data object without it's
  *   'internal' properties
  *
- * @param {object} obj
+ * @param {Record<string,any>} obj
  *
  * @param {string[]} [keepKeys]
  *   If specified, the specified private keys will be exported (e.g. `_id`)
@@ -122,6 +122,7 @@ export function exportNotNullish(obj, onlyKeys) {
 export function exportPublic(obj, keepKeys) {
 	expect.object(obj);
 
+	/** @type {Record<string,any>} */
 	const newObj = {};
 
 	const keepKeysSet = keepKeys ? new Set(keepKeys) : null;
@@ -153,9 +154,9 @@ export function exportPublic(obj, keepKeys) {
  * - Nested objects and arrays are completely removed
  * - Only string, number, boolean, null, undefined values are kept
  *
- * @param {object|array} objectOrArray
+ * @param {Record<string,any>|Array<any>} objectOrArray
  *
- * @returns {object|array} new object or array with only primitive values
+ * @returns {Record<string,any>|Array<any>} new object or array with only primitive values
  */
 export function exportNotNested(objectOrArray) {
 	expect.object(objectOrArray);
@@ -209,6 +210,7 @@ export function exportNotNested(objectOrArray) {
 			return objectOrArray;
 		}
 
+		/** @type {Record<string,any>} */
 		const outputObj = {};
 
 		for (const key in objectOrArray) {
@@ -233,8 +235,8 @@ export function exportNotNested(objectOrArray) {
  * Keep only the specified keys in the object
  * - deletes all other key-value pairs in the object
  *
- * @param {object} obj
- * @param {string[]|Set} keys
+ * @param {Record<string,any>} obj
+ * @param {string[]|Set<string>} keys
  * @param {boolean} [removeNullAndUndefined=true]
  *
  * @returns {object} object that only contains the specified keys
@@ -271,6 +273,8 @@ export function keep(obj, keys, removeNullAndUndefined = true) {
  *   immutable by default).
  *
  * @param {any} value
+ *
+ * @param {Set<any>} [_found]
  *
  * @returns {any}
  *   recursively frozen object or original input value if a non-object was
@@ -311,7 +315,7 @@ export function deepFreeze(value, _found) {
  * - Automatically creates parent objects
  *
  * @param {object} obj - Object to set the value in
- * @param {string|Array} path - Dot separated string path or array path
+ * @param {string|Array<string>} path - Dot separated string path or array path
  * @param {any} value - value to set
  *
  * @returns {boolean} true if the value was changed
@@ -382,8 +386,8 @@ export function objectSet(obj, path, value) {
  * Removes a value at the specified object path from the object.
  * - All parent objects that remain empty will be removed too (recursively)
  *
- * @param {object} obj - Object to delete the path from
- * @param {string|Array} path - Dot separated string path or array path
+ * @param {Record<string,any>} obj - Object to delete the path from
+ * @param {string|Array<string>} path - Dot separated string path or array path
  */
 export function deletePath(obj, path) {
 	expect.object(obj);
@@ -500,8 +504,8 @@ export function deletePath(obj, path) {
  * Get a value from an object using a path
  * - Returns a default value if not found, with is [undefined] by default
  *
- * @param {object} obj - Object to get the value from
- * @param {string|Array} path - Dot separated string path or array path
+ * @param {Record<string,any>} obj - Object to get the value from
+ * @param {string|Array<string>} path - Dot separated string path or array path
  *
  * @param {any} [defaultValue=undefined]
  *   Value to return if the value does not exist
@@ -541,8 +545,8 @@ export function objectGet(obj, path, defaultValue) {
  * Get a value from an object using a path
  * - Throws an exception if the path does not exist or the value is undefined
  *
- * @param {object} obj - Object to get the value from
- * @param {string|Array} path - Dot separated string path or array path
+ * @param {Record<string,any>} obj - Object to get the value from
+ * @param {string|Array<string>} path - Dot separated string path or array path
  *
  * @param {function} [parseFn]
  *   Optional parser function that checks and converts the value

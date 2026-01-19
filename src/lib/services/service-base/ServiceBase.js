@@ -152,7 +152,8 @@ export class ServiceBase extends EventEmitter {
     try {
       this._setTargetState(wasRunning ? STATE_RUNNING : STATE_CONFIGURED);
       this._setState(STATE_CONFIGURING);
-      this.logger.debug('Configuring service', { config });
+
+      this.logger.debug('Configuring service', { keys: Object.keys(config ?? {})});
 
       await this._configure(config, this.#lastConfig);
       this.#lastConfig = config;
@@ -160,9 +161,10 @@ export class ServiceBase extends EventEmitter {
       this._setState(wasRunning ? STATE_RUNNING : STATE_CONFIGURED);
       this.logger.info('Service configured');
       return { ok: true };
-    } catch (error) {
-      this._setError('configuration', /** @type {Error} */ (error));
-      return { ok: false, error: this.error };
+    } catch (thing) {
+      const error = /** @type {Error} */ (thing);
+      this._setError('configuration', error);
+      return { ok: false, error };
     }
   }
 
