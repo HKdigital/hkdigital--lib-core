@@ -8,12 +8,14 @@
  * - Current route tracking and synchronization
  * - Start path management
  * - Data properties for business/domain state (using SvelteMap)
+ * - Dev data properties for dev-mode helpers (using SvelteMap)
  * - Visited routes tracking (using SvelteSet)
  * - Fine-grained reactivity without manual revision tracking
  *
  * Best practices:
  * - Use constants for routes: `const ROUTE_INTRO = '/intro/start'`
  * - Use KEY_ constants for data: `const KEY_SCORE = 'score'`
+ * - Use KEY_DEV_ constants for dev data: `const KEY_DEV_AUTO_NAV = 'dev-auto-navigation'`
  *
  * Basic usage:
  * ```javascript
@@ -21,6 +23,7 @@
  * const ROUTE_INTRO = '/intro/start';
  * const KEY_SCORE = 'score';
  * const KEY_TUTORIAL_SEEN = 'tutorial-seen';
+ * const KEY_DEV_AUTO_NAVIGATION = 'dev-auto-navigation';
  *
  * const machine = new PageMachine({
  *   startPath: ROUTE_INTRO,
@@ -48,6 +51,10 @@
  *   const score = machine.getData(KEY_SCORE);
  *   console.log('Score changed:', score);
  * });
+ *
+ * // Dev-mode helpers (only available in dev)
+ * machine.setDevData(KEY_DEV_AUTO_NAVIGATION, true);
+ * const autoNavEnabled = machine.getDevData(KEY_DEV_AUTO_NAVIGATION);
  * ```
  *
  * Animations and page-specific logic should use $effect in pages:
@@ -63,6 +70,7 @@
  * ```
  */
 import { SvelteMap, SvelteSet } from 'svelte/reactivity';
+import { dev } from '$app/environment';
 
 export default class PageMachine {
 	/**
@@ -96,6 +104,14 @@ export default class PageMachine {
 	 * @type {SvelteMap<string, any>}
 	 */
 	#data;
+
+	/**
+	 * Reactive map for dev-mode helper data
+	 * Uses SvelteMap for fine-grained reactivity
+	 * Only available in dev mode
+	 * @type {SvelteMap<string, any>|null}
+	 */
+	#devData;
 
 	/**
 	 * Reactive set for visited routes
@@ -146,6 +162,11 @@ export default class PageMachine {
 		// Initialize reactive data structures
 		this.#data = new SvelteMap();
 		this.#visitedRoutes = new SvelteSet();
+
+		// Initialize dev data (only in dev mode)
+		if (dev) {
+			this.#devData = new SvelteMap();
+		}
 
 		// Populate initial data
 		for (const [key, value] of Object.entries(initialData)) {
@@ -385,6 +406,174 @@ export default class PageMachine {
 	 */
 	get dataSize() {
 		return this.#data.size;
+	}
+
+	/* ===== Dev Data Properties (Dev-Mode Helpers) ===== */
+
+	/**
+	 * Set a dev data property value
+	 *
+	 * Automatically reactive - effects watching this key will re-run.
+	 * Only available in dev mode - no-op in production.
+	 *
+	 * @param {string} key - Property key (use KEY_DEV_ constant)
+	 * @param {any} value - Property value
+	 *
+	 * @example
+	 * ```javascript
+	 * const KEY_DEV_AUTO_NAVIGATION = 'dev-auto-navigation';
+	 * const KEY_DEV_SKIP_ANIMATIONS = 'dev-skip-animations';
+	 *
+	 * machine.setDevData(KEY_DEV_AUTO_NAVIGATION, true);
+	 * machine.setDevData(KEY_DEV_SKIP_ANIMATIONS, false);
+	 * ```
+	 */
+	setDevData(key, value) {
+		if (!dev) return;
+		this.#devData.set(key, value);
+	}
+
+	/**
+	 * Get a dev data property value
+	 *
+	 * Automatically reactive - creates a dependency on this specific key.
+	 * Only available in dev mode - returns undefined in production.
+	 *
+	 * @param {string} key - Property key (use KEY_DEV_ constant)
+	 *
+	 * @returns {any} Property value or undefined
+	 *
+	 * @example
+	 * ```javascript
+	 * const KEY_DEV_AUTO_NAVIGATION = 'dev-auto-navigation';
+	 *
+	 * // Reactive - re-runs only when KEY_DEV_AUTO_NAVIGATION changes
+	 * $effect(() => {
+	 *   const autoNav = machine.getDevData(KEY_DEV_AUTO_NAVIGATION);
+	 *   console.log('Auto-navigation:', autoNav);
+	 * });
+	 * ```
+	 */
+	getDevData(key) {
+		if (!dev) return undefined;
+		return this.#devData.get(key);
+	}
+
+	/**
+	 * Get all dev data properties as plain object
+	 *
+	 * Note: Returns a snapshot (plain object), not reactive.
+	 * Only available in dev mode - returns empty object in production.
+	 *
+	 * @returns {Record<string, any>} Plain object with all dev data
+	 *
+	 * @example
+	 * ```javascript
+	 * const allDevData = machine.getAllDevData();
+	 * console.log('Dev settings:', allDevData);
+	 * ```
+	 */
+	getAllDevData() {
+		if (!dev) return {};
+		return Object.fromEntries(this.#devData);
+	}
+
+	/**
+	 * Update multiple dev data properties at once
+	 *
+	 * Each property update triggers fine-grained reactivity.
+	 * Only available in dev mode - no-op in production.
+	 *
+	 * @param {Record<string, any>} dataUpdates
+	 *   Object with key-value pairs (use KEY_DEV_ constants for keys)
+	 *
+	 * @example
+	 * ```javascript
+	 * const KEY_DEV_AUTO_NAVIGATION = 'dev-auto-navigation';
+	 * const KEY_DEV_SKIP_ANIMATIONS = 'dev-skip-animations';
+	 *
+	 * machine.updateDevData({
+	 *   [KEY_DEV_AUTO_NAVIGATION]: true,
+	 *   [KEY_DEV_SKIP_ANIMATIONS]: false
+	 * });
+	 * ```
+	 */
+	updateDevData(dataUpdates) {
+		if (!dev) return;
+		for (const [key, value] of Object.entries(dataUpdates)) {
+			this.#devData.set(key, value);
+		}
+	}
+
+	/**
+	 * Delete a dev data property
+	 *
+	 * Only available in dev mode - no-op in production.
+	 *
+	 * @param {string} key - Property key to delete (use KEY_DEV_ constant)
+	 *
+	 * @returns {boolean} True if the key existed and was deleted
+	 *
+	 * @example
+	 * ```javascript
+	 * const KEY_DEV_TEMP_FLAG = 'dev-temp-flag';
+	 *
+	 * machine.deleteDevData(KEY_DEV_TEMP_FLAG);
+	 * ```
+	 */
+	deleteDevData(key) {
+		if (!dev) return false;
+		return this.#devData.delete(key);
+	}
+
+	/**
+	 * Check if dev data property exists
+	 *
+	 * Only available in dev mode - returns false in production.
+	 *
+	 * @param {string} key - Property key to check (use KEY_DEV_ constant)
+	 *
+	 * @returns {boolean} True if the key exists
+	 *
+	 * @example
+	 * ```javascript
+	 * const KEY_DEV_AUTO_NAVIGATION = 'dev-auto-navigation';
+	 *
+	 * if (machine.hasDevData(KEY_DEV_AUTO_NAVIGATION)) {
+	 *   // Dev setting exists
+	 * }
+	 * ```
+	 */
+	hasDevData(key) {
+		if (!dev) return false;
+		return this.#devData.has(key);
+	}
+
+	/**
+	 * Clear all dev data properties
+	 *
+	 * Only available in dev mode - no-op in production.
+	 *
+	 * @example
+	 * ```javascript
+	 * machine.clearDevData();  // Reset all dev settings
+	 * ```
+	 */
+	clearDevData() {
+		if (!dev) return;
+		this.#devData.clear();
+	}
+
+	/**
+	 * Get number of dev data properties
+	 *
+	 * Only available in dev mode - returns 0 in production.
+	 *
+	 * @returns {number} Number of dev data entries
+	 */
+	get devDataSize() {
+		if (!dev) return 0;
+		return this.#devData.size;
 	}
 
 	/* ===== Visited Routes Tracking ===== */

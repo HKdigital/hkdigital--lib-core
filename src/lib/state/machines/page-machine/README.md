@@ -79,7 +79,7 @@ const KEY_HIGHEST_LEVEL = 'highest-level';
 const KEY_DIFFICULTY = 'difficulty';
 
 export class PuzzleState extends PageMachine {
-  #gameLogic;
+  #logic;
 
   constructor() {
     // Call PageMachine constructor with route config
@@ -99,11 +99,11 @@ export class PuzzleState extends PageMachine {
       }
     });
 
-    this.#gameLogic = new PuzzleGameLogic();
+    this.#logic = new PuzzleGameLogic();
   }
 
-  get gameLogic() {
-    return this.#gameLogic;
+  get logic() {
+    return this.#logic;
   }
 
   // Computed properties for convenience
@@ -161,7 +161,7 @@ export class PuzzleState extends PageMachine {
   }
 
   reset() {
-    this.#gameLogic = new PuzzleGameLogic();
+    this.#logic = new PuzzleGameLogic();
   }
 }
 
@@ -209,12 +209,12 @@ export const [createOrGetPuzzleState, createPuzzleState, getPuzzleState] =
 {:else if puzzleState.isOnTutorial}
   <TutorialView />
 {:else if puzzleState.isOnLevel1}
-  <Level1View gameLogic={puzzleState.gameLogic} />
+  <Level1View gameLogic={puzzleState.logic} />
 {:else if puzzleState.isOnLevel2}
-  <Level2View gameLogic={puzzleState.gameLogic} />
+  <Level2View gameLogic={puzzleState.logic} />
 {:else if puzzleState.isComplete}
   <CompleteView
-    score={puzzleState.gameLogic.score}
+    score={puzzleState.logic.score}
     highestLevel={puzzleState.highestLevel} />
 {/if}
 ```

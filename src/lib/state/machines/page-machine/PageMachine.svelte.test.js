@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { flushSync } from 'svelte';
 
 import PageMachine from './PageMachine.svelte.js';
@@ -14,6 +14,12 @@ const KEY_TUTORIAL_SEEN = 'tutorial-seen';
 const KEY_LEVELS_COMPLETED = 'levels-completed';
 const KEY_TEMP = 'temp';
 const KEY_OTHER_DATA = 'other-data';
+
+// Dev data key constants (best practice - use KEY_DEV_ prefix)
+const KEY_DEV_AUTO_NAVIGATION = 'dev-auto-navigation';
+const KEY_DEV_SKIP_ANIMATIONS = 'dev-skip-animations';
+const KEY_DEV_MOCK_API = 'dev-mock-api';
+const KEY_DEV_TEMP = 'dev-temp';
 
 describe('PageMachine - Basic Tests', () => {
   it('should initialize with start path', () => {
@@ -602,5 +608,332 @@ describe('PageMachine - Start Path Methods', () => {
     await new Promise(resolve => setTimeout(resolve, 10));
 
     expect(machine.startPath).toBe('/game/intro');
+  });
+});
+
+describe('PageMachine - Dev Data Properties', () => {
+  it('should set and get dev data properties', () => {
+    const machine = new PageMachine({ startPath: '/test' });
+
+    machine.setDevData(KEY_DEV_AUTO_NAVIGATION, true);
+    expect(machine.getDevData(KEY_DEV_AUTO_NAVIGATION)).toBe(true);
+
+    machine.setDevData(KEY_DEV_SKIP_ANIMATIONS, false);
+    expect(machine.getDevData(KEY_DEV_SKIP_ANIMATIONS)).toBe(false);
+
+    machine.setDevData(KEY_DEV_MOCK_API, 'http://localhost:3000');
+    expect(machine.getDevData(KEY_DEV_MOCK_API)).toBe('http://localhost:3000');
+  });
+
+  it('should update multiple dev data properties', () => {
+    const machine = new PageMachine({ startPath: '/test' });
+
+    machine.updateDevData({
+      [KEY_DEV_AUTO_NAVIGATION]: true,
+      [KEY_DEV_SKIP_ANIMATIONS]: false,
+      [KEY_DEV_MOCK_API]: 'localhost'
+    });
+
+    expect(machine.getDevData(KEY_DEV_AUTO_NAVIGATION)).toBe(true);
+    expect(machine.getDevData(KEY_DEV_SKIP_ANIMATIONS)).toBe(false);
+    expect(machine.getDevData(KEY_DEV_MOCK_API)).toBe('localhost');
+  });
+
+  it('should get all dev data properties', () => {
+    const machine = new PageMachine({ startPath: '/test' });
+
+    machine.setDevData(KEY_DEV_AUTO_NAVIGATION, true);
+    machine.setDevData(KEY_DEV_SKIP_ANIMATIONS, false);
+
+    const allDevData = machine.getAllDevData();
+    expect(allDevData).toEqual({
+      [KEY_DEV_AUTO_NAVIGATION]: true,
+      [KEY_DEV_SKIP_ANIMATIONS]: false
+    });
+  });
+
+  it('should return undefined for nonexistent dev data properties', () => {
+    const machine = new PageMachine({ startPath: '/test' });
+    const KEY_DEV_NONEXISTENT = 'dev-nonexistent';
+    expect(machine.getDevData(KEY_DEV_NONEXISTENT)).toBe(undefined);
+  });
+
+  it('should delete dev data properties', () => {
+    const machine = new PageMachine({ startPath: '/test' });
+
+    machine.setDevData(KEY_DEV_TEMP, 'value');
+    expect(machine.hasDevData(KEY_DEV_TEMP)).toBe(true);
+
+    const deleted = machine.deleteDevData(KEY_DEV_TEMP);
+    expect(deleted).toBe(true);
+    expect(machine.hasDevData(KEY_DEV_TEMP)).toBe(false);
+  });
+
+  it('should check if dev data properties exist', () => {
+    const machine = new PageMachine({ startPath: '/test' });
+
+    expect(machine.hasDevData(KEY_DEV_AUTO_NAVIGATION)).toBe(false);
+
+    machine.setDevData(KEY_DEV_AUTO_NAVIGATION, true);
+    expect(machine.hasDevData(KEY_DEV_AUTO_NAVIGATION)).toBe(true);
+  });
+
+  it('should clear all dev data properties', () => {
+    const KEY_DEV_A = 'dev-a';
+    const KEY_DEV_B = 'dev-b';
+    const KEY_DEV_C = 'dev-c';
+
+    const machine = new PageMachine({ startPath: '/test' });
+
+    machine.setDevData(KEY_DEV_A, 1);
+    machine.setDevData(KEY_DEV_B, 2);
+    machine.setDevData(KEY_DEV_C, 3);
+
+    expect(machine.devDataSize).toBe(3);
+
+    machine.clearDevData();
+    expect(machine.devDataSize).toBe(0);
+    expect(machine.hasDevData(KEY_DEV_A)).toBe(false);
+  });
+
+  it('should track dev data size', () => {
+    const KEY_DEV_A = 'dev-a';
+    const KEY_DEV_B = 'dev-b';
+    const machine = new PageMachine({ startPath: '/test' });
+
+    expect(machine.devDataSize).toBe(0);
+
+    machine.setDevData(KEY_DEV_A, 1);
+    expect(machine.devDataSize).toBe(1);
+
+    machine.setDevData(KEY_DEV_B, 2);
+    expect(machine.devDataSize).toBe(2);
+
+    machine.deleteDevData(KEY_DEV_A);
+    expect(machine.devDataSize).toBe(1);
+  });
+
+  it('should keep dev data separate from regular data', () => {
+    const machine = new PageMachine({ startPath: '/test' });
+
+    // Set regular data
+    machine.setData(KEY_SCORE, 100);
+
+    // Set dev data with similar-looking key
+    machine.setDevData('score', 999);
+
+    // Regular data should be unaffected
+    expect(machine.getData(KEY_SCORE)).toBe(100);
+    expect(machine.getDevData('score')).toBe(999);
+
+    // Sizes should be independent
+    expect(machine.dataSize).toBe(1);
+    expect(machine.devDataSize).toBe(1);
+  });
+});
+
+describe('PageMachine - Dev Data Reactivity', () => {
+  it('should trigger effect when dev data changes', () => {
+    const machine = new PageMachine({ startPath: '/test' });
+    let effectRunCount = 0;
+    let lastValue = null;
+
+    const cleanup = $effect.root(() => {
+      $effect(() => {
+        lastValue = machine.getDevData(KEY_DEV_AUTO_NAVIGATION);
+        effectRunCount++;
+      });
+    });
+
+    flushSync();
+    const initialCount = effectRunCount;
+
+    // Change dev data - should trigger effect
+    machine.setDevData(KEY_DEV_AUTO_NAVIGATION, true);
+    flushSync();
+
+    expect(effectRunCount).toBe(initialCount + 1);
+    expect(lastValue).toBe(true);
+
+    // Change dev data again - should trigger effect again
+    machine.setDevData(KEY_DEV_AUTO_NAVIGATION, false);
+    flushSync();
+
+    expect(effectRunCount).toBe(initialCount + 2);
+    expect(lastValue).toBe(false);
+
+    cleanup();
+  });
+
+  it('should NOT trigger effect when unrelated dev data changes', () => {
+    const machine = new PageMachine({ startPath: '/test' });
+    let effectRunCount = 0;
+
+    // Create effect watching only AUTO_NAVIGATION
+    const cleanup = $effect.root(() => {
+      $effect(() => {
+        machine.getDevData(KEY_DEV_AUTO_NAVIGATION);
+        effectRunCount++;
+      });
+    });
+
+    flushSync();
+    const initialCount = effectRunCount;
+
+    // Change SKIP_ANIMATIONS - should NOT trigger effect
+    machine.setDevData(KEY_DEV_SKIP_ANIMATIONS, true);
+    flushSync();
+
+    expect(effectRunCount).toBe(initialCount);
+
+    cleanup();
+  });
+
+  it('should NOT trigger regular data effects when dev data changes', () => {
+    const machine = new PageMachine({
+      startPath: '/test',
+      initialData: { [KEY_SCORE]: 0 }
+    });
+    let dataEffectRunCount = 0;
+
+    // Effect watching regular data only
+    const cleanup = $effect.root(() => {
+      $effect(() => {
+        machine.getData(KEY_SCORE);
+        dataEffectRunCount++;
+      });
+    });
+
+    flushSync();
+    const initialCount = dataEffectRunCount;
+
+    // Change dev data - should NOT trigger regular data effect
+    machine.setDevData(KEY_DEV_AUTO_NAVIGATION, true);
+    flushSync();
+
+    expect(dataEffectRunCount).toBe(initialCount);
+
+    // Change regular data - SHOULD trigger effect
+    machine.setData(KEY_SCORE, 100);
+    flushSync();
+
+    expect(dataEffectRunCount).toBe(initialCount + 1);
+
+    cleanup();
+  });
+
+  it('should NOT trigger dev data effects when regular data changes', () => {
+    const machine = new PageMachine({ startPath: '/test' });
+    let devDataEffectRunCount = 0;
+
+    // Effect watching dev data only
+    const cleanup = $effect.root(() => {
+      $effect(() => {
+        machine.getDevData(KEY_DEV_AUTO_NAVIGATION);
+        devDataEffectRunCount++;
+      });
+    });
+
+    flushSync();
+    const initialCount = devDataEffectRunCount;
+
+    // Change regular data - should NOT trigger dev data effect
+    machine.setData(KEY_SCORE, 100);
+    flushSync();
+
+    expect(devDataEffectRunCount).toBe(initialCount);
+
+    cleanup();
+  });
+
+  it('should NOT trigger dev data effects when routes change', () => {
+    const routes = ['/test/a', '/test/b'];
+    const machine = new PageMachine({ startPath: '/test/a', routes });
+    let devDataEffectRunCount = 0;
+
+    // Effect watching dev data only
+    const cleanup = $effect.root(() => {
+      $effect(() => {
+        machine.getDevData(KEY_DEV_AUTO_NAVIGATION);
+        devDataEffectRunCount++;
+      });
+    });
+
+    flushSync();
+    const initialCount = devDataEffectRunCount;
+
+    // Change route - should NOT trigger dev data effect
+    machine.syncFromPath('/test/b');
+    flushSync();
+
+    expect(devDataEffectRunCount).toBe(initialCount);
+
+    cleanup();
+  });
+});
+
+describe('PageMachine - Dev Data Integration', () => {
+  it('should work with both regular and dev data independently', () => {
+    const machine = new PageMachine({
+      startPath: '/test',
+      initialData: {
+        [KEY_SCORE]: 0,
+        [KEY_LEVEL]: 1
+      }
+    });
+
+    // Set regular data
+    machine.setData(KEY_SCORE, 100);
+    machine.setData(KEY_LEVEL, 5);
+
+    // Set dev data
+    machine.setDevData(KEY_DEV_AUTO_NAVIGATION, false);
+    machine.setDevData(KEY_DEV_SKIP_ANIMATIONS, true);
+
+    // Verify regular data
+    expect(machine.getData(KEY_SCORE)).toBe(100);
+    expect(machine.getData(KEY_LEVEL)).toBe(5);
+    expect(machine.dataSize).toBe(2);
+
+    // Verify dev data
+    expect(machine.getDevData(KEY_DEV_AUTO_NAVIGATION)).toBe(false);
+    expect(machine.getDevData(KEY_DEV_SKIP_ANIMATIONS)).toBe(true);
+    expect(machine.devDataSize).toBe(2);
+
+    // Clear dev data shouldn't affect regular data
+    machine.clearDevData();
+    expect(machine.getData(KEY_SCORE)).toBe(100);
+    expect(machine.getData(KEY_LEVEL)).toBe(5);
+    expect(machine.dataSize).toBe(2);
+    expect(machine.devDataSize).toBe(0);
+
+    // Clear regular data shouldn't affect dev data
+    machine.setDevData(KEY_DEV_AUTO_NAVIGATION, true);
+    machine.clearData();
+    expect(machine.dataSize).toBe(0);
+    expect(machine.getDevData(KEY_DEV_AUTO_NAVIGATION)).toBe(true);
+    expect(machine.devDataSize).toBe(1);
+  });
+
+  it('should handle complex dev data values', () => {
+    const machine = new PageMachine({ startPath: '/test' });
+
+    // Object value
+    const mockConfig = { url: 'localhost', port: 3000 };
+    machine.setDevData(KEY_DEV_MOCK_API, mockConfig);
+    expect(machine.getDevData(KEY_DEV_MOCK_API)).toEqual(mockConfig);
+
+    // Array value
+    const debugFlags = ['verbose', 'trace', 'profile'];
+    machine.setDevData('dev-debug-flags', debugFlags);
+    expect(machine.getDevData('dev-debug-flags')).toEqual(debugFlags);
+
+    // Boolean value
+    machine.setDevData(KEY_DEV_AUTO_NAVIGATION, false);
+    expect(machine.getDevData(KEY_DEV_AUTO_NAVIGATION)).toBe(false);
+
+    // Null value
+    machine.setDevData('dev-null-value', null);
+    expect(machine.getDevData('dev-null-value')).toBe(null);
   });
 });
