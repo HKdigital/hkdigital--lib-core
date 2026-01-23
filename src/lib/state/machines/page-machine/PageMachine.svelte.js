@@ -70,7 +70,7 @@
  * ```
  */
 import { SvelteSet } from 'svelte/reactivity';
-import ReactiveDataStore from '$lib/state/classes/reactive-data-store/ReactiveDataStore.svelte.js';
+import { ReactiveDataStore } from '$lib/state/classes.js';
 
 export default class PageMachine {
 	/**
