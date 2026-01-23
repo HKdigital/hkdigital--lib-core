@@ -78,6 +78,10 @@ const KEY_TUTORIAL_SEEN = 'tutorial-seen';
 const KEY_HIGHEST_LEVEL = 'highest-level';
 const KEY_DIFFICULTY = 'difficulty';
 
+// Dev data keys (use KEY_DEV_ prefix)
+const KEY_DEV_AUTO_NAVIGATION = 'dev-auto-navigation';
+const KEY_DEV_SKIP_ANIMATIONS = 'dev-skip-animations';
+
 export class PuzzleState extends PageMachine {
   #logic;
 
@@ -96,6 +100,10 @@ export class PuzzleState extends PageMachine {
         [KEY_TUTORIAL_SEEN]: false,
         [KEY_HIGHEST_LEVEL]: 1,
         [KEY_DIFFICULTY]: 'normal'
+      },
+      initialDevData: {
+        [KEY_DEV_AUTO_NAVIGATION]: false,
+        [KEY_DEV_SKIP_ANIMATIONS]: false
       }
     });
 
