@@ -776,7 +776,7 @@ describe('GameBox', () => {
         expect(gameBox?.getAttribute('data-orientation')).toBe('portrait');
 
         const portraitContainer = container.querySelector(
-          '[data-component="scaled-container"]:not([style*="visibility: hidden"])'
+          '[data-component="scaled-container"]:not([style*="display: none"])'
         );
         const portraitWidth = parseInt(
           portraitContainer?.style.width || '0'
@@ -811,10 +811,10 @@ describe('GameBox', () => {
         expect(containers.length).toBe(2);
 
         const landscapeContainer = Array.from(containers).find(
-          c => !c.style.visibility.includes('hidden')
+          c => !c.style.display.includes('none')
         );
         const portraitContainer = Array.from(containers).find(
-          c => c.style.visibility.includes('hidden')
+          c => c.style.display.includes('none')
         );
 
         const landscapeWidth = parseInt(
@@ -852,10 +852,10 @@ describe('GameBox', () => {
         expect(containers.length).toBe(2);
 
         const portraitContainer = Array.from(containers).find(
-          c => !c.style.visibility.includes('hidden')
+          c => !c.style.display.includes('none')
         );
         const landscapeContainer = Array.from(containers).find(
-          c => c.style.visibility.includes('hidden')
+          c => c.style.display.includes('none')
         );
 
         const portraitWidth = parseInt(

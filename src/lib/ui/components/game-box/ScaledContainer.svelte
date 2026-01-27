@@ -48,12 +48,12 @@
       !height ||
       !design ||
       !clamping
-      // || hidden
+      || hidden
     ) {
       return;
     }
 
-    console.debug(`Enable scaling [${width},${height}]`);
+    // console.debug(`Enable scaling [${width},${height}]`);
 
     return enableContainerScaling({
       container,
@@ -73,12 +73,8 @@
     style:left="0"
     style:width="{width}px"
     style:height="{height}px"
-    style:visibility={hidden ? "hidden" : "visible"}
+    style:display={hidden ? "none" : "block"}
   >
     {@render snippet(snippetParams)}
   </div>
 {/if}
-
-<style>
-  /* Positioning and visibility handled via inline styles */
-</style>
