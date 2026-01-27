@@ -4,9 +4,10 @@
 
 	/**
 	 * @type {{
-	 *   base?: string,
-	 *   bg?: string,
-	 *   classes?: string,
+	 *   class?: string,
+	 *   base?: string,  // Deprecated: use 'class' instead
+	 *   bg?: string,  // Deprecated: use 'class' instead
+	 *   classes?: string,  // Deprecated: use 'class' instead
 	 *   width?: string,
 	 *   height?: string,
 	 *   aspect?: string,
@@ -23,9 +24,10 @@
 	 */
 	let {
 		// Style
-		base,
-		bg,
-		classes,
+		class: className,
+		base,  // Deprecated: kept for backward compatibility
+		bg,  // Deprecated: kept for backward compatibility
+		classes,  // Deprecated: kept for backward compatibility
 		width,
 		height,
 		aspect,
@@ -172,7 +174,7 @@
 <div
 	data-component="image-box"
 	bind:this={containerElem}
-	class="{base} {bg} {aspect} {overflow} {width} {height} {classes}"
+	class="{base ?? ''} {bg ?? ''} {aspect} {overflow} {width} {height} {className ?? classes ?? ''}"
 	style:--fit={fit}
 	style:--pos={position}
 	style:width={width || (height && aspect) ? undefined : '100%'}

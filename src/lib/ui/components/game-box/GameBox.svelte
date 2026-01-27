@@ -26,9 +26,10 @@
 
   /**
    * @type {{
-   *   base?: string,
-   *   bg?: string,
-   *   classes?: string,
+   *   class?: string,
+   *   base?: string,  // Deprecated: use 'class' instead
+   *   bg?: string,  // Deprecated: use 'class' instead
+   *   classes?: string,  // Deprecated: use 'class' instead
    *   style?: string,
    *   aspectOnLandscape?: number,
    *   aspectOnPortrait?: number,
@@ -57,9 +58,10 @@
    */
   const {
     // > Style
-    base = '',
-    bg = '',
-    classes = '',
+    class: className,
+    base,  // Deprecated: kept for backward compatibility
+    bg,  // Deprecated: kept for backward compatibility
+    classes,  // Deprecated: kept for backward compatibility
     style = '',
 
     // > Functional properties
@@ -468,7 +470,7 @@
     <div
       data-component="game-box"
       data-orientation={isLandscape ? 'landscape' : 'portrait'}
-      class="{base} {bg} {classes}"
+      class="{base ?? ''} {bg ?? ''} {className ?? classes ?? ''}"
       class:isMobile
       style:position="relative"
       style:width="{gameWidth}px"

@@ -6,11 +6,12 @@
    * enabling layered layouts with natural height behavior.
    *
    * @type {{
-   *   base?: string,
-   *   bg?: string,
+   *   class?: string,
+   *   base?: string,  // Deprecated: use 'class' instead
+   *   bg?: string,  // Deprecated: use 'class' instead
    *   padding?: string,
    *   margin?: string,
-   *   classes?: string,
+   *   classes?: string,  // Deprecated: use 'class' instead
    *   style?: string,
    *   overflow?: string,
    *   children: import('svelte').Snippet,
@@ -19,11 +20,12 @@
    */
   const {
     // Container styles
-    base = '',
-    bg = '',
+    class: className,
+    base,  // Deprecated: kept for backward compatibility
+    bg,  // Deprecated: kept for backward compatibility
     padding = '',
     margin = '',
-    classes = '',
+    classes,  // Deprecated: kept for backward compatibility
     style = '',
     overflow = '',
 
@@ -48,7 +50,7 @@
 
 <div
   data-component="grid-layers"
-  class="grid {base} {bg} {classes} {margin} {padding} {overflow}"
+  class="grid {base ?? ''} {bg ?? ''} {className ?? classes ?? ''} {margin} {padding} {overflow}"
   style={containerStyle}
   {...attrs}
 >

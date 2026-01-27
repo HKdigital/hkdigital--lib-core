@@ -16,7 +16,8 @@
 
   /**
    * @type {{
-   *   classes?: string,
+   *   class?: string,
+   *   classes?: string,  // Deprecated: use 'class' instead
    *   slides?: import("./typedef.js").Slide[],
    *   presenterRef?: import('./Presenter.state.svelte.js').PresenterRef,
    *   layoutSnippet: import('svelte').Snippet<[Slide|null, Layer]>,
@@ -25,7 +26,8 @@
    */
   let {
     // > Style
-    classes,
+    class: className,
+    classes,  // Deprecated: kept for backward compatibility
 
     // > Functional
     slides,
@@ -109,7 +111,7 @@
   });
 </script>
 
-<GridLayers data-feature="presenter" {classes}>
+<GridLayers data-feature="presenter" class={className ?? classes ?? ''}>
   <div
     data-layer="layer1"
     style:z-index={presenter.layerA.z}

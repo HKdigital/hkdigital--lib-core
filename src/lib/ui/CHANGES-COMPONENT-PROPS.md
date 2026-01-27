@@ -47,6 +47,49 @@ The `bg` property has been deprecated. Use `class` instead.
 />
 ```
 
+### Implementation Pattern
+
+All components follow this exact pattern for backward compatibility:
+
+**JSDoc Type:**
+```javascript
+/**
+ * @type {{
+ *   class?: string,
+ *   base?: string,  // Deprecated: use 'class' instead
+ *   bg?: string,  // Deprecated: use 'class' instead (if applicable)
+ *   classes?: string,  // Deprecated: use 'class' instead
+ *   // ... other props
+ * }}
+ */
+```
+
+**Props Destructuring:**
+```javascript
+const {
+  class: className,
+  base,  // Deprecated: kept for backward compatibility
+  bg,  // Deprecated: kept for backward compatibility (if applicable)
+  classes,  // Deprecated: kept for backward compatibility
+  // ... other props
+} = $props();
+```
+
+**Class Attribute Usage:**
+```svelte
+<!-- With bg prop -->
+<div class="{base ?? ''} {bg ?? ''} {className ?? classes ?? ''}"></div>
+
+<!-- Without bg prop -->
+<div class="{base ?? ''} {className ?? classes ?? ''}"></div>
+```
+
+**Priority Order:**
+1. `base` - applied first if provided
+2. `bg` - applied second if provided and component supports it
+3. `className` - from new `class` prop, applied if `classes` not provided
+4. `classes` - deprecated fallback, applied if `className` not provided
+
 ### Backward Compatibility
 
 During the transition period, components accept both old and new
@@ -70,4 +113,9 @@ migration without breaking existing code.
 
 - `SteezeIcon.svelte`
 - `GameBox.svelte`
+- `ImageBox.svelte`
+- `Presenter.svelte`
+- `GridLayers.svelte`
+- `Panel.svelte`
+- `Button.svelte`
 - More components will be updated following this pattern

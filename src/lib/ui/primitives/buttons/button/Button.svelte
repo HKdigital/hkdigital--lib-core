@@ -3,9 +3,10 @@
 
   /**
    * @type {{
-   *   base?: string,
-   *   bg?: string,
-   *   classes?: string,
+   *   class?: string,
+   *   base?: string,  // Deprecated: use 'class' instead
+   *   bg?: string,  // Deprecated: use 'class' instead
+   *   classes?: string,  // Deprecated: use 'class' instead
    *   type?: string,
    *   role?: 'primary' | 'secondary' | 'tertiary' | 'custom',
    *   size?: 'sm' | 'md' | 'lg',
@@ -25,9 +26,10 @@
    */
   const {
     // Style
-    base,
-    bg,
-    classes,
+    class: className,
+    base,  // Deprecated: kept for backward compatibility
+    bg,  // Deprecated: kept for backward compatibility
+    classes,  // Deprecated: kept for backward compatibility
 
     type = '',
     role = 'primary',
@@ -66,7 +68,7 @@
   data-variant={variant}
   data-mode={mode}
   type={buttonType}
-  class="{base} {bg} {classes} {stateClasses}"
+  class="{base ?? ''} {bg ?? ''} {className ?? classes ?? ''} {stateClasses}"
   disabled={disabled || loading}
   aria-busy={loading}
   aria-pressed={selected}
