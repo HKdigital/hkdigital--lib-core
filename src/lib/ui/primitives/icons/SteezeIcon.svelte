@@ -23,8 +23,9 @@
    * theme - name of the icon theme (e.g. 'solid' or 'outline')
    *
    * @type {{
-   *   base?: string,
-   *   classes?: string
+   *   class?: string,
+   *   base?: string,  // Deprecated: use 'class' instead
+   *   classes?: string,  // Deprecated: use 'class' instead
    *   size?: string,
    *   variant?: string,
    *   src: import('./typedef.js').IconSource,
@@ -33,8 +34,9 @@
    */
   let {
     // Style
-    base,
-    classes,
+    class: className,
+    base,  // Deprecated: kept for backward compatibility
+    classes,  // Deprecated: kept for backward compatibility
 
     size = 'md',
     variant = '',
@@ -72,7 +74,7 @@
     data-variant={variant}
     {...icon.a}
     xmlns="http://www.w3.org/2000/svg"
-    class="{base} {classes}"
+    class="{base ?? ''} {className ?? classes ?? ''}"
     {...attrs}
   >
     {#each icon.path ?? [] as a}

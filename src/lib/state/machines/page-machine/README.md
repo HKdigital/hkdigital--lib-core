@@ -135,32 +135,32 @@ export class PuzzleState extends PageMachine {
     return this.current === ROUTE_COMPLETE;
   }
 
-  // Persistent settings/progress (use getData/setData)
+  // Persistent settings/progress (use machine.data)
   get hasSeenTutorial() {
-    return this.getData(KEY_TUTORIAL_SEEN) || false;
+    return this.data.get(KEY_TUTORIAL_SEEN) || false;
   }
 
   markTutorialComplete() {
-    this.setData(KEY_TUTORIAL_SEEN, true);
+    this.data.set(KEY_TUTORIAL_SEEN, true);
   }
 
   get highestLevel() {
-    return this.getData(KEY_HIGHEST_LEVEL) || 1;
+    return this.data.get(KEY_HIGHEST_LEVEL) || 1;
   }
 
   updateHighestLevel(level) {
     const current = this.highestLevel;
     if (level > current) {
-      this.setData(KEY_HIGHEST_LEVEL, level);
+      this.data.set(KEY_HIGHEST_LEVEL, level);
     }
   }
 
   get difficulty() {
-    return this.getData(KEY_DIFFICULTY) || 'normal';
+    return this.data.get(KEY_DIFFICULTY) || 'normal';
   }
 
   setDifficulty(level) {
-    this.setData(KEY_DIFFICULTY, level);
+    this.data.set(KEY_DIFFICULTY, level);
   }
 
   // Optional: Lifecycle methods
@@ -273,11 +273,25 @@ puzzleState.isStartPath(path)         // Check if path is start path
 puzzleState.isOnStartPath             // Check if on start path
 puzzleState.redirectToStartPath()     // Navigate to start path
 
-// Persistent data properties
-puzzleState.setData(KEY_NAME, value)
-puzzleState.getData(KEY_NAME)
-puzzleState.getAllData()
-puzzleState.updateData({ KEY1: val1, KEY2: val2 })
+// Persistent data properties (via ReactiveDataStore)
+puzzleState.data.set(KEY_NAME, value)
+puzzleState.data.get(KEY_NAME)
+puzzleState.data.getAll()
+puzzleState.data.update({ KEY1: val1, KEY2: val2 })
+puzzleState.data.has(KEY_NAME)
+puzzleState.data.delete(KEY_NAME)
+puzzleState.data.clear()
+puzzleState.data.size
+
+// Dev data properties (dev-only, via ReactiveDataStore)
+puzzleState.devData.set(KEY_DEV_NAME, value)
+puzzleState.devData.get(KEY_DEV_NAME)
+puzzleState.devData.getAll()
+puzzleState.devData.update({ KEY1: val1 })
+puzzleState.devData.has(KEY_DEV_NAME)
+puzzleState.devData.delete(KEY_DEV_NAME)
+puzzleState.devData.clear()
+puzzleState.devData.size
 
 // Visited routes tracking
 puzzleState.hasVisited(route)         // e.g., hasVisited('/puzzle/intro')
@@ -296,9 +310,9 @@ puzzleState.hasSeenTutorial
 
 ## Data Storage Guidelines
 
-### When to use `getData/setData` (PageMachine)
+### When to use `machine.data` (ReactiveDataStore)
 
-Use PageMachine's data properties for **persistent settings and progress**:
+Use PageMachine's data store for **persistent settings and progress**:
 
 - ✅ Tutorial completion flags
 - ✅ User preferences (difficulty, language, sound)
@@ -319,13 +333,39 @@ const KEY_DIFFICULTY = 'difficulty';
 const KEY_HIGHEST_LEVEL = 'highest-level';
 
 // Use constants (not strings!)
-pageMachine.setData(KEY_TUTORIAL_SEEN, true);       // ✅ Good
-pageMachine.setData(KEY_DIFFICULTY, 'hard');        // ✅ Good
-pageMachine.setData(KEY_HIGHEST_LEVEL, 5);          // ✅ Good
+pageMachine.data.set(KEY_TUTORIAL_SEEN, true);       // ✅ Good
+pageMachine.data.set(KEY_DIFFICULTY, 'hard');        // ✅ Good
+pageMachine.data.set(KEY_HIGHEST_LEVEL, 5);          // ✅ Good
 
 // DON'T use magic strings
-pageMachine.setData('tutorial-seen', true);         // ❌ Avoid
-pageMachine.setData('TUTORIAL_SEEN', true);         // ❌ Avoid
+pageMachine.data.set('tutorial-seen', true);         // ❌ Avoid
+pageMachine.data.set('TUTORIAL_SEEN', true);         // ❌ Avoid
+```
+
+### When to use `machine.devData` (Dev-only ReactiveDataStore)
+
+Use PageMachine's devData store for **development helpers**:
+
+- ✅ Auto-navigation flags
+- ✅ Skip animations/delays
+- ✅ Mock API endpoints
+- ✅ Debug mode flags
+- ✅ Development-only settings
+
+**IMPORTANT**: Use KEY_DEV_ prefix for dev data constants:
+
+```javascript
+// Define constants (at top of file)
+const KEY_DEV_AUTO_NAVIGATION = 'dev-auto-navigation';
+const KEY_DEV_SKIP_ANIMATIONS = 'dev-skip-animations';
+const KEY_DEV_MOCK_API = 'dev-mock-api';
+
+// Use in development (no-op in production)
+pageMachine.devData.set(KEY_DEV_AUTO_NAVIGATION, true);    // ✅ Good
+pageMachine.devData.set(KEY_DEV_SKIP_ANIMATIONS, false);   // ✅ Good
+
+// Reading in production throws error (programming bug)
+const autoNav = pageMachine.devData.get(KEY_DEV_AUTO_NAVIGATION);
 ```
 
 ### When to use GameLogic with `$state`
@@ -358,6 +398,17 @@ export class PuzzleGameLogic {
 - Routes are the source of truth (no state abstraction layer)
 - Use route constants for clarity and maintainability
 - Always sync in `$effect` watching `$page.url.pathname`
-- Use constants for data keys (e.g., `KEY_TUTORIAL_SEEN`)
+- Use constants for data keys (e.g., `KEY_TUTORIAL_SEEN`, `KEY_DEV_AUTO_NAV`)
 - Separate persistent data (PageMachine) from reactive state (GameLogic)
 - Handle animations in pages using `$effect` or `onMount`
+- Data and devData use [ReactiveDataStore](../../classes/reactive-data-store/README.md)
+  for fine-grained reactivity
+- Access data via read-only getters: `machine.data.get()`, `machine.devData.set()`
+
+## See Also
+
+- [ReactiveDataStore](../../classes/reactive-data-store/README.md) - The
+  underlying reactive data storage implementation
+- [FiniteStateMachine](../finite-state-machine/README.md) - For enforced state
+  transitions
+- [State Context](../../context/README.md) - For providing state to components

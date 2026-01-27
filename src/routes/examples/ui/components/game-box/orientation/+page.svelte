@@ -1,6 +1,16 @@
 <script>
   import { designTokens } from '$lib/design/index.js';
   import { GameBox } from '$lib/ui/components.js';
+
+  import Landscape from './Landscape.svelte';
+  import Portrait from './Portrait.svelte';
+
+  let widthLandscape = $state(0);
+  let widthPortrait = $state(0);
+
+  $inspect('widthLandscape', widthLandscape);
+  $inspect('widthPortrait', widthPortrait);
+
 </script>
 
 <GameBox
@@ -18,21 +28,11 @@
   debug={true}
 >
   {#snippet snippetLandscape()}
-    <div class="m-20up">
-      <h3 class="text-heading-h3 font-heading heading-font-weight pb-30up">
-        On landscape
-      </h3>
-      <div class="w-100up h-100up bg-red-500"></div>
-    </div>
+    <Landscape />
   {/snippet}
 
   {#snippet snippetPortrait()}
-    <div class="m-20up">
-      <h3 class="text-heading-h3 font-heading heading-font-weight pb-30up">
-        On portrait
-      </h3>
-      <div class="w-100up h-100up bg-blue-500"></div>
-    </div>
+    <Portrait />
   {/snippet}
 </GameBox>
 <!--<br>&nbsp;

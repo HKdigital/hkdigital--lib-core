@@ -744,4 +744,131 @@ describe('GameBox', () => {
       }, { timeout: 2000 });
     });
   });
+
+  describe('Sticky Dimensions on Orientation Change', () => {
+    it('should maintain dimensions when switching orientations', async () => {
+      // Start in portrait
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 375
+      });
+      Object.defineProperty(window, 'innerHeight', {
+        writable: true,
+        configurable: true,
+        value: 667
+      });
+
+      const { container } = render(GameBoxWrapper, {
+        props: {
+          aspectOnPortrait: 9 / 16,
+          aspectOnLandscape: 16 / 9,
+          clamping: defaultClamping
+        }
+      });
+
+      let portraitDimensions;
+      let landscapeDimensions;
+
+      // Wait for initial portrait render
+      await vi.waitFor(() => {
+        const gameBox = container.querySelector('[data-component="game-box"]');
+        expect(gameBox?.getAttribute('data-orientation')).toBe('portrait');
+
+        const portraitContainer = container.querySelector(
+          '[data-component="scaled-container"]:not([style*="visibility: hidden"])'
+        );
+        const portraitWidth = parseInt(
+          portraitContainer?.style.width || '0'
+        );
+
+        expect(portraitWidth).toBeGreaterThan(0);
+        portraitDimensions = { width: portraitWidth };
+      }, { timeout: 2000 });
+
+      // Switch to landscape
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 667
+      });
+      Object.defineProperty(window, 'innerHeight', {
+        writable: true,
+        configurable: true,
+        value: 375
+      });
+
+      window.dispatchEvent(new Event('resize'));
+
+      // Wait for landscape render
+      await vi.waitFor(() => {
+        const gameBox = container.querySelector('[data-component="game-box"]');
+        expect(gameBox?.getAttribute('data-orientation')).toBe('landscape');
+
+        const containers = container.querySelectorAll(
+          '[data-component="scaled-container"]'
+        );
+        expect(containers.length).toBe(2);
+
+        const landscapeContainer = Array.from(containers).find(
+          c => !c.style.visibility.includes('hidden')
+        );
+        const portraitContainer = Array.from(containers).find(
+          c => c.style.visibility.includes('hidden')
+        );
+
+        const landscapeWidth = parseInt(
+          landscapeContainer?.style.width || '0'
+        );
+        const portraitWidth = parseInt(portraitContainer?.style.width || '0');
+
+        expect(landscapeWidth).toBeGreaterThan(0);
+        expect(portraitWidth).toBeGreaterThan(0);
+        landscapeDimensions = { width: landscapeWidth };
+      }, { timeout: 2000 });
+
+      // Switch back to portrait
+      Object.defineProperty(window, 'innerWidth', {
+        writable: true,
+        configurable: true,
+        value: 375
+      });
+      Object.defineProperty(window, 'innerHeight', {
+        writable: true,
+        configurable: true,
+        value: 667
+      });
+
+      window.dispatchEvent(new Event('resize'));
+
+      // Verify both orientations maintain dimensions
+      await vi.waitFor(() => {
+        const gameBox = container.querySelector('[data-component="game-box"]');
+        expect(gameBox?.getAttribute('data-orientation')).toBe('portrait');
+
+        const containers = container.querySelectorAll(
+          '[data-component="scaled-container"]'
+        );
+        expect(containers.length).toBe(2);
+
+        const portraitContainer = Array.from(containers).find(
+          c => !c.style.visibility.includes('hidden')
+        );
+        const landscapeContainer = Array.from(containers).find(
+          c => c.style.visibility.includes('hidden')
+        );
+
+        const portraitWidth = parseInt(
+          portraitContainer?.style.width || '0'
+        );
+        const landscapeWidth = parseInt(
+          landscapeContainer?.style.width || '0'
+        );
+
+        expect(portraitWidth).toBeGreaterThan(0);
+        expect(landscapeWidth).toBeGreaterThan(0);
+        expect(landscapeWidth).toBe(landscapeDimensions.width);
+      }, { timeout: 2000 });
+    });
+  });
 });

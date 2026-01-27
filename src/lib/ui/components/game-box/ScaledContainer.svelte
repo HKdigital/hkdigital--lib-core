@@ -1,5 +1,11 @@
 <script>
+  // import { onMount } from 'svelte';
+
   import { enableContainerScaling } from '$lib/design/index.js';
+
+  // onMount( () => {
+  //   console.debug('[ScaledContainer] mounted');
+  // } );
 
   /**
    * Wrapper component that applies container scaling to its children
@@ -41,13 +47,13 @@
       !width ||
       !height ||
       !design ||
-      !clamping ||
-      hidden
+      !clamping
+      // || hidden
     ) {
       return;
     }
 
-    // console.debug(`Enable scaling [${width},${height}]`);
+    console.debug(`Enable scaling [${width},${height}]`);
 
     return enableContainerScaling({
       container,
@@ -62,16 +68,17 @@
   <div
     data-component="scaled-container"
     bind:this={container}
-    class:hidden
+    style:position="absolute"
+    style:top="0"
+    style:left="0"
     style:width="{width}px"
     style:height="{height}px"
+    style:visibility={hidden ? "hidden" : "visible"}
   >
     {@render snippet(snippetParams)}
   </div>
 {/if}
 
 <style>
-  .hidden {
-    visibility: hidden;
-  }
+  /* Positioning and visibility handled via inline styles */
 </style>

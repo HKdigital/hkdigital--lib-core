@@ -470,6 +470,7 @@
       data-orientation={isLandscape ? 'landscape' : 'portrait'}
       class="{base} {bg} {classes}"
       class:isMobile
+      style:position="relative"
       style:width="{gameWidth}px"
       style:height="{gameHeight}px"
       style:--game-width={gameWidth}
