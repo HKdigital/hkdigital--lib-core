@@ -3,7 +3,28 @@
 Core library that we use to power up our SvelteKit projects
 
 This is a library for [SvelteKit](https://svelte.dev/) projects.
-It contains common code, base components and documentation that help you with setting up a new project.
+It contains common code, base components and documentation that help
+you with setting up a new project.
+
+## Table of Contents
+
+- [Using the library](#using-the-library)
+  - [Install](#install)
+  - [Peer Dependencies](#peer-dependencies)
+  - [Design System & Configuration](#design-system--configuration)
+  - [Logging System](#logging-system)
+- [Documentation](#documentation)
+  - [Update](#update)
+  - [Available scripts](#available-scripts)
+  - [Import Validation](#import-validation)
+  - [Import Patterns and Export Structure](#import-patterns-and-export-structure)
+  - [CSS Architecture](#css-architecture-appcss)
+  - [Critical: data-theme Attribute](#critical-data-theme-attribute)
+- [Building the library](#building-the-library)
+- [Running the showcase app](#running-the-showcase-app)
+- [Developing](#developing)
+- [Publishing](#publishing)
+- [Contribute](#contribute)
 
 ## Using the library
 
@@ -247,14 +268,47 @@ The library includes a comprehensive logging system that provides:
 
 ## Documentation
 
-For detailed setup guides and configuration:
-- **Project setup**: [docs/setup/new-project.md](./docs/setup/new-project.md) - SvelteKit project setup
-- **Library setup**: [docs/setup/new-lib.md](./docs/setup/new-lib.md) - SvelteKit library setup
-- **Services & logging**: [docs/setup/services-logging.md](./docs/setup/services-logging.md) - Service management architecture
-- **Configuration files**: [docs/config/root-config-files.md](./docs/config/root-config-files.md) - Config file reference
-- **Design system**: [src/lib/design/README.md](./src/lib/design/README.md) - Design tokens and theming
-- **Vite configuration**: [src/lib/config/README.md](./src/lib/config/README.md) - Build configuration
-- **Logging system**: [src/lib/logging/README.md](./src/lib/logging/README.md) - Server and client logging
+Comprehensive documentation organized by topic.
+
+### Getting Started
+
+Start here if you're setting up a new project or library:
+
+- **[New project setup](./docs/setup/new-project.md)** - Complete guide
+  for setting up a SvelteKit application with lib-core
+- **[New library setup](./docs/setup/new-lib.md)** - Complete guide for
+  setting up a SvelteKit library with lib-core
+
+### Architecture Guides
+
+Learn how the different systems work together:
+
+- **[Services & logging architecture](./docs/setup/services-logging.md)**
+  - How service management and logging integrate with SvelteKit
+- **[Service patterns](./src/lib/services/PATTERNS.md)** - Best
+  practices and design patterns for implementing services
+- **[Service plugins](./src/lib/services/PLUGINS.md)** - ConfigPlugin
+  and custom plugin development
+
+### API Reference
+
+Detailed API documentation for each module:
+
+- **[Logging](./src/lib/logging/README.md)** - Server and client
+  logging API, log levels, and formatters
+- **[Services](./src/lib/services/README.md)** - ServiceBase and
+  ServiceManager API reference
+- **[Design system](./src/lib/design/README.md)** - Design tokens,
+  theming, and UI utilities
+- **[Vite configuration](./src/lib/config/README.md)** - Build
+  configuration and optimization
+
+### Configuration
+
+Reference documentation for configuration files:
+
+- **[Root config files](./docs/config/root-config-files.md)** - Guide
+  to vite.config.js, tailwind.config.js, and other root configs
 
 ### Update
 

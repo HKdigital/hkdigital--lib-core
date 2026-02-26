@@ -3,6 +3,14 @@
 Universal logging utilities for SvelteKit applications with
 server/client/universal logger factories.
 
+**See also:**
+- **Architecture**: [docs/setup/services-logging.md](../../docs/setup/services-logging.md)
+  - How logging and services work together
+- **Services**: [src/lib/services/README.md](../services/README.md) -
+  Service management system
+- **Main README**: [README.md](../../README.md) - Library overview and
+  setup
+
 ## Installation
 
 ```bash
@@ -182,61 +190,15 @@ export function handleError({ error, event }) {
 }
 ```
 
-### Client Service Integration
+### Service Integration
 
-When integrating with a service management system, you can set up global 
-error handling and forward service logs to the main logger:
+For integrating logging with the service management system, including
+how to forward service logs to the main logger, see:
 
-```javascript
-import { ServiceManager } from '@hkdigital/lib-core/services/index.js';
-import { initClientLogger } from '$lib/logging/client.js';
-
-/** @type {ServiceManager} */
-let manager;
-
-export async function initClientServices() {
-  if (!manager) {
-    const logger = initClientLogger();
-
-    // Catch errors and unhandled promise rejections
-    
-    // Log unhandled errors
-    window.addEventListener('error', (event) => {
-      logger.error(event, { url: window.location.pathname });
-      event.preventDefault();
-    });
-
-    // Log unhandled promise rejections
-    window.addEventListener('unhandledrejection', (event) => {
-      logger.error(event, { url: window.location.pathname });
-      // Ignored by Firefox
-      event.preventDefault();
-    });
-
-    manager = new ServiceManager({ debug: true });
-
-    // Listen to all log events and forward them to the logger
-    manager.onLogEvent((logEvent) => {
-      logger.logFromEvent(logEvent);
-    });
-
-    // Register services
-    manager.register(SERVICE_AUDIO, AudioService);
-    manager.register(SERVICE_EVENT_LOG, EventLogService);
-    manager.register(SERVICE_PLAYER_DATA, PlayerDataService);
-  }
-
-  await manager.startAll();
-  return manager;
-}
-
-export function getManager() {
-  if (!manager) {
-    throw new Error('Client services should be initialised first');
-  }
-  return manager;
-}
-```
+- [Services README](../services/README.md) - ServiceManager log event
+  forwarding
+- [Services & Logging Architecture](../../docs/setup/services-logging.md)
+  - Complete integration examples
 
 ## Development
 

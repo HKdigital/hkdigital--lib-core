@@ -1,14 +1,25 @@
-# Services and Logging Setup
+# Services and Logging Architecture
 
-This document describes the centralized services and logging architecture used in this SvelteKit project with `@hkdigital/lib-core`.
+This document describes the centralized service management and logging
+architecture used in SvelteKit projects with `@hkdigital/lib-core`.
+
+**For detailed API documentation:**
+- **Logging**: [src/lib/logging/README.md](../../src/lib/logging/README.md)
+  - Server and client logger API reference
+- **Services**: [src/lib/services/README.md](../../src/lib/services/README.md)
+  - ServiceBase and ServiceManager reference
 
 ## Architecture Overview
 
-The project uses a centralized service management pattern with integrated logging:
+The project uses a centralized service management pattern with
+integrated logging:
 
-- **Service Managers**: Centralized service registration and lifecycle management
-- **Logging**: Separated into dedicated modules with proper initialization order
-- **Hooks Integration**: SvelteKit hooks handle initialization and cleanup
+- **Service managers**: Centralized service registration and lifecycle
+  management
+- **Logging**: Separated into dedicated modules with proper
+  initialization order
+- **Hooks integration**: SvelteKit hooks handle initialization and
+  cleanup
 
 ## Project Structure
 
@@ -35,24 +46,52 @@ src/
 │           └── ...services
 ```
 
-## Logging Setup
+## Core Concepts
 
-### Server Logging (`src/lib/logging/server.js`)
+### 1. Separation of Concerns
+
+**Logging logic** is isolated in dedicated modules:
+- `src/lib/logging/server.js` - Server-side pino logging
+- `src/lib/logging/client.js` - Client-side console logging
+
+**Service management** handles registration and lifecycle:
+- Services extend `ServiceBase` for standardized lifecycle
+- `ServiceManager` orchestrates multiple services with dependencies
+- Service accessor functions provide clean API
+
+**Hooks** focus on SvelteKit integration:
+- Initialize loggers and services during app startup
+- Handle errors and cleanup
+- Bridge SvelteKit events to logging system
+
+### 2. Initialization Order
+
+The proper initialization sequence ensures dependencies are available:
+
+1. Logger is initialized first (standalone)
+2. Service manager is created
+3. Service manager forwards log events to logger
+4. Services are registered and started
+5. Application code uses initialized services and logger
+
+### 3. Centralized Configuration
+
+- Single place to configure each logger
+- Consistent logging patterns across the application
+- Easy to modify logging behavior
+- Per-service log level control via `ServiceManager`
+
+## Integration Pattern
+
+### Minimal Server Integration
 
 ```javascript
+// src/lib/logging/server.js
 import { createServerLogger, DEBUG }
   from '@hkdigital/lib-core/logging/server.js';
 
-/** @typedef {import('@hkdigital/lib-core/logging/common.js').Logger} Logger */
-
-/** @type {Logger} */
 let logger;
 
-/**
- * Initialize the server logger
- *
- * @returns {Logger} The initialized logger instance
- */
 export function initServerLogger() {
   if (!logger) {
     logger = createServerLogger('server-logger', DEBUG);
@@ -60,91 +99,18 @@ export function initServerLogger() {
   return logger;
 }
 
-/**
- * Get the server logger instance
- *
- * @returns {Logger} The server logger
- */
 export function getServerLogger() {
   if (!logger) {
     throw new Error('Server logger should be initialised first');
   }
-
   return logger;
 }
 ```
 
-### Client Logging (`src/lib/logging/client.js`)
-
 ```javascript
-import { createClientLogger, DEBUG }
-  from '@hkdigital/lib-core/logging/client.js';
-
-/** @typedef {import('@hkdigital/lib-core/logging/common.js').Logger} Logger */
-
-/** @type {Logger} */
-let logger;
-
-/**
- * Initialize the client logger
- *
- * @returns {Logger} The initialized logger instance
- */
-export function initClientLogger() {
-  if (!logger) {
-    logger = createClientLogger('client-logger', DEBUG);
-  }
-  return logger;
-}
-
-/**
- * Get the client logger instance
- *
- * @returns {Logger} The client logger
- */
-export function getClientLogger() {
-  if (!logger) {
-    throw new Error('Client logger should be initialised first');
-  }
-
-  return logger;
-}
-```
-
-## Service Manager Setup
-
-### Service Entry Points
-
-The services folder uses centralized entry files to re-export all functionality:
-
-#### Server Services (`src/lib/services/server.js`)
-```javascript
-export * from './server/manager.js';
-export * from './server/services.js';
-export * from './server/service-names.js';
-```
-
-#### Client Services (`src/lib/services/client.js`)
-```javascript
-export * from './client/manager.js';
-export * from './client/services.js';
-export * from './client/service-names.js';
-```
-
-This pattern allows importing everything from a single location:
-```javascript
-import { initServerServices, getSessionService, SERVICE_SESSION } from '$lib/services/server.js';
-```
-
-### Server Service Manager (`src/lib/services/server/manager.js`)
-
-```javascript
-import { ServiceManager, SERVICE_LOG } from '@hkdigital/lib-core/services/index.js';
-
+// src/lib/services/server/manager.js
+import { ServiceManager } from '@hkdigital/lib-core/services/index.js';
 import { initServerLogger } from '$lib/logging/server.js';
-
-import { SERVICE_SESSION } from './service-names.js';
-import SessionService from './SessionService.js';
 
 let manager;
 
@@ -153,25 +119,20 @@ export async function initServerServices() {
     const logger = initServerLogger();
 
     manager = new ServiceManager({
-      debug: false,           // Set to true for DEBUG level on all services
-      stopTimeout: 10000,     // Global shutdown timeout
-      managerLogLevel: 'INFO', // ServiceManager's own log level
-      serviceLogLevels: {     // Optional: per-service log levels
-        // 'session': 'DEBUG'   // Uncomment to debug specific services
-      }
+      debug: false,
+      managerLogLevel: 'INFO'
     });
 
-    // Listen to all log events (both manager and services)
+    // Forward all service logs to centralized logger
     manager.onLogEvent((logEvent) => {
       logger.logFromEvent(logEvent);
     });
 
-    // Register services
-    manager.register(SERVICE_SESSION, SessionService);
+    // Register services here
+    // manager.register('database', DatabaseService, config);
   }
 
   await manager.startAll();
-
   return manager;
 }
 
@@ -179,112 +140,15 @@ export function getManager() {
   if (!manager) {
     throw new Error('Server services should be initialised first');
   }
-
   return manager;
 }
 ```
-
-### Service services (`src/lib/services/server/services.js`)
-
-```js
-
-export function getSessionService() {
-  return getManager().get(SERVICE_SESSION);
-}
-```
-
-### Client Service Manager (`src/lib/services/client/manager.js`)
 
 ```javascript
-import { ServiceManager } from '@hkdigital/lib-core/services/index.js';
-
-import { initClientLogger } from '$lib/logging/client.js';
-
-import { SERVICE_AUDIO, SERVICE_EVENT_LOG, SERVICE_PLAYER_DATA } from './service-names.js';
-
-import AudioService from './AudioService.svelte.js';
-import EventLogService from './EventLogService.js';
-import PlayerDataService from './PlayerDataService.svelte.js';
-
-/** @type {ServiceManager} */
-let manager;
-
-export async function initClientServices() {
-  if (!manager) {
-    const logger = initClientLogger();
-
-    // Catch errors and unhandled promise rejections
-
-    // Log unhandled errors
-    window.addEventListener('error', (event) => {
-      logger.error(event, { url: window.location.pathname });
-      event.preventDefault();
-    });
-
-    // Log unhandled promise rejections
-    window.addEventListener('unhandledrejection', (event) => {
-      logger.error(event, { url: window.location.pathname });
-      // Ignored by Firefox
-      event.preventDefault();
-    });
-
-    console.log("done addEventListener");
-
-    manager = new ServiceManager({ debug: true });
-
-    // Listen to all log events and forward them to the logger
-    manager.onLogEvent((logEvent) => {
-      logger.logFromEvent(logEvent);
-    });
-
-    // Register services
-    manager.register(SERVICE_AUDIO, AudioService);
-    manager.register(SERVICE_EVENT_LOG, EventLogService);
-    manager.register(SERVICE_PLAYER_DATA, PlayerDataService);
-  }
-
-  await manager.startAll();
-
-  return manager;
-}
-
-export function getManager() {
-  if (!manager) {
-    throw new Error('Client services should be initialised first');
-  }
-
-  return manager;
-}
-```
-
-### Client services (`src/lib/services/client/services.js`)
-
-```js
-
-
-// Service accessor functions
-export function getAudioService() {
-  return getManager().get(SERVICE_AUDIO);
-}
-
-export function getEventLogService() {
-  return getManager().get(SERVICE_EVENT_LOG);
-}
-
-export function getPlayerDataService() {
-  return getManager().get(SERVICE_PLAYER_DATA);
-}
-```
-
-## SvelteKit Hooks Integration
-
-### Server Hooks (`src/hooks.server.js`)
-
-```javascript
-import { initServerServices, getSessionService } from '$lib/services/server.js';
+// src/hooks.server.js
+import { initServerServices } from '$lib/services/server.js';
 import { getServerLogger } from '$lib/logging/server.js';
 
-// Initialize server logging and services
 export async function init() {
   try {
     await initServerServices();
@@ -297,113 +161,114 @@ export async function init() {
     throw error;
   }
 }
-
-// Handle server errors
-export const handleError = ({ error, status, message }) => {
-  if (status !== 404) {
-    const logger = getServerLogger();
-    logger.error(error);
-  }
-
-  return { message };
-};
-
-// Handle all requests
-export async function handle({ event, resolve }) {
-  const { cookies, locals } = event;
-  const sessionService = getSessionService();
-
-  const sessionId = sessionService.getOrCreateSessionId(cookies);
-  await sessionService.setLocals(cookies, locals);
-
-  const logger = getServerLogger();
-  logger.debug({ sessionId, sessionData: locals.sessionData }, 'Request sessionData');
-
-  const response = await resolve(event);
-  return response;
-}
-
-// Graceful shutdown
-export async function destroy() {
-  try {
-    const logger = getServerLogger();
-    logger.info('Shutting down server');
-  } catch (error) {
-    // Logger might not be initialized
-  }
-}
 ```
 
-### Client Hooks (`src/hooks.client.js`)
+**See [src/lib/logging/README.md](../../src/lib/logging/README.md)
+for complete hooks examples.**
+
+### Minimal Client Integration
 
 ```javascript
-import { initClientServices } from '$lib/services/client.js';
-import { getClientLogger } from '$lib/logging/client.js';
+// src/lib/logging/client.js
+import { createClientLogger, DEBUG }
+  from '@hkdigital/lib-core/logging/client.js';
 
-export async function init() {
-  // Init services
-  try {
-    await initClientServices();
+let logger;
 
-    getClientLogger().info('Client initialization complete');
-  } catch (error) {
-    getClientLogger().error('Client initialization failed', 
-      /** @type {Error} */ (error));
-    // throw error;
+export function initClientLogger() {
+  if (!logger) {
+    logger = createClientLogger('client-logger', DEBUG);
   }
-  finally {
-    getClientLogger().info('Client application initialized', {
-      userAgent: navigator.userAgent,
-      viewport: `${window.innerWidth}x${window.innerHeight}`
-    });
-  }
+  return logger;
 }
 
-/** @type {import('@sveltejs/kit').HandleClientError} */
-export function handleError({ error, event }) {
-  // Handle SvelteKit-specific errors:
-  // navigation errors, load function failures, component errors, ...
-  getClientLogger().error(/** @type {Error} */ (error), {
-    url: event.url?.pathname,
-    userAgent: navigator.userAgent
-  });
+export function getClientLogger() {
+  if (!logger) {
+    throw new Error('Client logger should be initialised first');
+  }
+  return logger;
 }
 ```
+
+```javascript
+// src/lib/services/client/manager.js
+import { ServiceManager } from '@hkdigital/lib-core/services/index.js';
+import { initClientLogger } from '$lib/logging/client.js';
+
+let manager;
+
+export async function initClientServices() {
+  if (!manager) {
+    const logger = initClientLogger();
+
+    // Setup global error handlers
+    window.addEventListener('error', (event) => {
+      logger.error(event, { url: window.location.pathname });
+      event.preventDefault();
+    });
+
+    manager = new ServiceManager({ debug: true });
+
+    // Forward all service logs to centralized logger
+    manager.onLogEvent((logEvent) => {
+      logger.logFromEvent(logEvent);
+    });
+
+    // Register services here
+    // manager.register('audio', AudioService);
+  }
+
+  await manager.startAll();
+  return manager;
+}
+
+export function getManager() {
+  if (!manager) {
+    throw new Error('Client services should be initialised first');
+  }
+  return manager;
+}
+```
+
+**See [src/lib/logging/README.md](../../src/lib/logging/README.md)
+for complete hooks examples.**
 
 ## Key Benefits
 
-### Separation of Concerns
-- **Logging logic** is isolated in dedicated modules
-- **Service management** handles registration and lifecycle
-- **Hooks** focus on SvelteKit integration
-
-### Centralized Configuration
-- Single place to configure each logger
-- Consistent logging patterns across the application
-- Easy to modify logging behavior
-
 ### Proper Initialization Order
-1. Service manager initializes logger
-2. Logger is configured with SERVICE_LOG event handling
-3. Services are registered and started
-4. Hooks use the initialized loggers
+Logger initializes first, then services use it for all logging needs.
+
+### Centralized Log Management
+All service logs flow through the ServiceManager to a single logger,
+providing unified log formatting and filtering.
+
+### Separation of Concerns
+Clear boundaries between logging logic, service management, and
+SvelteKit integration.
+
+### Type Safety with JSDoc
+Full type support for service access and logger methods without
+TypeScript overhead.
 
 ## Usage Examples
 
 ### Adding a New Service
 
-1. Create the service class in the appropriate folder
-2. Add service name to `service-names.js`
-3. Register in the manager:
+1. Create the service class extending `ServiceBase`
+2. Add service name constant to `service-names.js`
+3. Register in manager:
    ```javascript
-   manager.register(SERVICE_NEW_FEATURE, NewFeatureService);
+   manager.register(SERVICE_MY_FEATURE, MyFeatureService, config);
    ```
-4. Add accessor function:
+4. Add accessor function in `services.js`:
    ```javascript
-   export function getNewFeatureService() {
-     return getManager().get(SERVICE_NEW_FEATURE);
+   export function getMyFeatureService() {
+     return getManager().get(SERVICE_MY_FEATURE);
    }
    ```
+
+**See [src/lib/services/README.md](../../src/lib/services/README.md)
+for detailed service creation guide.**
 
 ### Using Logging in Application Code
 
@@ -412,13 +277,13 @@ export function handleError({ error, event }) {
 import { getServerLogger } from '$lib/logging/server.js';
 
 const logger = getServerLogger();
-logger.info('Operation completed');
+logger.info('Operation completed', { userId: 123 });
 
 // Client-side
 import { getClientLogger } from '$lib/logging/client.js';
 
 const logger = getClientLogger();
-logger.debug('User interaction', { data });
+logger.debug('User interaction', { action: 'click' });
 ```
 
 ### Error Handling Pattern
@@ -433,4 +298,11 @@ try {
 }
 ```
 
-This architecture provides a robust foundation for service management and logging that scales with application complexity while maintaining clear separation of concerns.
+## Next Steps
+
+- **Logging API**: See [src/lib/logging/README.md](../../src/lib/logging/README.md)
+  for log levels, formatters, and advanced usage
+- **Services API**: See [src/lib/services/README.md](../../src/lib/services/README.md)
+  for lifecycle management, health checks, and plugins
+- **Project Setup**: See [new-project.md](./new-project.md) for
+  complete setup guide

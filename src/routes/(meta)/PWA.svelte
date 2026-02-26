@@ -36,9 +36,12 @@
   <meta name="theme-color" content="{themeColor}">
   <link rel="manifest" href="/manifest.json">
 
+  <meta name="mobile-web-app-capable" content="yes">
+  <!-- <meta name="apple-mobile-web-app-capable" content="yes"> -->
+
   <!-- iOS-specific meta tags -->
-  <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="{statusBarStyle}">
   <meta name="apple-mobile-web-app-title" content="{shortName}">
+
 
 </svelte:head>
