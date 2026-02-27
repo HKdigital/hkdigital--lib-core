@@ -131,19 +131,21 @@ export function getIsPhone() {
  * @returns {boolean} true if mobile device
  */
 export function getIsMobile() {
-  // @ts-ignore
-  if (navigator?.userAgentData?.mobile !== undefined) {
-    // Modern API - most reliable
-    // @ts-ignore
-    return navigator.userAgentData.mobile;
-  }
-
+  // Check Apple devices first - userAgentData.mobile is unreliable for
+  // iPads with M-series chips (reports false despite being mobile)
   if (getIsAppleMobile()) {
     return true;
   }
 
   if (getIsAndroidMobile()) {
     return true;
+  }
+
+  // @ts-ignore
+  if (navigator?.userAgentData?.mobile !== undefined) {
+    // Modern API - use as fallback
+    // @ts-ignore
+    return navigator.userAgentData.mobile;
   }
 
   return false;
