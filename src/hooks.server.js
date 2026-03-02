@@ -1,5 +1,5 @@
 import { createServerLogger, DEBUG } from '$lib/logging/server.js';
-import { handleLang } from './routes/(meta)/index.js';
+import { handleLang } from '$lib/meta.js';
 
 /** @type {import('$lib/logging/common.js').Logger} */
 let logger;
@@ -50,7 +50,7 @@ export async function handle({ event, resolve }) {
 
   // For complex integrations, use this pattern instead:
   /*
-  import { getLangFromPath, injectLang } from './routes/(meta)/index.js';
+  import { getLangFromPath, injectLang } from '$lib/meta.js';
 
   const { langCode, lang, locale } = getLangFromPath(event.url.pathname);
   event.locals.langCode = langCode;

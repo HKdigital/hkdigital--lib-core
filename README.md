@@ -204,19 +204,26 @@ This library includes a complete design system with Tailwind CSS integration. Ba
    import heroResponsive from '$lib/assets/hero.jpg?preset=photo&responsive';
    ```
 
-6. **(meta) folder setup** - Copy and configure PWA/favicon generation:
+6. **Meta setup** - Configure SEO, PWA, and favicons:
 
-   The library includes a complete `(meta)` folder with PWA configuration,
-   favicon generation, manifest.json, sitemap.xml, and robots.txt endpoints.
+   The library includes templates for PWA configuration, SEO metadata,
+   favicon generation, manifest.json, sitemap.xml, and robots.txt.
 
-   **Copy the folder to your project:**
+   **Copy template files to your project:**
    ```bash
-   cp -r node_modules/@hkdigital/lib-core/src/routes/\(meta\) src/routes/
+   # Copy configuration and assets to src/lib/
+   cp -r node_modules/@hkdigital/lib-core/meta/templates/lib/* src/lib/
+
+   # Copy route endpoints to src/routes/
+   cp -r node_modules/@hkdigital/lib-core/meta/templates/routes/* src/routes/
    ```
 
    **Customize for your app:**
-   - Replace `src/routes/(meta)/favicon.png` with your 512×512px image
-   - Edit `src/routes/(meta)/config.js`:
+   - Replace images in `src/lib/assets/meta/` with your own:
+     - `favicon.png` (512×512px)
+     - `preview-landscape.png` (1200×630px for social media)
+     - `preview-square.png` (1200×1200px for social media)
+   - Edit `src/lib/config/meta.js`:
      ```javascript
      export const name = 'Your App Name';
      export const shortName = 'App';
@@ -226,11 +233,12 @@ This library includes a complete design system with Tailwind CSS integration. Ba
      // Add your site routes for sitemap
      export const siteRoutes = ['/', '/about', '/contact'];
 
-     // Configure robots.txt (prevent test sites from being indexed)
+     // Configure robots.txt
      export const robotsConfig = {
-       allowedHosts: ['mysite.com', 'www.mysite.com'],
-       disallowedPaths: ['/admin/*'],
-       includeSitemap: true
+       allowedHosts: '*',  // '*' allows all hosts
+       disallowedPaths: [],
+       allowAiTraining: true,
+       allowAiReading: true
      };
      ```
 
@@ -238,11 +246,14 @@ This library includes a complete design system with Tailwind CSS integration. Ba
    ```svelte
    <!-- src/routes/+layout.svelte -->
    <script>
-     import { Favicons, PWA } from './(meta)/index.js';
+     import { Favicons, PWA, SEO, config } from '$lib/meta.js';
+
+     let { children, data } = $props();
    </script>
 
-   <Favicons />
-   <PWA />
+   <Favicons {config} />
+   <PWA {config} />
+   <SEO {config} locale={data?.locale} />
 
    {@render children()}
    ```
@@ -250,11 +261,14 @@ This library includes a complete design system with Tailwind CSS integration. Ba
    **What you get:**
    - Automatic favicon generation (16, 32, 192, 512px)
    - Apple touch icons (120, 152, 167, 180px)
+   - SEO meta tags and Open Graph support
+   - Social media preview images
+   - Multi-language support with auto-detection
    - Dynamic `/manifest.json` endpoint
    - Dynamic `/sitemap.xml` endpoint
-   - Dynamic `/robots.txt` with host filtering
+   - Dynamic `/robots.txt` with AI bot control
 
-   See [src/routes/(meta)/README.md](./src/routes/(meta)/README.md) for
+   See the [meta template README](./src/lib/meta/templates/README.md) for
    complete documentation.
 
 ### Logging System

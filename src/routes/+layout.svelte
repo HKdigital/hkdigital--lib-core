@@ -7,7 +7,7 @@
 
 	import { designTokens, designTokensToRootCssVars } from '$lib/design/index.js';
 
-	import { Favicons, PWA, SEO, config } from './(meta)/index.js';
+	import { Favicons, PWA, SEO, config } from '$lib/meta.js';
 </script>
 
 <Favicons {config} />

@@ -7,9 +7,9 @@ import {
   description,
   backgroundAndThemeColor,
   orientation
-} from '../config.js';
+} from '$lib/config/meta.js';
 
-import faviconImages from '../favicon.png?favicons';
+import faviconImages from '$lib/assets/meta/favicon.png?favicons';
 
 /* Generate manifest data */
 

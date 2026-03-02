@@ -1,5 +1,5 @@
-import { generateSitemap } from '@hkdigital/lib-core/meta/sitemap.js';
-import { siteRoutes } from '../config.js';
+import { generateSitemap } from '$lib/meta/utils.js';
+import { siteRoutes } from '$lib/config/meta.js';
 
 /** @type {import('@sveltejs/kit').RequestHandler} */
 export const GET = async ({ url }) => {

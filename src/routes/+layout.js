@@ -1,4 +1,4 @@
-import { defaultLocale, defaultLanguage, languages } from './(meta)/config.js';
+import { defaultLocale, defaultLanguage, languages } from '$lib/config/meta.js';
 
 /**
  * Root layout load function (universal)
