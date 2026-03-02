@@ -80,6 +80,15 @@ export const SeoImageSquare = SeoSquareImg;
 // export const SeoImageSquare = null;
 
 /**
+ * Favicon images (processed by Vite imagetools)
+ */
+import FaviconImgs from './favicon.png?favicons';
+import AppleTouchImgs from './favicon.png?apple-touch-icons';
+
+export const faviconImages = FaviconImgs;
+export const appleTouchIcons = AppleTouchImgs;
+
+/**
  * Site routes for sitemap.xml
  *
  * @type {import('@hkdigital/lib-core/meta/typedef.js').SitemapRoute[]}

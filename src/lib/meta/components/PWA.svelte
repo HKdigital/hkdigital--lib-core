@@ -6,15 +6,10 @@
    *
    * Generates Progressive Web App meta tags and viewport configuration.
    *
-   * @typedef {Object} PWAConfig
-   * @property {string} themeColor - Theme color for browser UI
-   * @property {string} statusBarStyle - iOS status bar style
-   * @property {string} name - Full app name
-   * @property {string} shortName - Short app name (max 12 characters)
-   * @property {boolean} disablePageZoom - Disable pinch-to-zoom
+   * @typedef {import('../typedef.js').MetaConfig} MetaConfig
    */
 
-  /** @type {{ config: PWAConfig }} */
+  /** @type {{ config: MetaConfig }} */
   let { config } = $props();
 
   const { themeColor, statusBarStyle, name, shortName, disablePageZoom } =

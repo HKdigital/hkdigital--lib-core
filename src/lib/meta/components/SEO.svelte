@@ -4,21 +4,14 @@
    *
    * Generates SEO meta tags, Open Graph tags, and hreflang links.
    *
-   * @typedef {Object} SEOConfig
-   * @property {string} name - Site name (used as default title)
-   * @property {string} description - Site description
-   * @property {string} [SeoImageLandscape] - Landscape SEO image URL
-   * @property {string} [SeoImageSquare] - Square SEO image URL
-   * @property {string} defaultLocale - Default locale (e.g., 'en_GB')
-   * @property {Record<string, {lang: string, locale: string}>} languages
-   *   Language configurations
+   * @typedef {import('../typedef.js').MetaConfig} MetaConfig
    */
 
   /**
    * SEO component props
    *
    * @typedef {Object} SEOProps
-   * @property {SEOConfig} config - Configuration object
+   * @property {MetaConfig} config - Configuration object
    * @property {string} [title] - Page title (defaults to config name)
    * @property {string} [description]
    *   Page description (defaults to config description)

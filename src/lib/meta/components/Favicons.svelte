@@ -4,14 +4,10 @@
    *
    * Generates favicon and apple-touch-icon links for browsers and PWAs.
    *
-   * @typedef {Object} FaviconsConfig
-   * @property {Array<{src: string, width: number}>} faviconImages
-   *   Processed favicon images from imagetools
-   * @property {Array<{src: string, width: number}>} appleTouchIcons
-   *   Processed apple-touch-icon images from imagetools
+   * @typedef {import('../typedef.js').MetaConfig} MetaConfig
    */
 
-  /** @type {{ config: FaviconsConfig }} */
+  /** @type {{ config: MetaConfig }} */
   let { config } = $props();
 
   const { faviconImages, appleTouchIcons } = config;
