@@ -21,6 +21,9 @@ const APPLE_TOUCH_SIZES = [
   180  // iPhone retina, iOS home screen
 ];
 
+const SEO_LANDSCAPE_SIZE = { width: 1200, height: 630 };
+const SEO_SQUARE_SIZE = { width: 1200, height: 1200 };
+
 const DEFAULT_PRESETS = {
 	default: {
 		format: 'avif',
@@ -70,6 +73,12 @@ const DEFAULT_PRESETS = {
  * @param {number[]} [options.faviconSizes=FAVICON_SIZES]
  * @param {number[]} [options.appleTouchSizes=APPLE_TOUCH_SIZES]
  *
+ * @param {{width: number, height: number}} [options.seoLandscapeSize]
+ *   SEO landscape image size
+ *
+ * @param {{width: number, height: number}} [options.seoSquareSize]
+ *   SEO square image size
+ *
  * @returns {(
  *   entries: [string, string[]][]
  * ) => (Record<string, string | string[]>[])}
@@ -115,15 +124,25 @@ export function generateResponseConfigs(options) {
 
 		// @ts-ignore
 		const isAppleTouchIcon = !!entries.find(([key]) => key === 'apple-touch-icons');
+
+		// @ts-ignore
+		const isSeoLandscape = !!entries.find(([key]) => key === 'seo-landscape');
+
+		// @ts-ignore
+		const isSeoSquare = !!entries.find(([key]) => key === 'seo-square');
 		// console.log('responsiveConfig found:', !!responsiveConfig);
 
 		const widths = options?.widths ?? DEFAULT_WIDTHS;
 		const faviconSizes = options?.faviconSizes ?? FAVICON_SIZES;
 		const appleTouchSizes = options?.appleTouchSizes ?? APPLE_TOUCH_SIZES;
+		const seoLandscapeSize = options?.seoLandscapeSize ?? SEO_LANDSCAPE_SIZE;
+		const seoSquareSize = options?.seoSquareSize ?? SEO_SQUARE_SIZE;
 
 		delete configPairs.responsive;
 		delete configPairs.favicons;
 		delete configPairs['apple-touch-icons'];
+		delete configPairs['seo-landscape'];
+		delete configPairs['seo-square'];
 
 		// Always include the main image(s) and a thumbnail version
 		const thumbnailConfig = {
@@ -161,6 +180,30 @@ export function generateResponseConfigs(options) {
 			});
 			// console.log('**** Returning apple-touch-icon configs:', appleTouchConfigs);
 			return appleTouchConfigs;
+		}
+
+		// Handle seo-landscape directive - generate landscape SEO image
+
+		if (isSeoLandscape) {
+			return [{
+				...configPairs,
+				w: String(seoLandscapeSize.width),
+				h: String(seoLandscapeSize.height),
+				format: 'jpg',
+				quality: '95'
+			}];
+		}
+
+		// Handle seo-square directive - generate square SEO image
+
+		if (isSeoSquare) {
+			return [{
+				...configPairs,
+				w: String(seoSquareSize.width),
+				h: String(seoSquareSize.height),
+				format: 'jpg',
+				quality: '95'
+			}];
 		}
 
 		if (!responsiveConfig) {
@@ -225,6 +268,18 @@ export function generateDefaultDirectives(options) {
 
 		if (params.has('apple-touch-icons')) {
 			params.set('as', 'metadata');
+		}
+
+		// > Return picture (URL) if directive 'seo-landscape' is set
+
+		if (params.has('seo-landscape')) {
+			params.set('as', 'picture');
+		}
+
+		// > Return picture (URL) if directive 'seo-square' is set
+
+		if (params.has('seo-square')) {
+			params.set('as', 'picture');
 		}
 
 		// > Process presets

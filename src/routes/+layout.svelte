@@ -3,15 +3,16 @@
 
 	import '../app.css';
 
-	let { children } = $props();
+	let { children, data } = $props();
 
 	import { designTokens, designTokensToRootCssVars } from '$lib/design/index.js';
 
-	import { Favicons, PWA } from './(meta)/index.js';
+	import { Favicons, PWA, SEO } from './(meta)/index.js';
 </script>
 
 <Favicons />
 <PWA />
+<SEO {data} />
 
 <svelte:head>
 	{@html designTokensToRootCssVars(designTokens)}

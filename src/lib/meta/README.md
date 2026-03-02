@@ -62,6 +62,12 @@ export const GET = async ({ url }) => {
  *   Supports wildcards (e.g., '*.example.com')
  * @property {string[]} [disallowedPaths]
  *   Paths to block from indexing (e.g., '/admin', '/api/*')
+ * @property {boolean} [allowAiTraining=true]
+ *   Allow AI training bots to crawl content for model training.
+ *   Set to false to block bots like GPTBot, Google-Extended, CCBot, etc.
+ * @property {boolean} [allowAiReading=true]
+ *   Allow AI assistants/chatbots to read content for user responses.
+ *   Set to false to block bots like ChatGPT-User, Claude-Web, etc.
  */
 ```
 
@@ -107,6 +113,54 @@ const config = {
 // Disallow: /private/*
 // Sitemap: https://example.com/sitemap.xml
 ```
+
+**AI bot control:**
+
+```javascript
+// Block all AI bots from training on your content
+const config = {
+  allowedHosts: '*',
+  allowAiTraining: false
+};
+
+// Generates additional blocks:
+// User-agent: GPTBot
+// Disallow: /
+//
+// User-agent: Google-Extended
+// Disallow: /
+// ... (and other AI training bots)
+```
+
+**AI training vs AI reading:**
+
+```javascript
+// Block training but allow reading (ChatGPT can browse, but not train)
+const config = {
+  allowAiTraining: false,  // Blocks GPTBot, Google-Extended, CCBot
+  allowAiReading: true     // Allows ChatGPT-User, Claude-Web
+};
+
+// Block both training and reading
+const config = {
+  allowAiTraining: false,
+  allowAiReading: false
+};
+```
+
+**Blocked AI training bots:**
+- `GPTBot` - OpenAI training
+- `Google-Extended` - Google AI training
+- `CCBot` - Common Crawl
+- `anthropic-ai` - Anthropic training
+- `FacebookBot` - Meta AI training
+- `PerplexityBot` - Perplexity AI training
+- And others (see `src/lib/meta/robots/index.js` for full list)
+
+**Blocked AI reading bots:**
+- `ChatGPT-User` - ChatGPT browsing
+- `Claude-Web` - Claude browsing
+- `cohere-ai` - Cohere browsing
 
 **Sitemap reference:**
 
@@ -275,6 +329,44 @@ const robotsConfig = {
 };
 
 // All hosts → Allow + Sitemap
+```
+
+### Block AI training but allow search engines
+
+```javascript
+// Protect premium content from AI training while allowing SEO
+const robotsConfig = {
+  allowedHosts: ['mysite.com', 'www.mysite.com'],
+  disallowedPaths: ['/admin'],
+  allowAiTraining: false,  // Block GPTBot, Google-Extended, etc.
+  allowAiReading: true     // Allow ChatGPT browsing (user queries)
+};
+
+// Generates:
+// User-agent: *
+// Allow: /
+// Disallow: /admin
+// Sitemap: https://mysite.com/sitemap.xml
+//
+// User-agent: GPTBot
+// Disallow: /
+//
+// User-agent: Google-Extended
+// Disallow: /
+// ... (other AI training bots)
+```
+
+### Block all AI bots completely
+
+```javascript
+// Block both AI training and AI reading/browsing
+const robotsConfig = {
+  allowedHosts: ['mysite.com'],
+  allowAiTraining: false,
+  allowAiReading: false
+};
+
+// Blocks: GPTBot, Google-Extended, CCBot, ChatGPT-User, Claude-Web, etc.
 ```
 
 ### Complex sitemap configuration

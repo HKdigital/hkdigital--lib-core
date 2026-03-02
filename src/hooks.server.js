@@ -1,4 +1,5 @@
 import { createServerLogger, DEBUG } from '$lib/logging/server.js';
+import { handleLang } from './routes/(meta)/lang.js';
 
 /** @type {import('$lib/logging/common.js').Logger} */
 let logger;
@@ -34,14 +35,34 @@ export const handleError = ({ error, /* event, */ status, message }) => {
 
 /**
  * Handle all requests
+ *
+ * Language detection is handled by handleLang from (meta)/lang.js
+ *
+ * If you have existing hooks (auth, sessions, etc.), see integration
+ * patterns in src/routes/(meta)/README.md - "Integrating Language Detection
+ * into Hooks"
+ *
  * @type {import('@sveltejs/kit').Handle}
  */
 export async function handle({ event, resolve }) {
-  const response = await resolve(event);
+  // Handle language detection and injection
+  return handleLang(event, resolve);
 
-  // svelte locals
+  // For complex integrations, use this pattern instead:
+  /*
+  import { getLangFromPath, injectLang } from './routes/(meta)/lang.js';
 
-  return response;
+  const { langCode, lang, locale } = getLangFromPath(event.url.pathname);
+  event.locals.langCode = langCode;
+  event.locals.lang = lang;
+  event.locals.locale = locale;
+
+  // ... your existing hooks logic here ...
+
+  return resolve(event, {
+    transformPageChunk: ({ html }) => injectLang(html, lang)
+  });
+  */
 }
 
 // Graceful shutdown

@@ -84,3 +84,15 @@ declare module '*?apple-touch-icons' {
   const out: ImageSource;
   export default out;
 }
+
+// Generate SEO landscape image (1200x630)
+declare module '*?seo-landscape' {
+  const out: string;
+  export default out;
+}
+
+// Generate SEO square image (1200x1200)
+declare module '*?seo-square' {
+  const out: string;
+  export default out;
+}
