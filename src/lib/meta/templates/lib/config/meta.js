@@ -61,8 +61,8 @@ export const disablePageZoom = false;
  *
  * To disable: comment out imports and set to null
  */
-import SeoLandscapeImg from './preview-landscape.png?seo-landscape';
-import SeoSquareImg from './preview-square.png?seo-square';
+import SeoLandscapeImg from '$lib/assets/meta/preview-landscape.png?seo-landscape';
+import SeoSquareImg from '$lib/assets/meta/preview-square.png?seo-square';
 
 export const SeoImageLandscape = SeoLandscapeImg;  // 1200×630
 export const SeoImageSquare = SeoSquareImg;        // 1200×1200
@@ -74,8 +74,8 @@ export const SeoImageSquare = SeoSquareImg;        // 1200×1200
 /**
  * Favicon images (processed by Vite imagetools)
  */
-import FaviconImgs from './favicon.png?favicons';
-import AppleTouchImgs from './favicon.png?apple-touch-icons';
+import FaviconImgs from '$lib/assets/meta/favicon.png?favicons';
+import AppleTouchImgs from '$lib/assets/meta/favicon.png?apple-touch-icons';
 
 export const faviconImages = FaviconImgs;
 export const appleTouchIcons = AppleTouchImgs;

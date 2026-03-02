@@ -1,6 +1,6 @@
 import { text } from '@sveltejs/kit';
-import { generateRobotsTxt } from '@hkdigital/lib-core/meta/robots.js';
-import { robotsConfig } from '../config.js';
+import { generateRobotsTxt } from '@hkdigital/lib-core/meta/utils.js';
+import { robotsConfig } from '$lib/config/meta.js';
 
 /** @type {import('@sveltejs/kit').RequestHandler} */
 export const GET = async ({ url }) => {

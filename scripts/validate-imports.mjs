@@ -10,6 +10,27 @@ const SCRIPT_DIR = dirname(fileURLToPath(import.meta.url));
 const LIB_ROOT = dirname(SCRIPT_DIR);
 
 /**
+ * Parse command line arguments for exclusion patterns
+ *
+ * @returns {string[]} Array of path patterns to exclude
+ */
+function parseExclusionArgs() {
+  const args = process.argv.slice(2);
+  const exclusions = [];
+
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--exclude' && i + 1 < args.length) {
+      exclusions.push(args[i + 1]);
+      i++; // Skip next arg since we consumed it
+    }
+  }
+
+  return exclusions;
+}
+
+const EXCLUSION_PATTERNS = parseExclusionArgs();
+
+/**
  * Scopes to validate for barrel exports
  * Any package under these scopes will be checked
  */
@@ -556,6 +577,25 @@ async function findAliasBarrelExport(importPath, targetName) {
 }
 
 /**
+ * Check if file path matches any exclusion pattern
+ *
+ * @param {string} filePath - Path to check
+ *
+ * @returns {boolean} True if file should be excluded
+ */
+function isExcluded(filePath) {
+  const relativePath = relative(PROJECT_ROOT, filePath);
+
+  for (const pattern of EXCLUSION_PATTERNS) {
+    if (relativePath.includes(pattern)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+/**
  * Validate import paths in a file
  *
  * @param {string} filePath - Path to the file
@@ -563,6 +603,11 @@ async function findAliasBarrelExport(importPath, targetName) {
  * @returns {Promise<string[]>} Array of error messages
  */
 async function validateFile(filePath) {
+  // Skip excluded files
+  if (isExcluded(filePath)) {
+    return [];
+  }
+
   const content = await readFile(filePath, 'utf-8');
   const errors = [];
   const relativePath = relative(PROJECT_ROOT, filePath);
@@ -1233,6 +1278,12 @@ async function main() {
 
   console.log(`Using script from @hkdigital/lib-core v${pkgJson.version}`);
   console.log(`Validating import paths...`);
+
+  if (EXCLUSION_PATTERNS.length > 0) {
+    console.log('Excluding patterns:');
+    EXCLUSION_PATTERNS.forEach(pattern => console.log(`  ${pattern}`));
+    console.log();
+  }
 
   // Load project aliases from svelte.config.js
   PROJECT_ALIASES = await loadAliases();
