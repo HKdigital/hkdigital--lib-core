@@ -6,8 +6,8 @@
  * @hkdigital/lib-core library.
  */
 
-import { Favicons, PWA, SEO } from '$lib/meta/components.js';
-import { createLangUtils } from '$lib/meta/utils.js';
+import { Favicons, PWA, SEO } from '@hkdigital/lib-core/meta/components';
+import { createLangUtils } from '@hkdigital/lib-core/meta/utils';
 import * as config from './config.js';
 
 // Create configured language utilities

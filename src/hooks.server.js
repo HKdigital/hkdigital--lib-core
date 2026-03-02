@@ -1,5 +1,5 @@
 import { createServerLogger, DEBUG } from '$lib/logging/server.js';
-import { handleLang } from './routes/(meta)/lang.js';
+import { handleLang } from './routes/(meta)/index.js';
 
 /** @type {import('$lib/logging/common.js').Logger} */
 let logger;
@@ -36,7 +36,7 @@ export const handleError = ({ error, /* event, */ status, message }) => {
 /**
  * Handle all requests
  *
- * Language detection is handled by handleLang from (meta)/lang.js
+ * Language detection is handled by handleLang from (meta)/index.js
  *
  * If you have existing hooks (auth, sessions, etc.), see integration
  * patterns in src/routes/(meta)/README.md - "Integrating Language Detection
@@ -50,7 +50,7 @@ export async function handle({ event, resolve }) {
 
   // For complex integrations, use this pattern instead:
   /*
-  import { getLangFromPath, injectLang } from './routes/(meta)/lang.js';
+  import { getLangFromPath, injectLang } from './routes/(meta)/index.js';
 
   const { langCode, lang, locale } = getLangFromPath(event.url.pathname);
   event.locals.langCode = langCode;

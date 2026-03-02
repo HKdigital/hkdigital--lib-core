@@ -7,12 +7,12 @@
 
 	import { designTokens, designTokensToRootCssVars } from '$lib/design/index.js';
 
-	import { Favicons, PWA, SEO } from './(meta)/index.js';
+	import { Favicons, PWA, SEO, config } from './(meta)/index.js';
 </script>
 
-<Favicons />
-<PWA />
-<SEO {data} />
+<Favicons {config} />
+<PWA {config} />
+<SEO {config} locale={data?.locale} />
 
 <svelte:head>
 	{@html designTokensToRootCssVars(designTokens)}

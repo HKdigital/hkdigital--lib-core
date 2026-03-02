@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { isHostAllowed, generateRobotsTxt } from './index.js';
+import { isHostAllowed, generateRobotsTxt } from './robots.js';
 
 describe('isHostAllowed', () => {
   it('should allow all hosts when allowedHosts is undefined', () => {

@@ -19,14 +19,25 @@ and PWA configuration into every page.
 
 ### 1. Copy the (meta) Folder to Your Project
 
-Copy the entire `(meta)` folder from the library to your project:
+Copy the template folder to your project:
 
 ```bash
 # From your project root
-cp -r node_modules/@hkdigital/lib-core/src/routes/\(meta\) src/routes/
+cp -r node_modules/@hkdigital/lib-core/templates/meta src/routes/\(meta\)
 ```
 
 Or manually copy the folder using your file explorer.
+
+**What gets copied:**
+- `config.js` - **Your customizations** (edit this)
+- `*.png` images - **Your branding** (replace these)
+- Route endpoints - Dynamic manifest.json, robots.txt, sitemap.xml
+- `index.js` - Imports library components (rarely needs changes)
+
+**What stays in the library** (automatic updates):
+- `Favicons.svelte`, `PWA.svelte`, `SEO.svelte` - Component code
+- `lang.js` - Language utilities
+- When you update `@hkdigital/lib-core`, these are automatically updated!
 
 ### 2. Customize Your App Configuration
 
@@ -111,20 +122,23 @@ Import and use the components in `src/routes/+layout.svelte`:
 
 ```svelte
 <script>
-  import { Favicons, PWA, SEO } from './(meta)/index.js';
+  import { Favicons, PWA, SEO, config } from './(meta)/index.js';
 
   let { children, data } = $props();
 </script>
 
-<Favicons />
-<PWA />
-<SEO {data} />
+<Favicons {config} />
+<PWA {config} />
+<SEO {config} locale={data?.locale} />
 
 {@render children()}
 ```
 
-The `data` prop passes language/locale information from hooks to the SEO
-component for automatic localization.
+**How it works:**
+- Components are imported from the library (`@hkdigital/lib-core/meta`)
+- Your `config` is passed as a prop
+- `locale={data?.locale}` passes auto-detected locale from hooks
+- When you update the library, component improvements happen automatically!
 
 ### 4. Configure AI Bot Control (Optional)
 
@@ -390,24 +404,46 @@ For robots.txt and sitemap.xml configuration, see `$lib/meta/README.md`.
 
 ### File Structure
 
+**Your project's `(meta)` folder** (customizable):
+
 ```
-(meta)/
-├── config.js              # Central configuration (name, colors, routes)
-├── lang.js                # Language detection and locale utilities
-├── Favicons.svelte        # Generates favicon and apple-touch-icon links
-├── PWA.svelte             # Generates PWA meta tags (viewport, theme)
-├── SEO.svelte             # Generates SEO and social media meta tags
-├── favicon.png            # Source for favicons (512×512 recommended)
-├── preview-landscape.png  # SEO landscape image (1200×630 recommended)
-├── preview-square.png     # SEO square image (1200×1200 recommended)
-├── index.js               # Exports components and utilities
-├── manifest.json/     # Dynamic manifest.json endpoint
+src/routes/(meta)/
+├── config.js              # ✏️ Your configuration (edit this)
+├── favicon.png            # 🎨 Your favicon (replace)
+├── preview-landscape.png  # 🎨 Your SEO landscape image (replace)
+├── preview-square.png     # 🎨 Your SEO square image (replace)
+├── index.js               # 📦 Imports library components + config
+├── manifest.json/         # Dynamic manifest.json endpoint
 │   └── +server.js
-├── robots.txt/        # @see @hkdigital/lib-core/meta/README.md
+├── robots.txt/            # Dynamic robots.txt endpoint
 │   └── +server.js
-└── sitemap.xml/       # @see @hkdigital/lib-core/meta/README.md
+└── sitemap.xml/           # Dynamic sitemap.xml endpoint
     └── +server.js
 ```
+
+**Library code** (automatically updated):
+
+```
+@hkdigital/lib-core/src/lib/meta/
+├── components/
+│   ├── Favicons.svelte    # 🔄 Auto-updated with library
+│   ├── PWA.svelte         # 🔄 Auto-updated with library
+│   └── SEO.svelte         # 🔄 Auto-updated with library
+├── utils/
+│   ├── lang.js            # Language utilities
+│   ├── robots.js          # Robots.txt generation
+│   ├── sitemap.js         # Sitemap.xml generation
+│   ├── robots.typedef.js  # Type definitions
+│   └── sitemap.typedef.js # Type definitions
+├── components.js          # Barrel export: components
+├── utils.js               # Barrel export: utilities
+└── typedef.js             # Barrel export: type definitions
+```
+
+**Benefits:**
+- ✅ Bug fixes come with `npm update @hkdigital/lib-core`
+- ✅ Only your config and images need customization
+- ✅ Clear separation between library and user code
 
 ## Per-Page SEO Customization
 
@@ -458,7 +494,8 @@ All props are optional and default to values from `config.js`:
 - **`image`**: Social media preview image URL (defaults to landscape image)
 - **`imageAlt`**: Alt text for social media image
 - **`type`**: Open Graph type (default: `'website'`)
-- **`locale`**: Content locale (auto-detected from URL or config default)
+- **`locale`**: Content locale - passed from layout as `data?.locale` (auto-
+  detected from URL via hooks, or falls back to config default)
 - **`siteName`**: Site name for Open Graph (defaults to `name` from config)
 - **`alternateUrls`**: Object mapping language codes to URLs for hreflang tags
 - **`robots`**: Robots meta directives (e.g., `'noindex, nofollow'`)
@@ -892,13 +929,13 @@ previews:
     type = 'website',
     locale = undefined,
     siteName = defaultTitle,
-    data = undefined,
     alternateUrls = undefined,
     robots = undefined,
     noAiTraining = false
   } = $props();
 
-  const finalLocale = data?.locale || locale || defaultLocale;
+  // Use locale from prop or fall back to config default
+  const finalLocale = locale || defaultLocale;
 </script>
 
 <svelte:head>

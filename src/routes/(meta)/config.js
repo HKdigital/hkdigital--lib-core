@@ -82,7 +82,7 @@ export const SeoImageSquare = SeoSquareImg;
 /**
  * Site routes for sitemap.xml
  *
- * @type {import('@hkdigital/lib-core/meta/sitemap/typedef.js').SitemapRoute[]}
+ * @type {import('@hkdigital/lib-core/meta/typedef.js').SitemapRoute[]}
  *
  * @see hkdigital/lib-core/meta/README.md for detailed configuration options
  */
@@ -97,7 +97,7 @@ export const siteRoutes = [
 /**
  * Robots.txt configuration
  *
- * @type {import('@hkdigital/lib-core/meta/robots/typedef.js').RobotsConfig}
+ * @type {import('@hkdigital/lib-core/meta/typedef.js').RobotsConfig}
  *
  * @see hkdigital/lib-core/meta/README.md for detailed configuration options
  */

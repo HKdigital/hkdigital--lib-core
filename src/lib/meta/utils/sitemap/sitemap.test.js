@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 
-import { generateSitemap } from './index.js';
+import { generateSitemap } from './sitemap.js';
 
 describe('generateSitemap', () => {
   it('should generate sitemap with simple string routes', () => {

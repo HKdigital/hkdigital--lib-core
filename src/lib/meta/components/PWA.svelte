@@ -1,12 +1,24 @@
 <script>
   import { onMount } from 'svelte';
-  import {
-    themeColor,
-    statusBarStyle,
-    name,
-    shortName,
-    disablePageZoom
-  } from './config.js';
+
+  /**
+   * PWA component
+   *
+   * Generates Progressive Web App meta tags and viewport configuration.
+   *
+   * @typedef {Object} PWAConfig
+   * @property {string} themeColor - Theme color for browser UI
+   * @property {string} statusBarStyle - iOS status bar style
+   * @property {string} name - Full app name
+   * @property {string} shortName - Short app name (max 12 characters)
+   * @property {boolean} disablePageZoom - Disable pinch-to-zoom
+   */
+
+  /** @type {{ config: PWAConfig }} */
+  let { config } = $props();
+
+  const { themeColor, statusBarStyle, name, shortName, disablePageZoom } =
+    config;
 
   let shouldSetTitle = $state(false);
 
@@ -37,11 +49,8 @@
   <link rel="manifest" href="/manifest.json">
 
   <meta name="mobile-web-app-capable" content="yes">
-  <!-- <meta name="apple-mobile-web-app-capable" content="yes"> -->
 
   <!-- iOS-specific meta tags -->
   <meta name="apple-mobile-web-app-status-bar-style" content="{statusBarStyle}">
   <meta name="apple-mobile-web-app-title" content="{shortName}">
-
-
 </svelte:head>
