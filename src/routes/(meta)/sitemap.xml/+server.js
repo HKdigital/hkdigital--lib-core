@@ -1,5 +1,5 @@
 import { generateSitemap } from '$lib/meta/utils.js';
-import { siteRoutes } from '$lib/config/meta.js';
+import { siteRoutes } from '$lib/meta/config.js';
 
 /** @type {import('@sveltejs/kit').RequestHandler} */
 export const GET = async ({ url }) => {

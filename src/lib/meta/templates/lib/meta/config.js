@@ -1,73 +1,81 @@
 /**
- * Meta configuration
- *
- * Customize this file with your app's information.
- * After copying to your project, update all values below.
+ * Meta data configuration
  */
 
-/**
- * App identity
- */
-export const name = 'Your App Name';
-export const shortName = 'YourApp';  // max 12 characters
-export const description = 'Your app description for search engines';
+export const name = 'HKdigital Lib Core Test';
+export const shortName = 'HKlib Core';  // max 12 characters
+
+export const description = 'Base library that powers up Sveltekit projects';
 
 /**
  * Language and locale configuration
  *
+ * Configure supported languages with their locale mappings.
+ * Short codes (e.g., 'en') are defaults, explicit variants optional.
+ *
  * @type {Record<string, {lang: string, locale: string}>}
  */
 export const languages = {
+  // Short codes (defaults)
   'en': { lang: 'en-GB', locale: 'en_GB' },
-  'nl': { lang: 'nl-NL', locale: 'nl_NL' }
+  'nl': { lang: 'nl-NL', locale: 'nl_NL' },
 
-  // Add more languages as needed:
+  // Explicit variants (add as needed)
+  // 'en-us': { lang: 'en-US', locale: 'en_US' },
   // 'es': { lang: 'es-ES', locale: 'es_ES' },
-  // 'en-us': { lang: 'en-US', locale: 'en_US' }
+  // 'es-mx': { lang: 'es-MX', locale: 'es_MX' }
 };
 
+/**
+ * Default language code (fallback)
+ *
+ * @type {string}
+ */
 export const defaultLanguage = 'en';
-export const defaultLocale = languages[defaultLanguage].locale;
 
 /**
- * PWA theme and colors
+ * Default locale (derived from defaultLanguage)
+ *
+ * @type {string}
  */
+export const defaultLocale = languages[defaultLanguage].locale;
+
 export const backgroundAndThemeColor = '#082962';
+
 export const themeColor = backgroundAndThemeColor;
 export const backgroundColor = backgroundAndThemeColor;
 
-/**
- * iOS PWA configuration
- */
-export const statusBarStyle = 'black-translucent';  // 'default' | 'black' | 'black-translucent'
+export const statusBarStyle = 'black-translucent';
 
-/**
- * Screen orientation
- */
-export const orientation = 'any';  // 'any' | 'landscape' | 'portrait'
+export const orientation = 'any'; // "landscape"
 
-/**
- * Disable pinch-to-zoom
- *
- * Only enable for games or canvas apps where zoom breaks functionality
- */
-export const disablePageZoom = false;
+//
+// Only disable zoom if:
+// - You're building a game
+// - Canvas-based app where zoom breaks functionality
+// - You have a very specific (technical) reason...
+//
+export const disablePageZoom = true;
 
 /**
  * SEO social media preview images
  *
- * Replace the image files with your own designs.
- * The images are processed by Vite imagetools to correct dimensions.
+ * To enable: Import the image and export it
+ * To disable: Comment out the import and export null instead
  *
- * To disable: comment out imports and set to null
+ * Processed dimensions:
+ * - Landscape: 1200×630 (Facebook, LinkedIn, Discord)
+ * - Square: 1200×1200 (various platforms)
  */
+
+// Import and export processed images
 import SeoLandscapeImg from '$lib/assets/meta/preview-landscape.png?seo-landscape';
 import SeoSquareImg from '$lib/assets/meta/preview-square.png?seo-square';
 
-export const previewImageLandscape = SeoLandscapeImg;  // 1200×630
-export const previewImageSquare = SeoSquareImg;        // 1200×1200
+export const previewImageLandscape = SeoLandscapeImg;
+export const previewImageSquare = SeoSquareImg;
 
-// To disable SEO images:
+// To disable, comment out imports above and uncomment below:
 // export const previewImageLandscape = null;
 // export const previewImageSquare = null;
 
@@ -85,7 +93,7 @@ export const appleTouchIcons = AppleTouchImgs;
  *
  * @type {import('@hkdigital/lib-core/meta/typedef.js').SitemapRoute[]}
  *
- * @see @hkdigital/lib-core/meta/README.md for configuration options
+ * @see hkdigital/lib-core/meta/README.md for detailed configuration options
  */
 export const siteRoutes = [
   '/'
@@ -100,7 +108,7 @@ export const siteRoutes = [
  *
  * @type {import('@hkdigital/lib-core/meta/typedef.js').RobotsConfig}
  *
- * @see @hkdigital/lib-core/meta/README.md for configuration options
+ * @see hkdigital/lib-core/meta/README.md for detailed configuration options
  */
 export const robotsConfig = {
   allowedHosts: '*',       // '*' allows all hosts
@@ -110,3 +118,4 @@ export const robotsConfig = {
   allowAiTraining: true,   // GPTBot, Google-Extended, CCBot, anthropic-ai
   allowAiReading: true     // ChatGPT-User, Claude-Web, cohere-ai
 };
+

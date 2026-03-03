@@ -10,7 +10,7 @@
   /** @type {{ config: MetaConfig }} */
   let { config } = $props();
 
-  const { faviconImages, appleTouchIcons } = config;
+  let { faviconImages, appleTouchIcons } = $derived(config);
 </script>
 
 <svelte:head>

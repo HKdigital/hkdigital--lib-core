@@ -8,7 +8,7 @@
 
 import { Favicons, PWA, SEO } from '$lib/meta/components.js';
 import { createLangUtils } from '$lib/meta/utils.js';
-import * as config from '$lib/config/meta.js';
+import * as config from '$lib/meta/config.js';
 
 // Create configured language utilities
 const { getLangFromPath, injectLang, handleLang } = createLangUtils(config);

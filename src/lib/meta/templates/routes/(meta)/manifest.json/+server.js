@@ -7,7 +7,7 @@ import {
   description,
   backgroundAndThemeColor,
   orientation
-} from '$lib/config/meta.js';
+} from '$lib/meta/config.js';
 
 import faviconImages from '$lib/assets/meta/favicon.png?favicons';
 

@@ -12,8 +12,8 @@
   /** @type {{ config: MetaConfig }} */
   let { config } = $props();
 
-  const { themeColor, statusBarStyle, name, shortName, disablePageZoom } =
-    config;
+  let { themeColor, statusBarStyle, name, shortName, disablePageZoom } =
+    $derived(config);
 
   let shouldSetTitle = $state(false);
 

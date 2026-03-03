@@ -13,14 +13,14 @@ cp -r node_modules/@hkdigital/lib-core/meta/templates/routes/* src/routes/
 ```
 
 This copies:
-- `src/lib/config/meta.js` - Your configuration file
+- `src/lib/meta/config.js` - Your configuration file
 - `src/lib/assets/meta/*.png` - Placeholder images
 - `src/lib/meta.js` - Glue file connecting library and config
 - `src/routes/(meta)/*.json/+server.js` - Route endpoints
 
 ### 2. Customize your configuration
 
-Edit `src/lib/config/meta.js` with your app's information:
+Edit `src/lib/meta/config.js` with your app's information:
 
 ```javascript
 export const name = 'Your App Name';
@@ -122,7 +122,7 @@ src/
 - When you update the library, components get bug fixes automatically
 
 **Your code** (you customize):
-- `src/lib/config/meta.js` - Your app's configuration
+- `src/lib/meta/config.js` - Your app's configuration
 - `src/lib/assets/meta/*.png` - Your images
 - `src/lib/meta.js` - Connects library components with your config
 - `src/routes/(meta)/` - Route endpoints that use your config

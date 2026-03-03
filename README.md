@@ -204,72 +204,24 @@ This library includes a complete design system with Tailwind CSS integration. Ba
    import heroResponsive from '$lib/assets/hero.jpg?preset=photo&responsive';
    ```
 
-6. **Meta setup** - Configure SEO, PWA, and favicons:
+6. **Meta setup (optional)** - SEO, PWA, and favicons:
 
    The library includes templates for PWA configuration, SEO metadata,
    favicon generation, manifest.json, sitemap.xml, and robots.txt.
 
-   **Copy template files to your project:**
+   **Quick setup:**
    ```bash
-   # Copy configuration and assets to src/lib/
+   # Copy template files to your project
    cp -r node_modules/@hkdigital/lib-core/meta/templates/lib/* src/lib/
-
-   # Copy route endpoints to src/routes/
    cp -r node_modules/@hkdigital/lib-core/meta/templates/routes/* src/routes/
    ```
 
-   **Customize for your app:**
-   - Replace images in `src/lib/assets/meta/` with your own:
-     - `favicon.png` (512×512px)
-     - `preview-landscape.png` (1200×630px for social media)
-     - `preview-square.png` (1200×1200px for social media)
-   - Edit `src/lib/config/meta.js`:
-     ```javascript
-     export const name = 'Your App Name';
-     export const shortName = 'App';
-     export const description = 'Your app description';
-     export const backgroundAndThemeColor = '#082962';
+   Then customize `$lib/meta/config.js` and replace placeholder images
+   in `$lib/meta/` with your own.
 
-     // Add your site routes for sitemap
-     export const siteRoutes = ['/', '/about', '/contact'];
-
-     // Configure robots.txt
-     export const robotsConfig = {
-       allowedHosts: '*',  // '*' allows all hosts
-       disallowedPaths: [],
-       allowAiTraining: true,
-       allowAiReading: true
-     };
-     ```
-
-   **Integrate into root layout:**
-   ```svelte
-   <!-- src/routes/+layout.svelte -->
-   <script>
-     import { Favicons, PWA, SEO, config } from '$lib/meta.js';
-
-     let { children, data } = $props();
-   </script>
-
-   <Favicons {config} />
-   <PWA {config} />
-   <SEO {config} locale={data?.locale} />
-
-   {@render children()}
-   ```
-
-   **What you get:**
-   - Automatic favicon generation (16, 32, 192, 512px)
-   - Apple touch icons (120, 152, 167, 180px)
-   - SEO meta tags and Open Graph support
-   - Social media preview images
-   - Multi-language support with auto-detection
-   - Dynamic `/manifest.json` endpoint
-   - Dynamic `/sitemap.xml` endpoint
-   - Dynamic `/robots.txt` with AI bot control
-
-   See the [meta template README](./src/lib/meta/templates/README.md) for
-   complete documentation.
+   **For complete setup instructions and documentation**, see:
+   - [Meta setup guide](./src/lib/meta/templates/README.md)
+   - [Meta utilities API](./src/lib/meta/README.md)
 
 ### Logging System
 
