@@ -6,10 +6,9 @@ import {
   shortName,
   description,
   backgroundAndThemeColor,
-  orientation
+  orientation,
+  faviconImages
 } from '$lib/meta/config.js';
-
-import faviconImages from '$lib/assets/meta/favicon.png?favicons';
 
 /* Generate manifest data */
 

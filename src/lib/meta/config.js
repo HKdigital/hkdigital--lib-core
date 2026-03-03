@@ -7,6 +7,23 @@ export const shortName = 'HKlib Core';  // max 12 characters
 
 export const description = 'Base library that powers up Sveltekit projects';
 
+export const backgroundAndThemeColor = '#082962';
+
+export const themeColor = backgroundAndThemeColor;
+export const backgroundColor = backgroundAndThemeColor;
+
+export const statusBarStyle = 'black-translucent';
+
+export const orientation = 'any'; // "landscape"
+
+//
+// Only disable zoom if:
+// - You're building a game
+// - Canvas-based app where zoom breaks functionality
+// - You have a very specific (technical) reason...
+//
+export const disablePageZoom = true;
+
 /**
  * Language and locale configuration
  *
@@ -40,22 +57,11 @@ export const defaultLanguage = 'en';
  */
 export const defaultLocale = languages[defaultLanguage].locale;
 
-export const backgroundAndThemeColor = '#082962';
-
-export const themeColor = backgroundAndThemeColor;
-export const backgroundColor = backgroundAndThemeColor;
-
-export const statusBarStyle = 'black-translucent';
-
-export const orientation = 'any'; // "landscape"
-
-//
-// Only disable zoom if:
-// - You're building a game
-// - Canvas-based app where zoom breaks functionality
-// - You have a very specific (technical) reason...
-//
-export const disablePageZoom = true;
+/**
+ * Favicon images (processed by Vite imagetools)
+ */
+export { default as faviconImages } from './favicon.png?favicons';
+export { default as appleTouchIcons } from './favicon.png?apple-touch-icons';
 
 /**
  * SEO social media preview images
@@ -68,25 +74,13 @@ export const disablePageZoom = true;
  * - Square: 1200×1200 (various platforms)
  */
 
-// Import and export processed images
-import SeoLandscapeImg from '$lib/assets/meta/preview-landscape.png?seo-landscape';
-import SeoSquareImg from '$lib/assets/meta/preview-square.png?seo-square';
+// Preview images
+export { default as previewImageLandscape } from './preview-landscape.png?seo-landscape';
+export { default as previewImageSquare } from './preview-square.png?seo-square';
 
-export const previewImageLandscape = SeoLandscapeImg;
-export const previewImageSquare = SeoSquareImg;
-
-// To disable, comment out imports above and uncomment below:
-// export const previewImageLandscape = null;
-// export const previewImageSquare = null;
-
-/**
- * Favicon images (processed by Vite imagetools)
- */
-import FaviconImgs from '$lib/assets/meta/favicon.png?favicons';
-import AppleTouchImgs from '$lib/assets/meta/favicon.png?apple-touch-icons';
-
-export const faviconImages = FaviconImgs;
-export const appleTouchIcons = AppleTouchImgs;
+// Or disable
+// export const SeoImageLandscape = null;
+// export const SeoImageSquare = null;
 
 /**
  * Site routes for sitemap.xml
