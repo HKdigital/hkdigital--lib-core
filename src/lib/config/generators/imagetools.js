@@ -21,8 +21,15 @@ const APPLE_TOUCH_SIZES = [
   180  // iPhone retina, iOS home screen
 ];
 
-const SEO_LANDSCAPE_SIZE = { width: 1200, height: 630 };
-const SEO_SQUARE_SIZE = { width: 1200, height: 1200 };
+const SEO_LANDSCAPE_SIZES =
+	[
+		[1200, 630]
+	];
+
+const SEO_SQUARE_SIZES =
+	[
+		[1200,1200]
+	];
 
 const DEFAULT_PRESETS = {
 	default: {
@@ -73,10 +80,10 @@ const DEFAULT_PRESETS = {
  * @param {number[]} [options.faviconSizes=FAVICON_SIZES]
  * @param {number[]} [options.appleTouchSizes=APPLE_TOUCH_SIZES]
  *
- * @param {{width: number, height: number}} [options.seoLandscapeSize]
+ * @param {[number,number][]} [options.seoLandscapeSizes]
  *   SEO landscape image size
  *
- * @param {{width: number, height: number}} [options.seoSquareSize]
+ * @param {[number,number][]} [options.seoSquareSizes]
  *   SEO square image size
  *
  * @returns {(
@@ -135,8 +142,8 @@ export function generateResponseConfigs(options) {
 		const widths = options?.widths ?? DEFAULT_WIDTHS;
 		const faviconSizes = options?.faviconSizes ?? FAVICON_SIZES;
 		const appleTouchSizes = options?.appleTouchSizes ?? APPLE_TOUCH_SIZES;
-		const seoLandscapeSize = options?.seoLandscapeSize ?? SEO_LANDSCAPE_SIZE;
-		const seoSquareSize = options?.seoSquareSize ?? SEO_SQUARE_SIZE;
+		const seoLandscapeSizes = options?.seoLandscapeSizes ?? SEO_LANDSCAPE_SIZES;
+		const seoSquareSizes = options?.seoSquareSizes ?? SEO_SQUARE_SIZES;
 
 		delete configPairs.responsive;
 		delete configPairs.favicons;
@@ -185,25 +192,35 @@ export function generateResponseConfigs(options) {
 		// Handle seo-landscape directive - generate landscape SEO image
 
 		if (isSeoLandscape) {
-			return [{
-				...configPairs,
-				w: String(seoLandscapeSize.width),
-				h: String(seoLandscapeSize.height),
-				format: 'jpg',
-				quality: '95'
-			}];
+			const seoLandscapeConfigs = seoLandscapeSizes.map(([w, h]) => {
+				return {
+					...configPairs,
+					w: String(w),
+					h: String(h),
+					format: 'jpg',
+					quality: '95'
+				};
+			});
+			// console.log('**** Returning seo-landscape configs:', seoLandscapeConfigs);
+			// @note return two elements, otherwise imagetools collapses the array
+			return [...seoLandscapeConfigs, thumbnailConfig];
 		}
 
 		// Handle seo-square directive - generate square SEO image
 
 		if (isSeoSquare) {
-			return [{
-				...configPairs,
-				w: String(seoSquareSize.width),
-				h: String(seoSquareSize.height),
-				format: 'jpg',
-				quality: '95'
-			}];
+			const seoSquareConfigs = seoSquareSizes.map(([w,h]) => {
+				return {
+					...configPairs,
+					w: String(w),
+					h: String(h),
+					format: 'jpg',
+					quality: '95'
+				};
+			});
+			// console.log('**** Returning seo-square configs:', seoSquareConfigs);
+			// @note return two elements, otherwise imagetools collapses the array
+			return [...seoSquareConfigs, thumbnailConfig];
 		}
 
 		if (!responsiveConfig) {
@@ -217,6 +234,7 @@ export function generateResponseConfigs(options) {
 		const responsiveConfigs = widths.map((w) => {
 			return { ...configPairs, w: String(w) };
 		});
+
 		const result = [...responsiveConfigs, thumbnailConfig];
 		// console.log('Returning responsive + thumbnail configs:', result);
 		return result;
@@ -247,7 +265,7 @@ export function generateDefaultDirectives(options) {
 
 		let presetName = params.get('preset');
 
-		// > Return metadata if directive 'responsive' is set
+		// > Responsive image support: return meta data instead of image data
 
 		// @see https://github.com/JonasKruckenberg/
 		//      imagetools/blob/main/docs/directives.md#metadata
@@ -270,16 +288,16 @@ export function generateDefaultDirectives(options) {
 			params.set('as', 'metadata');
 		}
 
-		// > Return picture (URL) if directive 'seo-landscape' is set
+		// > Return metadata if directive 'seo-landscape' is set
 
 		if (params.has('seo-landscape')) {
-			params.set('as', 'picture');
+			params.set('as', 'metadata');
 		}
 
-		// > Return picture (URL) if directive 'seo-square' is set
+		// > Return metadata if directive 'seo-square' is set
 
 		if (params.has('seo-square')) {
-			params.set('as', 'picture');
+			params.set('as', 'metadata');
 		}
 
 		// > Process presets

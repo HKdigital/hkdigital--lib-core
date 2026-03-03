@@ -11,25 +11,35 @@
    * SEO component props
    *
    * @typedef {Object} SEOProps
+   *
    * @property {MetaConfig} config - Configuration object
+   *
    * @property {string} [title] - Page title (defaults to config name)
+   *
    * @property {string} [description]
    *   Page description (defaults to config description)
-   * @property {string} [url] - Canonical URL for this page
-   * @property {string} [image]
-   *   Social media preview image URL (defaults to landscape SEO image)
-   * @property {string} [imageAlt] - Alt text for social media image
+   *
+   * @property {string} [canonicalUrl]
+   *   Canonical URL for this content to prevent duplicate content penalties
+   *
+   * @property {import('$lib/config/typedef.js').ImageSource}
+   *   [previewImageLandscape] - Landscape preview image (1200×630)
+   *
+   * @property {import('$lib/config/typedef.js').ImageSource}
+   *   [previewImageSquare] - Square preview image (1200×1200)
+   *
+   * @property {string} [previewImageAltText] - Alt text for preview images
+   *
    * @property {string} [type] - Open Graph type (default: 'website')
-   * @property {string} [locale]
-   *   Content locale (auto-detected from URL or defaults to config)
-   * @property {string} [siteName]
-   *   Site name for Open Graph (defaults to config name)
+   *
+   * @property {string} [locale] - Content locale (defaults to config locale)
+   *
    * @property {Record<string, string>} [alternateUrls]
    *   Alternate language URLs for hreflang tags
-   * @property {string} [robots]
-   *   Robots meta directives (e.g., 'noindex, nofollow')
-   * @property {boolean} [noAiTraining]
-   *   Prevent AI training on this page content
+   *
+   * @property {string} [robots] - Robots meta directives
+   *
+   * @property {boolean} [noAiTraining] - Block AI training on this page
    */
 
   /** @type {SEOProps} */
@@ -37,110 +47,136 @@
     config,
     title,
     description,
-    url = undefined,
-    image,
-    imageAlt,
+    canonicalUrl = undefined,
+
+    previewImageLandscape,
+    previewImageSquare,
+    previewImageAltText,
+
     type = 'website',
     locale = undefined,
-    siteName,
     alternateUrls = undefined,
     robots = undefined,
     noAiTraining = false
   } = $props();
 
   // Extract config values
-  const {
-    name: defaultTitle,
-    description: defaultDescription,
-    SeoImageLandscape,
-    SeoImageSquare,
-    defaultLocale,
-    languages
-  } = config;
+  let defaultLocale = $derived(config.defaultLocale);
+  let languages = $derived(config.languages);
 
-  // Use the landscape image as default (best for most platforms)
-  const defaultSeoImage = SeoImageLandscape || undefined;
+  /**
+   * Get first image source from imageSource array
+   *
+   * @param {ImageSource|undefined|null} imageSource
+   *
+   * @returns {string|null} image source url
+   *
+   * @throws {Error} invalid parameter
+   */
+  function imageSourceToSrc( imageSource ) {
+    if( !imageSource ) {
+      return null;
+    }
 
-  // Apply defaults from config
-  title = title ?? defaultTitle;
-  description = description ?? defaultDescription;
-  image = image ?? defaultSeoImage;
-  imageAlt = imageAlt ?? title;
-  siteName = siteName ?? defaultTitle;
+    if( !Array.isArray( imageSource ) || !imageSource[0] || !imageSource[0].src ) {
+      throw new Error('Invalid [imageSource]');
+    }
 
-  // Use locale from prop or fall back to config default
-  const finalLocale = locale || defaultLocale;
+    return imageSource[0].src ?? null;
+  }
+
+  let imageLandscape = $derived.by( () => {
+    let image = previewImageLandscape ?? config.previewImageLandscape;
+
+    // console.log("image", image);
+
+    return imageSourceToSrc(image);
+  } );
+
+  // console.log("imageLandscape", imageLandscape);
+
+  let imageSquare = $derived.by( () => {
+    let image = previewImageSquare ?? config.previewImageSquare;
+
+    return imageSourceToSrc(image);
+  } );
+
+  let imageAltText = $derived(previewImageAltText ?? config.name);
+
+  let pageTitle = $derived(title ?? config.name);
+  let pageDescription = $derived(description ?? config.description);
+
+  let currentLocale = $derived(locale ?? defaultLocale);
 </script>
 
 <svelte:head>
-  <!-- Page title (overrides %title% from app.html) -->
-  <title>{title}</title>
+  <!-- Basic SEO: Page title (overrides %title% from app.html) -->
+  <title>{pageTitle}</title>
 
-  <!-- Basic SEO -->
-  <meta name="description" content={description}>
+  <!-- Basic SEO: Page title (overrides %title% from app.html) -->
+  {#if pageDescription}
+    <meta name="description" content={pageDescription} />
+  {/if}
+
+  {#if canonicalUrl}
+    <link rel="canonical" href={canonicalUrl} />
+    <meta property="og:url" content={canonicalUrl} />
+  {/if}
 
   <!-- Robots directives -->
   {#if robots}
-    <meta name="robots" content={robots}>
+    <meta name="robots" content={robots} />
   {/if}
 
   <!-- AI training and reading restrictions -->
   {#if noAiTraining}
     <!-- Google AI -->
-    <meta name="google-extended" content="noindex, nofollow">
+    <meta name="google-extended" content="noindex, nofollow" />
     <!-- OpenAI (ChatGPT) -->
-    <meta name="OAI-SearchBot" content="noindex, nofollow">
+    <meta name="OAI-SearchBot" content="noindex, nofollow" />
     <!-- Common Crawl -->
-    <meta name="CCBot" content="noindex, nofollow">
+    <meta name="CCBot" content="noindex, nofollow" />
     <!-- Anthropic Claude -->
-    <meta name="anthropic-ai" content="noindex, nofollow">
+    <meta name="anthropic-ai" content="noindex, nofollow" />
     <!-- General AI crawlers -->
-    <meta name="robots" content="noai, noimageai">
+    <meta name="robots" content="noai, noimageai" />
   {/if}
 
   <!-- Open Graph / Facebook / LinkedIn / Discord -->
-  <meta property="og:type" content={type}>
-  <meta property="og:title" content={title}>
-  <meta property="og:description" content={description}>
-  <meta property="og:site_name" content={siteName}>
-  <meta property="og:locale" content={finalLocale}>
+  <meta property="og:type" content={type} />
+  <meta property="og:site_name" content={config.name} />
+  <meta property="og:title" content={pageTitle} />
+  <meta property="og:description" content={pageDescription} />
+  <meta property="og:locale" content={currentLocale} />
 
-  {#if url}
-    <meta property="og:url" content={url}>
-    <link rel="canonical" href={url}>
+  <!-- Default seo/social image (landscape) -->
+  {#if imageLandscape}
+    <meta property="og:image" content={imageLandscape} />
+    <meta property="og:image:alt" content={imageAltText} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/jpeg" />
   {/if}
 
-  {#if image}
-    <meta property="og:image" content={image}>
-    <meta property="og:image:alt" content={imageAlt}>
-    <!-- Image metadata (dimensions from preprocessor) -->
-    {#if image === SeoImageLandscape}
-      <meta property="og:image:width" content="1200">
-      <meta property="og:image:height" content="630">
-      <meta property="og:image:type" content="image/jpeg">
-    {/if}
-  {/if}
-
-  <!-- Additional square image for platforms that prefer it -->
-  {#if SeoImageSquare && SeoImageSquare !== image}
-    <meta property="og:image" content={SeoImageSquare}>
-    <meta property="og:image:width" content="1200">
-    <meta property="og:image:height" content="1200">
-    <meta property="og:image:type" content="image/jpeg">
+  <!-- Additional image for platforms that prefer square images -->
+  {#if imageSquare}
+    <meta property="og:image" content={imageSquare} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="1200" />
+    <meta property="og:image:type" content="image/jpeg" />
   {/if}
 
   <!-- Alternate locales for Open Graph -->
   {#each Object.entries(languages) as [code, config]}
-    {#if config.locale !== finalLocale}
-      <meta property="og:locale:alternate" content={config.locale}>
+    {#if config.locale !== currentLocale}
+      <meta property="og:locale:alternate" content={config.locale} />
     {/if}
   {/each}
 
   <!-- Alternate language URLs (hreflang) -->
   {#if alternateUrls}
     {#each Object.entries(alternateUrls) as [lang, href]}
-      <link rel="alternate" hreflang={lang} href={href}>
+      <link rel="alternate" hreflang={lang} {href} />
     {/each}
   {/if}
-
 </svelte:head>

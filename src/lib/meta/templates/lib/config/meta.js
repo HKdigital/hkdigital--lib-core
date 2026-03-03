@@ -64,12 +64,12 @@ export const disablePageZoom = false;
 import SeoLandscapeImg from '$lib/assets/meta/preview-landscape.png?seo-landscape';
 import SeoSquareImg from '$lib/assets/meta/preview-square.png?seo-square';
 
-export const SeoImageLandscape = SeoLandscapeImg;  // 1200×630
-export const SeoImageSquare = SeoSquareImg;        // 1200×1200
+export const previewImageLandscape = SeoLandscapeImg;  // 1200×630
+export const previewImageSquare = SeoSquareImg;        // 1200×1200
 
 // To disable SEO images:
-// export const SeoImageLandscape = null;
-// export const SeoImageSquare = null;
+// export const previewImageLandscape = null;
+// export const previewImageSquare = null;
 
 /**
  * Favicon images (processed by Vite imagetools)
