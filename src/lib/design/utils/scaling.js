@@ -173,7 +173,7 @@ export function enableContainerScaling({
  *
  * @returns {()=>void} A cleanup function that removes the event listener
  */
-export function enableScalingUI(design, clamping, scalingMode = 'fit') {
+export function enableScalingUI(design, clamping, scalingMode = SCALING_FIT) {
   /**
    * Updates CSS scale variables based on current viewport dimensions
    * and design system constraints

@@ -12,8 +12,8 @@
    * properties (--scale-ui, --scale-text-base, etc.) on :root. Renders
    * children directly with no wrapper element.
    *
-   * Use scalingMode SCALING_WIDTH for websites (default) and SCALING_FIT
-   * for fixed-aspect containers like games.
+   * Use viewportScalingMode SCALING_WIDTH for websites (default) and
+   * SCALING_FIT for fixed-aspect containers like games.
    *
    * @type {{
    *   design?: {width: number, height: number},
@@ -23,19 +23,19 @@
    *     textHeading: {min: number, max: number},
    *     textUi: {min: number, max: number}
    *   },
-   *   scalingMode?: 'fit'|'width'|'height'|'fill',
+   *   viewportScalingMode?: 'fit'|'width'|'height'|'fill',
    *   children?: import('svelte').Snippet
    * }}
    */
   let {
     design = defaultTokens.DESIGN,
     clamping = defaultTokens.CLAMPING,
-    scalingMode = SCALING_WIDTH,
+    viewportScalingMode = SCALING_WIDTH,
     children
   } = $props();
 
   onMount(() => {
-    return enableScalingUI(design, clamping, scalingMode);
+    return enableScalingUI(design, clamping, viewportScalingMode);
   });
 </script>
 

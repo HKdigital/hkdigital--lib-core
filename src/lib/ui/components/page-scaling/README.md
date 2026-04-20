@@ -45,7 +45,7 @@ import {
 |---|---|---|---|
 | `design` | `{width, height}` | `{width: 1024, height: 768}` | Reference design dimensions |
 | `clamping` | `object` | default tokens | Min/max bounds per scale type |
-| `scalingMode` | `string` | `'width'` | How to derive scale from viewport |
+| `viewportScalingMode` | `string` | `'width'` | How to derive `--scale-viewport` from viewport |
 | `children` | `Snippet` | — | Page content |
 
 ## Custom design dimensions
@@ -58,7 +58,7 @@ import {
 
 <PageScaling
   design={{ width: 1440, height: 900 }}
-  scalingMode={SCALING_WIDTH}
+  viewportScalingMode={SCALING_WIDTH}
 >
   {@render children()}
 </PageScaling>
