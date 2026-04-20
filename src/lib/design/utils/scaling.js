@@ -1,5 +1,17 @@
 import { clamp } from './clamp.js';
 
+/** Scale to the smaller axis — content fits, no overflow (games/fixed-aspect) */
+export const SCALING_FIT = 'fit';
+
+/** Scale to viewport width — websites and vertically scrollable pages */
+export const SCALING_WIDTH = 'width';
+
+/** Scale to viewport height — rare, vertically fixed layouts */
+export const SCALING_HEIGHT = 'height';
+
+/** Scale to the larger axis — cover/zoom effect */
+export const SCALING_FILL = 'fill';
+
 /**
  * Manages responsive design scaling by calculating and applying scale factors
  * based on container dimensions and design system requirements.
@@ -152,10 +164,16 @@ export function enableContainerScaling({
  * @param {Object} clamping.textUi - UI text scaling constraints
  * @param {number} clamping.textUi.min - Minimum UI text scale factor
  * @param {number} clamping.textUi.max - Maximum UI text scale factor
+ * @param {'fit'|'width'|'height'|'fill'} [scalingMode='fit']
+ *   How to derive the viewport scale from width/height ratios:
+ *   - `'fit'`    min(scaleW, scaleH) — content fits, no overflow (games)
+ *   - `'width'`  scaleW only — websites, vertically scrollable pages
+ *   - `'height'` scaleH only — rare, vertically fixed layouts
+ *   - `'fill'`   max(scaleW, scaleH) — cover/zoom effect
  *
  * @returns {()=>void} A cleanup function that removes the event listener
  */
-export function enableScalingUI(design, clamping) {
+export function enableScalingUI(design, clamping, scalingMode = 'fit') {
   /**
    * Updates CSS scale variables based on current viewport dimensions
    * and design system constraints
@@ -165,12 +183,26 @@ export function enableScalingUI(design, clamping) {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
 
-      // Calculate scale factors based on viewport size relative to design dimensions
+      // Calculate scale factors based on viewport size relative to design
       const scaleW = vw / design.width;
       const scaleH = vh / design.height;
 
-      // Use the smaller scale factor to ensure content fits within viewport
-      const scaleViewport = Math.min(scaleW, scaleH);
+      let scaleViewport;
+
+      switch (scalingMode) {
+        case SCALING_WIDTH:
+          scaleViewport = scaleW;
+          break;
+        case SCALING_HEIGHT:
+          scaleViewport = scaleH;
+          break;
+        case SCALING_FILL:
+          scaleViewport = Math.max(scaleW, scaleH);
+          break;
+        default: // SCALING_FIT
+          scaleViewport = Math.min(scaleW, scaleH);
+          break;
+      }
 
       // Apply clamping to different element types
       const scaleUI = clamp(clamping.ui.min, scaleViewport, clamping.ui.max);

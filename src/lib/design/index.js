@@ -76,5 +76,9 @@ export { toStateClasses } from './utils/states.js';
 
 export {
   enableContainerScaling,
-  enableScalingUI
+  enableScalingUI,
+  SCALING_FIT,
+  SCALING_WIDTH,
+  SCALING_HEIGHT,
+  SCALING_FILL
 } from './utils/scaling.js';
