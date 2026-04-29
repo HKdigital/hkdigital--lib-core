@@ -82,6 +82,14 @@ const STROKE_WIDTH_SIZES = {
   thick: { size: 4 }
 };
 
+/* == Viewport breakpoints == */
+
+const VIEWPORT_BREAKPOINTS = {
+  sm: 640,
+  md: 768,
+  lg: 1024
+};
+
 /**
  * Complete design tokens configuration
  * 
@@ -103,5 +111,6 @@ export const designTokens = {
   TEXT_UI_SIZES,
   RADIUS_SIZES,
   BORDER_WIDTH_SIZES,
-  STROKE_WIDTH_SIZES
+  STROKE_WIDTH_SIZES,
+  VIEWPORT_BREAKPOINTS
 };

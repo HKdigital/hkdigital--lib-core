@@ -82,3 +82,5 @@ export {
   SCALING_HEIGHT,
   SCALING_FILL
 } from './utils/scaling.js';
+
+export { enableViewportBreakpoints } from './utils/viewport.js';
