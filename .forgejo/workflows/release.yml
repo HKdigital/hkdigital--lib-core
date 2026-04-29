@@ -1,0 +1,35 @@
+name: Release npm package
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: docker-node
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag is on main
+        run: |
+          git fetch origin main
+          git merge-base --is-ancestor ${{ github.sha }} origin/main \
+            || (echo "Tag is not on main branch, aborting" && exit 1)
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build package
+        run: pnpm prepack
+
+      - name: Configure npm registry
+        run: |
+          echo "@hkdigital:registry=https://${{ secrets.PACKAGES_REGISTRY }}/api/packages/${{ secrets.PACKAGES_ORG }}/npm/" >> .npmrc
+          echo "//${{ secrets.PACKAGES_REGISTRY }}/api/packages/${{ secrets.PACKAGES_ORG }}/npm/:_authToken=${{ secrets.PACKAGES_TOKEN }}" >> .npmrc
+
+      - name: Publish package
+        run: npm publish --access public
