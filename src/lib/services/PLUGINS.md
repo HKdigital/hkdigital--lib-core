@@ -4,11 +4,12 @@ Plugin system for extending ServiceManager functionality, primarily for
 dynamic configuration resolution.
 
 **See also:**
+
 - **API Reference**: [README.md](./README.md) - ServiceBase and
   ServiceManager API
 - **Patterns**: [PATTERNS.md](./PATTERNS.md) - Service implementation
   patterns
-- **Architecture**: [docs/setup/services-logging.md](../../docs/setup/services-logging.md)
+- **Architecture**: [docs/setup/services-logging.md](../../doc/setup/services-logging.md)
   - Integration examples
 
 ## Plugin System Overview
@@ -173,6 +174,7 @@ console.log(`Updated ${updatedServices.length} services`);
 ```
 
 **What happens:**
+
 1. Plugin updates the stored configuration for the label
 2. Plugin finds all services using that config label
 3. Each service's `configure()` method is called with new config
@@ -413,7 +415,7 @@ async _configure(newConfig, oldConfig = null) {
 
 1. **Use config labels consistently** - Match label names to service
    names when possible
-2. **Group related config** - Use prefixes (DATABASE_*, REDIS_*) for
+2. **Group related config** - Use prefixes (DATABASE*\*, REDIS*\*) for
    auto-grouping
 3. **Validate config in services** - Don't assume ConfigPlugin has all
    labels

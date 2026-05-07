@@ -4,7 +4,8 @@ Universal logging utilities for SvelteKit applications with
 server/client/universal logger factories.
 
 **See also:**
-- **Architecture**: [docs/setup/services-logging.md](../../docs/setup/services-logging.md)
+
+- **Architecture**: [docs/setup/services-logging.md](../../doc/setup/services-logging.md)
   - How logging and services work together
 - **Services**: [src/lib/services/README.md](../services/README.md) -
   Service management system
@@ -34,8 +35,10 @@ bundles and vice versa.
 ### Server-side logging
 
 ```javascript
-import { createServerLogger, DEBUG }
-  from '@hkdigital/lib-core/logging/server.js';
+import {
+  createServerLogger,
+  DEBUG
+} from '@hkdigital/lib-core/logging/server.js';
 
 // Server-side logging (uses pino)
 const logger = createServerLogger('app', DEBUG);
@@ -51,8 +54,10 @@ logger.error('Error message', {
 ### Client-side logging
 
 ```javascript
-import { createClientLogger, DEBUG }
-  from '@hkdigital/lib-core/logging/client.js';
+import {
+  createClientLogger,
+  DEBUG
+} from '@hkdigital/lib-core/logging/client.js';
 
 // Client-side logging (uses console)
 const logger = createClientLogger('app', DEBUG);
@@ -68,13 +73,18 @@ logger.error('Error message', {
 ### Shared utilities
 
 ```javascript
-import { Logger, DEBUG, INFO, WARN, ERROR }
-  from '@hkdigital/lib-core/logging/common.js';
+import {
+  Logger,
+  DEBUG,
+  INFO,
+  WARN,
+  ERROR
+} from '@hkdigital/lib-core/logging/common.js';
 
 // Access log levels
 console.log(DEBUG); // 'debug'
-console.log(INFO);  // 'info'
-console.log(WARN);  // 'warn'
+console.log(INFO); // 'info'
+console.log(WARN); // 'warn'
 console.log(ERROR); // 'error'
 
 // Access Logger class for advanced usage
@@ -85,22 +95,24 @@ console.log(ERROR); // 'error'
 ### Server-side logging (src/hooks.server.js)
 
 ```javascript
-import { createServerLogger, DEBUG }
-  from '@hkdigital/lib-core/logging/server.js';
+import {
+  createServerLogger,
+  DEBUG
+} from '@hkdigital/lib-core/logging/server.js';
 
 let logger;
 
 // Initialize server logging and services
 export async function init() {
   logger = createServerLogger('server', DEBUG);
-  
+
   try {
     logger.info('Initializing server');
-    
+
     // Initialize your services here
     // const serviceManager = new ServiceManager();
     // await serviceManager.startAll();
-    
+
     logger.info('Server initialization complete');
   } catch (error) {
     logger.error('Server initialization failed:', error);
@@ -112,7 +124,7 @@ export async function init() {
 export async function destroy() {
   if (logger) {
     logger.info('Shutting down server');
-    
+
     // Clean up services here
     // if (serviceManager) {
     //   await serviceManager.stopAll();
@@ -123,7 +135,7 @@ export async function destroy() {
 /** @type {import('@sveltejs/kit').Handle} */
 export async function handle({ event, resolve }) {
   const start = Date.now();
-  
+
   logger?.info('Request started', {
     method: event.request.method,
     url: event.url.pathname,
@@ -133,14 +145,14 @@ export async function handle({ event, resolve }) {
   try {
     const response = await resolve(event);
     const duration = Date.now() - start;
-    
+
     logger?.info('Request completed', {
       method: event.request.method,
       url: event.url.pathname,
       status: response.status,
       duration: `${duration}ms`
     });
-    
+
     return response;
   } catch (error) {
     logger?.error('Request failed', {
@@ -167,11 +179,12 @@ export async function init() {
 
     getClientLogger().info('Client initialization complete');
   } catch (error) {
-    getClientLogger().error('Client initialization failed', 
-      /** @type {Error} */ (error));
+    getClientLogger().error(
+      'Client initialization failed',
+      /** @type {Error} */ (error)
+    );
     // throw error;
-  }
-  finally {
+  } finally {
     getClientLogger().info('Client application initialized', {
       userAgent: navigator.userAgent,
       viewport: `${window.innerWidth}x${window.innerHeight}`
@@ -197,7 +210,7 @@ how to forward service logs to the main logger, see:
 
 - [Services README](../services/README.md) - ServiceManager log event
   forwarding
-- [Services & Logging Architecture](../../docs/setup/services-logging.md)
+- [Services & Logging Architecture](../../doc/setup/services-logging.md)
   - Complete integration examples
 
 ## Development

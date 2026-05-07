@@ -24,6 +24,7 @@ you with setting up a new project.
 - [Running the showcase app](#running-the-showcase-app)
 - [Developing](#developing)
 - [Publishing](#publishing)
+  - [Forgejo integration](doc/forgejo-integration.md)
 - [Contribute](#contribute)
 
 ## Using the library
@@ -31,11 +32,13 @@ you with setting up a new project.
 ### Install
 
 **For projects/applications:**
+
 ```bash
 pnpm add @hkdigital/lib-core
 ```
 
 **For other libraries:**
+
 ```bash
 pnpm add -D --save-peer @hkdigital/lib-core
 ```
@@ -43,6 +46,7 @@ pnpm add -D --save-peer @hkdigital/lib-core
 ### Peer Dependencies
 
 **For projects/applications**, install peer dependencies:
+
 ```bash
 # Core framework and utilities
 pnpm add @sveltejs/kit svelte svelte-preprocess runed valibot
@@ -70,6 +74,7 @@ pnpm add -D vite-imagetools
 ```
 
 **For other libraries**, install as dev dependencies and declare as peer dependencies:
+
 ```bash
 # Install as dev dependencies and peer dependencies
 pnpm add -D --save-peer @sveltejs/kit svelte svelte-preprocess runed valibot @skeletonlabs/skeleton @steeze-ui/heroicons tailwindcss @tailwindcss/postcss postcss autoprefixer pino pino-pretty jsonwebtoken @eslint/js eslint-plugin-import vite-imagetools
@@ -80,12 +85,13 @@ pnpm add -D --save-peer @sveltejs/kit svelte svelte-preprocess runed valibot @sk
 This library includes a complete design system with Tailwind CSS integration. Basic setup requires:
 
 1. **Tailwind config** - Include library files in content scanning:
+
    ```js
    // tailwind.config.js
-   import { 
+   import {
      generateTailwindThemeExtensions,
      designTokens,
-     customUtilitiesPlugin 
+     customUtilitiesPlugin
    } from '@hkdigital/lib-core/design/index.js';
 
    const themeExtensions = generateTailwindThemeExtensions(designTokens);
@@ -110,10 +116,14 @@ This library includes a complete design system with Tailwind CSS integration. Ba
    ```
 
 2. **Design tokens** - Apply CSS variables in your layout:
+
    ```html
    <!-- src/routes/+layout.svelte -->
    <script>
-     import { designTokens, designTokensToRootCssVars } from '@hkdigital/lib-core/design/index.js';
+     import {
+       designTokens,
+       designTokensToRootCssVars
+     } from '@hkdigital/lib-core/design/index.js';
    </script>
 
    <svelte:head>
@@ -124,6 +134,7 @@ This library includes a complete design system with Tailwind CSS integration. Ba
    ```
 
 3. **Vite configuration** - Use the provided config generator:
+
    ```js
    // vite.config.js
    import { defineConfig } from 'vitest/config';
@@ -138,6 +149,7 @@ This library includes a complete design system with Tailwind CSS integration. Ba
    ```
 
 4. **Svelte configuration** - Configure preprocessing and useful path aliases:
+
    ```js
    // svelte.config.js
    import { sveltePreprocess } from 'svelte-preprocess';
@@ -161,6 +173,7 @@ This library includes a complete design system with Tailwind CSS integration. Ba
 
 5. **Image import type definitions** - Add imagetools type support to
    `app.d.ts`:
+
    ```typescript
    // src/app.d.ts
    import '@hkdigital/lib-core/config/imagetools.d.ts';
@@ -196,6 +209,7 @@ This library includes a complete design system with Tailwind CSS integration. Ba
    - `blur` - AVIF format, 50% quality with blur effect, returns metadata
 
    **Usage examples:**
+
    ```javascript
    // Basic usage
    import heroImage from '$lib/assets/hero.jpg?preset=photo';
@@ -210,6 +224,7 @@ This library includes a complete design system with Tailwind CSS integration. Ba
    favicon generation, manifest.json, sitemap.xml, and robots.txt.
 
    **Quick setup:**
+
    ```bash
    # Copy template files to your project
    cp -r node_modules/@hkdigital/lib-core/meta/templates/lib/* src/lib/
@@ -240,16 +255,16 @@ Comprehensive documentation organized by topic.
 
 Start here if you're setting up a new project or library:
 
-- **[New project setup](./docs/setup/new-project.md)** - Complete guide
+- **[New project setup](./doc/setup/new-project.md)** - Complete guide
   for setting up a SvelteKit application with lib-core
-- **[New library setup](./docs/setup/new-lib.md)** - Complete guide for
+- **[New library setup](./doc/setup/new-lib.md)** - Complete guide for
   setting up a SvelteKit library with lib-core
 
 ### Architecture Guides
 
 Learn how the different systems work together:
 
-- **[Services & logging architecture](./docs/setup/services-logging.md)**
+- **[Services & logging architecture](./doc/setup/services-logging.md)**
   - How service management and logging integrate with SvelteKit
 - **[Service patterns](./src/lib/services/PATTERNS.md)** - Best
   practices and design patterns for implementing services
@@ -273,7 +288,7 @@ Detailed API documentation for each module:
 
 Reference documentation for configuration files:
 
-- **[Root config files](./docs/config/root-config-files.md)** - Guide
+- **[Root config files](./doc/config/root-config-files.md)** - Guide
   to vite.config.js, tailwind.config.js, and other root configs
 
 ### Update
@@ -328,6 +343,7 @@ node node_modules/@hkdigital/lib-core/scripts/validate-imports.mjs
 The validator automatically reads path aliases from your
 `svelte.config.js` and applies the same barrel export validation rules
 to alias imports. This ensures consistent import patterns across:
+
 - Internal `$lib/` imports
 - External `@hkdigital/*` package imports
 
@@ -417,6 +433,7 @@ src/routes/explorer/[...path]/+page.svelte:4
 
 The validator only suggests barrel exports (for `$lib/` and external
 `@hkdigital/*` packages) for:
+
 - Explicit `index.js` imports
 - Component files (`.svelte`)
 - Class files (capitalized `.js` files)
@@ -437,6 +454,7 @@ import { Button } from '@hkdigital/lib-core/ui/primitives.js';
 ```
 
 **Pattern:**
+
 - Folder `$lib/network/http/` → Export file `$lib/network/http.js`
 - Folder `$lib/network/cache/` → Export file `$lib/network/cache.js`
 - Folder `$lib/constants/regexp/` → Export file `$lib/constants/regexp.js`
@@ -477,14 +495,18 @@ architecture. Incomplete imports will cause build failures.
 @import 'tailwindcss';
 
 /* 3. HKdigital Design System Theme (ALL required for colors to work) */
-@import '../node_modules/@hkdigital/lib-core/dist/design/themes/hkdev/theme.css' layer(theme);
+@import '../node_modules/@hkdigital/lib-core/dist/design/themes/hkdev/theme.css'
+  layer(theme);
 @import '../node_modules/@hkdigital/lib-core/dist/design/themes/hkdev/globals.css';
-@import '../node_modules/@hkdigital/lib-core/dist/design/themes/hkdev/components.css' layer(components);
+@import '../node_modules/@hkdigital/lib-core/dist/design/themes/hkdev/components.css'
+  layer(components);
 @import '../node_modules/@hkdigital/lib-core/dist/design/themes/hkdev/responsive.css';
 
 /* 4. Skeleton UI Framework */
-@import '@skeletonlabs/skeleton' source('../node_modules/@skeletonlabs/skeleton-svelte/dist');
-@import '@skeletonlabs/skeleton/optional/presets' source('../node_modules/@skeletonlabs/skeleton-svelte/dist');
+@import '@skeletonlabs/skeleton'
+  source('../node_modules/@skeletonlabs/skeleton-svelte/dist');
+@import '@skeletonlabs/skeleton/optional/presets'
+  source('../node_modules/@skeletonlabs/skeleton-svelte/dist');
 
 /* 5. Tailwind Configuration Reference */
 @config "../tailwind.config.js";
@@ -494,6 +516,7 @@ architecture. Incomplete imports will cause build failures.
 ```
 
 **Why all theme files are required:**
+
 - Missing any theme file will cause "Cannot apply unknown utility class"
   errors
 - Classes like `bg-surface-100`, `text-primary-500` won't work without
@@ -525,6 +548,7 @@ CSS architecture documentation.
 ```
 
 **Why this is required:**
+
 - Theme CSS custom properties are scoped to `[data-theme='hkdev']`
 - Without this attribute, colors fall back to browser defaults
 - **Symptom**: Colors like `bg-primary-500` show grey instead of magenta
@@ -558,20 +582,25 @@ Everything inside `src/lib` is part of the library, everything inside `src/route
 
 ## Publishing
 
-The name of this library is `@hkdigital/lib-core` and it is published on [NPM](https://npmjs.com). You need NPM credentials to publish in the scope `@hkdigital`.
+The package is published to a self-hosted Forgejo registry under the
+`@hkdigital` scope. Publishing is handled by CI — push a version tag
+from `main` to trigger the release workflow.
 
 ```bash
-# Manually
-npm login
-npm version patch
-npm publish --access public
+# Bump patch version, tag, and push (triggers CI release)
+pnpm run release
+
+# Or choose the version bump explicitly
+pnpm run release:patch
+pnpm run release:minor
+pnpm run release:major
 ```
 
-```bash
-# Run `npm version patch && npm publish --access public && git push`
-# as specified in package.json
-pnpm run publish:npm
-```
+The release scripts only run on the `main` branch. CI verifies the
+tag is on `main` before publishing.
+
+See [doc/forgejo-integration.md](doc/forgejo-integration.md) for how
+to consume this package in other projects and CI pipelines.
 
 ### Troubleshooting
 
@@ -579,8 +608,6 @@ pnpm run publish:npm
 
 The CMD terminal in Windows is quite limited. Use the PowerShell instead of some scripts from package.json do not run correctly.
 
-
 ## Contribute
 
 If your wish to contribute to this library, please contact us [HKdigital](https://hkdigital.nl/contact). Alternatively, the license permits you to fork the library and publish under an alternative name. Don't forget to change the package name in [package.json](./package.json) if you do so.
-

@@ -5,7 +5,8 @@ lifecycle management, health monitoring, and dependency orchestration
 for application services.
 
 **See also:**
-- **Architecture**: [docs/setup/services-logging.md](../../docs/setup/services-logging.md)
+
+- **Architecture**: [docs/setup/services-logging.md](../../doc/setup/services-logging.md)
   - How services and logging work together
 - **Patterns**: [PATTERNS.md](./PATTERNS.md) - Service access patterns
   and best practices
@@ -162,8 +163,7 @@ ServiceBase emits these events (constants from
 - `EVENT_ERROR` - Service errors
 
 ```javascript
-import { EVENT_STATE_CHANGED }
-  from '$lib/services/service-base/constants.js';
+import { EVENT_STATE_CHANGED } from '$lib/services/service-base/constants.js';
 
 service.on(EVENT_STATE_CHANGED, ({ state, previousState }) => {
   console.log(`Service transitioned from ${previousState} to ${state}`);
@@ -231,6 +231,7 @@ manager.register(name, ServiceClass, serviceConfigOrLabel, options);
 ```
 
 **Parameters:**
+
 - `name` - Unique service identifier
 - `ServiceClass` - Class extending ServiceBase
 - `serviceConfigOrLabel` - Service configuration object
@@ -326,10 +327,11 @@ ServiceManager provides centralized logging control for all services:
 
 ```javascript
 const manager = new ServiceManager({
-  debug: true,                    // Sets defaultLogLevel to DEBUG
-  defaultLogLevel: 'INFO',        // Default level for all services
-  managerLogLevel: 'DEBUG',       // Level for ServiceManager itself
-  serviceLogLevels: {             // Per-service levels
+  debug: true, // Sets defaultLogLevel to DEBUG
+  defaultLogLevel: 'INFO', // Default level for all services
+  managerLogLevel: 'DEBUG', // Level for ServiceManager itself
+  serviceLogLevels: {
+    // Per-service levels
     database: 'ERROR',
     auth: 'DEBUG'
   }
@@ -387,7 +389,7 @@ await manager.startAll();
 unsubscribe();
 ```
 
-**See [docs/setup/services-logging.md](../../docs/setup/services-logging.md)
+**See [docs/setup/services-logging.md](../../doc/setup/services-logging.md)
 for complete integration examples.**
 
 ## Plugins
@@ -488,5 +490,5 @@ await manager.recoverService('name');
   patterns, configuration patterns, and best practices
 - **Plugins**: See [PLUGINS.md](./PLUGINS.md) for ConfigPlugin and
   custom plugins
-- **Architecture**: See [docs/setup/services-logging.md](../../docs/setup/services-logging.md)
+- **Architecture**: See [docs/setup/services-logging.md](../../doc/setup/services-logging.md)
   for integration with logging and SvelteKit hooks

@@ -4,11 +4,12 @@ Design patterns and best practices for implementing services with the
 ServiceBase and ServiceManager system.
 
 **See also:**
+
 - **API Reference**: [README.md](./README.md) - ServiceBase and
   ServiceManager API
 - **Plugins**: [PLUGINS.md](./PLUGINS.md) - Plugin system and
   ConfigPlugin
-- **Architecture**: [docs/setup/services-logging.md](../../docs/setup/services-logging.md)
+- **Architecture**: [docs/setup/services-logging.md](../../doc/setup/services-logging.md)
   - Integration patterns
 
 ## Service Access Patterns
@@ -33,8 +34,8 @@ class AuthService extends ServiceBase {
     super(serviceName, options);
 
     // Store service access utilities as private methods
-    this.#getService = options.getService;   // Bound getService function
-    this.#getManager = options.getManager;   // Function to get manager (lazy)
+    this.#getService = options.getService; // Bound getService function
+    this.#getManager = options.getManager; // Function to get manager (lazy)
   }
 
   async authenticateUser(credentials) {
@@ -57,6 +58,7 @@ The recommended approach is to store service access functions as
 **private methods** using the hash prefix. This pattern provides:
 
 **Benefits:**
+
 - **Keeps the API clean** - No public getService/getManager methods
   exposed
 - **Prevents serialization issues** - Private fields don't serialize
@@ -74,7 +76,6 @@ The recommended approach is to store service access functions as
  * and profile matches
  */
 export default class PlayerService extends ServiceBase {
-
   /** @type {(<T>(serviceName: string) => T)} */
   #getService;
 
@@ -117,6 +118,7 @@ const service = manager.getService('required-service'); // Throws if missing
 ```
 
 **When to use each:**
+
 - Use `get()` for optional services or when checking availability
 - Use `getService()` for required dependencies (clearer error messages)
 
@@ -184,6 +186,7 @@ class DatabaseService extends ServiceBase {
 ```
 
 **Key principles:**
+
 - Check `!oldConfig` to detect initial configuration
 - Compare old and new config to identify what changed
 - Apply minimal changes (don't restart if not needed)
@@ -392,23 +395,13 @@ Always declare service dependencies for proper startup ordering.
 // Register services with explicit dependencies
 manager.register('database', DatabaseService, dbConfig);
 
-manager.register(
-  'cache',
-  CacheService,
-  cacheConfig,
-  {
-    dependencies: ['database'] // Cache needs database
-  }
-);
+manager.register('cache', CacheService, cacheConfig, {
+  dependencies: ['database'] // Cache needs database
+});
 
-manager.register(
-  'auth',
-  AuthService,
-  authConfig,
-  {
-    dependencies: ['database', 'cache'] // Auth needs both
-  }
-);
+manager.register('auth', AuthService, authConfig, {
+  dependencies: ['database', 'cache'] // Auth needs both
+});
 ```
 
 ### Startup Priority
@@ -419,20 +412,12 @@ Use priority for services that should start early.
 
 ```javascript
 // Start logger first (highest priority)
-manager.register(
-  'logger',
-  LoggerService,
-  logConfig,
-  { startupPriority: 100 }
-);
+manager.register('logger', LoggerService, logConfig, { startupPriority: 100 });
 
 // Then database (high priority)
-manager.register(
-  'database',
-  DatabaseService,
-  dbConfig,
-  { startupPriority: 50 }
-);
+manager.register('database', DatabaseService, dbConfig, {
+  startupPriority: 50
+});
 
 // Then other services (default priority: 0)
 manager.register('auth', AuthService, authConfig);
